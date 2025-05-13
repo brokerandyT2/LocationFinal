@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Location.Core.Domain", "Loc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Location.Core.Domain.Tests", "Location.Core.Domain.Tests\Location.Core.Domain.Tests.csproj", "{9277AFD3-4CC4-4D52-A674-5E09F11EA4C2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Location.Core.Application", "Location.Core.Application\Location.Core.Application.csproj", "{AA1429AB-F9AC-491E-96E6-0D758CBD6922}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{9277AFD3-4CC4-4D52-A674-5E09F11EA4C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9277AFD3-4CC4-4D52-A674-5E09F11EA4C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9277AFD3-4CC4-4D52-A674-5E09F11EA4C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA1429AB-F9AC-491E-96E6-0D758CBD6922}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA1429AB-F9AC-491E-96E6-0D758CBD6922}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA1429AB-F9AC-491E-96E6-0D758CBD6922}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA1429AB-F9AC-491E-96E6-0D758CBD6922}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
