@@ -19,10 +19,11 @@ namespace Location.Core.Application.Tests.Common.Behaviors
         private ValidationBehavior<TestRequest, Result<string>> _behavior;
         private Mock<IValidator<TestRequest>> _validatorMock;
         private Mock<RequestHandlerDelegate<Result<string>>> _nextMock;
-
+        private CancellationToken _ctx;
         [SetUp]
         public void Setup()
         {
+            _ctx = new CancellationToken();
             _validatorMock = new Mock<IValidator<TestRequest>>();
             _nextMock = new Mock<RequestHandlerDelegate<Result<string>>>();
 
@@ -41,13 +42,13 @@ namespace Location.Core.Application.Tests.Common.Behaviors
                 .ReturnsAsync(new ValidationResult());
 
             _nextMock
-                .Setup(x => x())
+                .Setup(x => x(_ctx))
                 .ReturnsAsync(expectedResult);
 
             var result = await _behavior.Handle(command, _nextMock.Object, CancellationToken.None);
 
             result.Should().Be(expectedResult);
-            _nextMock.Verify(x => x(), Times.Once);
+            _nextMock.Verify(x => x(_ctx), Times.Once);
         }
 
         [Test]
@@ -70,7 +71,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
             result.Errors.Should().HaveCount(2);
             result.Errors.Should().Contain(x => x.Message == "Value is required");
             result.Errors.Should().Contain(x => x.Message == "Value must not be empty");
-            _nextMock.Verify(x => x(), Times.Never);
+            _nextMock.Verify(x => x(_ctx), Times.Never);
         }
 
         [Test]
@@ -96,7 +97,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
                 .ReturnsAsync(new ValidationResult());
 
             _nextMock
-                .Setup(x => x())
+                .Setup(x => x(_ctx))
                 .ReturnsAsync(Result<string>.Success("Success"));
 
             var result = await behavior.Handle(command, _nextMock.Object, CancellationToken.None);
@@ -114,13 +115,13 @@ namespace Location.Core.Application.Tests.Common.Behaviors
             var expectedResult = Result<string>.Success("Success");
 
             _nextMock
-                .Setup(x => x())
+                .Setup(x => x(_ctx))
                 .ReturnsAsync(expectedResult);
 
             var result = await behavior.Handle(command, _nextMock.Object, CancellationToken.None);
 
             result.Should().Be(expectedResult);
-            _nextMock.Verify(x => x(), Times.Once);
+            _nextMock.Verify(x => x(_ctx), Times.Once);
         }
 
         [Test]
@@ -135,7 +136,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
                 .ReturnsAsync(new ValidationResult());
 
             _nextMock
-                .Setup(x => x())
+                .Setup(x => x(_ctx))
                 .ReturnsAsync(Result<string>.Success("Success"));
 
             await _behavior.Handle(command, _nextMock.Object, token);
@@ -157,7 +158,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
             result.IsSuccess.Should().BeFalse();
             result.Errors.Should().ContainSingle();
             result.Errors.First().Message.Should().Be("Validation failed");
-            _nextMock.Verify(x => x(), Times.Never);
+            _nextMock.Verify(x => x(_ctx), Times.Never);
         }
 
         // Use TestRequest instead of TestCommand to avoid NUnit naming conflict

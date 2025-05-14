@@ -17,10 +17,12 @@ namespace Location.Core.Application.Tests.Common.Behaviors
         private LoggingBehavior<TestRequest, Result<string>> _behavior;
         private Mock<ILogger<LoggingBehavior<TestRequest, Result<string>>>> _loggerMock;
         private Mock<RequestHandlerDelegate<Result<string>>> _nextMock;
+        private CancellationToken _ctx;
 
         [SetUp]
         public void Setup()
         {
+            _ctx = new CancellationToken();
             _loggerMock = new Mock<ILogger<LoggingBehavior<TestRequest, Result<string>>>>();
             _nextMock = new Mock<RequestHandlerDelegate<Result<string>>>();
             _behavior = new LoggingBehavior<TestRequest, Result<string>>(_loggerMock.Object);
@@ -33,7 +35,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
             var result = Result<string>.Success("Success");
 
             _nextMock
-                .Setup(x => x())
+                .Setup(x => x(_ctx))
                 .ReturnsAsync(result);
 
             var actualResult = await _behavior.Handle(command, _nextMock.Object, CancellationToken.None);
@@ -66,7 +68,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
             var exception = new InvalidOperationException("Test exception");
 
             _nextMock
-                .Setup(x => x())
+                .Setup(x => x(_ctx))
                 .ThrowsAsync(exception);
 
             Func<Task> act = async () => await _behavior.Handle(command, _nextMock.Object, CancellationToken.None);
@@ -90,7 +92,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
             var result = Result<string>.Success("Success");
 
             _nextMock
-                .Setup(x => x())
+                .Setup(x => x(_ctx))
                 .Returns(async () =>
                 {
                     await Task.Delay(1000);
@@ -118,7 +120,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
             var result = Result<string>.Success("Success");
 
             _nextMock
-                .Setup(x => x())
+                .Setup(x => x(_ctx))
                 .ReturnsAsync(result);
 
             await _behavior.Handle(command, _nextMock.Object, CancellationToken.None);
@@ -140,7 +142,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
             var result = Result<string>.Failure("Operation failed");
 
             _nextMock
-                .Setup(x => x())
+                .Setup(x => x(_ctx))
                 .ReturnsAsync(result);
 
             var actualResult = await _behavior.Handle(command, _nextMock.Object, CancellationToken.None);
