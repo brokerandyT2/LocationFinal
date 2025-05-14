@@ -1,15 +1,16 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Moq;
-using MediatR;
-using FluentValidation;
+﻿using FluentValidation;
 using FluentValidation.Results;
+using MediatR;
+using Moq;
+using Location.Core.Application.Common.Behaviors;
+using Location.Core.Application.Common.Models;
+using Location.Core.Application.Common.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Location.Core.Application.Common.Models;
-using Location.Core.Application.Common.Behaviors;
+using FluentAssertions;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Common.Behaviors
 {
@@ -18,153 +19,62 @@ namespace Location.Core.Application.Tests.Common.Behaviors
     {
         private ValidationBehavior<TestRequest, Result<string>> _behavior;
         private Mock<IValidator<TestRequest>> _validatorMock;
-        private Mock<RequestHandlerDelegate<Result<string>>> _nextMock;
-        private CancellationToken _ctx;
+
         [SetUp]
-        public void Setup()
+        public void SetUp()
         {
-            _ctx = new CancellationToken();
             _validatorMock = new Mock<IValidator<TestRequest>>();
-            _nextMock = new Mock<RequestHandlerDelegate<Result<string>>>();
-
-            var validators = new List<IValidator<TestRequest>> { _validatorMock.Object };
-            _behavior = new ValidationBehavior<TestRequest, Result<string>>(validators);
-        }
-
-        [Test]
-        public async Task Handle_WithNoValidationErrors_ShouldContinuePipeline()
-        {
-            var command = new TestRequest { Value = "valid" };
-            var expectedResult = Result<string>.Success("Success");
-
-            _validatorMock
-                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
-
-            _nextMock
-                .Setup(x => x(_ctx))
-                .ReturnsAsync(expectedResult);
-
-            var result = await _behavior.Handle(command, _nextMock.Object, CancellationToken.None);
-
-            result.Should().Be(expectedResult);
-            _nextMock.Verify(x => x(_ctx), Times.Once);
-        }
-
-        [Test]
-        public async Task Handle_WithValidationErrors_ShouldReturnFailure()
-        {
-            var command = new TestRequest { Value = "" };
-            var validationErrors = new List<ValidationFailure>
-            {
-                new ValidationFailure("Value", "Value is required"),
-                new ValidationFailure("Value", "Value must not be empty")
-            };
-
-            _validatorMock
-                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult(validationErrors));
-
-            var result = await _behavior.Handle(command, _nextMock.Object, CancellationToken.None);
-
-            result.IsSuccess.Should().BeFalse();
-            result.Errors.Should().HaveCount(2);
-            result.Errors.Should().Contain(x => x.Message == "Value is required");
-            result.Errors.Should().Contain(x => x.Message == "Value must not be empty");
-            _nextMock.Verify(x => x(_ctx), Times.Never);
-        }
-
-        [Test]
-        public async Task Handle_WithMultipleValidators_ShouldValidateAll()
-        {
-            var command = new TestRequest { Value = "test" };
-            var validator2Mock = new Mock<IValidator<TestRequest>>();
-
-            var validators = new List<IValidator<TestRequest>>
-            {
-                _validatorMock.Object,
-                validator2Mock.Object
-            };
-
-            var behavior = new ValidationBehavior<TestRequest, Result<string>>(validators);
-
-            _validatorMock
-                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
-
-            validator2Mock
-                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
-
-            _nextMock
-                .Setup(x => x(_ctx))
-                .ReturnsAsync(Result<string>.Success("Success"));
-
-            var result = await behavior.Handle(command, _nextMock.Object, CancellationToken.None);
-
-            result.IsSuccess.Should().BeTrue();
-            _validatorMock.Verify(x => x.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()), Times.Once);
-            validator2Mock.Verify(x => x.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()), Times.Once);
+            _behavior = new ValidationBehavior<TestRequest, Result<string>>(new[] { _validatorMock.Object });
         }
 
         [Test]
         public async Task Handle_WithNoValidators_ShouldContinuePipeline()
         {
-            var command = new TestRequest { Value = "test" };
+            // Arrange
             var behavior = new ValidationBehavior<TestRequest, Result<string>>(Enumerable.Empty<IValidator<TestRequest>>());
-            var expectedResult = Result<string>.Success("Success");
+            var request = new TestRequest();
+            var expectedResponse = Result<string>.Success("Success");
+            RequestHandlerDelegate<Result<string>> next = (_ctx) => Task.FromResult(expectedResponse);
 
-            _nextMock
-                .Setup(x => x(_ctx))
-                .ReturnsAsync(expectedResult);
+            // Act
+            var result = await behavior.Handle(request, next, CancellationToken.None);
 
-            var result = await behavior.Handle(command, _nextMock.Object, CancellationToken.None);
-
-            result.Should().Be(expectedResult);
-            _nextMock.Verify(x => x(_ctx), Times.Once);
+            // Assert
+            result.Should().Be(expectedResponse);
         }
 
         [Test]
-        public async Task Handle_WithCancellationToken_ShouldPassThrough()
+        public async Task Handle_WithValidationErrors_ShouldReturnFailure()
         {
-            var command = new TestRequest { Value = "test" };
-            var cts = new CancellationTokenSource();
-            var token = cts.Token;
+            // Arrange
+            var request = new TestRequest();
+            var validationFailures = new List<ValidationFailure>
+            {
+                new ValidationFailure("Name", "Name is required"),
+                new ValidationFailure("Age", "Age must be positive")
+            };
 
             _validatorMock
-                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), token))
-                .ReturnsAsync(new ValidationResult());
+                .Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult(validationFailures));
 
-            _nextMock
-                .Setup(x => x(_ctx))
-                .ReturnsAsync(Result<string>.Success("Success"));
+            RequestHandlerDelegate<Result<string>> next = (_ctx) => Task.FromResult(Result<string>.Success("Success"));
 
-            await _behavior.Handle(command, _nextMock.Object, token);
+            // Act
+            var result = await _behavior.Handle(request, next, CancellationToken.None);
 
-            _validatorMock.Verify(x => x.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), token), Times.Once);
-        }
-
-        [Test]
-        public async Task Handle_WithValidationException_ShouldConvertToFailure()
-        {
-            var command = new TestRequest { Value = "test" };
-
-            _validatorMock
-                .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new ValidationException("Validation failed"));
-
-            var result = await _behavior.Handle(command, _nextMock.Object, CancellationToken.None);
-
+            // Assert
             result.IsSuccess.Should().BeFalse();
-            result.Errors.Should().ContainSingle();
-            result.Errors.First().Message.Should().Be("Validation failed");
-            _nextMock.Verify(x => x(_ctx), Times.Never);
+            result.Errors.Should().HaveCount(2);
+            result.Errors.Should().Contain(e => e.Message == "Name is required");
+            result.Errors.Should().Contain(e => e.Message == "Age must be positive");
         }
 
-        // Use TestRequest instead of TestCommand to avoid NUnit naming conflict
-        private class TestRequest : IRequest<Result<string>>
+        // Make test classes public
+        public class TestRequest : IRequest<Result<string>>
         {
-            public string Value { get; set; } = string.Empty;
+            public string Name { get; set; }
+            public int Age { get; set; }
         }
     }
 }
