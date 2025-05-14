@@ -21,7 +21,7 @@ namespace Location.Core.Infrastructure
         {
             // Database
             services.AddSingleton<IDatabaseContext, DatabaseContext>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUnitOfWork, Location.Core.Infrastructure.UnitOfWork.UnitOfWork>();
             // Persistence-layer repositories (implementing Common.Interfaces.Persistence interfaces)
             services.AddScoped<LocationRepository>();
             services.AddScoped<WeatherRepository>();

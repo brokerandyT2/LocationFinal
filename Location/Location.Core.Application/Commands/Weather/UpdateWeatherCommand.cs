@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿
+using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
@@ -7,7 +8,6 @@ using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-
 namespace Location.Core.Application.Commands.Weather
 {
     public class UpdateWeatherCommand : IRequest<Result<WeatherDto>>
@@ -15,7 +15,6 @@ namespace Location.Core.Application.Commands.Weather
         public int LocationId { get; set; }
         public bool ForceUpdate { get; set; }
     }
-
     public class UpdateWeatherCommandHandler : IRequestHandler<UpdateWeatherCommand, Result<WeatherDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -36,12 +35,14 @@ namespace Location.Core.Application.Commands.Weather
         {
             try
             {
-                var location = await _unitOfWork.Locations.GetByIdAsync(request.LocationId, cancellationToken);
+                var locationResult = await _unitOfWork.Locations.GetByIdAsync(request.LocationId, cancellationToken);
 
-                if (location == null)
+                if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
                     return Result<WeatherDto>.Failure("Location not found");
                 }
+
+                var location = locationResult.Data;
 
                 // Check if we have cached weather that's still valid
                 var existingWeather = await _unitOfWork.Weather.GetByLocationIdAsync(request.LocationId, cancellationToken);

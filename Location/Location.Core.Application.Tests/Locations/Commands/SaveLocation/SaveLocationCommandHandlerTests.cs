@@ -1,16 +1,12 @@
-﻿using NUnit.Framework;
+﻿using AutoMapper;
 using FluentAssertions;
-using Moq;
-using System.Threading;
-using System.Threading.Tasks;
+using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Locations.Commands.SaveLocation;
-using Location.Core.Application.Tests.Helpers;
-using AutoMapper;
-using Location.Core.Application.Locations.DTOs;
-using Location.Core.Domain.ValueObjects;
-using Location.Core.Application.Common.Models;
 using Location.Core.Application.Common.Interfaces.Persistence;
+using Location.Core.Application.Locations.DTOs;
+using Location.Core.Application.Tests.Helpers;
+using Moq;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
 {

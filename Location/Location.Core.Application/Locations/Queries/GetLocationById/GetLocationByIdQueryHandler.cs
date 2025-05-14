@@ -5,7 +5,7 @@ using Location.Core.Application.Locations.DTOs;
 using MediatR;
 using Location.Core.Application.Queries.Locations;
 using Location.Core.Application.Locations.Queries.GetLocationById;
-namespace Location.Core.Application.Queries.Locations
+namespace Location.Core.Application.Locations.Queries.GetLocationById
 {
     public class GetLocationByIdQueryHandler : IRequestHandler<GetLocationByIdQuery, Result<LocationDto>>
     {
