@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
@@ -9,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 namespace Location.Core.Application.Queries.Locations
 {
     public class GetLocationsQuery : IRequest<Result<PagedList<LocationListDto>>>
@@ -18,6 +18,7 @@ namespace Location.Core.Application.Queries.Locations
         public string? SearchTerm { get; set; }
         public bool IncludeDeleted { get; set; } = false;
     }
+
     public class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, Result<PagedList<LocationListDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -34,21 +35,17 @@ namespace Location.Core.Application.Queries.Locations
             try
             {
                 // Get all locations (or active ones based on request)
-                var locationsResult = request.IncludeDeleted
+                var locations = request.IncludeDeleted
                     ? await _unitOfWork.Locations.GetAllAsync(cancellationToken)
                     : await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
 
-                if (!locationsResult.IsSuccess || locationsResult.Data == null)
-                {
-                    return Result<PagedList<LocationListDto>>.Failure(locationsResult.ErrorMessage ?? "Failed to retrieve locations");
-                }
-
-                var locations = locationsResult.Data;
+                // Convert to list if needed
+                var locationList = locations.ToList();
 
                 // Apply search filter if provided
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))
                 {
-                    locations = locations.Where(l =>
+                    locationList = locationList.Where(l =>
                         l.Title.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
                         l.Description.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
                         l.Address.City.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
@@ -56,7 +53,7 @@ namespace Location.Core.Application.Queries.Locations
                 }
 
                 // Map to DTOs
-                var locationDtos = _mapper.Map<List<LocationListDto>>(locations);
+                var locationDtos = _mapper.Map<List<LocationListDto>>(locationList);
 
                 // Create paged result
                 var pagedList = PagedList<LocationListDto>.Create(

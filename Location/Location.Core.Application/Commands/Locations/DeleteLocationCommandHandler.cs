@@ -20,22 +20,16 @@ namespace Location.Core.Application.Commands.Locations
         {
             try
             {
-                var locationResult = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
+                var location = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
 
-                if (!locationResult.IsSuccess || locationResult.Data == null)
+                if (location == null)
                 {
                     return Result<bool>.Failure("Location not found");
                 }
 
-                var location = locationResult.Data;
                 location.Delete();
 
-                var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
-
-                if (!updateResult.IsSuccess)
-                {
-                    return Result<bool>.Failure(updateResult.ErrorMessage ?? "Failed to update location");
-                }
+                _unitOfWork.Locations.Update(location);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 

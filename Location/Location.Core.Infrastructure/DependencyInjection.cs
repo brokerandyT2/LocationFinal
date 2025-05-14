@@ -45,9 +45,7 @@ namespace Location.Core.Infrastructure
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ISettingRepository>(sp =>
                 sp.GetRequiredService<SettingRepository>());
 
-            // Application-layer interfaces (using adapters to convert from persistence to Result<T> pattern)
-            services.AddScoped<Location.Core.Application.Common.Interfaces.ILocationRepository>(sp =>
-                new LocationRepositoryAdapter(sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository>()));
+           
 
             // Fix: Cast explicitly to the interface type
             services.AddScoped<Location.Core.Application.Common.Interfaces.IWeatherRepository>(sp =>

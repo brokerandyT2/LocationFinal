@@ -1,13 +1,9 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Locations.Queries.GetLocationById;
-using Location.Core.Application.Queries.Locations;
-using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
 using Moq;
 using Xunit;
@@ -20,14 +16,13 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
         private readonly Mock<ILocationRepository> _locationRepositoryMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly GetLocationByIdQueryHandler _handler;
+
         public GetLocationByIdQueryHandlerTests()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _locationRepositoryMock = new Mock<ILocationRepository>();
             _mapperMock = new Mock<IMapper>();
-
             _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
-
             _handler = new GetLocationByIdQueryHandler(_unitOfWorkMock.Object, _mapperMock.Object);
         }
 
@@ -44,7 +39,7 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(locationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Location.Core.Domain.Entities.Location>.Success(location));
+                .ReturnsAsync(location);  // Return Location directly, not Result<Location>
 
             var locationDto = new LocationDto { Id = locationId, Title = "Test Location" };
             _mapperMock
@@ -59,7 +54,7 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
             // Assert
             Assert.IsTrue(result.IsSuccess);
             Assert.IsNotNull(result.Data);
-            Assert.Equals(locationId, result.Data.Id);
+            Assert.IsTrue(locationId == result.Data.Id);
         }
 
         [Fact]
@@ -70,7 +65,7 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(locationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Location.Core.Domain.Entities.Location>.Failure("Location not found"));
+                .ReturnsAsync((Location.Core.Domain.Entities.Location)null);  // Return null for not found
 
             var query = new GetLocationByIdQuery { Id = locationId };
 
@@ -79,7 +74,7 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 
             // Assert
             Assert.IsFalse(result.IsSuccess);
-            Assert.Equals("Location not found", result.ErrorMessage);
+            Assert.IsTrue( result.ErrorMessage.Contains("Location not found"));
         }
 
         [Fact]

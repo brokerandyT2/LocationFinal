@@ -1,4 +1,4 @@
-﻿using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Domain.Entities;
 using System;
@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
-    public class LocationRepositoryAdapter : Location.Core.Application.Common.Interfaces.ILocationRepository
+    public class LocationRepositoryAdapter
     {
-        private readonly Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository _innerRepository;
+        private readonly ILocationRepository _innerRepository;
 
-        public LocationRepositoryAdapter(Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository innerRepository)
+        public LocationRepositoryAdapter(ILocationRepository innerRepository)
         {
             _innerRepository = innerRepository ?? throw new ArgumentNullException(nameof(innerRepository));
         }
@@ -142,15 +142,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
             {
                 return Result<List<Domain.Entities.Location>>.Failure($"Failed to retrieve locations by coordinates: {ex.Message}");
             }
-        }
-
-        public async Task<Result<List<Domain.Entities.Location>>> GetByCoordinatesAsync(
-            double latitude,
-            double longitude,
-            CancellationToken cancellationToken = default)
-        {
-            // Delegate to the overload with default radius
-            return await GetByCoordinatesAsync(latitude, longitude, 10, cancellationToken);
         }
     }
 }

@@ -47,19 +47,19 @@
             };
         }
 
-        public static Location CreateValidLocation()
+        public static Domain.Entities.Location CreateValidLocation()
         {
             var coordinate = new Coordinate(40.7128, -74.0060);
             var address = new Address("New York", "NY");
 
-            return new Location(
+            return new Domain.Entities.Location(
                 "Test Location",
                 "Test Description",
                 coordinate,
                 address);
         }
 
-        public static Location  CreateValidLocation(
+        public static Domain.Entities.Location CreateValidLocation(
             string title = "Test Location",
             string description = "Test Description",
             double latitude = 40.7128,
@@ -70,11 +70,42 @@
             var coordinate = new Coordinate(latitude, longitude);
             var address = new Address(city, state);
 
-            return new Location(
+            return new Domain.Entities.Location(
                 title,
                 description,
                 coordinate,
                 address);
+        }
+
+        // Create valid Location entity with ID (for test purposes)
+        // Note: This requires reflection or test helpers since ID is protected
+        public static Domain.Entities.Location CreateValidLocation(int id)
+        {
+            var coordinate = new Coordinate(40.7128, -74.0060);
+            var address = new Address("New York", "NY");
+
+            var location = new Domain.Entities.Location(
+                $"Test Location {id}",
+                $"Test Description {id}",
+                coordinate,
+                address);
+
+            // Use reflection to set the ID (only for testing)
+            var idProperty = location.GetType().GetProperty("Id");
+            idProperty?.SetValue(location, id);
+
+            return location;
+        }
+
+        // Create list of valid Location entities
+        public static List<Domain.Entities.Location> CreateValidLocationList(int count = 3)
+        {
+            var locations = new List<Domain.Entities.Location>();
+            for (int i = 1; i <= count; i++)
+            {
+                locations.Add(CreateValidLocation(i));
+            }
+            return locations;
         }
 
         public static LocationDto CreateValidLocationDto()
@@ -210,6 +241,69 @@
                 City = "Invalid City",
                 State = "XX"
             };
+        }
+
+        // Create valid WeatherDto
+        public static WeatherDto CreateValidWeatherDto()
+        {
+            return new WeatherDto
+            {
+                Id = 1,
+                LocationId = 1,
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                Timezone = "America/New_York",
+                TimezoneOffset = -18000,
+                LastUpdate = DateTime.UtcNow,
+                Temperature = 22.5,
+                Description = "Partly cloudy",
+                Icon = "02d",
+                WindSpeed = 12.5,
+                WindDirection = 180,
+                WindGust = 15.0,
+                Humidity = 65,
+                Pressure = 1015,
+                Clouds = 40,
+                UvIndex = 5.2,
+                Precipitation = 0.0,
+                Sunrise = DateTime.UtcNow.Date.AddHours(6),
+                Sunset = DateTime.UtcNow.Date.AddHours(18),
+                MoonRise = DateTime.UtcNow.Date.AddHours(20),
+                MoonSet = DateTime.UtcNow.Date.AddHours(8),
+                MoonPhase = 0.45
+            };
+        }
+
+        // Create WeatherDto with custom parameters
+        public static WeatherDto CreateWeatherDto(double temperature, string description, int humidity)
+        {
+            var dto = CreateValidWeatherDto();
+            dto.Temperature = temperature;
+            dto.Description = description;
+            dto.Humidity = humidity;
+            return dto;
+        }
+
+        // Create list of WeatherDto for forecast
+        public static List<WeatherDto> CreateWeatherForecast(int days = 5)
+        {
+            var forecast = new List<WeatherDto>();
+            var baseTemp = 20.0;
+
+            for (int i = 0; i < days; i++)
+            {
+                var dto = CreateValidWeatherDto();
+                dto.Temperature = baseTemp + (i * 1.5);
+                dto.Description = i % 2 == 0 ? "Sunny" : "Cloudy";
+                dto.Humidity = 50 + (i * 5);
+                dto.WindSpeed = 8.0 + i;
+                dto.Pressure = 1010 + i;
+                dto.Icon = i % 2 == 0 ? "01d" : "03d";
+                dto.LastUpdate = DateTime.UtcNow.AddDays(i);
+                forecast.Add(dto);
+            }
+
+            return forecast;
         }
     }
 }

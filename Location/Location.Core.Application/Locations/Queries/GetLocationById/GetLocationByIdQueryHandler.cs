@@ -3,8 +3,10 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using MediatR;
-using Location.Core.Application.Queries.Locations;
-using Location.Core.Application.Locations.Queries.GetLocationById;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace Location.Core.Application.Locations.Queries.GetLocationById
 {
     public class GetLocationByIdQueryHandler : IRequestHandler<GetLocationByIdQuery, Result<LocationDto>>
@@ -14,7 +16,7 @@ namespace Location.Core.Application.Locations.Queries.GetLocationById
 
         public GetLocationByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _unitOfWork = unitOfWork; 
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -22,14 +24,14 @@ namespace Location.Core.Application.Locations.Queries.GetLocationById
         {
             try
             {
-                var locationResult = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
+                var location = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
 
-                if (!locationResult.IsSuccess || locationResult.Data == null)
+                if (location == null)
                 {
                     return Result<LocationDto>.Failure("Location not found");
                 }
 
-                var dto = _mapper.Map<LocationDto>(locationResult.Data);
+                var dto = _mapper.Map<LocationDto>(location);
                 return Result<LocationDto>.Success(dto);
             }
             catch (Exception ex)

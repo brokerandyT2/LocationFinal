@@ -1,4 +1,5 @@
 ﻿using Location.Core.Application.Common.Interfaces;
+using ILocationRepository =Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository;
 using Location.Core.Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -28,8 +29,8 @@ namespace Location.Core.Infrastructure.UnitOfWork
 
         // The repositories are already registered in DI as application interfaces
         // We just need to resolve them from the service provider
-        public Location.Core.Application.Common.Interfaces.ILocationRepository Locations =>
-            _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.ILocationRepository>();
+        public ILocationRepository Locations =>
+            _serviceProvider.GetRequiredService<ILocationRepository>();
 
         public Location.Core.Application.Common.Interfaces.IWeatherRepository Weather =>
             _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.IWeatherRepository>();

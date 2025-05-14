@@ -109,13 +109,11 @@ namespace Location.Core.Infrastructure.External
             try
             {
                 // Get location details
-                var locationResult = await _unitOfWork.Locations.GetByIdAsync(locationId, cancellationToken);
-                if (!locationResult.IsSuccess || locationResult.Data == null)
+                var location = await _unitOfWork.Locations.GetByIdAsync(locationId, cancellationToken);
+                if (location == null)
                 {
                     return Result<WeatherDto>.Failure("Location not found");
                 }
-
-                var location = locationResult.Data;
 
                 // Fetch weather for the location's coordinates
                 var weatherResult = await GetWeatherAsync(
@@ -230,14 +228,10 @@ namespace Location.Core.Infrastructure.External
         {
             try
             {
-                var locationsResult = await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
-                if (!locationsResult.IsSuccess || locationsResult.Data == null)
-                {
-                    return Result<int>.Failure("Failed to retrieve locations");
-                }
+                var locations = await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
 
                 int successCount = 0;
-                foreach (var location in locationsResult.Data)
+                foreach (var location in locations)
                 {
                     try
                     {
@@ -264,11 +258,11 @@ namespace Location.Core.Infrastructure.External
 
         private async Task<string> GetApiKeyAsync(CancellationToken cancellationToken)
         {
-            var result = await _unitOfWork.Settings.GetByKeyAsync(API_KEY_SETTING, cancellationToken);
+            var setting = await _unitOfWork.Settings.GetByKeyAsync(API_KEY_SETTING, cancellationToken);
 
-            if (result.IsSuccess && result.Data != null)
+            if (setting != null)
             {
-                return result.Data.Value;
+                return setting.Data.Value;
             }
 
             _logger.LogWarning("Weather API key not found in settings");
