@@ -14,12 +14,12 @@ namespace Location.Core.Application.Commands.Locations
     {
         public int? Id { get; set; }
         public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         public double Latitude { get; set; }
         public double Longitude { get; set; }
-        public string? PhotoPath { get; set; }
         public string City { get; set; } = string.Empty;
         public string State { get; set; } = string.Empty;
+        public string? PhotoPath { get; set; }
     }
 
     public class SaveLocationCommandHandler : IRequestHandler<SaveLocationCommand, Result<LocationDto>>
@@ -27,9 +27,7 @@ namespace Location.Core.Application.Commands.Locations
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public SaveLocationCommandHandler(
-            IUnitOfWork unitOfWork,
-            IMapper mapper)
+        public SaveLocationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;

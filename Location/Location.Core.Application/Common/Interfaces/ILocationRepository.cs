@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Location.Core.Application.Common.Models;
+using Location.Core.Domain.Entities;
 namespace Location.Core.Application.Common.Interfaces
 {
     public interface ILocationRepository

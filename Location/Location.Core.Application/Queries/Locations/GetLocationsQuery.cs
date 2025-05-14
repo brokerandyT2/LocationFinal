@@ -23,9 +23,7 @@ namespace Location.Core.Application.Queries.Locations
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public GetLocationsQueryHandler(
-            IUnitOfWork unitOfWork,
-            IMapper mapper)
+        public GetLocationsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;

@@ -13,9 +13,7 @@ namespace Location.Core.Infrastructure
         private readonly ILogger<UnitOfWork> _logger;
         private readonly ILoggerFactory _loggerFactory;
         private readonly IServiceProvider _serviceProvider;
-        private bool _disposed = false;
-        private bool _inTransaction = false;
-
+        private bool _inTransaction;
         public UnitOfWork(
             IDatabaseContext context,
             ILogger<UnitOfWork> logger,
@@ -110,9 +108,10 @@ namespace Location.Core.Infrastructure
         public void Dispose()
         {
             Dispose(true);
+            _disposed = true;
             GC.SuppressFinalize(this);
         }
-
+        private bool _disposed;
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;

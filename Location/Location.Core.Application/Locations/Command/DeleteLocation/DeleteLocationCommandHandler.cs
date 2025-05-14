@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Location.Core.Application.Common.Models;
+using MediatR;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Models;
+using MediatR;
 
 namespace Location.Core.Application.Locations.Command.DeleteLocation
 {
-    internal class DeleteLocationCommandHandler
+    public class DeleteLocationCommandHandler : IRequestHandler<DeleteLocationCommand, Result<bool>>
     {
+        // Implementation
     }
 }

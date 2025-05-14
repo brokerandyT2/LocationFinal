@@ -20,53 +20,26 @@ namespace Location.Core.Application.Commands.Locations
         {
             try
             {
-                // The test mocks the persistence layer methods directly
-                // So we need to cast to the Persistence interface to match the test
-                var persistenceRepo = _unitOfWork.Locations as Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository;
+                var locationResult = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
 
-                if (persistenceRepo != null)
+                if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
-                    // Use the persistence interface directly to match test expectations
-                    var location = await persistenceRepo.GetByIdAsync(request.Id, cancellationToken);
-
-                    if (location == null)
-                    {
-                        return Result<bool>.Failure("Location not found");
-                    }
-
-                    // Perform soft delete by marking as deleted  
-                    location.Delete();
-
-                    // Use the void Update method that the test expects
-                    persistenceRepo.Update(location);
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                    return Result<bool>.Success(true);
+                    return Result<bool>.Failure("Location not found");
                 }
-                else
+
+                var location = locationResult.Data;
+                location.Delete();
+
+                var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
+
+                if (!updateResult.IsSuccess)
                 {
-                    // Fallback to the application interface if cast fails
-                    var locationResult = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
-
-                    if (!locationResult.IsSuccess || locationResult.Data == null)
-                    {
-                        return Result<bool>.Failure("Location not found");
-                    }
-
-                    var location = locationResult.Data;
-                    location.Delete();
-
-                    var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
-
-                    if (!updateResult.IsSuccess)
-                    {
-                        return Result<bool>.Failure(updateResult.ErrorMessage ?? "Failed to update location");
-                    }
-
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                    return Result<bool>.Success(true);
+                    return Result<bool>.Failure(updateResult.ErrorMessage ?? "Failed to update location");
                 }
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                return Result<bool>.Success(true);
             }
             catch (Exception ex)
             {
