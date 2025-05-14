@@ -1,267 +1,180 @@
-﻿using Location.Core.Application.Common.Models;
-using Location.Core.Application.Locations.Commands.SaveLocation;
-using Location.Core.Application.Locations.DTOs;
-using Location.Core.Application.Weather.DTOs;
+﻿using System;
+using System.Collections.Generic;
 using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
 
 namespace Location.Core.Application.Tests.Helpers
 {
-    /// <summary>
-    /// Test data builder for creating application layer objects in tests
-    /// </summary>
-    public static class TestDataBuilder
+    public class TestDataBuilder
     {
-        public static Domain.Entities.Weather CreateValidWeather(
-    int locationId = 1,
-    double latitude = 47.6062,
-    double longitude = -122.3321,
-    string timezone = "America/Los_Angeles",
-    int timezoneOffset = -7)
-        {
-            var coordinate = new Coordinate(latitude, longitude);
-            return new Domain.Entities.Weather(locationId, coordinate, timezone, timezoneOffset);
-        }
+        private static int _idCounter = 1;
 
-        public static List<Domain.Entities.WeatherForecast> CreateValidWeatherForecasts(
-            int count,
-            int weatherId = 1,
-            DateTime? startDate = null)
-        {
-            var forecasts = new List<Domain.Entities.WeatherForecast>();
-            var baseDate = startDate ?? DateTime.Today;
-
-            for (int i = 0; i < count; i++)
-            {
-                var date = baseDate.AddDays(i);
-                var forecast = new Domain.Entities.WeatherForecast(
-                    weatherId,
-                    date,
-                    date.AddHours(6),
-                    date.AddHours(18),
-                    Temperature.FromCelsius(20),
-                    Temperature.FromCelsius(15),
-                    Temperature.FromCelsius(25),
-                    "Clear sky",
-                    "01d",
-                    new WindInfo(10, 180),
-                    65,
-                    1013,
-                    10,
-                    5.0
-                );
-                forecasts.Add(forecast);
-            }
-            return forecasts;
-        }
-
-        public static Domain.Entities.WeatherForecast CreateValidWeatherForecast(
-            int weatherId = 1,
-            DateTime? date = null,
-            double temperature = 20,
-            double minTemperature = 15,
-            double maxTemperature = 25,
-            string description = "Clear sky",
-            string icon = "01d",
-            double windSpeed = 10,
-            double windDirection = 180,
-            int humidity = 65,
-            int pressure = 1013,
-            int clouds = 10,
-            double uvIndex = 5.0)
-        {
-            var forecastDate = date ?? DateTime.Today;
-            return new Domain.Entities.WeatherForecast(
-                weatherId,
-                forecastDate,
-                forecastDate.AddHours(6),
-                forecastDate.AddHours(18),
-                Temperature.FromCelsius(temperature),
-                Temperature.FromCelsius(minTemperature),
-                Temperature.FromCelsius(maxTemperature),
-                description,
-                icon,
-                new WindInfo(windSpeed, windDirection),
-                humidity,
-                pressure,
-                clouds,
-                uvIndex
-            );
-        }
-        // Domain entities (reuse from domain tests)
-        public static Location.Core.Domain.Entities.Location CreateValidLocation(
-            string title = "Test Location",
-            string description = "Test Description",
-            double latitude = 47.6062,
-            double longitude = -122.3321,
-            string city = "Seattle",
-            string state = "WA")
-        {
-            var coordinate = new Coordinate(latitude, longitude);
-            var address = new Address(city, state);
-            return new Location.Core.Domain.Entities.Location(title, description, coordinate, address);
-        }
-
-        // Command builders
-        public static SaveLocationCommand CreateValidSaveLocationCommand(
+        public Domain.Entities.Location BuildLocation(
             int? id = null,
             string title = "Test Location",
             string description = "Test Description",
-            double latitude = 47.6062,
-            double longitude = -122.3321,
-            string city = "Seattle",
-            string state = "WA",
+            double latitude = 40.7128,
+            double longitude = -74.0060,
+            string city = "New York",
+            string state = "NY",
             string? photoPath = null)
         {
-            return new SaveLocationCommand
+            var coordinate = new Coordinate(latitude, longitude);
+            var address = new Address(city, state);
+
+            var location = new Domain.Entities.Location(title, description, coordinate, address);
+
+            // Set ID using reflection for testing
+            if (id.HasValue)
             {
-                Id = id,
-                Title = title,
-                Description = description,
-                Latitude = latitude,
-                Longitude = longitude,
-                City = city,
-                State = state,
-                PhotoPath = photoPath
-            };
+                typeof(Domain.Entities.Location)
+                    .GetProperty("Id")!
+                    .SetValue(location, id.Value);
+            }
+            else
+            {
+                typeof(Domain.Entities.Location)
+                    .GetProperty("Id")!
+                    .SetValue(location, _idCounter++);
+            }
+
+            if (!string.IsNullOrEmpty(photoPath))
+            {
+                location.AttachPhoto(photoPath);
+            }
+
+            return location;
         }
 
-        // DTO builders
-        public static LocationDto CreateValidLocationDto(
-            int id = 1,
-            string title = "Test Location",
-            string description = "Test Description",
-            double latitude = 47.6062,
-            double longitude = -122.3321,
-            string city = "Seattle",
-            string state = "WA",
-            string? photoPath = null,
-            bool isDeleted = false)
-        {
-            return new LocationDto
-            {
-                Id = id,
-                Title = title,
-                Description = description,
-                Latitude = latitude,
-                Longitude = longitude,
-                City = city,
-                State = state,
-                PhotoPath = photoPath,
-                Timestamp = DateTime.UtcNow,
-                IsDeleted = isDeleted
-            };
-        }
-
-        public static WeatherDto CreateValidWeatherDto(
-            int id = 1,
+        public Domain.Entities.Weather BuildWeather(
+            int? id = null,
             int locationId = 1,
-            double latitude = 47.6062,
-            double longitude = -122.3321,
+            double latitude = 40.7128,
+            double longitude = -74.0060,
+            string timezone = "America/New_York",
+            int timezoneOffset = -18000)
+        {
+            var coordinate = new Coordinate(latitude, longitude);
+            var weather = new Domain.Entities.Weather(locationId, coordinate, timezone, timezoneOffset);
+
+            // Set ID using reflection for testing
+            if (id.HasValue)
+            {
+                typeof(Domain.Entities.Weather)
+                    .GetProperty("Id")!
+                    .SetValue(weather, id.Value);
+            }
+            else
+            {
+                typeof(Domain.Entities.Weather)
+                    .GetProperty("Id")!
+                    .SetValue(weather, _idCounter++);
+            }
+
+            return weather;
+        }
+
+        public WeatherForecast BuildWeatherForecast(
+            int weatherId = 1,
+            DateTime? date = null,
             double temperature = 20.0,
-            string description = "Clear sky",
+            double minTemperature = 15.0,
+            double maxTemperature = 25.0,
+            string description = "Clear",
             string icon = "01d")
         {
-            return new WeatherDto
-            {
-                Id = id,
-                LocationId = locationId,
-                Latitude = latitude,
-                Longitude = longitude,
-                Temperature = temperature,
-                Description = description,
-                Icon = icon,
-                Timezone = "America/Los_Angeles",
-                TimezoneOffset = -7,
-                LastUpdate = DateTime.UtcNow,
-                WindSpeed = 10,
-                WindDirection = 180,
-                Humidity = 65,
-                Pressure = 1013,
-                Clouds = 10,
-                UvIndex = 5.0,
-                Sunrise = DateTime.Today.AddHours(6),
-                Sunset = DateTime.Today.AddHours(18)
-            };
+            var forecastDate = date ?? DateTime.Today;
+            var temp = Temperature.FromCelsius(temperature);
+            var minTemp = Temperature.FromCelsius(minTemperature);
+            var maxTemp = Temperature.FromCelsius(maxTemperature);
+            var wind = new WindInfo(5.0, 180.0);
+
+            return new WeatherForecast(
+                weatherId,
+                forecastDate,
+                forecastDate.Date.AddHours(6), // sunrise
+                forecastDate.Date.AddHours(18), // sunset
+                temp,
+                minTemp,
+                maxTemp,
+                description,
+                icon,
+                wind,
+                60, // humidity
+                1013, // pressure
+                20, // clouds
+                5.0 // uvIndex
+            );
         }
 
-        public static WeatherForecastDto CreateValidWeatherForecastDto()
+        public Domain.Entities.Tip BuildTip(
+            int? id = null,
+            int tipTypeId = 1,
+            string title = "Test Tip",
+            string content = "Test Content")
         {
-            return new WeatherForecastDto
-            {
-                WeatherId = 1,
-                LastUpdate = DateTime.UtcNow,
-                Timezone = "America/Los_Angeles",
-                TimezoneOffset = -7,
-                DailyForecasts = CreateValidDailyForecasts(7)
-            };
-        }
+            var tip = new Domain.Entities.Tip(tipTypeId, title, content);
 
-        public static List<DailyForecastDto> CreateValidDailyForecasts(int count)
-        {
-            var forecasts = new List<DailyForecastDto>();
-            for (int i = 0; i < count; i++)
+            if (id.HasValue)
             {
-                var date = DateTime.Today.AddDays(i);
-                forecasts.Add(new DailyForecastDto
-                {
-                    Date = date,
-                    Sunrise = date.AddHours(6),
-                    Sunset = date.AddHours(18),
-                    Temperature = 20,
-                    MinTemperature = 15,
-                    MaxTemperature = 25,
-                    Description = "Clear sky",
-                    Icon = "01d",
-                    WindSpeed = 10,
-                    WindDirection = 180,
-                    Humidity = 65,
-                    Pressure = 1013,
-                    Clouds = 10,
-                    UvIndex = 5.0,
-                    MoonPhase = 0.5
-                });
+                typeof(Domain.Entities.Tip)
+                    .GetProperty("Id")!
+                    .SetValue(tip, id.Value);
             }
-            return forecasts;
+            else
+            {
+                typeof(Domain.Entities.Tip)
+                    .GetProperty("Id")!
+                    .SetValue(tip, _idCounter++);
+            }
+
+            return tip;
         }
 
-        // Error builders
-        public static Error CreateValidationError(string propertyName = "TestProperty", string message = "Validation failed")
+        public Domain.Entities.TipType BuildTipType(
+            int? id = null,
+            string name = "Photography")
         {
-            return Error.Validation(propertyName, message);
+            var tipType = new Domain.Entities.TipType(name);
+
+            if (id.HasValue)
+            {
+                typeof(Domain.Entities.TipType)
+                    .GetProperty("Id")!
+                    .SetValue(tipType, id.Value);
+            }
+            else
+            {
+                typeof(Domain.Entities.TipType)
+                    .GetProperty("Id")!
+                    .SetValue(tipType, _idCounter++);
+            }
+
+            return tipType;
         }
 
-        public static Error CreateNotFoundError(string message = "Entity not found")
+        public Domain.Entities.Setting BuildSetting(
+            int? id = null,
+            string key = "TestKey",
+            string value = "TestValue",
+            string description = "Test Description")
         {
-            return Error.NotFound(message);
-        }
+            var setting = new Domain.Entities.Setting(key, value, description);
 
-        public static Error CreateDatabaseError(string message = "Database operation failed")
-        {
-            return Error.Database(message);
-        }
+            if (id.HasValue)
+            {
+                typeof(Domain.Entities.Setting)
+                    .GetProperty("Id")!
+                    .SetValue(setting, id.Value);
+            }
+            else
+            {
+                typeof(Domain.Entities.Setting)
+                    .GetProperty("Id")!
+                    .SetValue(setting, _idCounter++);
+            }
 
-        // Result builders
-        public static Result<T> CreateSuccessResult<T>(T data)
-        {
-            return Result<T>.Success(data);
-        }
-
-        public static Result<T> CreateFailureResult<T>(string errorMessage)
-        {
-            return Result<T>.Failure(errorMessage);
-        }
-
-        public static Result<T> CreateFailureResult<T>(Error error)
-        {
-            return Result<T>.Failure(error);
-        }
-
-        public static Result<T> CreateFailureResult<T>(IEnumerable<Error> errors)
-        {
-            return Result<T>.Failure(errors);
+            return setting;
         }
     }
 }

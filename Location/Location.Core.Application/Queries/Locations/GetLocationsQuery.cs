@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
-using Location.Core.Application.Common;
-using Location.Core.Application.Common.Interfaces.Persistence;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using MediatR;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Application.Queries.Locations
 {
@@ -17,14 +20,14 @@ namespace Location.Core.Application.Queries.Locations
 
     public class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, Result<PagedList<LocationListDto>>>
     {
-        private readonly ILocationRepository _locationRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public GetLocationsQueryHandler(
-            ILocationRepository locationRepository,
+            IUnitOfWork unitOfWork,
             IMapper mapper)
         {
-            _locationRepository = locationRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -34,8 +37,8 @@ namespace Location.Core.Application.Queries.Locations
             {
                 // Get all locations (or active ones based on request)
                 var locations = request.IncludeDeleted
-                    ? await _locationRepository.GetAllAsync(cancellationToken)
-                    : await _locationRepository.GetActiveAsync(cancellationToken);
+                    ? await _unitOfWork.Locations.GetAllAsync(cancellationToken)
+                    : await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
 
                 // Apply search filter if provided
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))

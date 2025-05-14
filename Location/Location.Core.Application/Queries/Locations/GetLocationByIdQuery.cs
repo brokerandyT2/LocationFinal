@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
-using Location.Core.Application.Common;
-using Location.Core.Application.Common.Interfaces.Persistence;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using MediatR;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Application.Queries.Locations
 {
@@ -14,14 +16,14 @@ namespace Location.Core.Application.Queries.Locations
 
     public class GetLocationByIdQueryHandler : IRequestHandler<GetLocationByIdQuery, Result<LocationDto>>
     {
-        private readonly ILocationRepository _locationRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public GetLocationByIdQueryHandler(
-            ILocationRepository locationRepository,
+            IUnitOfWork unitOfWork,
             IMapper mapper)
         {
-            _locationRepository = locationRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -29,7 +31,7 @@ namespace Location.Core.Application.Queries.Locations
         {
             try
             {
-                var location = await _locationRepository.GetByIdAsync(request.Id, cancellationToken);
+                var location = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
 
                 if (location == null)
                 {

@@ -25,13 +25,16 @@ namespace Location.Core.Application.Commands.Locations
         {
             try
             {
-                // Use soft delete as per memory (locations can't be deleted, just marked as deleted)
-                var result = await _unitOfWork.Locations.SoftDeleteAsync(request.Id, cancellationToken);
+                var location = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
 
-                if (!result.IsSuccess)
+                if (location == null)
                 {
-                    return Result<bool>.Failure(result.ErrorMessage ?? "Failed to delete location");
+                    return Result<bool>.Failure("Location not found");
                 }
+
+                // Use soft delete by marking as deleted
+                location.Delete();
+                _unitOfWork.Locations.Update(location);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 

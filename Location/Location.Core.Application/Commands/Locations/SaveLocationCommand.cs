@@ -40,18 +40,17 @@ namespace Location.Core.Application.Commands.Locations
             try
             {
                 Domain.Entities.Location location;
-                Result<Domain.Entities.Location> result;
 
                 if (request.Id.HasValue)
                 {
                     // Update existing location
-                    var existingResult = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
-                    if (!existingResult.IsSuccess || existingResult.Data == null)
+                    var existingLocation = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
+                    if (existingLocation == null)
                     {
                         return Result<LocationDto>.Failure("Location not found");
                     }
 
-                    location = existingResult.Data;
+                    location = existingLocation;
                     location.UpdateDetails(request.Title, request.Description ?? string.Empty);
 
                     // Update coordinates
@@ -64,7 +63,7 @@ namespace Location.Core.Application.Commands.Locations
                         location.AttachPhoto(request.PhotoPath);
                     }
 
-                    result = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
+                    _unitOfWork.Locations.Update(location);
                 }
                 else
                 {
@@ -83,17 +82,12 @@ namespace Location.Core.Application.Commands.Locations
                         location.AttachPhoto(request.PhotoPath);
                     }
 
-                    result = await _unitOfWork.Locations.CreateAsync(location, cancellationToken);
-                }
-
-                if (!result.IsSuccess)
-                {
-                    return Result<LocationDto>.Failure(result.ErrorMessage ?? "Failed to save location");
+                    location = await _unitOfWork.Locations.AddAsync(location, cancellationToken);
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                var locationDto = _mapper.Map<LocationDto>(result.Data);
+                var locationDto = _mapper.Map<LocationDto>(location);
                 return Result<LocationDto>.Success(locationDto);
             }
             catch (Exception ex)

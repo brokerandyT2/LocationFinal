@@ -1,13 +1,13 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Moq;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
+using NUnit.Framework;
+using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Helpers;
-using MediatR;
-using Location.Core.Application.Common.Interfaces.Persistence;
+using FluentAssertions;
 
 namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 {
@@ -15,186 +15,150 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
     public class DeleteLocationCommandHandlerTests
     {
         private Mock<IUnitOfWork> _unitOfWorkMock;
-        private Mock<IEventBus> _eventBusMock;
         private DeleteLocationCommandHandler _handler;
+        private TestDataBuilder _testDataBuilder;
 
         [SetUp]
-        public void Setup()
+        public void SetUp()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _eventBusMock = new Mock<IEventBus>();
-
-            // Setup mock repository
-            var locationRepoMock = new Mock<ILocationRepository>();
-            _unitOfWorkMock.Setup(x => x.Locations).Returns(locationRepoMock.Object);
-
-            _handler = new DeleteLocationCommandHandler(
-                _unitOfWorkMock.Object,
-                _eventBusMock.Object
-            );
+            _handler = new DeleteLocationCommandHandler(_unitOfWorkMock.Object);
+            _testDataBuilder = new TestDataBuilder();
         }
 
         [Test]
-        public async Task Handle_WithExistingLocation_ShouldSoftDelete()
+        public async Task Handle_WithValidLocationId_ShouldDeleteLocation()
         {
             // Arrange
-            var command = new DeleteLocationCommand { Id = 1 };
-            var existingLocation = TestDataBuilder.CreateValidLocation();
+            var location = _testDataBuilder.BuildLocation();
+            var command = new DeleteLocationCommand { Id = location.Id };
 
-            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(existingLocation);
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(location);
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
+            result.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
-            _unitOfWorkMock.Verify(x => x.Locations.Delete(existingLocation), Times.Once);
+            _unitOfWorkMock.Verify(x => x.Locations.Update(It.IsAny<Domain.Entities.Location>()), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
-        public async Task Handle_WithNonExistentLocation_ShouldReturnNotFound()
+        public async Task Handle_WithNonExistentLocationId_ShouldReturnFailure()
         {
             // Arrange
             var command = new DeleteLocationCommand { Id = 999 };
 
-            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(999, It.IsAny<CancellationToken>()))
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Domain.Entities.Location?)null);
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
+            result.Should().NotBeNull();
             result.IsSuccess.Should().BeFalse();
-            result.Errors.Should().ContainSingle();
-            result.Errors.Should().Contain(x => x.Code == "NOT_FOUND");
+            result.ErrorMessage.Should().Be("Location not found");
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
-        public async Task Handle_WithDomainEvents_ShouldPublishEvents()
+        public async Task Handle_WhenExceptionThrown_ShouldReturnFailure()
         {
             // Arrange
             var command = new DeleteLocationCommand { Id = 1 };
-            var existingLocation = TestDataBuilder.CreateValidLocation();
-            existingLocation.Delete(); // This should add LocationDeletedEvent
 
-            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(existingLocation);
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception("Database error"));
 
             // Act
-            await _handler.Handle(command, CancellationToken.None);
+            var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            _eventBusMock.Verify(x => x.PublishAllAsync(
-                It.IsAny<Domain.Interfaces.IDomainEvent[]>(),
-                It.IsAny<CancellationToken>()), Times.Once);
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrorMessage.Should().Contain("Failed to delete location");
         }
 
         [Test]
-        public async Task Handle_WithAlreadyDeletedLocation_ShouldStillSucceed()
+        public async Task Handle_WithValidLocation_ShouldCallDeleteMethod()
         {
             // Arrange
-            var command = new DeleteLocationCommand { Id = 1 };
-            var existingLocation = TestDataBuilder.CreateValidLocation();
-            existingLocation.Delete(); // Already deleted
+            var location = _testDataBuilder.BuildLocation();
+            var command = new DeleteLocationCommand { Id = location.Id };
 
-            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(existingLocation);
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(location);
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            location.IsDeleted.Should().BeTrue();
+            _unitOfWorkMock.Verify(x => x.Locations.Update(location), Times.Once);
+        }
+
+        [Test]
+        public async Task Handle_WhenSaveChangesFails_ShouldReturnFailure()
+        {
+            // Arrange
+            var location = _testDataBuilder.BuildLocation();
+            var command = new DeleteLocationCommand { Id = location.Id };
+
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(location);
+
+            _unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception("Save failed"));
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrorMessage.Should().Contain("Failed to delete location");
+        }
+
+        [Test]
+        public async Task Handle_WithCancellationToken_ShouldPassTokenToRepository()
+        {
+            // Arrange
+            var location = _testDataBuilder.BuildLocation();
+            var command = new DeleteLocationCommand { Id = location.Id };
+            var cancellationToken = new CancellationToken();
+
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(location);
+
+            // Act
+            var result = await _handler.Handle(command, cancellationToken);
+
+            // Assert
+            _unitOfWorkMock.Verify(x => x.Locations.GetByIdAsync(command.Id, cancellationToken), Times.Once);
+            _unitOfWorkMock.Verify(x => x.SaveChangesAsync(cancellationToken), Times.Once);
+        }
+
+        [Test]
+        public async Task Handle_WithDeletedLocation_ShouldGenerateDomainEvent()
+        {
+            // Arrange
+            var location = _testDataBuilder.BuildLocation();
+            var command = new DeleteLocationCommand { Id = location.Id };
+
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(location);
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
             result.IsSuccess.Should().BeTrue();
-            _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Test]
-        public async Task Handle_WithDatabaseException_ShouldReturnDatabaseError()
-        {
-            // Arrange
-            var command = new DeleteLocationCommand { Id = 1 };
-            var existingLocation = TestDataBuilder.CreateValidLocation();
-
-            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(existingLocation);
-
-            _unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new System.Exception("Database error"));
-
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.Errors.Should().ContainSingle();
-            result.Errors.Should().Contain(x => x.Code == "DATABASE_ERROR");
-        }
-
-        [Test]
-        public async Task Handle_WithCancellationToken_ShouldPassThrough()
-        {
-            // Arrange
-            var cts = new CancellationTokenSource();
-            var token = cts.Token;
-            var command = new DeleteLocationCommand { Id = 1 };
-            var existingLocation = TestDataBuilder.CreateValidLocation();
-
-            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(1, token))
-                .ReturnsAsync(existingLocation);
-
-            // Act
-            await _handler.Handle(command, token);
-
-            // Assert
-            _unitOfWorkMock.Verify(x => x.Locations.GetByIdAsync(1, token), Times.Once);
-            _unitOfWorkMock.Verify(x => x.SaveChangesAsync(token), Times.Once);
-        }
-    }
-
-    // Placeholder for the actual implementation
-    public class DeleteLocationCommandHandler : IRequestHandler<DeleteLocationCommand, Result>
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IEventBus _eventBus;
-
-        public DeleteLocationCommandHandler(IUnitOfWork unitOfWork, IEventBus eventBus)
-        {
-            _unitOfWork = unitOfWork;
-            _eventBus = eventBus;
-        }
-
-        public async Task<Result> Handle(DeleteLocationCommand request, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var location = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
-
-                if (location == null)
-                {
-                    return Result.Failure(Error.NotFound($"Location with ID {request.Id} not found"));
-                }
-
-                // Soft delete
-                location.Delete();
-                _unitOfWork.Locations.Delete(location);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                // Publish domain events
-                if (location.DomainEvents.Count > 0)
-                {
-                    await _eventBus.PublishAllAsync(location.DomainEvents.ToArray(), cancellationToken);
-                    location.ClearDomainEvents();
-                }
-
-                return Result.Success();
-            }
-            catch (System.Exception ex)
-            {
-                return Result.Failure(Error.Database($"Failed to delete location: {ex.Message}"));
-            }
+            location.DomainEvents.Should().HaveCount(1);
+            location.DomainEvents.Should().Contain(e => e.GetType().Name == "LocationDeletedEvent");
         }
     }
 }
