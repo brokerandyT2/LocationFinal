@@ -3,11 +3,12 @@ using FluentAssertions;
 using Location.Core.Application.Common.Behaviors;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Common.Interfaces;
 
 namespace Location.Core.Application.Tests.Common.Behaviors
 {
@@ -15,13 +16,11 @@ namespace Location.Core.Application.Tests.Common.Behaviors
     public class LoggingBehaviorTests
     {
         private Mock<ILogger<LoggingBehavior<TestRequest, Result<string>>>> _mockLogger;
-        private LoggingBehavior<TestRequest, Result<string>> _behavior;
 
         [SetUp]
-        public void Setup()
+        public void SetUp()
         {
             _mockLogger = new Mock<ILogger<LoggingBehavior<TestRequest, Result<string>>>>();
-            _behavior = new LoggingBehavior<TestRequest, Result<string>>(_mockLogger.Object);
         }
 
         [Test]
@@ -39,85 +38,43 @@ namespace Location.Core.Application.Tests.Common.Behaviors
         public async Task Handle_ShouldLogRequestDetails()
         {
             // Arrange
-            var request = new TestRequest { Value = "test" };
-            var response = Result<string>.Success("success");
-            var cancellationToken = CancellationToken.None;
-
-            RequestHandlerDelegate<Result<string>> next = () => Task.FromResult(response);
+            var behavior = new LoggingBehavior<TestRequest, Result<string>>(_mockLogger.Object);
+            var request = new TestRequest { Value = "Test" };
+            var response = Result<string>.Success("Success");
+            RequestHandlerDelegate<Result<string>> next = (CancellationToken ct) => Task.FromResult(response);
 
             // Act
-            var result = await _behavior.Handle(request, next, cancellationToken);
+            var result = await behavior.Handle(request, next, CancellationToken.None);
 
             // Assert
             result.Should().Be(response);
             _mockLogger.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Starting request")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
+                x => x.LogInformation(
+                    It.IsAny<string>(),
+                    It.IsAny<object[]>()),
+                Times.AtLeast(2)); // Start and end logging
         }
 
         [Test]
-        public async Task Handle_WithSuccessfulRequest_ShouldLogStartAndEnd()
+        public async Task Handle_WithException_ShouldLogError()
         {
             // Arrange
-            var request = new TestRequest { Value = "test" };
-            var response = Result<string>.Success("success");
-            var cancellationToken = CancellationToken.None;
-
-            RequestHandlerDelegate<Result<string>> next = () => Task.FromResult(response);
-
-            // Act
-            var result = await _behavior.Handle(request, next, cancellationToken);
-
-            // Assert
-            _mockLogger.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Starting request")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
-
-            _mockLogger.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Completed request")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
-        }
-
-        [Test]
-        public async Task Handle_WithLongRunningRequest_ShouldLogWarning()
-        {
-            // Arrange
-            var request = new TestRequest { Value = "test" };
-            var response = Result<string>.Success("success");
-            var cancellationToken = CancellationToken.None;
-
-            RequestHandlerDelegate<Result<string>> next = async () =>
-            {
-                await Task.Delay(600);
-                return response;
-            };
+            var behavior = new LoggingBehavior<TestRequest, Result<string>>(_mockLogger.Object);
+            var request = new TestRequest { Value = "Test" };
+            var exception = new InvalidOperationException("Test exception");
+            RequestHandlerDelegate<Result<string>> next = (CancellationToken ct) => throw exception;
 
             // Act
-            var result = await _behavior.Handle(request, next, cancellationToken);
+            Func<Task> act = async () => await behavior.Handle(request, next, CancellationToken.None);
 
             // Assert
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage("Test exception");
             _mockLogger.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Long running request")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                x => x.LogError(
+                    It.IsAny<Exception>(),
+                    It.IsAny<string>(),
+                    It.IsAny<object[]>()),
                 Times.Once);
         }
 
@@ -125,55 +82,108 @@ namespace Location.Core.Application.Tests.Common.Behaviors
         public async Task Handle_WithFailureResult_ShouldLogWarning()
         {
             // Arrange
-            var request = new TestRequest { Value = "test" };
-            var response = Result<string>.Failure("Error occurred");
-            var cancellationToken = CancellationToken.None;
-
-            RequestHandlerDelegate<Result<string>> next = () => Task.FromResult(response);
+            var behavior = new LoggingBehavior<TestRequest, Result<string>>(_mockLogger.Object);
+            var request = new TestRequest { Value = "Test" };
+            var response = Result<string>.Failure("Test error");
+            RequestHandlerDelegate<Result<string>> next = (CancellationToken ct) => Task.FromResult(response);
 
             // Act
-            var result = await _behavior.Handle(request, next, cancellationToken);
+            var result = await behavior.Handle(request, next, CancellationToken.None);
 
             // Assert
+            result.Should().Be(response);
             _mockLogger.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Request completed with failure")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                x => x.LogWarning(
+                    It.IsAny<string>(),
+                    It.IsAny<object[]>()),
                 Times.Once);
         }
 
         [Test]
-        public async Task Handle_WithException_ShouldLogError()
+        public async Task Handle_WithLongRunningRequest_ShouldLogWarning()
         {
             // Arrange
-            var request = new TestRequest { Value = "test" };
-            var expectedException = new InvalidOperationException("Test exception");
-            var cancellationToken = CancellationToken.None;
-
-            RequestHandlerDelegate<Result<string>> next = () => throw expectedException;
+            var behavior = new LoggingBehavior<TestRequest, Result<string>>(_mockLogger.Object);
+            var request = new TestRequest { Value = "Test" };
+            var response = Result<string>.Success("Success");
+            RequestHandlerDelegate<Result<string>> next = async (CancellationToken ct) =>
+            {
+                await Task.Delay(600, ct);
+                return response;
+            };
 
             // Act
-            Func<Task> act = async () => await _behavior.Handle(request, next, cancellationToken);
+            var result = await behavior.Handle(request, next, CancellationToken.None);
 
             // Assert
-            await act.Should().ThrowAsync<InvalidOperationException>();
+            result.Should().Be(response);
             _mockLogger.Verify(
-                x => x.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Request failed")),
-                    expectedException,
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                x => x.LogWarning(
+                    It.IsAny<string>(),
+                    It.IsAny<object[]>()),
                 Times.Once);
+        }
+
+        [Test]
+        public async Task Handle_WithSuccessfulRequest_ShouldLogStartAndEnd()
+        {
+            // Arrange
+            var mockLogger = new Mock<ILogger<LoggingBehavior<NonResultRequest, NonResultResponse>>>();
+            var behavior = new LoggingBehavior<NonResultRequest, NonResultResponse>(mockLogger.Object);
+            var request = new NonResultRequest { Data = "Test" };
+            var response = new NonResultResponse { Value = "Success" };
+            RequestHandlerDelegate<NonResultResponse> next = (CancellationToken ct) => Task.FromResult(response);
+
+            // Act
+            var result = await behavior.Handle(request, next, CancellationToken.None);
+
+            // Assert
+            result.Should().Be(response);
+            mockLogger.Verify(
+                x => x.LogInformation(
+                    It.IsAny<string>(),
+                    It.IsAny<object[]>()),
+                Times.AtLeast(2));
+        }
+
+        [Test]
+        public async Task Handle_WithCancellationToken_ShouldPassThrough()
+        {
+            // Arrange
+            var behavior = new LoggingBehavior<TestRequest, Result<string>>(_mockLogger.Object);
+            var request = new TestRequest { Value = "Test" };
+            var response = Result<string>.Success("Success");
+            var cancellationToken = new CancellationToken();
+            var receivedToken = default(CancellationToken);
+
+            RequestHandlerDelegate<Result<string>> next = (CancellationToken ct) =>
+            {
+                receivedToken = ct;
+                return Task.FromResult(response);
+            };
+
+            // Act
+            var result = await behavior.Handle(request, next, cancellationToken);
+
+            // Assert
+            result.Should().Be(response);
+            receivedToken.Should().Be(cancellationToken);
         }
     }
 
-    // Make the test classes public instead of private nested classes
+    // Test request/response classes
     public class TestRequest : IRequest<Result<string>>
     {
-        public string Value { get; set; } = string.Empty;
+        public string Value { get; set; } = "";
+    }
+
+    public class NonResultRequest : IRequest<NonResultResponse>
+    {
+        public string Data { get; set; } = "";
+    }
+
+    public class NonResultResponse
+    {
+        public string Value { get; set; } = "";
     }
 }

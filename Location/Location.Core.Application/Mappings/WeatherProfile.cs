@@ -1,12 +1,94 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using AutoMapper;
+using Location.Core.Domain.Entities;
+using Location.Core.Application.Weather.DTOs;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Mappings
 {
-    internal class WeatherProfile
+    public class WeatherProfile : Profile
     {
+        public WeatherProfile()
+        {
+            CreateMap<Domain.Entities.Weather, WeatherDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.LocationId, opt => opt.MapFrom(src => src.LocationId))
+                .ForMember(dest => dest.Latitude, opt => opt.MapFrom(src => src.Coordinate.Latitude))
+                .ForMember(dest => dest.Longitude, opt => opt.MapFrom(src => src.Coordinate.Longitude))
+                .ForMember(dest => dest.Timezone, opt => opt.MapFrom(src => src.Timezone))
+                .ForMember(dest => dest.TimezoneOffset, opt => opt.MapFrom(src => src.TimezoneOffset))
+                .ForMember(dest => dest.LastUpdate, opt => opt.MapFrom(src => src.LastUpdate))
+                .ForMember(dest => dest.Temperature, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Temperature.Celsius : 0))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Description : ""))
+                .ForMember(dest => dest.Icon, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Icon : ""))
+                .ForMember(dest => dest.WindSpeed, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Wind.Speed : 0))
+                .ForMember(dest => dest.WindDirection, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Wind.Direction : 0))
+                .ForMember(dest => dest.WindGust, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Wind.Gust : null))
+                .ForMember(dest => dest.Humidity, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Humidity : 0))
+                .ForMember(dest => dest.Pressure, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Pressure : 0))
+                .ForMember(dest => dest.Clouds, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Clouds : 0))
+                .ForMember(dest => dest.UvIndex, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().UvIndex : 0))
+                .ForMember(dest => dest.Precipitation, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Precipitation : null))
+                .ForMember(dest => dest.Sunrise, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Sunrise : default))
+                .ForMember(dest => dest.Sunset, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Sunset : default))
+                .ForMember(dest => dest.MoonRise, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().MoonRise : null))
+                .ForMember(dest => dest.MoonSet, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().MoonSet : null))
+                .ForMember(dest => dest.MoonPhase, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().MoonPhase : 0));
+
+            CreateMap<Domain.Entities.Weather, WeatherForecastDto>()
+                .ForMember(dest => dest.WeatherId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.LastUpdate, opt => opt.MapFrom(src => src.LastUpdate))
+                .ForMember(dest => dest.Timezone, opt => opt.MapFrom(src => src.Timezone))
+                .ForMember(dest => dest.TimezoneOffset, opt => opt.MapFrom(src => src.TimezoneOffset))
+                .ForMember(dest => dest.DailyForecasts, opt => opt.MapFrom(src => src.Forecasts));
+
+            CreateMap<WeatherForecast, DailyForecastDto>()
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date))
+                .ForMember(dest => dest.Sunrise, opt => opt.MapFrom(src => src.Sunrise))
+                .ForMember(dest => dest.Sunset, opt => opt.MapFrom(src => src.Sunset))
+                .ForMember(dest => dest.Temperature, opt => opt.MapFrom(src => src.Temperature.Celsius))
+                .ForMember(dest => dest.MinTemperature, opt => opt.MapFrom(src => src.MinTemperature.Celsius))
+                .ForMember(dest => dest.MaxTemperature, opt => opt.MapFrom(src => src.MaxTemperature.Celsius))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+                .ForMember(dest => dest.Icon, opt => opt.MapFrom(src => src.Icon))
+                .ForMember(dest => dest.WindSpeed, opt => opt.MapFrom(src => src.Wind.Speed))
+                .ForMember(dest => dest.WindDirection, opt => opt.MapFrom(src => src.Wind.Direction))
+                .ForMember(dest => dest.WindGust, opt => opt.MapFrom(src => src.Wind.Gust))
+                .ForMember(dest => dest.Humidity, opt => opt.MapFrom(src => src.Humidity))
+                .ForMember(dest => dest.Pressure, opt => opt.MapFrom(src => src.Pressure))
+                .ForMember(dest => dest.Clouds, opt => opt.MapFrom(src => src.Clouds))
+                .ForMember(dest => dest.UvIndex, opt => opt.MapFrom(src => src.UvIndex))
+                .ForMember(dest => dest.Precipitation, opt => opt.MapFrom(src => src.Precipitation))
+                .ForMember(dest => dest.MoonRise, opt => opt.MapFrom(src => src.MoonRise))
+                .ForMember(dest => dest.MoonSet, opt => opt.MapFrom(src => src.MoonSet))
+                .ForMember(dest => dest.MoonPhase, opt => opt.MapFrom(src => src.MoonPhase));
+
+            // Reverse mappings if needed
+            CreateMap<WeatherDto, Domain.Entities.Weather>()
+                .ForMember(dest => dest.Coordinate, opt => opt.MapFrom(src => new Domain.ValueObjects.Coordinate(src.Latitude, src.Longitude)))
+                .ForMember(dest => dest.Forecasts, opt => opt.Ignore())
+                .ForMember(dest => dest.DomainEvents, opt => opt.Ignore());
+
+            CreateMap<DailyForecastDto, WeatherForecast>()
+                .ForMember(dest => dest.Temperature, opt => opt.MapFrom(src => Domain.ValueObjects.Temperature.FromCelsius(src.Temperature)))
+                .ForMember(dest => dest.MinTemperature, opt => opt.MapFrom(src => Domain.ValueObjects.Temperature.FromCelsius(src.MinTemperature)))
+                .ForMember(dest => dest.MaxTemperature, opt => opt.MapFrom(src => Domain.ValueObjects.Temperature.FromCelsius(src.MaxTemperature)))
+                .ForMember(dest => dest.Wind, opt => opt.MapFrom(src => new Domain.ValueObjects.WindInfo(src.WindSpeed, src.WindDirection, src.WindGust)));
+        }
     }
 }
