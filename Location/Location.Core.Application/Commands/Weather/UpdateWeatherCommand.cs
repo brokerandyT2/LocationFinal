@@ -36,13 +36,12 @@ namespace Location.Core.Application.Commands.Weather
         {
             try
             {
-                var locationResult = await _unitOfWork.Locations.GetByIdAsync(request.LocationId, cancellationToken);
-                if (!locationResult.IsSuccess || locationResult.Data == null)
+                var location = await _unitOfWork.Locations.GetByIdAsync(request.LocationId, cancellationToken);
+
+                if (location == null)
                 {
                     return Result<WeatherDto>.Failure("Location not found");
                 }
-
-                var location = locationResult.Data;
 
                 // Check if we have cached weather that's still valid
                 var existingWeather = await _unitOfWork.Weather.GetByLocationIdAsync(request.LocationId, cancellationToken);

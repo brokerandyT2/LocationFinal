@@ -31,19 +31,18 @@ namespace Location.Core.Application.Locations.Commands.SaveLocation
             try
             {
                 Domain.Entities.Location location;
-                Result<Domain.Entities.Location> result;
 
                 if (request.Id.HasValue && request.Id.Value > 0)
                 {
                     // Update existing location
-                    var existingResult = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
+                    var existingLocation = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
 
-                    if (!existingResult.IsSuccess || existingResult.Data == null)
+                    if (existingLocation == null)
                     {
                         return Result<LocationDto>.Failure(Error.NotFound($"Location with ID {request.Id.Value} not found"));
                     }
 
-                    location = existingResult.Data;
+                    location = existingLocation;
 
                     // Update location details
                     location.UpdateDetails(request.Title, request.Description);
@@ -62,7 +61,7 @@ namespace Location.Core.Application.Locations.Commands.SaveLocation
                         location.AttachPhoto(request.PhotoPath);
                     }
 
-                    result = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
+                    _unitOfWork.Locations.Update(location);
                 }
                 else
                 {
@@ -81,26 +80,21 @@ namespace Location.Core.Application.Locations.Commands.SaveLocation
                         location.AttachPhoto(request.PhotoPath);
                     }
 
-                    result = await _unitOfWork.Locations.CreateAsync(location, cancellationToken);
-                }
-
-                if (!result.IsSuccess || result.Data == null)
-                {
-                    return Result<LocationDto>.Failure(result.ErrorMessage ?? "Failed to save location");
+                    location = await _unitOfWork.Locations.AddAsync(location, cancellationToken);
                 }
 
                 // Save changes
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 // Publish domain events
-                if (result.Data.DomainEvents.Count > 0)
+                if (location.DomainEvents.Count > 0)
                 {
-                    await _eventBus.PublishAllAsync(result.Data.DomainEvents.ToArray(), cancellationToken);
-                    result.Data.ClearDomainEvents();
+                    await _eventBus.PublishAllAsync(location.DomainEvents.ToArray(), cancellationToken);
+                    location.ClearDomainEvents();
                 }
 
                 // Map to DTO and return
-                var dto = _mapper.Map<LocationDto>(result.Data);
+                var dto = _mapper.Map<LocationDto>(location);
                 return Result<LocationDto>.Success(dto);
             }
             catch (Domain.Exceptions.InvalidCoordinateException ex)

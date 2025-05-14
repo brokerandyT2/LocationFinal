@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
-    public class LocationRepositoryAdapter : ILocationRepository
+    public class LocationRepositoryAdapter : Location.Core.Application.Common.Interfaces.ILocationRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository _innerRepository;
 
