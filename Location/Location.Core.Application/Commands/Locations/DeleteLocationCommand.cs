@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Location.Core.Application.Commands.Locations
 {
-    public class DeleteLocationCommand : IRequest<Result>
+    public class DeleteLocationCommand : IRequest<Result<bool>>
     {
         public int Id { get; set; }
     }
