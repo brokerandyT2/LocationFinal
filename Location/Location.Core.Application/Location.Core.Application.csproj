@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Settings\DTOs\" />
-    <Folder Include="Settings\Queries\" />
+    <Folder Include="Locations\Queries\GetLocations\" />
     <Folder Include="Tips\Commands\" />
     <Folder Include="Tips\DTOs\" />
     <Folder Include="Tips\Queries\" />

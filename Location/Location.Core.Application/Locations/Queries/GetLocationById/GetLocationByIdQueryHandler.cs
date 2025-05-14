@@ -3,7 +3,7 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using MediatR;
-
+using Location.Core.Application.Queries.Locations;
 namespace Location.Core.Application.Queries.Locations
 {
     public class GetLocationByIdQueryHandler : IRequestHandler<GetLocationByIdQuery, Result<LocationDto>>
@@ -13,7 +13,7 @@ namespace Location.Core.Application.Queries.Locations
 
         public GetLocationByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork; Location.Core.Application.Queries.Locations.;
             _mapper = mapper;
         }
 

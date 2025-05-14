@@ -10,7 +10,7 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
     [TestFixture]
     public class GetLocationByIdQueryTests
     {
-        [Test]
+        
     }
 
  
