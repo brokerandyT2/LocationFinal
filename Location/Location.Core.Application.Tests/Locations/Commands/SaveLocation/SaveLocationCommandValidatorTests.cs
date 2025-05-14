@@ -1,41 +1,24 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using FluentValidation.TestHelper;
-using Location.Core.Application.Locations.Commands.SaveLocation;
-using Location.Core.Application.Tests.Helpers;
-using FluentValidation;
-
-namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
+﻿namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
 {
-    [TestFixture]
+    using FluentValidation.TestHelper;
+    using Location.Core.Application.Commands.Locations;
+    using System.IO;
+    using Xunit;
+
     public class SaveLocationCommandValidatorTests
     {
-        private SaveLocationCommandValidator _validator;
+        private readonly SaveLocationCommandValidator _validator;
 
-        [SetUp]
-        public void Setup()
+        public SaveLocationCommandValidatorTests()
         {
             _validator = new SaveLocationCommandValidator();
         }
 
-        [Test]
-        public void Validate_WithValidCommand_ShouldNotHaveErrors()
+        [Fact]
+        public void Should_Have_Error_When_Title_Is_Empty()
         {
             // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand();
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldNotHaveAnyValidationErrors();
-        }
-
-        [Test]
-        public void Validate_WithEmptyTitle_ShouldHaveError()
-        {
-            // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(title: "");
+            var command = new SaveLocationCommand { Title = string.Empty };
 
             // Act
             var result = _validator.TestValidate(command);
@@ -45,137 +28,122 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
                 .WithErrorMessage("Title is required");
         }
 
-        [Test]
-        public void Validate_WithNullTitle_ShouldHaveError()
+        [Fact]
+        public void Should_Have_Error_When_Title_Exceeds_Max_Length()
         {
             // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand();
-            command.Title = null!;
+            var command = new SaveLocationCommand { Title = new string('a', 101) };
 
             // Act
             var result = _validator.TestValidate(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Title)
-                .WithErrorMessage("Title is required");
+                .WithErrorMessage("Title must not exceed 100 characters");
         }
 
-        [Test]
-        public void Validate_WithTooLongTitle_ShouldHaveError()
+        [Fact]
+        public void Should_Have_Error_When_Description_Exceeds_Max_Length()
         {
             // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(title: new string('a', 101));
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x.Title)
-                .WithErrorMessage("Title cannot exceed 100 characters");
-        }
-
-        [Test]
-        public void Validate_WithTooLongDescription_ShouldHaveError()
-        {
-            // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(description: new string('a', 501));
+            var command = new SaveLocationCommand { Description = new string('a', 501) };
 
             // Act
             var result = _validator.TestValidate(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Description)
-                .WithErrorMessage("Description cannot exceed 500 characters");
+                .WithErrorMessage("Description must not exceed 500 characters");
         }
 
-        [Test]
-        public void Validate_WithInvalidLatitude_ShouldHaveError()
+        [Fact]
+        public void Should_Have_Error_When_Latitude_Is_Less_Than_Minus_90()
         {
             // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(latitude: 91);
+            var command = new SaveLocationCommand { Latitude = -91 };
 
             // Act
             var result = _validator.TestValidate(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Latitude)
-                .WithErrorMessage("Latitude must be between -90 and 90");
+                .WithErrorMessage("Latitude must be between -90 and 90 degrees");
         }
 
-        [Test]
-        public void Validate_WithInvalidLongitude_ShouldHaveError()
+        [Fact]
+        public void Should_Have_Error_When_Latitude_Is_Greater_Than_90()
         {
             // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(longitude: 181);
+            var command = new SaveLocationCommand { Latitude = 91 };
+
+            // Act
+            var result = _validator.TestValidate(command);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(x => x.Latitude)
+                .WithErrorMessage("Latitude must be between -90 and 90 degrees");
+        }
+
+        [Fact]
+        public void Should_Have_Error_When_Longitude_Is_Less_Than_Minus_180()
+        {
+            // Arrange
+            var command = new SaveLocationCommand { Longitude = -181 };
 
             // Act
             var result = _validator.TestValidate(command);
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x.Longitude)
-                .WithErrorMessage("Longitude must be between -180 and 180");
+                .WithErrorMessage("Longitude must be between -180 and 180 degrees");
         }
 
-        [Test]
-        public void Validate_WithEmptyCity_ShouldHaveError()
+        [Fact]
+        public void Should_Have_Error_When_Longitude_Is_Greater_Than_180()
         {
             // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(city: "");
+            var command = new SaveLocationCommand { Longitude = 181 };
 
             // Act
             var result = _validator.TestValidate(command);
 
             // Assert
-            result.ShouldHaveValidationErrorFor(x => x.City)
-                .WithErrorMessage("City is required");
+            result.ShouldHaveValidationErrorFor(x => x.Longitude)
+                .WithErrorMessage("Longitude must be between -180 and 180 degrees");
         }
 
-        [Test]
-        public void Validate_WithEmptyState_ShouldHaveError()
+        [Fact]
+        public void Should_Have_Error_When_Coordinates_Are_Null_Island()
         {
             // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(state: "");
+            var command = new SaveLocationCommand
+            {
+                Title = "Test",
+                Latitude = 0,
+                Longitude = 0
+            };
 
             // Act
             var result = _validator.TestValidate(command);
 
             // Assert
-            result.ShouldHaveValidationErrorFor(x => x.State)
-                .WithErrorMessage("State is required");
+            result.ShouldHaveValidationErrorFor("Coordinates")
+                .WithErrorMessage("Invalid coordinates: Cannot use Null Island (0,0)");
         }
 
-        [Test]
-        public void Validate_WithNullIsland_ShouldHaveError()
+        [Fact]
+        public void Should_Not_Have_Error_For_Valid_Location()
         {
             // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(latitude: 0, longitude: 0);
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x)
-                .WithErrorMessage("Null Island (0,0) is not a valid location");
-        }
-
-        [Test]
-        public void Validate_WithValidPhoto_ShouldNotHaveErrors()
-        {
-            // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(photoPath: "/photos/test.jpg");
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldNotHaveAnyValidationErrors();
-        }
-
-        [Test]
-        public void Validate_WithNullPhoto_ShouldNotHaveErrors()
-        {
-            // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(photoPath: null);
+            var command = new SaveLocationCommand
+            {
+                Title = "Valid Location",
+                Description = "A valid description",
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                City = "New York",
+                State = "NY"
+            };
 
             // Act
             var result = _validator.TestValidate(command);
@@ -184,47 +152,62 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Test]
-        public void Validate_WithExistingLocationId_ShouldNotHaveErrors()
+        [Fact]
+        public void Should_Have_Error_When_PhotoPath_Is_Invalid()
         {
             // Arrange
-            var command = TestDataBuilder.CreateValidSaveLocationCommand(id: 123);
+            var command = new SaveLocationCommand
+            {
+                Title = "Test",
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                PhotoPath = "invalid|<>:path"
+            };
 
             // Act
             var result = _validator.TestValidate(command);
 
             // Assert
-            result.ShouldNotHaveAnyValidationErrors();
+            result.ShouldHaveValidationErrorFor(x => x.PhotoPath)
+                .WithErrorMessage("Photo path is not valid");
         }
-    }
 
-    // Placeholder for the actual implementation
-    public class SaveLocationCommandValidator : FluentValidation.AbstractValidator<SaveLocationCommand>
-    {
-        public SaveLocationCommandValidator()
+        [Fact]
+        public void Should_Not_Have_Error_When_PhotoPath_Is_Valid()
         {
-            RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Title is required")
-                .MaximumLength(100).WithMessage("Title cannot exceed 100 characters");
+            // Arrange
+            var command = new SaveLocationCommand
+            {
+                Title = "Test",
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                PhotoPath = "/path/to/valid/photo.jpg"
+            };
 
-            RuleFor(x => x.Description)
-                .MaximumLength(500).WithMessage("Description cannot exceed 500 characters");
+            // Act
+            var result = _validator.TestValidate(command);
 
-            RuleFor(x => x.Latitude)
-                .InclusiveBetween(-90, 90).WithMessage("Latitude must be between -90 and 90");
+            // Assert
+            result.ShouldNotHaveValidationErrorFor(x => x.PhotoPath);
+        }
 
-            RuleFor(x => x.Longitude)
-                .InclusiveBetween(-180, 180).WithMessage("Longitude must be between -180 and 180");
+        [Fact]
+        public void Should_Not_Have_Error_When_PhotoPath_Is_Null()
+        {
+            // Arrange
+            var command = new SaveLocationCommand
+            {
+                Title = "Test",
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                PhotoPath = null
+            };
 
-            RuleFor(x => x.City)
-                .NotEmpty().WithMessage("City is required");
+            // Act
+            var result = _validator.TestValidate(command);
 
-            RuleFor(x => x.State)
-                .NotEmpty().WithMessage("State is required");
-
-            RuleFor(x => x)
-                .Must(cmd => !(cmd.Latitude == 0 && cmd.Longitude == 0))
-                .WithMessage("Null Island (0,0) is not a valid location");
+            // Assert
+            result.ShouldNotHaveValidationErrorFor(x => x.PhotoPath);
         }
     }
 }

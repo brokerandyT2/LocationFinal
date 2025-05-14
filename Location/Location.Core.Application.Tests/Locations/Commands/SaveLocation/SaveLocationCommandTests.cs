@@ -1,7 +1,7 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Location.Core.Application.Locations.Commands.SaveLocation;
-using Location.Core.Application.Tests.Helpers;
+﻿using FluentAssertions;
+using Location.Core.Application.Commands.Locations;
+using Location.Core.Application.Tests.Utilities;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
 {

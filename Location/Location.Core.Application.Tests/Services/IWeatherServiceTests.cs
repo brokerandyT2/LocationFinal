@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Location.Core.Application.Services;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Weather.DTOs;
-using Location.Core.Application.Tests.Helpers;
+using Location.Core.Application.Tests.Utilities;
 
 namespace Location.Core.Application.Tests.Services
 {

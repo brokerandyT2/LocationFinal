@@ -1,15 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using Location.Core.Domain.Entities;
-using Location.Core.Domain.ValueObjects;
-
-namespace Location.Core.Application.Tests.Helpers
+﻿namespace Location.Core.Application.Tests.Utilities
 {
-    public class TestDataBuilder
-    {
-        private static int _idCounter = 1;
+    using Location.Core.Application.Commands.Locations;
+    using Location.Core.Application.Locations.DTOs;
+    using Location.Core.Application.Weather.DTOs;
+    using Location.Core.Domain.Entities;
+    using Location.Core.Domain.ValueObjects;
+    using System;
+    using System.Collections.Generic;
 
-        public Domain.Entities.Location BuildLocation(
+    public static class TestDataBuilder
+    {
+        public static SaveLocationCommand CreateValidSaveLocationCommand()
+        {
+            return new SaveLocationCommand
+            {
+                Title = "Test Location",
+                Description = "Test Description",
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                City = "New York",
+                State = "NY",
+                PhotoPath = null
+            };
+        }
+
+        public static SaveLocationCommand CreateValidSaveLocationCommand(
             int? id = null,
             string title = "Test Location",
             string description = "Test Description",
@@ -19,162 +34,182 @@ namespace Location.Core.Application.Tests.Helpers
             string state = "NY",
             string? photoPath = null)
         {
+            return new SaveLocationCommand
+            {
+                Id = id,
+                Title = title,
+                Description = description,
+                Latitude = latitude,
+                Longitude = longitude,
+                City = city,
+                State = state,
+                PhotoPath = photoPath
+            };
+        }
+
+        public static Location CreateValidLocation()
+        {
+            var coordinate = new Coordinate(40.7128, -74.0060);
+            var address = new Address("New York", "NY");
+
+            return new Location(
+                "Test Location",
+                "Test Description",
+                coordinate,
+                address);
+        }
+
+        public static Location  CreateValidLocation(
+            string title = "Test Location",
+            string description = "Test Description",
+            double latitude = 40.7128,
+            double longitude = -74.0060,
+            string city = "New York",
+            string state = "NY")
+        {
             var coordinate = new Coordinate(latitude, longitude);
             var address = new Address(city, state);
 
-            var location = new Domain.Entities.Location(title, description, coordinate, address);
-
-            // Set ID using reflection for testing
-            if (id.HasValue)
-            {
-                typeof(Domain.Entities.Location)
-                    .GetProperty("Id")!
-                    .SetValue(location, id.Value);
-            }
-            else
-            {
-                typeof(Domain.Entities.Location)
-                    .GetProperty("Id")!
-                    .SetValue(location, _idCounter++);
-            }
-
-            if (!string.IsNullOrEmpty(photoPath))
-            {
-                location.AttachPhoto(photoPath);
-            }
-
-            return location;
+            return new Location(
+                title,
+                description,
+                coordinate,
+                address);
         }
 
-        public Domain.Entities.Weather BuildWeather(
-            int? id = null,
-            int locationId = 1,
-            double latitude = 40.7128,
-            double longitude = -74.0060,
-            string timezone = "America/New_York",
-            int timezoneOffset = -18000)
+        public static LocationDto CreateValidLocationDto()
         {
-            var coordinate = new Coordinate(latitude, longitude);
-            var weather = new Domain.Entities.Weather(locationId, coordinate, timezone, timezoneOffset);
-
-            // Set ID using reflection for testing
-            if (id.HasValue)
+            return new LocationDto
             {
-                typeof(Domain.Entities.Weather)
-                    .GetProperty("Id")!
-                    .SetValue(weather, id.Value);
-            }
-            else
-            {
-                typeof(Domain.Entities.Weather)
-                    .GetProperty("Id")!
-                    .SetValue(weather, _idCounter++);
-            }
-
-            return weather;
+                Id = 1,
+                Title = "Test Location",
+                Description = "Test Description",
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                City = "New York",
+                State = "NY",
+                PhotoPath = null,
+                Timestamp = DateTime.UtcNow,
+                IsDeleted = false
+            };
         }
 
-        public WeatherForecast BuildWeatherForecast(
-            int weatherId = 1,
-            DateTime? date = null,
-            double temperature = 20.0,
-            double minTemperature = 15.0,
-            double maxTemperature = 25.0,
-            string description = "Clear",
-            string icon = "01d")
+        public static Weather CreateValidWeather(int locationId = 1)
         {
-            var forecastDate = date ?? DateTime.Today;
-            var temp = Temperature.FromCelsius(temperature);
-            var minTemp = Temperature.FromCelsius(minTemperature);
-            var maxTemp = Temperature.FromCelsius(maxTemperature);
-            var wind = new WindInfo(5.0, 180.0);
+            var coordinate = new Coordinate(40.7128, -74.0060);
+            return new Weather(locationId, coordinate, "America/New_York", -18000);
+        }
+
+        public static WeatherForecast CreateValidWeatherForecast(int weatherId = 1)
+        {
+            var temperature = Temperature.FromCelsius(20);
+            var minTemp = Temperature.FromCelsius(15);
+            var maxTemp = Temperature.FromCelsius(25);
+            var wind = new WindInfo(10, 180, 15);
 
             return new WeatherForecast(
                 weatherId,
-                forecastDate,
-                forecastDate.Date.AddHours(6), // sunrise
-                forecastDate.Date.AddHours(18), // sunset
-                temp,
+                DateTime.Today,
+                DateTime.Today.AddHours(6),
+                DateTime.Today.AddHours(18),
+                temperature,
                 minTemp,
                 maxTemp,
-                description,
-                icon,
+                "Clear sky",
+                "01d",
                 wind,
-                60, // humidity
-                1013, // pressure
-                20, // clouds
-                5.0 // uvIndex
-            );
+                65,
+                1013,
+                10,
+                5.5);
         }
 
-        public Domain.Entities.Tip BuildTip(
-            int? id = null,
-            int tipTypeId = 1,
-            string title = "Test Tip",
-            string content = "Test Content")
+        public static List<DailyForecastDto> CreateValidDailyForecasts(int count = 7)
         {
-            var tip = new Domain.Entities.Tip(tipTypeId, title, content);
+            var forecasts = new List<DailyForecastDto>();
 
-            if (id.HasValue)
+            for (int i = 0; i < count; i++)
             {
-                typeof(Domain.Entities.Tip)
-                    .GetProperty("Id")!
-                    .SetValue(tip, id.Value);
-            }
-            else
-            {
-                typeof(Domain.Entities.Tip)
-                    .GetProperty("Id")!
-                    .SetValue(tip, _idCounter++);
+                forecasts.Add(new DailyForecastDto
+                {
+                    Date = DateTime.UtcNow.Date.AddDays(i),
+                    Sunrise = DateTime.UtcNow.Date.AddDays(i).AddHours(6),
+                    Sunset = DateTime.UtcNow.Date.AddDays(i).AddHours(18),
+                    Temperature = 20 + i,
+                    MinTemperature = 15 + i,
+                    MaxTemperature = 25 + i,
+                    Description = $"Day {i + 1} weather",
+                    Icon = $"0{i + 1}d",
+                    WindSpeed = 10 + i,
+                    WindDirection = 180 + (i * 10),
+                    WindGust = i % 2 == 0 ? (double?)(15 + i) : null,
+                    Humidity = 65 + i,
+                    Pressure = 1013 + i,
+                    Clouds = 10 + (i * 5),
+                    UvIndex = 5.5 + i,
+                    Precipitation = i % 3 == 0 ? (double?)(0.1 * i) : null,
+                    MoonRise = DateTime.UtcNow.Date.AddDays(i).AddHours(20),
+                    MoonSet = DateTime.UtcNow.Date.AddDays(i).AddHours(7),
+                    MoonPhase = 0.1 * i
+                });
             }
 
-            return tip;
+            return forecasts;
         }
 
-        public Domain.Entities.TipType BuildTipType(
-            int? id = null,
-            string name = "Photography")
+        public static WeatherForecastDto CreateValidWeatherForecastDto()
         {
-            var tipType = new Domain.Entities.TipType(name);
-
-            if (id.HasValue)
+            return new WeatherForecastDto
             {
-                typeof(Domain.Entities.TipType)
-                    .GetProperty("Id")!
-                    .SetValue(tipType, id.Value);
-            }
-            else
-            {
-                typeof(Domain.Entities.TipType)
-                    .GetProperty("Id")!
-                    .SetValue(tipType, _idCounter++);
-            }
-
-            return tipType;
+                WeatherId = 1,
+                LastUpdate = DateTime.UtcNow,
+                Timezone = "America/New_York",
+                TimezoneOffset = -18000,
+                DailyForecasts = CreateValidDailyForecasts(7)
+            };
         }
 
-        public Domain.Entities.Setting BuildSetting(
-            int? id = null,
-            string key = "TestKey",
-            string value = "TestValue",
-            string description = "Test Description")
+        public static Tip CreateValidTip(int tipTypeId = 1)
         {
-            var setting = new Domain.Entities.Setting(key, value, description);
+            return new Tip(tipTypeId, "Photography Tip", "Use the rule of thirds");
+        }
 
-            if (id.HasValue)
-            {
-                typeof(Domain.Entities.Setting)
-                    .GetProperty("Id")!
-                    .SetValue(setting, id.Value);
-            }
-            else
-            {
-                typeof(Domain.Entities.Setting)
-                    .GetProperty("Id")!
-                    .SetValue(setting, _idCounter++);
-            }
+        public static TipType CreateValidTipType()
+        {
+            return new TipType("Landscape Photography");
+        }
 
-            return setting;
+        public static Setting CreateValidSetting()
+        {
+            return new Setting("test_key", "test_value", "Test setting description");
+        }
+
+        // Additional helpers for command variations
+        public static SaveLocationCommand CreateSaveLocationCommandWithId(int id)
+        {
+            var command = CreateValidSaveLocationCommand();
+            command.Id = id;
+            return command;
+        }
+
+        public static SaveLocationCommand CreateSaveLocationCommandWithPhoto()
+        {
+            var command = CreateValidSaveLocationCommand();
+            command.PhotoPath = "/path/to/photo.jpg";
+            return command;
+        }
+
+        public static SaveLocationCommand CreateInvalidSaveLocationCommand()
+        {
+            return new SaveLocationCommand
+            {
+                Title = "", // Invalid - empty title
+                Description = new string('a', 501), // Invalid - too long
+                Latitude = 91, // Invalid - out of range
+                Longitude = 181, // Invalid - out of range
+                City = "Invalid City",
+                State = "XX"
+            };
         }
     }
 }

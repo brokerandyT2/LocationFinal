@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
-using Location.Core.Application.Tests.Helpers;
+using Location.Core.Application.Tests.Utilities;
 using AutoMapper;
 using MediatR;
 using Location.Core.Application.Common.Interfaces.Persistence;

@@ -1,13 +1,13 @@
-﻿using Location.Core.Domain.Entities;
+﻿using Location.Core.Application.Common.Interfaces;
+using Location.Core.Domain.Entities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Location.Core.Application.Common.Interfaces.Persistence;
+
 namespace Location.Core.Infrastructure.Data.Repositories
 {
-    public class WeatherRepositoryAdapter : IWeatherRepository
+    public class WeatherRepositoryAdapter : Location.Core.Application.Common.Interfaces.IWeatherRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.IWeatherRepository _innerRepository;
 

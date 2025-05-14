@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using FluentAssertions;
 using FluentValidation.TestHelper;
-using Location.Core.Application.Tests.Helpers;
+using Location.Core.Application.Tests.Utilities;
 using FluentValidation;
 using Location.Core.Application.Commands.Locations;
 

@@ -1,4 +1,5 @@
 ﻿using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Services;
 using Location.Core.Infrastructure.Data.Repositories;
 using Location.Core.Infrastructure.Data;
@@ -9,9 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly.Extensions.Http;
-
 using Polly;
-
+using System;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure
 {
@@ -22,6 +25,7 @@ namespace Location.Core.Infrastructure
             // Database
             services.AddSingleton<IDatabaseContext, DatabaseContext>();
             services.AddScoped<IUnitOfWork, Location.Core.Infrastructure.UnitOfWork.UnitOfWork>();
+
             // Persistence-layer repositories (implementing Common.Interfaces.Persistence interfaces)
             services.AddScoped<LocationRepository>();
             services.AddScoped<WeatherRepository>();
@@ -44,8 +48,14 @@ namespace Location.Core.Infrastructure
             // Application-layer interfaces (using adapters to convert from persistence to Result<T> pattern)
             services.AddScoped<Location.Core.Application.Common.Interfaces.ILocationRepository>(sp =>
                 new LocationRepositoryAdapter(sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository>()));
+
+            // Fix: Cast explicitly to the interface type
             services.AddScoped<Location.Core.Application.Common.Interfaces.IWeatherRepository>(sp =>
-                new WeatherRepositoryAdapter(sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.IWeatherRepository>()));
+            {
+                var persistenceRepository = sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.IWeatherRepository>();
+                return new WeatherRepositoryAdapter(persistenceRepository) as Location.Core.Application.Common.Interfaces.IWeatherRepository;
+            });
+
             services.AddScoped<Location.Core.Application.Common.Interfaces.ITipRepository>(sp =>
                 new TipRepositoryAdapter(sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ITipRepository>()));
             services.AddScoped<Location.Core.Application.Common.Interfaces.ITipTypeRepository>(sp =>
@@ -60,7 +70,7 @@ namespace Location.Core.Infrastructure
             // Event Bus
             services.AddSingleton<IEventBus, InMemoryEventBus>();
 
-            // HTTP Client for Weather API
+            // HTTP Client for Weather API without Polly retry policy
             services.AddHttpClient<WeatherService>(client =>
             {
                 client.BaseAddress = new Uri("https://api.openweathermap.org");
@@ -72,23 +82,6 @@ namespace Location.Core.Infrastructure
             services.AddHostedService<DatabaseInitializationService>();
 
             return services;
-        }
-
-        private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
-        {
-            return HttpPolicyExtensions
-                .HandleTransientHttpError()
-                .WaitAndRetryAsync(
-                    3,
-                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                    onRetry: (outcome, timespan, retryCount, context) =>
-                    {
-                        if (context.Values.TryGetValue("logger", out var loggerObj) && loggerObj is ILogger logger)
-                        {
-                            logger.LogWarning("Retry {RetryCount} after {Timespan} seconds",
-                                retryCount, timespan.TotalSeconds);
-                        }
-                    });
         }
     }
 
@@ -119,7 +112,7 @@ namespace Location.Core.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to initializedatabase");
+                _logger.LogError(ex, "Failed to initialize database");
                 throw; // Let the host handle critical startup failures
             }
         }

@@ -2,7 +2,7 @@
 using FluentAssertions;
 using AutoMapper;
 using Location.Core.Application.Locations.DTOs;
-using Location.Core.Application.Tests.Helpers;
+using Location.Core.Application.Tests.Utilities;
 using Location.Core.Domain.ValueObjects;
 
 namespace Location.Core.Application.Tests.Mappings

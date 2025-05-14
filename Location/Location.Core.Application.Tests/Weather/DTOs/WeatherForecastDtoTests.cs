@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using FluentAssertions;
 using Location.Core.Application.Weather.DTOs;
-using Location.Core.Application.Tests.Helpers;
+using Location.Core.Application.Tests.Utilities;
 using System;
 using System.Collections.Generic;
 

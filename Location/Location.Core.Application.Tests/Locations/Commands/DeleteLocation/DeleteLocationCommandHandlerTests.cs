@@ -6,7 +6,7 @@ using NUnit.Framework;
 using Location.Core.Application.Commands.Locations; // This should import both DeleteLocationCommand AND DeleteLocationCommandHandler
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.Tests.Helpers;
+using Location.Core.Application.Tests.Utilities;
 using FluentAssertions;
 
 namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
