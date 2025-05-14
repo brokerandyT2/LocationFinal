@@ -1,17 +1,18 @@
 ﻿using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Services;
-using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Data.Repositories;
+using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Events;
 using Location.Core.Infrastructure.External;
 using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Polly;
 using Polly.Extensions.Http;
-using System;
+
+using Polly;
+
+
 namespace Location.Core.Infrastructure
 {
     public static class DependencyInjection
@@ -21,66 +22,36 @@ namespace Location.Core.Infrastructure
             // Database
             services.AddSingleton<IDatabaseContext, DatabaseContext>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            // Repositories - registering as Persistence interfaces
+            // Persistence-layer repositories (implementing Common.Interfaces.Persistence interfaces)
             services.AddScoped<LocationRepository>();
             services.AddScoped<WeatherRepository>();
             services.AddScoped<TipRepository>();
             services.AddScoped<TipTypeRepository>();
             services.AddScoped<SettingRepository>();
 
-            // Application interfaces - using adapters
+            // Register persistence interfaces
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<LocationRepository>();
-                return persistenceRepo;
-            });
+                sp.GetRequiredService<LocationRepository>());
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.IWeatherRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<WeatherRepository>();
-                return persistenceRepo;
-            });
+                sp.GetRequiredService<WeatherRepository>());
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ITipRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<TipRepository>();
-                return persistenceRepo;
-            });
+                sp.GetRequiredService<TipRepository>());
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<TipTypeRepository>();
-                return persistenceRepo;
-            });
+                sp.GetRequiredService<TipTypeRepository>());
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ISettingRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<SettingRepository>();
-                return persistenceRepo;
-            });
+                sp.GetRequiredService<SettingRepository>());
 
-            // Application interfaces - using adapters
+            // Application-layer interfaces (using adapters to convert from persistence to Result<T> pattern)
             services.AddScoped<Location.Core.Application.Common.Interfaces.ILocationRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository>();
-                return new LocationRepositoryAdapter(persistenceRepo);
-            });
+                new LocationRepositoryAdapter(sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository>()));
             services.AddScoped<Location.Core.Application.Common.Interfaces.IWeatherRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.IWeatherRepository>();
-                return new WeatherRepositoryAdapter(persistenceRepo);
-            });
+                new WeatherRepositoryAdapter(sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.IWeatherRepository>()));
             services.AddScoped<Location.Core.Application.Common.Interfaces.ITipRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ITipRepository>();
-                return new TipRepositoryAdapter(persistenceRepo);
-            });
+                new TipRepositoryAdapter(sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ITipRepository>()));
             services.AddScoped<Location.Core.Application.Common.Interfaces.ITipTypeRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository>();
-                return new TipTypeRepositoryAdapter(persistenceRepo);
-            });
+                new TipTypeRepositoryAdapter(sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository>()));
             services.AddScoped<Location.Core.Application.Common.Interfaces.ISettingRepository>(sp =>
-            {
-                var persistenceRepo = sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ISettingRepository>();
-                return new SettingRepositoryAdapter(persistenceRepo);
-            });
+                new SettingRepositoryAdapter(sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ISettingRepository>()));
 
             // Services
             services.AddScoped<IWeatherService, WeatherService>();
@@ -96,7 +67,6 @@ namespace Location.Core.Infrastructure
                 client.Timeout = TimeSpan.FromSeconds(30);
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
             });
-            // .AddPolicyHandler(GetRetryPolicy()); // Removed due to missing extension method
 
             // Initialize database on startup
             services.AddHostedService<DatabaseInitializationService>();
@@ -149,7 +119,7 @@ namespace Location.Core.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to initialize database");
+                _logger.LogError(ex, "Failed to initializedatabase");
                 throw; // Let the host handle critical startup failures
             }
         }

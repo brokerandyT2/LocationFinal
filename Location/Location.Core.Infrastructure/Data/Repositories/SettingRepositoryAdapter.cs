@@ -1,43 +1,119 @@
-﻿using Location.Core.Domain.Entities;
+﻿using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Models;
+using Location.Core.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Location.Core.Application.Common.Interfaces.Persistence;
 namespace Location.Core.Infrastructure.Data.Repositories
 {
     public class SettingRepositoryAdapter : ISettingRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.ISettingRepository _innerRepository;
-
         public SettingRepositoryAdapter(Location.Core.Application.Common.Interfaces.Persistence.ISettingRepository innerRepository)
         {
             _innerRepository = innerRepository ?? throw new ArgumentNullException(nameof(innerRepository));
         }
 
-        public Task<Setting?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
-            => _innerRepository.GetByIdAsync(id, cancellationToken);
+        public async Task<Result<Setting>> GetByKeyAsync(string key, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var setting = await _innerRepository.GetByKeyAsync(key, cancellationToken);
+                return setting != null
+                    ? Result<Setting>.Success(setting)
+                    : Result<Setting>.Failure($"Setting with key '{key}' not found");
+            }
+            catch (Exception ex)
+            {
+                return Result<Setting>.Failure($"Failed to retrieve setting: {ex.Message}");
+            }
+        }
 
-        public Task<Setting?> GetByKeyAsync(string key, CancellationToken cancellationToken = default)
-            => _innerRepository.GetByKeyAsync(key, cancellationToken);
+        public async Task<Result<List<Setting>>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var settings = await _innerRepository.GetAllAsync(cancellationToken);
+                return Result<List<Setting>>.Success(settings.ToList());
+            }
+            catch (Exception ex)
+            {
+                return Result<List<Setting>>.Failure($"Failed to retrieve settings: {ex.Message}");
+            }
+        }
 
-        public Task<IEnumerable<Setting>> GetAllAsync(CancellationToken cancellationToken = default)
-            => _innerRepository.GetAllAsync(cancellationToken);
+        public async Task<Result<Setting>> CreateAsync(Setting setting, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var created = await _innerRepository.AddAsync(setting, cancellationToken);
+                return Result<Setting>.Success(created);
+            }
+            catch (Exception ex)
+            {
+                return Result<Setting>.Failure($"Failed to create setting: {ex.Message}");
+            }
+        }
 
-        public Task<IEnumerable<Setting>> GetByKeysAsync(IEnumerable<string> keys, CancellationToken cancellationToken = default)
-            => _innerRepository.GetByKeysAsync(keys, cancellationToken);
+        public async Task<Result<Setting>> UpdateAsync(Setting setting, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                _innerRepository.Update(setting);
+                return Result<Setting>.Success(setting);
+            }
+            catch (Exception ex)
+            {
+                return Result<Setting>.Failure($"Failed to update setting: {ex.Message}");
+            }
+        }
 
-        public Task<Setting> AddAsync(Setting setting, CancellationToken cancellationToken = default)
-            => _innerRepository.AddAsync(setting, cancellationToken);
+        public async Task<Result<bool>> DeleteAsync(string key, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var setting = await _innerRepository.GetByKeyAsync(key, cancellationToken);
+                if (setting == null)
+                {
+                    return Result<bool>.Failure($"Setting with key '{key}' not found");
+                }
 
-        public void Update(Setting setting)
-            => _innerRepository.Update(setting);
+                _innerRepository.Delete(setting);
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return Result<bool>.Failure($"Failed to delete setting: {ex.Message}");
+            }
+        }
 
-        public void Delete(Setting setting)
-            => _innerRepository.Delete(setting);
+        public async Task<Result<Setting>> UpsertAsync(Setting setting, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await _innerRepository.UpsertAsync(setting.Key, setting.Value, setting.Description, cancellationToken);
+                return Result<Setting>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                return Result<Setting>.Failure($"Failed to upsert setting: {ex.Message}");
+            }
+        }
 
-        public Task<Setting> UpsertAsync(string key, string value, string? description = null, CancellationToken cancellationToken = default)
-            => _innerRepository.UpsertAsync(key, value, description, cancellationToken);
+        public async Task<Result<Dictionary<string, string>>> GetAllAsDictionaryAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var settings = await _innerRepository.GetAllAsync(cancellationToken);
+                var dictionary = settings.ToDictionary(s => s.Key, s => s.Value);
+                return Result<Dictionary<string, string>>.Success(dictionary);
+            }
+            catch (Exception ex)
+            {
+                return Result<Dictionary<string, string>>.Failure($"Failed to retrieve settings as dictionary: {ex.Message}");
+            }
+        }
     }
 }

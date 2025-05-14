@@ -1,4 +1,5 @@
-﻿using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Models;
 using Location.Core.Domain.Entities;
 using System;
 using System.Collections.Generic;

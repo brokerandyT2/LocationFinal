@@ -7,14 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 namespace Location.Core.Infrastructure.Data.Repositories
 {
     public class TipTypeRepository : ITipTypeRepository
     {
         private readonly IDatabaseContext _context;
         private readonly ILogger<TipTypeRepository> _logger;
-
         public TipTypeRepository(IDatabaseContext context, ILogger<TipTypeRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -99,56 +97,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public async Task<TipType?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var entity = await _context.Table<TipTypeEntity>()
-                    .Where(t => t.Name == name)
-                    .FirstOrDefaultAsync();
-
-                return entity != null ? MapToDomain(entity) : null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving tip type by name {Name}", name);
-                throw;
-            }
-        }
-
-        public async Task<TipType?> GetWithTipsAsync(int id, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var entity = await _context.GetAsync<TipTypeEntity>(id);
-                if (entity == null)
-                {
-                    return null;
-                }
-
-                var tipType = MapToDomain(entity);
-
-                // Get associated tips
-                var tipEntities = await _context.Table<TipEntity>()
-                    .Where(t => t.TipTypeId == id)
-                    .ToListAsync();
-
-                // Add tips to the tip type
-                foreach (var tipEntity in tipEntities)
-                {
-                    var tip = MapTipToDomain(tipEntity);
-                    tipType.AddTip(tip);
-                }
-
-                return tipType;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving tip type with tips for ID {TipTypeId}", id);
-                throw;
-            }
-        }
-
         #region Mapping Methods
 
         private TipType MapToDomain(TipTypeEntity entity)
@@ -173,21 +121,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
             };
         }
 
-        private Tip MapTipToDomain(TipEntity entity)
-        {
-            // Create tip using reflection
-            var tip = CreateTipViaReflection(entity.TipTypeId, entity.Title, entity.Content);
-
-            // Set properties
-            SetPrivateProperty(tip, "Id", entity.Id);
-            SetPrivateProperty(tip, "_fstop", entity.Fstop);
-            SetPrivateProperty(tip, "_shutterSpeed", entity.ShutterSpeed);
-            SetPrivateProperty(tip, "_iso", entity.Iso);
-            SetPrivateProperty(tip, "I8n", entity.I8n);
-
-            return tip;
-        }
-
         private TipType CreateTipTypeViaReflection(string name)
         {
             var type = typeof(TipType);
@@ -199,20 +132,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
 
             return (TipType)constructor.Invoke(new object[] { name });
-        }
-
-        private Tip CreateTipViaReflection(int tipTypeId, string title, string content)
-        {
-            var type = typeof(Tip);
-            var constructor = type.GetConstructor(
-                new[] { typeof(int), typeof(string), typeof(string) });
-
-            if (constructor == null)
-            {
-                throw new InvalidOperationException("Cannot find Tip constructor");
-            }
-
-            return (Tip)constructor.Invoke(new object[] { tipTypeId, title, content });
         }
 
         private void SetPrivateProperty(object obj, string propertyName, object value)

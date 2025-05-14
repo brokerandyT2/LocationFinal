@@ -1,90 +1,49 @@
 ﻿using Location.Core.Application.Common.Interfaces;
-using Location.Core.Infrastructure.Data.Repositories;
+using Location.Core.Infrastructure.Data;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-namespace Location.Core.Infrastructure.UnitOfWork
+namespace Location.Core.Infrastructure
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly Data.IDatabaseContext _context;
+        private readonly IDatabaseContext _context;
         private readonly ILogger<UnitOfWork> _logger;
         private readonly ILoggerFactory _loggerFactory;
-
-        // Lazy initialization for repositories (using Application interfaces)
-        private readonly Lazy<Location.Core.Application.Common.Interfaces.ILocationRepository> _locationRepository;
-        private readonly Lazy<Location.Core.Application.Common.Interfaces.IWeatherRepository> _weatherRepository;
-        private readonly Lazy<Location.Core.Application.Common.Interfaces.ITipRepository> _tipRepository;
-        private readonly Lazy<Location.Core.Application.Common.Interfaces.ITipTypeRepository> _tipTypeRepository;
-        private readonly Lazy<Location.Core.Application.Common.Interfaces.ISettingRepository> _settingRepository;
-
+        private readonly IServiceProvider _serviceProvider;
         private bool _disposed = false;
         private bool _inTransaction = false;
 
         public UnitOfWork(
-            Data.IDatabaseContext context,
+            IDatabaseContext context,
             ILogger<UnitOfWork> logger,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            IServiceProvider serviceProvider)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
-
-            // Initialize lazy repositories
-            _locationRepository = new Lazy<Location.Core.Application.Common.Interfaces.ILocationRepository>(() =>
-                CreateLocationRepository());
-            _weatherRepository = new Lazy<Location.Core.Application.Common.Interfaces.IWeatherRepository>(() =>
-                CreateWeatherRepository());
-            _tipRepository = new Lazy<Location.Core.Application.Common.Interfaces.ITipRepository>(() =>
-                CreateTipRepository());
-            _tipTypeRepository = new Lazy<Location.Core.Application.Common.Interfaces.ITipTypeRepository>(() =>
-                CreateTipTypeRepository());
-            _settingRepository = new Lazy<Location.Core.Application.Common.Interfaces.ISettingRepository>(() =>
-                CreateSettingRepository());
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        public Location.Core.Application.Common.Interfaces.ILocationRepository Locations => _locationRepository.Value;
-        public Location.Core.Application.Common.Interfaces.IWeatherRepository Weather => _weatherRepository.Value;
-        public Location.Core.Application.Common.Interfaces.ITipRepository Tips => _tipRepository.Value;
-        public Location.Core.Application.Common.Interfaces.ITipTypeRepository TipTypes => _tipTypeRepository.Value;
-        public Location.Core.Application.Common.Interfaces.ISettingRepository Settings => _settingRepository.Value;
+        // The repositories are already registered in DI as application interfaces
+        // We just need to resolve them from the service provider
+        public Location.Core.Application.Common.Interfaces.ILocationRepository Locations =>
+            _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.ILocationRepository>();
 
-        private Location.Core.Application.Common.Interfaces.ILocationRepository CreateLocationRepository()
-        {
-            var persistenceRepo = new Data.Repositories.LocationRepository(_context,
-                _loggerFactory.CreateLogger<Data.Repositories.LocationRepository>());
-            return new Data.Repositories.LocationRepositoryAdapter(persistenceRepo);
-        }
+        public Location.Core.Application.Common.Interfaces.IWeatherRepository Weather =>
+            _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.IWeatherRepository>();
 
-        private Location.Core.Application.Common.Interfaces.IWeatherRepository CreateWeatherRepository()
-        {
-            var persistenceRepo = new Data.Repositories.WeatherRepository(_context,
-                _loggerFactory.CreateLogger<Data.Repositories.WeatherRepository>());
-            return new Data.Repositories.WeatherRepositoryAdapter(persistenceRepo);
-        }
+        public Location.Core.Application.Common.Interfaces.ITipRepository Tips =>
+            _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.ITipRepository>();
 
-        private Location.Core.Application.Common.Interfaces.ITipRepository CreateTipRepository()
-        {
-            var persistenceRepo = new Data.Repositories.TipRepository(_context,
-                _loggerFactory.CreateLogger<Data.Repositories.TipRepository>());
-            return new Data.Repositories.TipRepositoryAdapter(persistenceRepo);
-        }
+        public Location.Core.Application.Common.Interfaces.ITipTypeRepository TipTypes =>
+            _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.ITipTypeRepository>();
 
-        private Location.Core.Application.Common.Interfaces.ITipTypeRepository CreateTipTypeRepository()
-        {
-            var persistenceRepo = new Data.Repositories.TipTypeRepository(_context,
-                _loggerFactory.CreateLogger<Data.Repositories.TipTypeRepository>());
-            return new Data.Repositories.TipTypeRepositoryAdapter(persistenceRepo);
-        }
-
-        private Location.Core.Application.Common.Interfaces.ISettingRepository CreateSettingRepository()
-        {
-            var persistenceRepo = new Data.Repositories.SettingRepository(_context,
-                _loggerFactory.CreateLogger<Data.Repositories.SettingRepository>());
-            return new Data.Repositories.SettingRepositoryAdapter(persistenceRepo);
-        }
+        public Location.Core.Application.Common.Interfaces.ISettingRepository Settings =>
+            _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.ISettingRepository>();
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
