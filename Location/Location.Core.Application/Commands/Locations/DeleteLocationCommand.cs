@@ -1,34 +1,29 @@
-﻿using Location.Core.Application.Common;
-using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Interfaces.Persistence;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using MediatR;
-
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 namespace Location.Core.Application.Commands.Locations
 {
     public class DeleteLocationCommand : IRequest<Result<bool>>
     {
         public int Id { get; set; }
     }
-
     public class DeleteLocationCommandHandler : IRequestHandler<DeleteLocationCommand, Result<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILocationRepository _locationRepository;
 
-        public DeleteLocationCommandHandler(
-            IUnitOfWork unitOfWork,
-            ILocationRepository locationRepository)
+        public DeleteLocationCommandHandler(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _locationRepository = locationRepository;
         }
 
         public async Task<Result<bool>> Handle(DeleteLocationCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var location = await _locationRepository.GetByIdAsync(request.Id, cancellationToken);
+                var location = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
                 if (location == null)
                 {
                     return Result<bool>.Failure("Location not found");
@@ -36,6 +31,7 @@ namespace Location.Core.Application.Commands.Locations
 
                 // Soft delete as per memory (locations can't be deleted, just marked as deleted)
                 location.Delete();
+                _unitOfWork.Locations.Update(location);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 

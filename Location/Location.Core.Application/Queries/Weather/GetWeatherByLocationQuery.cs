@@ -1,27 +1,28 @@
-﻿using AutoMapper;
-using Location.Core.Application.Common;
-using Location.Core.Application.Common.Interfaces.Persistence;
+﻿
+using AutoMapper;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Weather.DTOs;
 using MediatR;
-
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 namespace Location.Core.Application.Queries.Weather
 {
     public class GetWeatherByLocationQuery : IRequest<Result<WeatherDto>>
     {
         public int LocationId { get; set; }
     }
-
     public class GetWeatherByLocationQueryHandler : IRequestHandler<GetWeatherByLocationQuery, Result<WeatherDto>>
     {
-        private readonly IWeatherRepository _weatherRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public GetWeatherByLocationQueryHandler(
-            IWeatherRepository weatherRepository,
+            IUnitOfWork unitOfWork,
             IMapper mapper)
         {
-            _weatherRepository = weatherRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -29,7 +30,7 @@ namespace Location.Core.Application.Queries.Weather
         {
             try
             {
-                var weather = await _weatherRepository.GetByLocationIdAsync(request.LocationId, cancellationToken);
+                var weather = await _unitOfWork.Weather.GetByLocationIdAsync(request.LocationId, cancellationToken);
 
                 if (weather == null)
                 {

@@ -1,14 +1,13 @@
-﻿using AutoMapper;
-using FluentValidation;
-using Location.Core.Application.Common;
+﻿
+using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
-using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
 using MediatR;
-
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 namespace Location.Core.Application.Commands.Locations
 {
     public class SaveLocationCommand : IRequest<Result<LocationDto>>
@@ -22,21 +21,17 @@ namespace Location.Core.Application.Commands.Locations
         public string City { get; set; } = string.Empty;
         public string State { get; set; } = string.Empty;
     }
-
     public class SaveLocationCommandHandler : IRequestHandler<SaveLocationCommand, Result<LocationDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly ILocationRepository _locationRepository;
 
         public SaveLocationCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            ILocationRepository locationRepository)
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _locationRepository = locationRepository;
         }
 
         public async Task<Result<LocationDto>> Handle(SaveLocationCommand request, CancellationToken cancellationToken)
@@ -48,7 +43,7 @@ namespace Location.Core.Application.Commands.Locations
                 if (request.Id.HasValue)
                 {
                     // Update existing location
-                    location = await _locationRepository.GetByIdAsync(request.Id.Value, cancellationToken);
+                    location = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
                     if (location == null)
                     {
                         return Result<LocationDto>.Failure("Location not found");
@@ -65,6 +60,8 @@ namespace Location.Core.Application.Commands.Locations
                     {
                         location.AttachPhoto(request.PhotoPath);
                     }
+
+                    _unitOfWork.Locations.Update(location);
                 }
                 else
                 {
@@ -83,7 +80,7 @@ namespace Location.Core.Application.Commands.Locations
                         location.AttachPhoto(request.PhotoPath);
                     }
 
-                    await _locationRepository.AddAsync(location, cancellationToken);
+                    await _unitOfWork.Locations.AddAsync(location, cancellationToken);
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);

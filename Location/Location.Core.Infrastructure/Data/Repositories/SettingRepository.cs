@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ISettingRepository = Location.Core.Application.Common.Interfaces.ISettingRepository;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {

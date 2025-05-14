@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Location.Core.Application.Common.Interfaces.Persistence;
 namespace Location.Core.Infrastructure.Data.Repositories
 {
-    public class WeatherRepositoryAdapter : Location.Core.Application.Common.Interfaces.IWeatherRepository
+    public class WeatherRepositoryAdapter : IWeatherRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.IWeatherRepository _innerRepository;
 

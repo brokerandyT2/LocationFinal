@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Location.Core.Application.Common.Interfaces.Persistence;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
-    public class LocationRepositoryAdapter : Location.Core.Application.Common.Interfaces.ILocationRepository
+    public class LocationRepositoryAdapter : ILocationRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository _innerRepository;
 

@@ -1,12 +1,11 @@
 ﻿using Location.Core.Application.Common.Interfaces;
-using Location.Core.Domain.Common;
+using Location.Core.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 namespace Location.Core.Infrastructure.Events
 {
     public class InMemoryEventBus : IEventBus
@@ -14,14 +13,12 @@ namespace Location.Core.Infrastructure.Events
         private readonly ILogger<InMemoryEventBus> _logger;
         private readonly Dictionary<Type, List<object>> _eventHandlers = new();
         private readonly SemaphoreSlim _semaphore = new(1, 1);
-
         public InMemoryEventBus(ILogger<InMemoryEventBus> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task PublishAsync<TEvent>(TEvent domainEvent, CancellationToken cancellationToken = default)
-            where TEvent : DomainEvent
+        public async Task PublishAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
         {
             if (domainEvent == null)
                 throw new ArgumentNullException(nameof(domainEvent));
@@ -38,9 +35,12 @@ namespace Location.Core.Infrastructure.Events
                     {
                         try
                         {
-                            if (handler is IEventHandler<TEvent> typedHandler)
+                            // Since we don't have a specific IEventHandler interface, we'll use dynamic
+                            // invocation or casting based on the handler type
+                            var handleMethod = handler.GetType().GetMethod("HandleAsync");
+                            if (handleMethod != null)
                             {
-                                await typedHandler.HandleAsync(domainEvent, cancellationToken);
+                                await (Task)handleMethod.Invoke(handler, new object[] { domainEvent, cancellationToken })!;
                                 _logger.LogDebug("Event {EventType} handled by {HandlerType}",
                                     eventType.Name, handler.GetType().Name);
                             }
@@ -64,7 +64,18 @@ namespace Location.Core.Infrastructure.Events
             }
         }
 
-        public void Subscribe<TEvent>(IEventHandler<TEvent> handler) where TEvent : DomainEvent
+        public async Task PublishAllAsync(IDomainEvent[] domainEvents, CancellationToken cancellationToken = default)
+        {
+            if (domainEvents == null)
+                throw new ArgumentNullException(nameof(domainEvents));
+
+            foreach (var domainEvent in domainEvents)
+            {
+                await PublishAsync(domainEvent, cancellationToken);
+            }
+        }
+
+        public void Subscribe(Type eventType, object handler)
         {
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
@@ -72,8 +83,6 @@ namespace Location.Core.Infrastructure.Events
             _semaphore.Wait();
             try
             {
-                var eventType = typeof(TEvent);
-
                 if (!_eventHandlers.ContainsKey(eventType))
                 {
                     _eventHandlers[eventType] = new List<object>();
@@ -89,7 +98,7 @@ namespace Location.Core.Infrastructure.Events
             }
         }
 
-        public void Unsubscribe<TEvent>(IEventHandler<TEvent> handler) where TEvent : DomainEvent
+        public void Unsubscribe(Type eventType, object handler)
         {
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
@@ -97,8 +106,6 @@ namespace Location.Core.Infrastructure.Events
             _semaphore.Wait();
             try
             {
-                var eventType = typeof(TEvent);
-
                 if (_eventHandlers.TryGetValue(eventType, out var handlers))
                 {
                     handlers.Remove(handler);
@@ -115,17 +122,6 @@ namespace Location.Core.Infrastructure.Events
             finally
             {
                 _semaphore.Release();
-            }
-        }
-
-        public async Task PublishAllAsync(IEnumerable<DomainEvent> domainEvents, CancellationToken cancellationToken = default)
-        {
-            if (domainEvents == null)
-                throw new ArgumentNullException(nameof(domainEvents));
-
-            foreach (var domainEvent in domainEvents)
-            {
-                await PublishAsync((dynamic)domainEvent, cancellationToken);
             }
         }
 

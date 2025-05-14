@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Location.Core.Application.Common.Interfaces.Persistence;
 namespace Location.Core.Infrastructure.Data.Repositories
 {
-    public class SettingRepositoryAdapter : Location.Core.Application.Common.Interfaces.ISettingRepository
+    public class SettingRepositoryAdapter : ISettingRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.ISettingRepository _innerRepository;
 
