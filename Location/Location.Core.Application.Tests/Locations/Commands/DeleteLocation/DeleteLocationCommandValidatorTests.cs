@@ -3,6 +3,7 @@ using FluentAssertions;
 using FluentValidation.TestHelper;
 using Location.Core.Application.Tests.Helpers;
 using FluentValidation;
+using Location.Core.Application.Commands.Locations;
 
 namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 {

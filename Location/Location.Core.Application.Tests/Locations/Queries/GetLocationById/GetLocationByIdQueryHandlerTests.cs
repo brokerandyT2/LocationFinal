@@ -10,6 +10,7 @@ using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Queries.Locations;
 using Location.Core.Application.Tests.Helpers;
 using FluentAssertions;
+using Location.Core.Application.Locations.Queries.GetLocationById;
 
 namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 {
