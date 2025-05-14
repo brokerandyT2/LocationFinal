@@ -1,0 +1,31 @@
+﻿<Project Sdk="MSTest.Sdk/3.6.4">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseVSTest>true</UseVSTest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Settings\Commands\" />
+    <Folder Include="Settings\DTOs\" />
+    <Folder Include="Settings\Queries\" />
+    <Folder Include="Tips\Commands\" />
+    <Folder Include="Tips\DTOs\" />
+    <Folder Include="Tips\Queries\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="8.2.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Location.Core.Application\Location.Core.Application.csproj" />
+    <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
+  </ItemGroup>
+</Project>
