@@ -2,8 +2,6 @@
 using Location.Core.Application.Common;
 using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.DTOs;
-using Location.Core.Application.Interfaces;
 using Location.Core.Application.Locations.DTOs;
 using MediatR;
 
@@ -34,20 +32,32 @@ namespace Location.Core.Application.Queries.Locations
         {
             try
             {
-                var locations = await _locationRepository.GetPagedAsync(
-                    request.PageNumber,
-                    request.PageSize,
-                    request.SearchTerm,
-                    request.IncludeDeleted,
-                    cancellationToken);
+                // Get all locations (or active ones based on request)
+                var locations = request.IncludeDeleted
+                    ? await _locationRepository.GetAllAsync(cancellationToken)
+                    : await _locationRepository.GetActiveAsync(cancellationToken);
 
-                var locationDtos = _mapper.Map<List<LocationListDto>>(locations.Items);
+                // Apply search filter if provided
+                if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+                {
+                    locations = locations.Where(l =>
+                        l.Title.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                        l.Description.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                        l.Address.City.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                        l.Address.State.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase));
+                }
 
-                var pagedList = new PagedList<LocationListDto>(
+                // Convert to list for paging
+                var locationsList = locations.ToList();
+
+                // Map to DTOs
+                var locationDtos = _mapper.Map<List<LocationListDto>>(locationsList);
+
+                // Create paged result
+                var pagedList = PagedList<LocationListDto>.Create(
                     locationDtos,
-                    locations.TotalCount,
-                    locations.CurrentPage,
-                    locations.PageSize);
+                    request.PageNumber,
+                    request.PageSize);
 
                 return Result<PagedList<LocationListDto>>.Success(pagedList);
             }

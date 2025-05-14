@@ -1,8 +1,7 @@
 ﻿using Location.Core.Application.Common;
-using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.Interfaces;
 using MediatR;
 
 namespace Location.Core.Application.Commands.Locations

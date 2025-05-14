@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
 using Location.Core.Application.Common;
-using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.DTOs;
-using Location.Core.Application.Interfaces;
-using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
+using Location.Core.Application.Services;
 using MediatR;
 
 namespace Location.Core.Application.Commands.Weather
@@ -53,7 +51,7 @@ namespace Location.Core.Application.Commands.Weather
                 var existingWeather = await _weatherRepository.GetByLocationIdAsync(request.LocationId, cancellationToken);
                 if (existingWeather != null && !request.ForceUpdate)
                 {
-                    var daysSinceUpdate = (DateTime.UtcNow - existingWeather.LastUpdated).TotalDays;
+                    var daysSinceUpdate = (DateTime.UtcNow - existingWeather.LastUpdate).TotalDays;
                     if (daysSinceUpdate < 1) // Update at most once per day
                     {
                         var cachedDto = _mapper.Map<WeatherDto>(existingWeather);
@@ -62,32 +60,18 @@ namespace Location.Core.Application.Commands.Weather
                 }
 
                 // Fetch new weather data from OpenWeatherMap One Call 3.0
-                var weatherData = await _weatherService.GetWeatherAsync(
-                    location.Latitude,
-                    location.Longitude,
+                var weatherResult = await _weatherService.GetWeatherAsync(
+                    location.Coordinate.Latitude,
+                    location.Coordinate.Longitude,
                     cancellationToken);
 
-                if (weatherData == null)
+                if (!weatherResult.IsSuccess || weatherResult.Data == null)
                 {
                     return Result<WeatherDto>.Failure("Failed to fetch weather data");
                 }
 
-                // Update or create weather entity
-                if (existingWeather != null)
-                {
-                    existingWeather.UpdateWeatherData(weatherData);
-                }
-                else
-                {
-                    var newWeather = new Domain.Entities.Weather(
-                        request.LocationId,
-                        weatherData);
-                    await _weatherRepository.AddAsync(newWeather, cancellationToken);
-                }
-
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                var weatherDto = _mapper.Map<WeatherDto>(existingWeather ?? weatherData);
+                // Weather service should return a WeatherDto, map it to our domain if needed
+                var weatherDto = weatherResult.Data;
                 return Result<WeatherDto>.Success(weatherDto);
             }
             catch (Exception ex)

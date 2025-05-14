@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using Location.Core.Domain.Entities;
 
-namespace Location.Core.Application.Common.Interfaces.Persistence
+namespace Location.Core.Application.Common.Interfaces
 {
-    /// <summary>
-    /// Repository interface for TipType entity
-    /// </summary>
     public interface ITipTypeRepository
     {
         Task<Domain.Entities.TipType?> GetByIdAsync(int id, CancellationToken cancellationToken = default);

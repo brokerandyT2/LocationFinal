@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Location.Core.Application.Common;
-using Location.Core.Application.Interfaces;
-using Location.Core.Application.DTOs;
-using Location.Core.Domain.Entities;
-using MediatR;
-using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
+using Location.Core.Domain.Entities;
+using Location.Core.Domain.ValueObjects;
+using MediatR;
 
 namespace Location.Core.Application.Commands.Locations
 {
@@ -20,7 +19,8 @@ namespace Location.Core.Application.Commands.Locations
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public string? PhotoPath { get; set; }
-        public string? Address { get; set; }
+        public string City { get; set; } = string.Empty;
+        public string State { get; set; } = string.Empty;
     }
 
     public class SaveLocationCommandHandler : IRequestHandler<SaveLocationCommand, Result<LocationDto>>
@@ -54,24 +54,34 @@ namespace Location.Core.Application.Commands.Locations
                         return Result<LocationDto>.Failure("Location not found");
                     }
 
-                    location.UpdateDetails(
-                        request.Title,
-                        request.Description,
-                        request.Latitude,
-                        request.Longitude,
-                        request.PhotoPath,
-                        request.Address);
+                    location.UpdateDetails(request.Title, request.Description);
+
+                    // Update coordinates
+                    var newCoordinate = new Coordinate(request.Latitude, request.Longitude);
+                    location.UpdateCoordinate(newCoordinate);
+
+                    // Update photo if provided
+                    if (!string.IsNullOrEmpty(request.PhotoPath))
+                    {
+                        location.AttachPhoto(request.PhotoPath);
+                    }
                 }
                 else
                 {
                     // Create new location
+                    var coordinate = new Coordinate(request.Latitude, request.Longitude);
+                    var address = new Address(request.City, request.State);
+
                     location = new Domain.Entities.Location(
                         request.Title,
-                        request.Latitude,
-                        request.Longitude,
-                        request.Description,
-                        request.PhotoPath,
-                        request.Address);
+                        request.Description ?? string.Empty,
+                        coordinate,
+                        address);
+
+                    if (!string.IsNullOrEmpty(request.PhotoPath))
+                    {
+                        location.AttachPhoto(request.PhotoPath);
+                    }
 
                     await _locationRepository.AddAsync(location, cancellationToken);
                 }

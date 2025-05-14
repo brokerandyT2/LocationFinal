@@ -10,39 +10,13 @@ namespace Location.Core.Application.Common.Interfaces.Persistence
     /// </summary>
     public interface ITipRepository
     {
-        /// <summary>
-        /// Gets a tip by its ID
-        /// </summary>
-        Task<Tip?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Gets a tip by its title
-        /// </summary>
-        Task<Tip?> GetByTitleAsync(string title, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Gets all tips
-        /// </summary>
-        Task<IEnumerable<Tip>> GetAllAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Gets tips by tip type
-        /// </summary>
-        Task<IEnumerable<Tip>> GetByTipTypeIdAsync(int tipTypeId, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Adds a new tip
-        /// </summary>
-        Task<Tip> AddAsync(Tip tip, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Updates an existing tip
-        /// </summary>
-        void Update(Tip tip);
-
-        /// <summary>
-        /// Deletes a tip
-        /// </summary>
-        void Delete(Tip tip);
+        Task<Domain.Entities.Tip?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Domain.Entities.Tip>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<IEnumerable<Domain.Entities.Tip>> GetByTipTypeIdAsync(int tipTypeId, CancellationToken cancellationToken = default);
+        Task<Domain.Entities.Tip> AddAsync(Domain.Entities.Tip tip, CancellationToken cancellationToken = default);
+        void Update(Domain.Entities.Tip tip);
+        void Delete(Domain.Entities.Tip tip);
+        Task<Domain.Entities.Tip?> GetByTitleAsync(string title, CancellationToken cancellationToken = default);
+        Task<Domain.Entities.Tip?> GetRandomByTypeAsync(int tipTypeId, CancellationToken cancellationToken = default);
     }
 }

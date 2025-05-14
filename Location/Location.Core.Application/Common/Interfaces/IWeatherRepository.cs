@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace Location.Core.Application.Common.Interfaces.Persistence
+namespace Location.Core.Application.Common.Interfaces
 {
-    /// <summary>
-    /// Repository interface for Weather aggregate root
-    /// </summary>
     public interface IWeatherRepository
     {
         Task<Domain.Entities.Weather?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
