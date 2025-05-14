@@ -1,5 +1,4 @@
-﻿using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.Data.Entities;
@@ -23,7 +22,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Result<Weather>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Weather?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -31,7 +30,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
                 if (weatherEntity == null)
                 {
-                    return Result<Weather>.Failure($"Weather with ID {id} not found");
+                    return null;
                 }
 
                 var forecastEntities = await _context.Table<WeatherForecastEntity>()
@@ -40,16 +39,16 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     .ToListAsync();
 
                 var weather = MapToDomain(weatherEntity, forecastEntities);
-                return Result<Weather>.Success(weather);
+                return weather;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving weather with ID {WeatherId}", id);
-                return Result<Weather>.Failure($"Failed to retrieve weather: {ex.Message}");
+                throw;
             }
         }
 
-        public async Task<Result<Weather>> GetByLocationIdAsync(int locationId, CancellationToken cancellationToken = default)
+        public async Task<Weather?> GetByLocationIdAsync(int locationId, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -60,7 +59,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
                 if (weatherEntity == null)
                 {
-                    return Result<Weather>.Failure($"Weather for location ID {locationId} not found");
+                    return null;
                 }
 
                 var forecastEntities = await _context.Table<WeatherForecastEntity>()
@@ -69,16 +68,16 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     .ToListAsync();
 
                 var weather = MapToDomain(weatherEntity, forecastEntities);
-                return Result<Weather>.Success(weather);
+                return weather;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving weather for location ID {LocationId}", locationId);
-                return Result<Weather>.Failure($"Failed to retrieve weather: {ex.Message}");
+                throw;
             }
         }
 
-        public async Task<Result<Weather>> CreateAsync(Weather weather, CancellationToken cancellationToken = default)
+        public async Task<Weather> AddAsync(Weather weather, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -100,91 +99,78 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 _logger.LogInformation("Created weather with ID {WeatherId} for location {LocationId}",
                     weatherEntity.Id, weather.LocationId);
 
-                return Result<Weather>.Success(weather);
+                return weather;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating weather");
-                return Result<Weather>.Failure($"Failed to create weather: {ex.Message}");
+                throw;
             }
         }
 
-        public async Task<Result<Weather>> UpdateAsync(Weather weather, CancellationToken cancellationToken = default)
+        public void Update(Weather weather)
         {
             try
             {
-                var existingResult = await GetByIdAsync(weather.Id, cancellationToken);
-                if (!existingResult.IsSuccess)
-                {
-                    return Result<Weather>.Failure($"Weather with ID {weather.Id} not found");
-                }
-
                 // Update weather entity
                 var weatherEntity = MapToEntity(weather);
-                await _context.UpdateAsync(weatherEntity);
+                _context.UpdateAsync(weatherEntity).GetAwaiter().GetResult();
 
                 // Delete existing forecasts
-                var existingForecasts = await _context.Table<WeatherForecastEntity>()
+                var existingForecasts = _context.Table<WeatherForecastEntity>()
                     .Where(f => f.WeatherId == weather.Id)
-                    .ToListAsync();
+                    .ToListAsync().GetAwaiter().GetResult();
 
                 foreach (var forecast in existingForecasts)
                 {
-                    await _context.DeleteAsync(forecast);
+                    _context.DeleteAsync(forecast).GetAwaiter().GetResult();
                 }
 
                 // Create new forecasts
                 foreach (var forecast in weather.Forecasts)
                 {
                     var forecastEntity = MapForecastToEntity(forecast, weather.Id);
-                    await _context.InsertAsync(forecastEntity);
+                    _context.InsertAsync(forecastEntity).GetAwaiter().GetResult();
                     SetPrivateProperty(forecast, "Id", forecastEntity.Id);
                 }
 
                 _logger.LogInformation("Updated weather with ID {WeatherId}", weather.Id);
-                return Result<Weather>.Success(weather);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating weather with ID {WeatherId}", weather.Id);
-                return Result<Weather>.Failure($"Failed to update weather: {ex.Message}");
+                throw;
             }
         }
 
-        public async Task<Result<bool>> DeleteAsync(int id, CancellationToken cancellationToken = default)
+        public void Delete(Weather weather)
         {
             try
             {
-                var weatherEntity = await _context.GetAsync<WeatherEntity>(id);
-                if (weatherEntity == null)
-                {
-                    return Result<bool>.Failure($"Weather with ID {id} not found");
-                }
-
                 // Delete forecasts first
-                var forecasts = await _context.Table<WeatherForecastEntity>()
-                    .Where(f => f.WeatherId == id)
-                    .ToListAsync();
+                var forecasts = _context.Table<WeatherForecastEntity>()
+                    .Where(f => f.WeatherId == weather.Id)
+                    .ToListAsync().GetAwaiter().GetResult();
 
                 foreach (var forecast in forecasts)
                 {
-                    await _context.DeleteAsync(forecast);
+                    _context.DeleteAsync(forecast).GetAwaiter().GetResult();
                 }
 
                 // Delete weather
-                await _context.DeleteAsync(weatherEntity);
+                var weatherEntity = MapToEntity(weather);
+                _context.DeleteAsync(weatherEntity).GetAwaiter().GetResult();
 
-                _logger.LogInformation("Deleted weather with ID {WeatherId}", id);
-                return Result<bool>.Success(true);
+                _logger.LogInformation("Deleted weather with ID {WeatherId}", weather.Id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting weather with ID {WeatherId}", id);
-                return Result<bool>.Failure($"Failed to delete weather: {ex.Message}");
+                _logger.LogError(ex, "Error deleting weather with ID {WeatherId}", weather.Id);
+                throw;
             }
         }
 
-        public async Task<Result<List<Weather>>> GetRecentAsync(int count = 10, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Weather>> GetRecentAsync(int count = 10, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -206,16 +192,16 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     weatherList.Add(weather);
                 }
 
-                return Result<List<Weather>>.Success(weatherList);
+                return weatherList;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving recent weather data");
-                return Result<List<Weather>>.Failure($"Failed to retrieve recent weather: {ex.Message}");
+                throw;
             }
         }
 
-        public async Task<Result<List<Weather>>> GetExpiredAsync(TimeSpan maxAge, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Weather>> GetExpiredAsync(TimeSpan maxAge, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -238,12 +224,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     weatherList.Add(weather);
                 }
 
-                return Result<List<Weather>>.Success(weatherList);
+                return weatherList;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving expired weather data");
-                return Result<List<Weather>>.Failure($"Failed to retrieve expired weather: {ex.Message}");
+                throw;
             }
         }
 

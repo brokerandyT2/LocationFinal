@@ -4,12 +4,14 @@ using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 namespace Location.Core.Application.Commands.Locations
 {
     public class DeleteLocationCommand : IRequest<Result<bool>>
     {
         public int Id { get; set; }
     }
+
     public class DeleteLocationCommandHandler : IRequestHandler<DeleteLocationCommand, Result<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -23,15 +25,13 @@ namespace Location.Core.Application.Commands.Locations
         {
             try
             {
-                var location = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
-                if (location == null)
-                {
-                    return Result<bool>.Failure("Location not found");
-                }
+                // Use soft delete as per memory (locations can't be deleted, just marked as deleted)
+                var result = await _unitOfWork.Locations.SoftDeleteAsync(request.Id, cancellationToken);
 
-                // Soft delete as per memory (locations can't be deleted, just marked as deleted)
-                location.Delete();
-                _unitOfWork.Locations.Update(location);
+                if (!result.IsSuccess)
+                {
+                    return Result<bool>.Failure(result.ErrorMessage ?? "Failed to delete location");
+                }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 

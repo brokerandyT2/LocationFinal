@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 namespace Location.Core.Infrastructure.Data.Repositories
 {
-    public class TipRepositoryAdapter : Location.Core.Application.Common.Interfaces.ITipRepository
+    public class TipRepositoryAdapter : ITipRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.ITipRepository _innerRepository;
         public TipRepositoryAdapter(Location.Core.Application.Common.Interfaces.Persistence.ITipRepository innerRepository)

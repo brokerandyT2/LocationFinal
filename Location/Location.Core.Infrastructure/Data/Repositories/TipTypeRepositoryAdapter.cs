@@ -1,13 +1,14 @@
-﻿using Location.Core.Domain.Entities;
+﻿using Location.Core.Application.Common.Interfaces;
+using Location.Core.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
-    public class TipTypeRepositoryAdapter : Location.Core.Application.Common.Interfaces.ITipTypeRepository
+    public class TipTypeRepositoryAdapter : ITipTypeRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository _innerRepository;
 
@@ -30,6 +31,11 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         public void Delete(TipType tipType)
             => _innerRepository.Delete(tipType);
-    }
 
+        public Task<TipType?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+            => _innerRepository.GetByNameAsync(name, cancellationToken);
+
+        public Task<TipType?> GetWithTipsAsync(int id, CancellationToken cancellationToken = default)
+            => _innerRepository.GetWithTipsAsync(id, cancellationToken);
+    }
 }

@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
@@ -8,6 +7,7 @@ using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 namespace Location.Core.Application.Commands.Locations
 {
     public class SaveLocationCommand : IRequest<Result<LocationDto>>
@@ -21,6 +21,7 @@ namespace Location.Core.Application.Commands.Locations
         public string City { get; set; } = string.Empty;
         public string State { get; set; } = string.Empty;
     }
+
     public class SaveLocationCommandHandler : IRequestHandler<SaveLocationCommand, Result<LocationDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -39,17 +40,19 @@ namespace Location.Core.Application.Commands.Locations
             try
             {
                 Domain.Entities.Location location;
+                Result<Domain.Entities.Location> result;
 
                 if (request.Id.HasValue)
                 {
                     // Update existing location
-                    location = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
-                    if (location == null)
+                    var existingResult = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
+                    if (!existingResult.IsSuccess || existingResult.Data == null)
                     {
                         return Result<LocationDto>.Failure("Location not found");
                     }
 
-                    location.UpdateDetails(request.Title, request.Description);
+                    location = existingResult.Data;
+                    location.UpdateDetails(request.Title, request.Description ?? string.Empty);
 
                     // Update coordinates
                     var newCoordinate = new Coordinate(request.Latitude, request.Longitude);
@@ -61,7 +64,7 @@ namespace Location.Core.Application.Commands.Locations
                         location.AttachPhoto(request.PhotoPath);
                     }
 
-                    _unitOfWork.Locations.Update(location);
+                    result = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
                 }
                 else
                 {
@@ -80,12 +83,17 @@ namespace Location.Core.Application.Commands.Locations
                         location.AttachPhoto(request.PhotoPath);
                     }
 
-                    await _unitOfWork.Locations.AddAsync(location, cancellationToken);
+                    result = await _unitOfWork.Locations.CreateAsync(location, cancellationToken);
+                }
+
+                if (!result.IsSuccess)
+                {
+                    return Result<LocationDto>.Failure(result.ErrorMessage ?? "Failed to save location");
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                var locationDto = _mapper.Map<LocationDto>(location);
+                var locationDto = _mapper.Map<LocationDto>(result.Data);
                 return Result<LocationDto>.Success(locationDto);
             }
             catch (Exception ex)

@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Location.Core.Infrastructure.Data
+namespace Location.Core.Infrastructure.Data.Repositories
 {
     public class LocationRepository : ILocationRepository
     {
