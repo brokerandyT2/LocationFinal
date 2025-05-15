@@ -1,7 +1,10 @@
-﻿using Location.Core.Application.Common.Interfaces.Persistence;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Application.Commands.Tips
 {
@@ -12,18 +15,18 @@ namespace Location.Core.Application.Commands.Tips
 
     public class GetRandomTipCommandHandler : IRequestHandler<GetRandomTipCommand, Result<TipDto>>
     {
-        private readonly ITipRepository _tipRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public GetRandomTipCommandHandler(ITipRepository tipRepository)
+        public GetRandomTipCommandHandler(IUnitOfWork unitOfWork)
         {
-            _tipRepository = tipRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<TipDto>> Handle(GetRandomTipCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _tipRepository.GetRandomByTypeAsync(request.TipTypeId, cancellationToken);
+                var result = await _unitOfWork.Tips.GetRandomByTypeAsync(request.TipTypeId, cancellationToken);
 
                 if (!result.IsSuccess || result.Data == null)
                 {

@@ -41,31 +41,31 @@ namespace Location.Core.Application.Commands.Locations
 
                 if (request.Id.HasValue)
                 {
-                    // Update existing location
-                    var existingLocation = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
-                    if (existingLocation == null)
+                    var existingLocationResult = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
+                    if (!existingLocationResult.IsSuccess || existingLocationResult.Data == null)
                     {
                         return Result<LocationDto>.Failure("Location not found");
                     }
 
-                    location = existingLocation;
+                    location = existingLocationResult.Data;
                     location.UpdateDetails(request.Title, request.Description ?? string.Empty);
 
-                    // Update coordinates
                     var newCoordinate = new Coordinate(request.Latitude, request.Longitude);
                     location.UpdateCoordinate(newCoordinate);
 
-                    // Update photo if provided
                     if (!string.IsNullOrEmpty(request.PhotoPath))
                     {
                         location.AttachPhoto(request.PhotoPath);
                     }
 
-                    _unitOfWork.Locations.Update(location);
+                    var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
+                    if (!updateResult.IsSuccess)
+                    {
+                        return Result<LocationDto>.Failure("Failed to update location");
+                    }
                 }
                 else
                 {
-                    // Create new location
                     var coordinate = new Coordinate(request.Latitude, request.Longitude);
                     var address = new Address(request.City, request.State);
 
@@ -80,7 +80,12 @@ namespace Location.Core.Application.Commands.Locations
                         location.AttachPhoto(request.PhotoPath);
                     }
 
-                    location = await _unitOfWork.Locations.AddAsync(location, cancellationToken);
+                    var createResult = await _unitOfWork.Locations.CreateAsync(location, cancellationToken);
+                    if (!createResult.IsSuccess || createResult.Data == null)
+                    {
+                        return Result<LocationDto>.Failure("Failed to create location");
+                    }
+                    location = createResult.Data;
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);

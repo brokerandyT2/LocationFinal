@@ -1,21 +1,26 @@
-﻿using Location.Core.Application.Common.Interfaces.Persistence;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using MediatR;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Application.Tips.Queries.GetTipsByType
 {
     public class GetTipsByTypeQueryHandler : IRequestHandler<GetTipsByTypeQuery, Result<List<GetTipsByTypeQueryResponse>>>
     {
-        private readonly ITipRepository _tipRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public GetTipsByTypeQueryHandler(ITipRepository tipRepository)
+        public GetTipsByTypeQueryHandler(IUnitOfWork unitOfWork)
         {
-            _tipRepository = tipRepository ?? throw new ArgumentNullException(nameof(tipRepository));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task<Result<List<GetTipsByTypeQueryResponse>>> Handle(GetTipsByTypeQuery request, CancellationToken cancellationToken)
         {
-            var result = await _tipRepository.GetByTypeAsync(request.TipTypeId, cancellationToken);
+            var result = await _unitOfWork.Tips.GetByTypeAsync(request.TipTypeId, cancellationToken);
 
             if (!result.IsSuccess || result.Data == null)
             {

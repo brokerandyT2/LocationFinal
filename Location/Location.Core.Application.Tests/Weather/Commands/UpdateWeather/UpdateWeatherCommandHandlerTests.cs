@@ -5,7 +5,7 @@ using AutoMapper;
 using FluentAssertions;
 using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Interfaces.Persistence;
+
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Application.Tests.Utilities;

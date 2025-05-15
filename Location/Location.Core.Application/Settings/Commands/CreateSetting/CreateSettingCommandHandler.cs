@@ -2,32 +2,32 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
-using Location.Core.Application.Common.Interfaces.Persistence;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 
 namespace Location.Core.Application.Settings.Commands.CreateSetting
 {
     public class CreateSettingCommandHandler : IRequestHandler<CreateSettingCommand, Result<CreateSettingCommandResponse>>
     {
-        private readonly ISettingRepository _settingRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CreateSettingCommandHandler(ISettingRepository settingRepository)
+        public CreateSettingCommandHandler(IUnitOfWork unitOfWork)
         {
-            _settingRepository = settingRepository ?? throw new ArgumentNullException(nameof(settingRepository));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task<Result<CreateSettingCommandResponse>> Handle(CreateSettingCommand request, CancellationToken cancellationToken)
         {
-            var existingSettingResult = await _settingRepository.GetByKeyAsync(request.Key, cancellationToken);
+            var existingSettingResult = await _unitOfWork.Settings.GetByKeyAsync(request.Key, cancellationToken);
 
-            if (existingSettingResult.Id != null)
+            if (existingSettingResult.IsSuccess && existingSettingResult.Data != null)
             {
                 return Result<CreateSettingCommandResponse>.Failure($"Setting with key '{request.Key}' already exists");
             }
 
             var setting = new Domain.Entities.Setting(request.Key, request.Value, request.Description);
 
-            var result = await _settingRepository.CreateAsync(setting, cancellationToken);
+            var result = await _unitOfWork.Settings.CreateAsync(setting, cancellationToken);
 
             if (!result.IsSuccess || result.Data == null)
             {

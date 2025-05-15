@@ -31,16 +31,22 @@ namespace Location.Core.Application.Commands.Locations
         {
             try
             {
-                var location = await _unitOfWork.Locations.GetByIdAsync(request.LocationId, cancellationToken);
+                var locationResult = await _unitOfWork.Locations.GetByIdAsync(request.LocationId, cancellationToken);
 
-                if (location == null)
+                if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
                     return Result<LocationDto>.Failure("Location not found");
                 }
 
+                var location = locationResult.Data;
                 location.RemovePhoto();
 
-                _unitOfWork.Locations.Update(location);
+                var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
+                if (!updateResult.IsSuccess)
+                {
+                    return Result<LocationDto>.Failure("Failed to update location");
+                }
+
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 var locationDto = _mapper.Map<LocationDto>(location);

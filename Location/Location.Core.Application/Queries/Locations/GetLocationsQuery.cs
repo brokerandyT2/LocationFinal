@@ -34,15 +34,17 @@ namespace Location.Core.Application.Queries.Locations
         {
             try
             {
-                // Get all locations (or active ones based on request)
-                var locations = request.IncludeDeleted
+                var locationsResult = request.IncludeDeleted
                     ? await _unitOfWork.Locations.GetAllAsync(cancellationToken)
                     : await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
 
-                // Convert to list if needed
-                var locationList = locations.ToList();
+                if (!locationsResult.IsSuccess || locationsResult.Data == null)
+                {
+                    return Result<PagedList<LocationListDto>>.Failure(locationsResult.ErrorMessage ?? "Failed to retrieve locations");
+                }
 
-                // Apply search filter if provided
+                var locationList = locationsResult.Data;
+
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))
                 {
                     locationList = locationList.Where(l =>
@@ -52,10 +54,8 @@ namespace Location.Core.Application.Queries.Locations
                         l.Address.State.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
                 }
 
-                // Map to DTOs
                 var locationDtos = _mapper.Map<List<LocationListDto>>(locationList);
 
-                // Create paged result
                 var pagedList = PagedList<LocationListDto>.Create(
                     locationDtos,
                     request.PageNumber,

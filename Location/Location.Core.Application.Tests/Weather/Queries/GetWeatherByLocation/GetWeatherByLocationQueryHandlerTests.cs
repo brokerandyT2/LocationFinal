@@ -6,7 +6,7 @@ using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Interfaces.Persistence;
+
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Queries.Weather;
 using Location.Core.Application.Tests.Utilities;

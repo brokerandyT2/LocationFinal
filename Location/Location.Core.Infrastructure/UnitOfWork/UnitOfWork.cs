@@ -1,11 +1,11 @@
 ﻿using Location.Core.Application.Common.Interfaces;
-using ILocationRepository =Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository;
 using Location.Core.Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 namespace Location.Core.Infrastructure.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
@@ -15,6 +15,7 @@ namespace Location.Core.Infrastructure.UnitOfWork
         private readonly ILoggerFactory _loggerFactory;
         private readonly IServiceProvider _serviceProvider;
         private bool _inTransaction;
+
         public UnitOfWork(
             IDatabaseContext context,
             ILogger<UnitOfWork> logger,
@@ -27,10 +28,9 @@ namespace Location.Core.Infrastructure.UnitOfWork
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        // The repositories are already registered in DI as application interfaces
-        // We just need to resolve them from the service provider
-        public ILocationRepository Locations =>
-            _serviceProvider.GetRequiredService<ILocationRepository>();
+        // These properties return the application interfaces that return Result<T>
+        public Location.Core.Application.Common.Interfaces.ILocationRepository Locations =>
+            _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.ILocationRepository>();
 
         public Location.Core.Application.Common.Interfaces.IWeatherRepository Weather =>
             _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.IWeatherRepository>();
@@ -46,12 +46,8 @@ namespace Location.Core.Infrastructure.UnitOfWork
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            // In SQLite, changes are automatically persisted
-            // This method is here for compatibility with the pattern
             _logger.LogDebug("SaveChangesAsync called");
-
-            // Could perform any pending operations here
-            return await Task.FromResult(1); // Return 1 to indicate success
+            return await Task.FromResult(1);
         }
 
         public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
@@ -106,13 +102,14 @@ namespace Location.Core.Infrastructure.UnitOfWork
             }
         }
 
+        private bool _disposed;
+
         public void Dispose()
         {
             Dispose(true);
-            _disposed = true;
             GC.SuppressFinalize(this);
         }
-        private bool _disposed;
+
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;
@@ -130,8 +127,6 @@ namespace Location.Core.Infrastructure.UnitOfWork
                         _logger.LogError(ex, "Error rolling back transaction during disposal");
                     }
                 }
-
-                // The context is managed by DI container, so we don't dispose it here
             }
 
             _disposed = true;

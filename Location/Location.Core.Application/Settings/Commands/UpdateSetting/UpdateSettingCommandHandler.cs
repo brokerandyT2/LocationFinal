@@ -1,21 +1,24 @@
-﻿using Location.Core.Application.Common.Interfaces.Persistence;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using MediatR;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Application.Settings.Commands.UpdateSetting
 {
     public class UpdateSettingCommandHandler : IRequestHandler<UpdateSettingCommand, Result<UpdateSettingCommandResponse>>
     {
-        private readonly ISettingRepository _settingRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateSettingCommandHandler(ISettingRepository settingRepository)
+        public UpdateSettingCommandHandler(IUnitOfWork unitOfWork)
         {
-            _settingRepository = settingRepository ?? throw new ArgumentNullException(nameof(settingRepository));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task<Result<UpdateSettingCommandResponse>> Handle(UpdateSettingCommand request, CancellationToken cancellationToken)
         {
-            var settingResult = await _settingRepository.GetByKeyAsync(request.Key, cancellationToken);
+            var settingResult = await _unitOfWork.Settings.GetByKeyAsync(request.Key, cancellationToken);
 
             if (!settingResult.IsSuccess || settingResult.Data == null)
             {
@@ -25,7 +28,7 @@ namespace Location.Core.Application.Settings.Commands.UpdateSetting
             var setting = settingResult.Data;
             setting.UpdateValue(request.Value);
 
-            var updateResult = await _settingRepository.UpdateAsync(setting, cancellationToken);
+            var updateResult = await _unitOfWork.Settings.UpdateAsync(setting, cancellationToken);
 
             if (!updateResult.IsSuccess || updateResult.Data == null)
             {

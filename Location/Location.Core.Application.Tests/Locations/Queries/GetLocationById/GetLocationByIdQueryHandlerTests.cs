@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Locations.Queries.GetLocationById;
 using Location.Core.Domain.ValueObjects;
 using Moq;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
@@ -13,14 +14,14 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
     public class GetLocationByIdQueryHandlerTests
     {
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-        private readonly Mock<ILocationRepository> _locationRepositoryMock;
+        private readonly Mock<Location.Core.Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly GetLocationByIdQueryHandler _handler;
 
         public GetLocationByIdQueryHandlerTests()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _locationRepositoryMock = new Mock<ILocationRepository>();
+            _locationRepositoryMock = new Mock<Location.Core.Application.Common.Interfaces.ILocationRepository>();
             _mapperMock = new Mock<IMapper>();
             _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
             _handler = new GetLocationByIdQueryHandler(_unitOfWorkMock.Object, _mapperMock.Object);
@@ -39,7 +40,7 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(locationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);  // Return Location directly, not Result<Location>
+                .ReturnsAsync(Result<Location.Core.Domain.Entities.Location>.Success(location));
 
             var locationDto = new LocationDto { Id = locationId, Title = "Test Location" };
             _mapperMock
@@ -65,7 +66,7 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(locationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Location.Core.Domain.Entities.Location)null);  // Return null for not found
+                .ReturnsAsync(Result<Location.Core.Domain.Entities.Location>.Failure("Location not found"));
 
             var query = new GetLocationByIdQuery { Id = locationId };
 
@@ -74,7 +75,7 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 
             // Assert
             Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue( result.ErrorMessage.Contains("Location not found"));
+            Assert.IsTrue(result.ErrorMessage.Contains("Location not found"));
         }
 
         [Fact]

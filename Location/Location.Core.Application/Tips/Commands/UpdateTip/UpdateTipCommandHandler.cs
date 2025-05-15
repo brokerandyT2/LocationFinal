@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.Common.Interfaces.Persistence;
+
 namespace Location.Core.Application.Tips.Commands.UpdateTip
 {
     public class UpdateTipCommandHandler : IRequestHandler<UpdateTipCommand, Result<UpdateTipCommandResponse>>

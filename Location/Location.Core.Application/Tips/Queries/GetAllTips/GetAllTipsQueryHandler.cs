@@ -1,20 +1,21 @@
-﻿using Location.Core.Application.Common.Interfaces.Persistence;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using MediatR;
+
 namespace Location.Core.Application.Tips.Queries.GetAllTips
 {
     public class GetAllTipsQueryHandler : IRequestHandler<GetAllTipsQuery, Result<List<GetAllTipsQueryResponse>>>
     {
-        private readonly ITipRepository _tipRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public GetAllTipsQueryHandler(ITipRepository tipRepository)
+        public GetAllTipsQueryHandler(IUnitOfWork unitOfWork)
         {
-            _tipRepository = tipRepository ?? throw new ArgumentNullException(nameof(tipRepository));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task<Result<List<GetAllTipsQueryResponse>>> Handle(GetAllTipsQuery request, CancellationToken cancellationToken)
         {
-            var result = await _tipRepository.GetAllAsync(cancellationToken);
+            var result = await _unitOfWork.Tips.GetAllAsync(cancellationToken);
 
             if (!result.IsSuccess || result.Data == null)
             {

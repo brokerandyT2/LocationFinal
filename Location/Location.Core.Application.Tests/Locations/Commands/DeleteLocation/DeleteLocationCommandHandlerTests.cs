@@ -8,7 +8,6 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Utilities;
 using FluentAssertions;
-using Location.Core.Application.Common.Interfaces.Persistence;
 
 namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 {
@@ -37,7 +36,11 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
+
+            _locationRepositoryMock
+                .Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -47,7 +50,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
             result.Data.Should().BeTrue();
 
             _locationRepositoryMock.Verify(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()), Times.Once);
-            _locationRepositoryMock.Verify(x => x.Update(It.Is<Domain.Entities.Location>(l => l.IsDeleted == true)), Times.Once);
+            _locationRepositoryMock.Verify(x => x.UpdateAsync(It.Is<Domain.Entities.Location>(l => l.IsDeleted == true), It.IsAny<CancellationToken>()), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -59,7 +62,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Location)null);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Failure("Location not found"));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -69,7 +72,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
             result.ErrorMessage.Should().Be("Location not found");
 
             _locationRepositoryMock.Verify(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()), Times.Once);
-            _locationRepositoryMock.Verify(x => x.Update(It.IsAny<Domain.Entities.Location>()), Times.Never);
+            _locationRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
@@ -83,7 +86,11 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
+
+            _locationRepositoryMock
+                .Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -92,7 +99,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeTrue();
 
-            _locationRepositoryMock.Verify(x => x.Update(It.IsAny<Domain.Entities.Location>()), Times.Once);
+            _locationRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -115,7 +122,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
             result.ErrorMessage.Should().Contain("Failed to delete location");
             result.ErrorMessage.Should().Contain("Database error");
 
-            _locationRepositoryMock.Verify(x => x.Update(It.IsAny<Domain.Entities.Location>()), Times.Never);
+            _locationRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
@@ -129,7 +136,11 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
+
+            _locationRepositoryMock
+                .Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             _unitOfWorkMock
                 .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -143,7 +154,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
             result.ErrorMessage.Should().Contain("Failed to delete location");
             result.ErrorMessage.Should().Contain("Save failed");
 
-            _locationRepositoryMock.Verify(x => x.Update(It.IsAny<Domain.Entities.Location>()), Times.Once);
+            _locationRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -156,11 +167,12 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             _locationRepositoryMock
-                .Setup(x => x.Update(It.IsAny<Domain.Entities.Location>()))
-                .Callback<Domain.Entities.Location>(l => capturedLocation = l);
+                .Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .Callback<Domain.Entities.Location, CancellationToken>((l, ct) => capturedLocation = l)
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -181,7 +193,11 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.Id, cancellationToken))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
+
+            _locationRepositoryMock
+                .Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), cancellationToken))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             // Act
             await _handler.Handle(command, cancellationToken);

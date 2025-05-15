@@ -1,15 +1,19 @@
-﻿using Location.Core.Application.Common.Interfaces.Persistence;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using MediatR;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace Location.Core.Application.Tips.Commands.CreateTip
 {
     public class CreateTipCommandHandler : IRequestHandler<CreateTipCommand, Result<CreateTipCommandResponse>>
     {
-        private readonly ITipRepository _tipRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CreateTipCommandHandler(ITipRepository tipRepository)
+        public CreateTipCommandHandler(IUnitOfWork unitOfWork)
         {
-            _tipRepository = tipRepository ?? throw new ArgumentNullException(nameof(tipRepository));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task<Result<CreateTipCommandResponse>> Handle(CreateTipCommand request, CancellationToken cancellationToken)
@@ -26,7 +30,7 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
 
             tip.SetLocalization(request.I8n);
 
-            var result = await _tipRepository.CreateAsync(tip, cancellationToken);
+            var result = await _unitOfWork.Tips.CreateAsync(tip, cancellationToken);
 
             if (!result.IsSuccess || result.Data == null)
             {

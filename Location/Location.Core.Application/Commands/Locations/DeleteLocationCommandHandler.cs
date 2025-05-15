@@ -1,9 +1,6 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Commands.Locations
 {
@@ -20,16 +17,21 @@ namespace Location.Core.Application.Commands.Locations
         {
             try
             {
-                var location = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
+                var locationResult = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
 
-                if (location == null)
+                if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
                     return Result<bool>.Failure("Location not found");
                 }
 
+                var location = locationResult.Data;
                 location.Delete();
 
-                _unitOfWork.Locations.Update(location);
+                var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
+                if (!updateResult.IsSuccess)
+                {
+                    return Result<bool>.Failure("Failed to update location");
+                }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
