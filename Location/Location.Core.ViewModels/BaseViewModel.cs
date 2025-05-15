@@ -39,7 +39,7 @@ namespace Location.Core.ViewModels
             set => SetProperty(ref _errorMessage, value);
         }
 
-        protected BaseViewModel(IAlertingService? alertingService = null)
+        protected BaseViewModel(IAlertService? alertingService = null)
         {
             _alertingService = alertingService;
         }

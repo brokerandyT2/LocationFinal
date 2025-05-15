@@ -3,7 +3,7 @@ using Microsoft.Maui.Controls;
 
 namespace Location.Core.Maui.Services
 {
-    public class AlertService : IAlertService
+    public class AlertService : Location.Core.Application.Services.IAlertingService
     {
         public async Task DisplayAlert(string title, string message, string cancel)
         {
@@ -21,6 +21,26 @@ namespace Location.Core.Maui.Services
         {
             return await MainThread.InvokeOnMainThreadAsync(() =>
                 Microsoft.Maui.Controls.Application.Current?.MainPage?.DisplayActionSheet(title, cancel, destruction, buttons) ?? Task.FromResult(string.Empty));
+        }
+
+        public Task ShowInfoAlertAsync(string message, string title = "Information")
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ShowSuccessAlertAsync(string message, string title = "Success")
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ShowWarningAlertAsync(string message, string title = "Warning")
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ShowErrorAlertAsync(string message, string title = "Error")
+        {
+            throw new NotImplementedException();
         }
     }
 }

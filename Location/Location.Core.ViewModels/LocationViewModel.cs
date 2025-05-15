@@ -66,7 +66,7 @@ namespace Location.Core.ViewModels
             IMediator mediator,
             IMediaService mediaService,
             IGeolocationService geolocationService,
-            IAlertingService alertingService)
+            IAlertingService alertingService) 
             : base(alertingService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -126,7 +126,7 @@ namespace Location.Core.ViewModels
         }
 
         // Other methods remain the same...
-
+        
         // Helper method to raise error event
         protected virtual void OnErrorOccurred(string message)
         {

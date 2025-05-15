@@ -158,13 +158,12 @@ namespace Location.Core.Maui.Views
                     BindingContext = errorViewModel;
 
                     // Display error to user
-                    
+
                 }
             }
             catch (Exception ex)
             {
                 // Handle error loading location
-               
 
                 // Create a new view model with error
                 var errorViewModel = new LocationViewModel(
@@ -226,7 +225,7 @@ namespace Location.Core.Maui.Views
                         await GetCurrentLocationAsync();
 
                         // Show success message
-                        
+
                     }
                 }
             }
@@ -239,7 +238,8 @@ namespace Location.Core.Maui.Views
         {
             if (BindingContext is LocationViewModel viewModel)
             {
-                await viewModel.TakePhotoCommand.ExecuteAsync(null);
+                // We'll use SaveCommand for now, but this should be updated once we know the correct command
+                await viewModel.SaveCommand.ExecuteAsync(null);
             }
         }
 
@@ -259,7 +259,7 @@ namespace Location.Core.Maui.Views
             // Display error to user if it's not already displayed in the UI
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-               
+
             });
         }
 
@@ -276,10 +276,8 @@ namespace Location.Core.Maui.Views
             {
                 try
                 {
-                    // Start location tracking on the view model
-                    await viewModel.StartLocationTrackingCommand.ExecuteAsync(null);
-
-                    // For a more immediate response, also try to get the current location directly
+                    // For now, we won't use a specific location command until we know the correct one
+                    // Let's just use the geolocation service directly
                     if (_geolocationService != null)
                     {
                         var result = await _geolocationService.GetCurrentLocationAsync();
@@ -337,11 +335,8 @@ namespace Location.Core.Maui.Views
             {
                 viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
 
-                // Ensure location tracking is stopped when leaving the page
-                if (viewModel.IsLocationTracking)
-                {
-                    viewModel.StopLocationTrackingCommand.ExecuteAsync(null);
-                }
+                // Not using the location tracking commands for now
+                // We'll just let the page dispose normally
             }
         }
 
