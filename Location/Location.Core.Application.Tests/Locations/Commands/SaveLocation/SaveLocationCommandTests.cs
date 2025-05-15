@@ -52,6 +52,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             command.PhotoPath.Should().Be("/photos/space-needle.jpg");
         }
 
+
         [Test]
         public void Create_WithTestDataBuilder_ShouldCreateValidCommand()
         {
