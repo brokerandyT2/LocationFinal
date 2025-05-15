@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Location.Core.Maui.Views.LocationsPage"
+             xmlns:viewmodels="clr-namespace:Location.Core.ViewModels;assembly=Location.Core.ViewModels"
+             x:DataType="viewmodels:LocationsViewModel"
+             Title="Locations">
+
+    <Grid RowDefinitions="*, Auto">
+        <CollectionView ItemsSource="{Binding Locations}" 
+                        SelectionMode="Single"
+                        SelectionChanged="OnLocationSelected">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
+                    <Label Text="No locations found" HorizontalOptions="Center" />
+                    <Label Text="Add a new location by tapping the + button below" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="viewmodels:LocationListItemViewModel">
+                    <Grid Padding="10" ColumnDefinitions="Auto, *">
+                        <Image Grid.Column="0" 
+                               Source="{Binding Photo, TargetNullValue='landscape.png'}" 
+                               HeightRequest="60" 
+                               WidthRequest="60"
+                               Aspect="AspectFill"/>
+                        <VerticalStackLayout Grid.Column="1" 
+                                            Padding="10,0,0,0"
+                                            VerticalOptions="Center">
+                            <Label Text="{Binding Title}" FontAttributes="Bold" />
+                            <Label Text="{Binding FormattedCoordinates}" FontSize="Caption" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="1" 
+                Text="+" 
+                HorizontalOptions="End"
+                Margin="0,0,20,20"
+                WidthRequest="60"
+                HeightRequest="60"
+                CornerRadius="30"
+                Clicked="OnAddLocationClicked"/>
+
+        <!-- Busy indicator overlay -->
+        <Grid IsVisible="{Binding IsBusy}" 
+              Grid.RowSpan="2"
+              BackgroundColor="{StaticResource TransparentOverlayBrush}">
+            <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- Error message -->
+        <Grid IsVisible="{Binding ErrorMessage, Converter={StaticResource CustomStringToBoolConverter}}"
+              Grid.RowSpan="2"
+              BackgroundColor="{StaticResource TransparentErrorBrush}"
+              VerticalOptions="End">
+            <Label Text="{Binding ErrorMessage}" 
+                   TextColor="{StaticResource ErrorRed}"
+                   Margin="20"
+                   FontSize="14"/>
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -2,6 +2,8 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:Location.Core.Maui"
+             xmlns:toolkit="clr-namespace:CommunityToolkit.Maui.Converters;assembly=CommunityToolkit.Maui"
+             xmlns:converters="clr-namespace:Location.Core.Converters;assembly=Location.Core.Converters"
              x:Class="Location.Core.Maui.App">
     <Application.Resources>
         <ResourceDictionary>
@@ -9,6 +11,25 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Colors -->
+            <Color x:Key="ErrorRed">#FF0000</Color>
+            <Color x:Key="Gray400">#9E9E9E</Color>
+
+            <!-- Brushes -->
+            <SolidColorBrush x:Key="TransparentOverlayBrush" Color="#80000000"/>
+            <SolidColorBrush x:Key="TransparentErrorBrush" Color="#80FF0000"/>
+
+            <!-- Community Toolkit Converters -->
+            <toolkit:IsStringNotNullOrEmptyConverter x:Key="StringToBoolConverter"/>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
+            <toolkit:IsNotNullConverter x:Key="IsNotNullConverter"/>
+            <toolkit:IsNullConverter x:Key="IsNullConverter"/>
+            <toolkit:DoubleToIntConverter x:Key="DoubleToIntConverter"/>
+
+            <!-- Custom Converters -->
+            <!-- Add your custom converters here -->
+            <converters:StringToBoolConverter x:Key="CustomStringToBoolConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

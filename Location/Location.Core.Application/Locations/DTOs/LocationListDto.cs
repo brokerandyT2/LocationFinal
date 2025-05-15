@@ -41,5 +41,8 @@ namespace Location.Core.Application.Locations.DTOs
         /// Indicates if the location is deleted
         /// </summary>
         public bool IsDeleted { get; set; }
+
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 }

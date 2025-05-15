@@ -9,29 +9,10 @@ namespace Location.Core.Application.Services
     /// </summary>
     public interface IGeolocationService
     {
-        /// <summary>
-        /// Gets the current device location
-        /// </summary>
         Task<Result<GeolocationDto>> GetCurrentLocationAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Checks if location services are enabled
-        /// </summary>
         Task<Result<bool>> IsLocationEnabledAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Requests location permissions from the user
-        /// </summary>
         Task<Result<bool>> RequestPermissionsAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Starts continuous location tracking
-        /// </summary>
         Task<Result<bool>> StartTrackingAsync(GeolocationAccuracy accuracy = GeolocationAccuracy.Medium, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Stops location tracking
-        /// </summary>
         Task<Result<bool>> StopTrackingAsync(CancellationToken cancellationToken = default);
     }
 

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Location.Core.Maui.Views.TipsPage"
+             xmlns:viewmodels="clr-namespace:Location.Core.ViewModels;assembly=Location.Core.ViewModels"
+             x:DataType="viewmodels:TipsViewModel"
+             Title="Photography Tips">
+
+    <Grid RowDefinitions="Auto, *, Auto">
+        <!-- Tip Type Picker -->
+        <Picker Grid.Row="0"
+                Title="Select Tip Category"
+                ItemsSource="{Binding TipTypes}"
+                SelectedItem="{Binding SelectedTipType}"
+                ItemDisplayBinding="{Binding Name}"
+                Margin="10"/>
+
+        <!-- Tips List -->
+        <CollectionView Grid.Row="1"
+                       ItemsSource="{Binding Tips}"
+                       SelectionMode="Single">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
+                    <Label Text="No tips available for this category" HorizontalOptions="Center" />
+                    <Label Text="Try selecting a different category or add new tips" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="viewmodels:TipItemViewModel">
+                    <Frame Margin="10" Padding="10" CornerRadius="10">
+                        <Grid RowDefinitions="Auto, Auto, *">
+                            <Label Grid.Row="0" 
+                                   Text="{Binding Title}" 
+                                   FontAttributes="Bold" 
+                                   FontSize="Medium"/>
+
+                            <Label Grid.Row="1" 
+                                   Text="{Binding CameraSettingsDisplay}" 
+                                   FontSize="Small"
+                                   Margin="0,5,0,5"
+                                   IsVisible="{Binding HasCameraSettings}"/>
+
+                            <Label Grid.Row="2" 
+                                   Text="{Binding Content}" 
+                                   TextType="Html"
+                                   Margin="0,5,0,0"/>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Add Button -->
+        <Button Grid.Row="2"
+                Text="+"
+                HorizontalOptions="End"
+                Margin="0,0,20,20"
+                WidthRequest="60"
+                HeightRequest="60"
+                CornerRadius="30"
+                Clicked="OnAddTipClicked"/>
+
+        <!-- Busy indicator overlay -->
+        <Grid IsVisible="{Binding IsBusy}" 
+              Grid.RowSpan="3"
+              BackgroundColor="{StaticResource TransparentOverlayBrush}">
+            <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- Error message -->
+        <Grid IsVisible="{Binding IsError}" 
+              Grid.RowSpan="3"
+              BackgroundColor="{StaticResource TransparentErrorBrush}"
+              VerticalOptions="End">
+            <Label Text="{Binding ErrorMessage}" 
+                   TextColor="{StaticResource ErrorRed}"
+                   Margin="20"
+                   FontSize="14"/>
+        </Grid>
+    </Grid>
+</ContentPage>

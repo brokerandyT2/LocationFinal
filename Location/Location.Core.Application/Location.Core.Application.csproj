@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Locations\Queries\GetLocations\" />
     <Folder Include="Weather\Queries\GetWeatherByLocation\" />
   </ItemGroup>
 

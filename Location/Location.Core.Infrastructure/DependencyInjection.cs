@@ -32,7 +32,7 @@ namespace Location.Core.Infrastructure
             services.AddScoped<TipRepository>();
             services.AddScoped<TipTypeRepository>();
             services.AddScoped<SettingRepository>();
-
+            services.AddScoped<IAlertingService, AlertingService>();
             // Register persistence interfaces
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository>(sp =>
                 sp.GetRequiredService<LocationRepository>());
