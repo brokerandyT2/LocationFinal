@@ -104,8 +104,8 @@ namespace Location.Core.Infrastructure.External
         }
 
         public async Task<Result<WeatherDto>> UpdateWeatherForLocationAsync(
-            int locationId,
-            CancellationToken cancellationToken = default)
+         int locationId,
+         CancellationToken cancellationToken = default)
         {
             try
             {
@@ -160,11 +160,10 @@ namespace Location.Core.Infrastructure.External
                 forecasts.Add(currentForecast);
                 weather.UpdateForecasts(forecasts);
 
-                // Save to database - extract from Result<T>
-                var existingWeatherResult = await _unitOfWork.Weather.GetByLocationIdAsync(locationId, cancellationToken);
-                if (existingWeatherResult.IsSuccess && existingWeatherResult.Data != null)
+                // Save to database - both methods return entities directly, not Result<T>
+                var existingWeather = await _unitOfWork.Weather.GetByLocationIdAsync(locationId, cancellationToken);
+                if (existingWeather != null)
                 {
-                    var existingWeather = existingWeatherResult.Data;
                     existingWeather.UpdateForecasts(forecasts);
                     _unitOfWork.Weather.Update(existingWeather);
                 }
