@@ -40,8 +40,9 @@ namespace Location.Core.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                // If we can't log to database, at least log to the standard logger
+                // If we can't log to database, log to the standard logger
                 _logger.LogError(ex, "Failed to write log to database");
+                // Do NOT rethrow - this method should be fault-tolerant
             }
         }
 

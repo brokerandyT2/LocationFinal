@@ -1,5 +1,4 @@
-﻿
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using FluentAssertions;
 using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Data.Entities;
@@ -20,6 +19,7 @@ namespace Location.Core.Infrastructure.Tests.Services
         private DatabaseContext _context;
         private Mock<ILogger<LoggingService>> _mockLogger;
         private Mock<ILogger<DatabaseContext>> _mockContextLogger;
+        private Mock<IDatabaseContext> _mockContext;
         private string _testDbPath;
 
         [SetUp]
@@ -37,10 +37,17 @@ namespace Location.Core.Infrastructure.Tests.Services
         public void TearDown()
         {
             _context?.Dispose();
-            
+
             if (File.Exists(_testDbPath))
             {
-                File.Delete(_testDbPath);
+                try
+                {
+                    File.Delete(_testDbPath);
+                }
+                catch
+                {
+                    // Ignore file deletion errors in tests
+                }
             }
         }
 
@@ -89,12 +96,16 @@ namespace Location.Core.Infrastructure.Tests.Services
             // Arrange
             var level = LogLevel.Warning;
             var message = "Test warning";
-            
-            // Dispose the context to simulate database error
-            _context.Dispose();
+
+            // Create a mock context that throws on InsertAsync
+            _mockContext = new Mock<IDatabaseContext>();
+            _mockContext.Setup(x => x.InsertAsync(It.IsAny<Log>()))
+                .ThrowsAsync(new Exception("Database error"));
+
+            var loggingServiceWithMock = new LoggingService(_mockContext.Object, _mockLogger.Object);
 
             // Act
-            await _loggingService.LogToDatabaseAsync(level, message);
+            await loggingServiceWithMock.LogToDatabaseAsync(level, message);
 
             // Assert
             _mockLogger.Verify(
@@ -158,10 +169,14 @@ namespace Location.Core.Infrastructure.Tests.Services
         public async Task GetLogsAsync_WithDatabaseError_ShouldReturnEmptyListAndLogError()
         {
             // Arrange
-            _context.Dispose();
+            _mockContext = new Mock<IDatabaseContext>();
+            _mockContext.Setup(x => x.Table<Log>())
+                .Throws(new Exception("Database error"));
+
+            var loggingServiceWithMock = new LoggingService(_mockContext.Object, _mockLogger.Object);
 
             // Act
-            var logs = await _loggingService.GetLogsAsync();
+            var logs = await loggingServiceWithMock.GetLogsAsync();
 
             // Assert
             logs.Should().BeEmpty();
@@ -192,7 +207,7 @@ namespace Location.Core.Infrastructure.Tests.Services
             // Assert
             var logs = await _context.Table<Log>().ToListAsync();
             logs.Should().BeEmpty();
-            
+
             _mockLogger.Verify(
                 x => x.Log(
                     It.Is<LogLevel>(l => l == LogLevel.Information),
@@ -209,10 +224,14 @@ namespace Location.Core.Infrastructure.Tests.Services
         public async Task ClearLogsAsync_WithDatabaseError_ShouldThrowAndLogError()
         {
             // Arrange
-            _context.Dispose();
+            _mockContext = new Mock<IDatabaseContext>();
+            _mockContext.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                .ThrowsAsync(new Exception("Database error"));
+
+            var loggingServiceWithMock = new LoggingService(_mockContext.Object, _mockLogger.Object);
 
             // Act
-            Func<Task> act = async () => await _loggingService.ClearLogsAsync();
+            Func<Task> act = async () => await loggingServiceWithMock.ClearLogsAsync();
 
             // Assert
             await act.Should().ThrowAsync<Exception>();
@@ -273,7 +292,7 @@ namespace Location.Core.Infrastructure.Tests.Services
             // Assert
             var logs = await _context.Table<Log>().ToListAsync();
             logs.Should().HaveCount(6);
-            
+
             foreach (var level in logLevels)
             {
                 logs.Should().Contain(log => log.Level == level.ToString());

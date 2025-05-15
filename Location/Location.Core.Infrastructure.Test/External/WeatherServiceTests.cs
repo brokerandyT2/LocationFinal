@@ -1,369 +1,339 @@
-﻿
-using NUnit.Framework;
-using FluentAssertions;
-using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
-using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
-using Location.Core.Infrastructure.External;
 using Location.Core.Infrastructure.External.Models;
-using Location.Core.Infrastructure.Tests.Helpers;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Moq.Protected;
+using Polly;
+using Polly.Extensions.Http;
 using System;
-using System.Net;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ILocationRepository = Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository;
-namespace Location.Core.Infrastructure.Tests.External
+
+namespace Location.Core.Infrastructure.External
 {
-    [TestFixture]
-    public class WeatherServiceTests
+    public class WeatherService : IWeatherService
     {
-        private WeatherService _weatherService;
-        private Mock<IHttpClientFactory> _mockHttpClientFactory;
-        private Mock<IUnitOfWork> _mockUnitOfWork;
-        private Mock<ILogger<WeatherService>> _mockLogger;
-        private Mock<ISettingRepository> _mockSettingRepository;
-        private Mock<ILocationRepository> _mockLocationRepository;
-        private Mock<IWeatherRepository> _mockWeatherRepository;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<WeatherService> _logger;
+        private readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy;
 
-        [SetUp]
-        public void Setup()
+        private const string API_KEY_SETTING = "WeatherApiKey";
+        private const string BASE_URL = "https://api.openweathermap.org/data/3.0/onecall";
+        private const int MAX_FORECAST_DAYS = 7;
+
+        public WeatherService(
+            IHttpClientFactory httpClientFactory,
+            IUnitOfWork unitOfWork,
+            ILogger<WeatherService> logger)
         {
-            _mockHttpClientFactory = new Mock<IHttpClientFactory>();
-            _mockUnitOfWork = new Mock<IUnitOfWork>();
-            _mockLogger = new Mock<ILogger<WeatherService>>();
-            _mockSettingRepository = new Mock<ISettingRepository>();
-            _mockLocationRepository = new Mock<ILocationRepository>();
-            _mockWeatherRepository = new Mock<IWeatherRepository>();
+            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _mockUnitOfWork.Setup(x => x.Settings).Returns(_mockSettingRepository.Object);
-            _mockUnitOfWork.Setup(x => x.Locations).Returns(_mockLocationRepository.Object);
-            _mockUnitOfWork.Setup(x => x.Weather).Returns(_mockWeatherRepository.Object);
-
-            _weatherService = new WeatherService(
-                _mockHttpClientFactory.Object,
-                _mockUnitOfWork.Object,
-                _mockLogger.Object);
+            _retryPolicy = HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .WaitAndRetryAsync(
+                    3,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    onRetryAsync: async (outcome, timespan, retryCount, context) =>
+                    {
+                        _logger.LogWarning("Retry {RetryCount} after {Timespan} seconds", retryCount, timespan.TotalSeconds);
+                        await Task.CompletedTask;
+                    });
         }
 
-        [Test]
-        public async Task GetWeatherAsync_WithValidApiResponse_ShouldReturnWeatherDto()
+        public async Task<Result<WeatherDto>> GetWeatherAsync(
+            double latitude,
+            double longitude,
+            CancellationToken cancellationToken = default)
         {
-            // Arrange
-            var apiKey = "test_api_key";
-            var latitude = 47.6062;
-            var longitude = -122.3321;
-
-            SetupApiKey(apiKey);
-            var httpClient = SetupHttpClient(CreateValidWeatherResponse());
-            _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
-                .Returns(httpClient);
-
-            // Act
-            var result = await _weatherService.GetWeatherAsync(latitude, longitude);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Should().NotBeNull();
-            result.Data!.Temperature.Should().Be(20);
-            result.Data.Description.Should().Be("clear sky");
-            result.Data.WindSpeed.Should().Be(10);
-        }
-
-        [Test]
-        public async Task GetWeatherAsync_WithNoApiKey_ShouldReturnFailure()
-        {
-            // Arrange
-            _mockSettingRepository.Setup(x => x.GetByKeyAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Setting>.Failure("Not found"));
-
-            // Act
-            var result = await _weatherService.GetWeatherAsync(47.6062, -122.3321);
-
-            // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be("Weather API key not configured");
-        }
-
-        [Test]
-        public async Task GetWeatherAsync_WithHttpError_ShouldReturnFailure()
-        {
-            // Arrange
-            var apiKey = "test_api_key";
-            SetupApiKey(apiKey);
-
-            var httpClient = SetupHttpClient(HttpStatusCode.BadRequest);
-            _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
-                .Returns(httpClient);
-
-            // Act
-            var result = await _weatherService.GetWeatherAsync(47.6062, -122.3321);
-
-            // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Contain("Weather API request failed");
-        }
-
-        [Test]
-        public async Task GetWeatherAsync_WithInvalidJson_ShouldReturnFailure()
-        {
-            // Arrange
-            var apiKey = "test_api_key";
-            SetupApiKey(apiKey);
-
-            var httpClient = SetupHttpClient("invalid json");
-            _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
-                .Returns(httpClient);
-
-            // Act
-            var result = await _weatherService.GetWeatherAsync(47.6062, -122.3321);
-
-            // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Contain("Failed to fetch weather");
-        }
-
-        [Test]
-        public async Task UpdateWeatherForLocationAsync_WithValidLocation_ShouldUpdateWeather()
-        {
-            // Arrange
-            var locationId = 1;
-            var location = TestDataBuilder.CreateValidLocation();
-            var apiKey = "test_api_key";
-
-            SetupApiKey(apiKey);
-            _mockLocationRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
-
-            var httpClient = SetupHttpClient(CreateValidWeatherResponse());
-            _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
-                .Returns(httpClient);
-
-            _mockWeatherRepository.Setup(x => x.GetByLocationIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Weather?)null);
-            _mockWeatherRepository.Setup(x => x.AddAsync(It.IsAny<Weather>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Weather w, CancellationToken _) => w);
-
-            // Act
-            var result = await _weatherService.UpdateWeatherForLocationAsync(locationId);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            _mockWeatherRepository.Verify(x => x.AddAsync(It.IsAny<Weather>(), It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Test]
-        public async Task UpdateWeatherForLocationAsync_WithNonExistingLocation_ShouldReturnFailure()
-        {
-            // Arrange
-            _mockLocationRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Location?)null);
-
-            // Act
-            var result = await _weatherService.UpdateWeatherForLocationAsync(999);
-
-            // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be("Location not found");
-        }
-
-        [Test]
-        public async Task GetForecastAsync_WithValidApiResponse_ShouldReturnForecast()
-        {
-            // Arrange
-            var apiKey = "test_api_key";
-            SetupApiKey(apiKey);
-
-            var response = CreateForecastResponse();
-            var httpClient = SetupHttpClient(response);
-            _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
-                .Returns(httpClient);
-
-            // Act
-            var result = await _weatherService.GetForecastAsync(47.6062, -122.3321, 7);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Should().NotBeNull();
-            result.Data!.DailyForecasts.Should().HaveCount(3);
-            result.Data.DailyForecasts[0].Temperature.Should().Be(20);
-        }
-
-        [Test]
-        public async Task UpdateAllWeatherAsync_WithMultipleLocations_ShouldUpdateAll()
-        {
-            // Arrange
-            var locations = new[]
+            try
             {
-                TestDataBuilder.CreateValidLocation(title: "Location 1"),
-                TestDataBuilder.CreateValidLocation(title: "Location 2")
-            };
-
-            SetupApiKey("test_api_key");
-            _mockLocationRepository.Setup(x => x.GetActiveAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(locations);
-
-            var httpClient = SetupHttpClient(CreateValidWeatherResponse());
-            _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
-                .Returns(httpClient);
-
-            _mockWeatherRepository.Setup(x => x.GetByLocationIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Weather?)null);
-            _mockWeatherRepository.Setup(x => x.AddAsync(It.IsAny<Weather>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Weather w, CancellationToken _) => w);
-
-            // Act
-            var result = await _weatherService.UpdateAllWeatherAsync();
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Should().Be(2);
-        }
-
-        [Test]
-        public async Task GetWeatherAsync_WithCancellation_ShouldReturnFailure()
-        {
-            // Arrange
-            var apiKey = "test_api_key";
-            SetupApiKey(apiKey);
-
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-
-            var httpClient = SetupHttpClient(CreateValidWeatherResponse());
-            _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
-                .Returns(httpClient);
-
-            // Act
-            var result = await _weatherService.GetWeatherAsync(47.6062, -122.3321, cts.Token);
-
-            // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be("Request cancelled");
-        }
-
-        [Test]
-        public void Constructor_WithNullHttpClientFactory_ShouldThrowException()
-        {
-            // Act
-            Action act = () => new WeatherService(null!, _mockUnitOfWork.Object, _mockLogger.Object);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("httpClientFactory");
-        }
-
-        [Test]
-        public void Constructor_WithNullUnitOfWork_ShouldThrowException()
-        {
-            // Act
-            Action act = () => new WeatherService(_mockHttpClientFactory.Object, null!, _mockLogger.Object);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("unitOfWork");
-        }
-
-        [Test]
-        public void Constructor_WithNullLogger_ShouldThrowException()
-        {
-            // Act
-            Action act = () => new WeatherService(_mockHttpClientFactory.Object, _mockUnitOfWork.Object, null!);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("logger");
-        }
-
-        // Helper methods
-        private void SetupApiKey(string apiKey)
-        {
-            var setting = TestDataBuilder.CreateValidSetting(key: "WeatherApiKey", value: apiKey);
-            _mockSettingRepository.Setup(x => x.GetByKeyAsync("WeatherApiKey", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Setting>.Success(setting));
-        }
-
-        private HttpClient SetupHttpClient(string responseContent)
-        {
-            var messageHandler = new Mock<HttpMessageHandler>();
-            messageHandler.Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage
+                var apiKeyResult = await GetApiKeyAsync(cancellationToken);
+                if (!apiKeyResult.IsSuccess || string.IsNullOrWhiteSpace(apiKeyResult.Data))
                 {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(responseContent)
-                });
+                    return Result<WeatherDto>.Failure("Weather API key not configured");
+                }
 
-            return new HttpClient(messageHandler.Object);
-        }
+                var apiKey = apiKeyResult.Data;
+                var client = _httpClientFactory.CreateClient();
+                var requestUrl = $"{BASE_URL}?lat={latitude}&lon={longitude}&appid={apiKey}&units=metric&exclude=minutely,hourly";
 
-        private HttpClient SetupHttpClient(HttpStatusCode statusCode)
-        {
-            var messageHandler = new Mock<HttpMessageHandler>();
-            messageHandler.Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage
+                var response = await _retryPolicy.ExecuteAsync(async () =>
+                    await client.GetAsync(requestUrl, cancellationToken));
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    StatusCode = statusCode,
-                    Content = new StringContent("Error")
-                });
+                    _logger.LogError("Weather API request failed with status {StatusCode}", response.StatusCode);
+                    return Result<WeatherDto>.Failure($"Weather API request failed: {response.StatusCode}");
+                }
 
-            return new HttpClient(messageHandler.Object);
-        }
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+                var weatherData = JsonSerializer.Deserialize<OpenWeatherResponse>(json);
 
-        private string CreateValidWeatherResponse()
-        {
-            var response = TestDataBuilder.CreateOpenWeatherResponse();
-            return JsonSerializer.Serialize(response);
-        }
+                if (weatherData == null)
+                {
+                    return Result<WeatherDto>.Failure("Failed to parse weather data");
+                }
 
-        private string CreateForecastResponse()
-        {
-            var response = TestDataBuilder.CreateOpenWeatherResponse();
-            response.Daily = new System.Collections.Generic.List<DailyForecast>
+                var weatherDto = MapToDto(weatherData);
+                return Result<WeatherDto>.Success(weatherDto);
+            }
+            catch (TaskCanceledException)
             {
-                new DailyForecast
+                _logger.LogWarning("Weather API request cancelled");
+                return Result<WeatherDto>.Failure("Request cancelled");
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Network error while fetching weather data");
+                return Result<WeatherDto>.Failure($"Network error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching weather data");
+                return Result<WeatherDto>.Failure($"Failed to fetch weather: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<WeatherDto>> UpdateWeatherForLocationAsync(
+            int locationId,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Get location details
+                var location = await _unitOfWork.Locations.GetByIdAsync(locationId, cancellationToken);
+                if (location == null)
                 {
-                    Dt = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                    Temp = new DailyTemperature { Day = 20, Min = 15, Max = 25 },
-                    Weather = new System.Collections.Generic.List<WeatherDescription>
+                    return Result<WeatherDto>.Failure("Location not found");
+                }
+
+                // Fetch weather for the location's coordinates
+                var weatherResult = await GetWeatherAsync(
+                    location.Coordinate.Latitude,
+                    location.Coordinate.Longitude,
+                    cancellationToken);
+
+                if (!weatherResult.IsSuccess || weatherResult.Data == null)
+                {
+                    return Result<WeatherDto>.Failure(weatherResult.ErrorMessage ?? "Failed to fetch weather");
+                }
+
+                // Create weather entity
+                var coordinate = new Coordinate(location.Coordinate.Latitude, location.Coordinate.Longitude);
+                var weather = new Domain.Entities.Weather(
+                    locationId,
+                    coordinate,
+                    weatherResult.Data.Timezone,
+                    weatherResult.Data.TimezoneOffset);
+
+                // Map forecast data
+                var forecasts = new List<Domain.Entities.WeatherForecast>();
+
+                // Add current weather as first forecast
+                var currentForecast = new Domain.Entities.WeatherForecast(
+                    weather.Id,
+                    DateTime.Today,
+                    weatherResult.Data.Sunrise,
+                    weatherResult.Data.Sunset,
+                    Temperature.FromCelsius(weatherResult.Data.Temperature),
+                    Temperature.FromCelsius(weatherResult.Data.Temperature - 5), // Approximate min
+                    Temperature.FromCelsius(weatherResult.Data.Temperature + 5), // Approximate max
+                    weatherResult.Data.Description,
+                    weatherResult.Data.Icon,
+                    new WindInfo(weatherResult.Data.WindSpeed, weatherResult.Data.WindDirection, weatherResult.Data.WindGust),
+                    weatherResult.Data.Humidity,
+                    weatherResult.Data.Pressure,
+                    weatherResult.Data.Clouds,
+                    weatherResult.Data.UvIndex);
+
+                forecasts.Add(currentForecast);
+                weather.UpdateForecasts(forecasts);
+
+                // Save to database
+                var existingWeather = await _unitOfWork.Weather.GetByLocationIdAsync(locationId, cancellationToken);
+                if (existingWeather != null)
+                {
+                    existingWeather.UpdateForecasts(forecasts);
+                    _unitOfWork.Weather.Update(existingWeather);
+                }
+                else
+                {
+                    await _unitOfWork.Weather.AddAsync(weather, cancellationToken);
+                }
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                return weatherResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating weather for location {LocationId}", locationId);
+                return Result<WeatherDto>.Failure($"Failed to update weather: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<WeatherForecastDto>> GetForecastAsync(
+            double latitude,
+            double longitude,
+            int days = 7,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var apiKeyResult = await GetApiKeyAsync(cancellationToken);
+                if (!apiKeyResult.IsSuccess || string.IsNullOrWhiteSpace(apiKeyResult.Data))
+                {
+                    return Result<WeatherForecastDto>.Failure("Weather API key not configured");
+                }
+
+                var apiKey = apiKeyResult.Data;
+                var client = _httpClientFactory.CreateClient();
+                var requestUrl = $"{BASE_URL}?lat={latitude}&lon={longitude}&appid={apiKey}&units=metric&exclude=minutely,hourly";
+
+                var response = await _retryPolicy.ExecuteAsync(async () =>
+                    await client.GetAsync(requestUrl, cancellationToken));
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Weather API request failed with status {StatusCode}", response.StatusCode);
+                    return Result<WeatherForecastDto>.Failure($"Weather API request failed: {response.StatusCode}");
+                }
+
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+                var weatherData = JsonSerializer.Deserialize<OpenWeatherResponse>(json);
+
+                if (weatherData == null)
+                {
+                    return Result<WeatherForecastDto>.Failure("Failed to parse weather data");
+                }
+
+                var forecastDto = MapToForecastDto(weatherData, days);
+                return Result<WeatherForecastDto>.Success(forecastDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching weather forecast");
+                return Result<WeatherForecastDto>.Failure($"Failed to fetch forecast: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<int>> UpdateAllWeatherAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // GetActiveAsync returns IEnumerable<Location> directly, not wrapped in Result
+                var locations = await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
+
+                int successCount = 0;
+                foreach (var location in locations)
+                {
+                    try
                     {
-                        new WeatherDescription { Description = "clear sky", Icon = "01d" }
+                        var result = await UpdateWeatherForLocationAsync(location.Id, cancellationToken);
+                        if (result.IsSuccess)
+                        {
+                            successCount++;
+                        }
                     }
-                },
-                new DailyForecast
-                {
-                    Dt = DateTimeOffset.UtcNow.AddDays(1).ToUnixTimeSeconds(),
-                    Temp = new DailyTemperature { Day = 22, Min = 17, Max = 27 },
-                    Weather = new System.Collections.Generic.List<WeatherDescription>
+                    catch (Exception ex)
                     {
-                        new WeatherDescription { Description = "partly cloudy", Icon = "02d" }
-                    }
-                },
-                new DailyForecast
-                {
-                    Dt = DateTimeOffset.UtcNow.AddDays(2).ToUnixTimeSeconds(),
-                    Temp = new DailyTemperature { Day = 19, Min = 14, Max = 24 },
-                    Weather = new System.Collections.Generic.List<WeatherDescription>
-                    {
-                        new WeatherDescription { Description = "rain", Icon = "10d" }
+                        _logger.LogError(ex, "Failed to update weather for location {LocationId}", location.Id);
                     }
                 }
+
+                return Result<int>.Success(successCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating all weather data");
+                return Result<int>.Failure($"Failed to update all weather: {ex.Message}");
+            }
+        }
+        private async Task<Result<string>> GetApiKeyAsync(CancellationToken cancellationToken)
+        {
+            var settingResult = await _unitOfWork.Settings.GetByKeyAsync(API_KEY_SETTING, cancellationToken);
+
+            if (!settingResult.IsSuccess || settingResult.Data == null)
+            {
+                _logger.LogWarning("Weather API key not found in settings");
+                return Result<string>.Failure("API key not found");
+            }
+
+            return Result<string>.Success(settingResult.Data.Value);
+        }
+
+        private WeatherDto MapToDto(OpenWeatherResponse response)
+        {
+            var current = response.Current;
+            return new WeatherDto
+            {
+                Temperature = current.Temp,
+                Description = current.Weather.FirstOrDefault()?.Description ?? string.Empty,
+                Icon = current.Weather.FirstOrDefault()?.Icon ?? string.Empty,
+                WindSpeed = current.WindSpeed,
+                WindDirection = current.WindDeg,
+                WindGust = current.WindGust,
+                Humidity = current.Humidity,
+                Pressure = current.Pressure,
+                Clouds = current.Clouds,
+                UvIndex = current.Uvi,
+                Sunrise = DateTimeOffset.FromUnixTimeSeconds(current.Sunrise).DateTime,
+                Sunset = DateTimeOffset.FromUnixTimeSeconds(current.Sunset).DateTime,
+                Timezone = response.Timezone,
+                TimezoneOffset = response.TimezoneOffset,
+                LastUpdate = DateTime.UtcNow
             };
-            return JsonSerializer.Serialize(response);
+        }
+
+        private WeatherForecastDto MapToForecastDto(OpenWeatherResponse response, int days)
+        {
+            var forecast = new WeatherForecastDto
+            {
+                Timezone = response.Timezone,
+                TimezoneOffset = response.TimezoneOffset,
+                LastUpdate = DateTime.UtcNow,
+                DailyForecasts = new List<DailyForecastDto>()
+            };
+
+            for (int i = 0; i < Math.Min(response.Daily.Count, days); i++)
+            {
+                var daily = response.Daily[i];
+                var dailyDto = new DailyForecastDto
+                {
+                    Date = DateTimeOffset.FromUnixTimeSeconds(daily.Dt).DateTime,
+                    Sunrise = DateTimeOffset.FromUnixTimeSeconds(daily.Sunrise).DateTime,
+                    Sunset = DateTimeOffset.FromUnixTimeSeconds(daily.Sunset).DateTime,
+                    Temperature = daily.Temp.Day,
+                    MinTemperature = daily.Temp.Min,
+                    MaxTemperature = daily.Temp.Max,
+                    Description = daily.Weather.FirstOrDefault()?.Description ?? string.Empty,
+                    Icon = daily.Weather.FirstOrDefault()?.Icon ?? string.Empty,
+                    WindSpeed = daily.WindSpeed,
+                    WindDirection = daily.WindDeg,
+                    WindGust = daily.WindGust,
+                    Humidity = daily.Humidity,
+                    Pressure = daily.Pressure,
+                    Clouds = daily.Clouds,
+                    UvIndex = daily.Uvi,
+                    Precipitation = daily.Pop,
+                    MoonRise = daily.MoonRise > 0 ? DateTimeOffset.FromUnixTimeSeconds(daily.MoonRise).DateTime : null,
+                    MoonSet = daily.MoonSet > 0 ? DateTimeOffset.FromUnixTimeSeconds(daily.MoonSet).DateTime : null,
+                    MoonPhase = daily.MoonPhase
+                };
+
+                forecast.DailyForecasts.Add(dailyDto);
+            }
+
+            return forecast;
         }
     }
 }

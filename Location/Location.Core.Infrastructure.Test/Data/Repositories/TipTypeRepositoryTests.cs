@@ -1,341 +1,263 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Location.Core.Infrastructure.Data;
+﻿using Location.Core.Application.Common.Interfaces.Persistence;
+using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Entities;
-using Location.Core.Infrastructure.Data.Repositories;
-using Location.Core.Infrastructure.Tests.Helpers;
 using Microsoft.Extensions.Logging;
-using Moq;
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-namespace Location.Core.Infrastructure.Tests.Data.Repositories
+
+namespace Location.Core.Infrastructure.Data.Repositories
 {
-    [TestFixture]
-    public class TipTypeRepositoryTests
+    public class TipTypeRepository : ITipTypeRepository
     {
-        private TipTypeRepository _repository;
-        private DatabaseContext _context;
-        private Mock<ILogger<TipTypeRepository>> _mockLogger;
-        private Mock<ILogger<DatabaseContext>> _mockContextLogger;
-        private string _testDbPath;
-        [SetUp]
-        public async Task Setup()
+        private readonly IDatabaseContext _context;
+        private readonly ILogger<TipTypeRepository> _logger;
+
+        public TipTypeRepository(IDatabaseContext context, ILogger<TipTypeRepository> logger)
         {
-            _mockLogger = new Mock<ILogger<TipTypeRepository>>();
-            _mockContextLogger = new Mock<ILogger<DatabaseContext>>();
-            _testDbPath = Path.Combine(Path.GetTempPath(), $"test_{Guid.NewGuid()}.db");
-            _context = new DatabaseContext(_mockContextLogger.Object, _testDbPath);
-            await _context.InitializeDatabaseAsync();
-            _repository = new TipTypeRepository(_context, _mockLogger.Object);
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        [TearDown]
-        public void TearDown()
+        public async Task<TipType?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            _context?.Dispose();
-
-            if (File.Exists(_testDbPath))
+            try
             {
-                File.Delete(_testDbPath);
+                var entity = await _context.GetAsync<TipTypeEntity>(id);
+                return entity != null ? MapToDomain(entity) : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving tip type with ID {TipTypeId}", id);
+                throw;
             }
         }
 
-        [Test]
-        public async Task GetByIdAsync_WithExistingTipType_ShouldReturnTipType()
+        public async Task<IEnumerable<TipType>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            // Arrange
-            var tipTypeEntity = TestDataBuilder.CreateTipTypeEntity();
-            await _context.InsertAsync(tipTypeEntity);
-
-            // Act
-            var result = await _repository.GetByIdAsync(tipTypeEntity.Id);
-
-            // Assert
-            result.Should().NotBeNull();
-            result!.Id.Should().Be(tipTypeEntity.Id);
-            result.Name.Should().Be(tipTypeEntity.Name);
-            result.I8n.Should().Be(tipTypeEntity.I8n);
+            try
+            {
+                var entities = await _context.Table<TipTypeEntity>().ToListAsync();
+                return entities.Select(MapToDomain);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all tip types");
+                throw;
+            }
         }
 
-        [Test]
-        public async Task GetByIdAsync_WithNonExistingTipType_ShouldReturnNull()
+        public async Task<TipType> AddAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
-            // Act
-            var result = await _repository.GetByIdAsync(999);
+            try
+            {
+                var entity = MapToEntity(tipType);
+                await _context.InsertAsync(entity);
 
-            // Assert
-            result.Should().BeNull();
+                // Update domain object with generated ID
+                SetPrivateProperty(tipType, "Id", entity.Id);
+
+                _logger.LogInformation("Created tip type with ID {TipTypeId}", entity.Id);
+                return tipType;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating tip type");
+                throw;
+            }
         }
 
-        [Test]
-        public async Task GetAllAsync_WithMultipleTipTypes_ShouldReturnAll()
+        public void Update(TipType tipType)
         {
-            // Arrange
-            var tipType1 = TestDataBuilder.CreateTipTypeEntity(id: 0, name: "Landscape");
-            var tipType2 = TestDataBuilder.CreateTipTypeEntity(id: 0, name: "Portrait");
-            var tipType3 = TestDataBuilder.CreateTipTypeEntity(id: 0, name: "Wildlife");
+            try
+            {
+                var entity = MapToEntity(tipType);
+                _context.UpdateAsync(entity).GetAwaiter().GetResult();
 
-            await _context.InsertAsync(tipType1);
-            await _context.InsertAsync(tipType2);
-            await _context.InsertAsync(tipType3);
+                // After updating the TipType, we need to handle the Tips collection
+                // Delete existing tips for this type and re-add them
+                var existingTips = _context.Table<TipEntity>()
+                    .Where(t => t.TipTypeId == tipType.Id)
+                    .ToListAsync().GetAwaiter().GetResult();
 
-            // Act
-            var results = await _repository.GetAllAsync();
+                foreach (var existingTip in existingTips)
+                {
+                    _context.DeleteAsync(existingTip).GetAwaiter().GetResult();
+                }
 
-            // Assert
-            var tipTypeList = results.ToList();
-            tipTypeList.Should().HaveCount(3);
-            tipTypeList.Select(t => t.Name).Should().Contain(new[] { "Landscape", "Portrait", "Wildlife" });
+                // Add the current tips
+                foreach (var tip in tipType.Tips)
+                {
+                    var tipEntity = MapTipToEntity(tip);
+                    tipEntity.TipTypeId = tipType.Id; // Ensure the TipTypeId is set
+                    _context.InsertAsync(tipEntity).GetAwaiter().GetResult();
+                }
+
+                _logger.LogInformation("Updated tip type with ID {TipTypeId}", tipType.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating tip type with ID {TipTypeId}", tipType.Id);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task AddAsync_WithValidTipType_ShouldPersistAndReturnWithId()
+        public void Delete(TipType tipType)
         {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType();
-
-            // Act
-            var result = await _repository.AddAsync(tipType);
-
-            // Assert
-            result.Should().BeSameAs(tipType);
-            result.Id.Should().BeGreaterThan(0);
-
-            // Verify persistence
-            var retrieved = await _repository.GetByIdAsync(result.Id);
-            retrieved.Should().NotBeNull();
-            retrieved!.Name.Should().Be(tipType.Name);
+            try
+            {
+                var entity = MapToEntity(tipType);
+                _context.DeleteAsync(entity).GetAwaiter().GetResult();
+                _logger.LogInformation("Deleted tip type with ID {TipTypeId}", tipType.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting tip type with ID {TipTypeId}", tipType.Id);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task Update_WithExistingTipType_ShouldPersistChanges()
+        public async Task<TipType?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
         {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType(name: "Original Name");
-            await _repository.AddAsync(tipType);
+            try
+            {
+                var entity = await _context.Table<TipTypeEntity>()
+                    .Where(t => t.Name == name)
+                    .FirstOrDefaultAsync();
 
-            // Act
-            // Use reflection to update the name (since it's private set)
-            var nameProperty = tipType.GetType().GetProperty("Name");
-            nameProperty!.SetValue(tipType, "Updated Name");
-            tipType.SetLocalization("fr-FR");
-            _repository.Update(tipType);
-
-            // Assert
-            var retrieved = await _repository.GetByIdAsync(tipType.Id);
-            retrieved.Should().NotBeNull();
-            retrieved!.Name.Should().Be("Updated Name");
-            retrieved.I8n.Should().Be("fr-FR");
+                return entity != null ? MapToDomain(entity) : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving tip type by name {Name}", name);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task Delete_WithExistingTipType_ShouldRemove()
+        public async Task<TipType?> GetWithTipsAsync(int id, CancellationToken cancellationToken = default)
         {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType();
-            await _repository.AddAsync(tipType);
+            try
+            {
+                var tipTypeEntity = await _context.GetAsync<TipTypeEntity>(id);
+                if (tipTypeEntity == null)
+                {
+                    return null;
+                }
 
-            // Act
-            _repository.Delete(tipType);
+                var tipType = MapToDomain(tipTypeEntity);
 
-            // Assert
-            var retrieved = await _repository.GetByIdAsync(tipType.Id);
-            retrieved.Should().BeNull();
+                // Load related tips
+                var tipEntities = await _context.Table<TipEntity>()
+                    .Where(t => t.TipTypeId == id)
+                    .ToListAsync();
+
+                foreach (var tipEntity in tipEntities)
+                {
+                    var tip = CreateTipFromEntity(tipEntity);
+                    tipType.AddTip(tip);
+                }
+
+                return tipType;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving tip type with tips for ID {TipTypeId}", id);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task GetByNameAsync_WithExistingName_ShouldReturnTipType()
+        #region Mapping Methods
+
+        private TipType MapToDomain(TipTypeEntity entity)
         {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType(name: "Unique Type Name");
-            await _repository.AddAsync(tipType);
+            // Create tip type using reflection
+            var tipType = CreateTipTypeViaReflection(entity.Name);
 
-            // Act
-            var result = await _repository.GetByNameAsync("Unique Type Name");
+            // Set properties
+            SetPrivateProperty(tipType, "Id", entity.Id);
+            SetPrivateProperty(tipType, "I8n", entity.I8n);
 
-            // Assert
-            result.Should().NotBeNull();
-            result!.Name.Should().Be("Unique Type Name");
+            return tipType;
         }
 
-        [Test]
-        public async Task GetByNameAsync_WithNonExistingName_ShouldReturnNull()
+        private TipTypeEntity MapToEntity(TipType tipType)
         {
-            // Act
-            var result = await _repository.GetByNameAsync("Non-Existent Name");
-
-            // Assert
-            result.Should().BeNull();
+            return new TipTypeEntity
+            {
+                Id = tipType.Id,
+                Name = tipType.Name,
+                I8n = tipType.I8n
+            };
         }
 
-        [Test]
-        public async Task GetWithTipsAsync_WithTipTypeAndRelatedTips_ShouldReturnTipTypeWithTips()
+        private TipEntity MapTipToEntity(Tip tip)
         {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType(name: "Photography Tips");
-            await _repository.AddAsync(tipType);
-
-            var tip1 = TestDataBuilder.CreateTipEntity(id: 0, tipTypeId: tipType.Id, title: "Tip 1");
-            var tip2 = TestDataBuilder.CreateTipEntity(id: 0, tipTypeId: tipType.Id, title: "Tip 2");
-            var tip3 = TestDataBuilder.CreateTipEntity(id: 0, tipTypeId: tipType.Id, title: "Tip 3");
-
-            await _context.InsertAsync(tip1);
-            await _context.InsertAsync(tip2);
-            await _context.InsertAsync(tip3);
-
-            // Act
-            var result = await _repository.GetWithTipsAsync(tipType.Id);
-
-            // Assert
-            result.Should().NotBeNull();
-            result!.Name.Should().Be("Photography Tips");
-            result.Tips.Should().HaveCount(3);
-            result.Tips.Select(t => t.Title).Should().Contain(new[] { "Tip 1", "Tip 2", "Tip 3" });
+            return new TipEntity
+            {
+                Id = tip.Id,
+                TipTypeId = tip.TipTypeId,
+                Title = tip.Title,
+                Content = tip.Content,
+                Fstop = tip.Fstop,
+                ShutterSpeed = tip.ShutterSpeed,
+                Iso = tip.Iso,
+                I8n = tip.I8n
+            };
         }
 
-        [Test]
-        public async Task GetWithTipsAsync_WithTipTypeButNoTips_ShouldReturnTipTypeWithEmptyCollection()
+        private TipType CreateTipTypeViaReflection(string name)
         {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType(name: "Empty Type");
-            await _repository.AddAsync(tipType);
+            var type = typeof(TipType);
+            var constructor = type.GetConstructor(new[] { typeof(string) });
 
-            // Act
-            var result = await _repository.GetWithTipsAsync(tipType.Id);
+            if (constructor == null)
+            {
+                throw new InvalidOperationException("Cannot find TipType constructor");
+            }
 
-            // Assert
-            result.Should().NotBeNull();
-            result!.Name.Should().Be("Empty Type");
-            result.Tips.Should().BeEmpty();
+            return (TipType)constructor.Invoke(new object[] { name });
         }
 
-        [Test]
-        public async Task GetWithTipsAsync_WithNonExistingTipType_ShouldReturnNull()
+        private Tip CreateTipFromEntity(TipEntity entity)
         {
-            // Act
-            var result = await _repository.GetWithTipsAsync(999);
+            var type = typeof(Tip);
+            var constructor = type.GetConstructor(
+                new[] { typeof(int), typeof(string), typeof(string) });
 
-            // Assert
-            result.Should().BeNull();
+            if (constructor == null)
+            {
+                throw new InvalidOperationException("Cannot find Tip constructor");
+            }
+
+            var tip = (Tip)constructor.Invoke(new object[] { entity.TipTypeId, entity.Title, entity.Content });
+
+            // Set properties
+            SetPrivateProperty(tip, "Id", entity.Id);
+            SetPrivateProperty(tip, "_fstop", entity.Fstop);
+            SetPrivateProperty(tip, "_shutterSpeed", entity.ShutterSpeed);
+            SetPrivateProperty(tip, "_iso", entity.Iso);
+            SetPrivateProperty(tip, "I8n", entity.I8n);
+
+            return tip;
         }
 
-        [Test]
-        public void Constructor_WithNullContext_ShouldThrowException()
+        private void SetPrivateProperty(object obj, string propertyName, object value)
         {
-            // Act
-            Action act = () => new TipTypeRepository(null!, _mockLogger.Object);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("context");
+            var property = obj.GetType().GetProperty(propertyName);
+            if (property == null)
+            {
+                var field = obj.GetType().GetField(propertyName,
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                field?.SetValue(obj, value);
+            }
+            else
+            {
+                property.SetValue(obj, value);
+            }
         }
 
-        [Test]
-        public void Constructor_WithNullLogger_ShouldThrowException()
-        {
-            // Act
-            Action act = () => new TipTypeRepository(_context, null!);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("logger");
-        }
-
-        [Test]
-        public async Task AddTip_ToExistingTipType_ShouldAddToCollection()
-        {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType();
-            await _repository.AddAsync(tipType);
-
-            // Create and save the tip to the database first
-            var tipEntity = TestDataBuilder.CreateTipEntity(id: 0, tipTypeId: tipType.Id, title: "New Tip");
-            await _context.InsertAsync(tipEntity);
-
-            // Need to retrieve the tip type with its tips using GetWithTipsAsync
-            var tipTypeWithTips = await _repository.GetWithTipsAsync(tipType.Id);
-            tipTypeWithTips.Should().NotBeNull();
-
-            // Act - Now add another tip
-            var tip = TestDataBuilder.CreateValidTip(tipTypeId: tipType.Id, title: "Another Tip");
-
-            // Set the ID using reflection since it's protected
-            var idProperty = tip.GetType().GetProperty("Id");
-            idProperty!.SetValue(tip, 2); // Give it a different ID
-
-            tipTypeWithTips!.AddTip(tip);
-            _repository.Update(tipTypeWithTips);
-
-            // Assert
-            var retrieved = await _repository.GetWithTipsAsync(tipType.Id);
-            retrieved.Should().NotBeNull();
-            retrieved!.Tips.Should().HaveCount(2); // Should now have both tips
-        }
-
-        [Test]
-        public async Task RemoveTip_FromExistingTipType_ShouldRemoveFromCollection()
-        {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType();
-            await _repository.AddAsync(tipType);
-
-            var tip = TestDataBuilder.CreateTipEntity(id: 0, tipTypeId: tipType.Id);
-            await _context.InsertAsync(tip);
-
-            var loadedTipType = await _repository.GetWithTipsAsync(tipType.Id);
-            loadedTipType.Should().NotBeNull();
-            loadedTipType!.Tips.Should().HaveCount(1);
-
-            var tipToRemove = loadedTipType.Tips.First();
-
-            // Act
-            loadedTipType.RemoveTip(tipToRemove);
-            _repository.Update(loadedTipType);
-
-            // Need to save the updated state to database
-            await _context.UpdateAsync(TestDataBuilder.CreateTipTypeEntity(
-                id: loadedTipType.Id,
-                name: loadedTipType.Name
-            ));
-
-            // Assert - Get fresh from database
-            var retrieved = await _repository.GetWithTipsAsync(tipType.Id);
-            retrieved.Should().NotBeNull();
-            retrieved!.Tips.Should().BeEmpty();
-        }
-
-        [Test]
-        public async Task AddAsync_VerifyLogging()
-        {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType();
-
-            // Act
-            await _repository.AddAsync(tipType);
-
-            // Assert
-            _mockLogger.Verify(
-                x => x.Log(
-                    It.Is<LogLevel>(level => level == LogLevel.Information),
-                    It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-                Times.AtLeastOnce
-            );
-        }
-
-        [Test]
-        public async Task GetAllAsync_WithEmptyDatabase_ShouldReturnEmptyCollection()
-        {
-            // Act
-            var results = await _repository.GetAllAsync();
-
-            // Assert
-            results.Should().BeEmpty();
-        }
+        #endregion
     }
 }

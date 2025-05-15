@@ -45,9 +45,11 @@ namespace Location.Core.Infrastructure
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ISettingRepository>(sp =>
                 sp.GetRequiredService<SettingRepository>());
 
-           
+            // The IUnitOfWork uses persistence interfaces, so we need to register the adapters with the same interface
+            // This creates a problem because we can't have two registrations for the same interface
+            // The solution is to modify the WeatherService to not expect Result types from GetActiveAsync
 
-            // Fix: Cast explicitly to the interface type
+            // Fix: Cast explicitly to the interface type for Weather repository
             services.AddScoped<Location.Core.Application.Common.Interfaces.IWeatherRepository>(sp =>
             {
                 var persistenceRepository = sp.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.IWeatherRepository>();

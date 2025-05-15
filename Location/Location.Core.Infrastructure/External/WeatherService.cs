@@ -56,12 +56,13 @@ namespace Location.Core.Infrastructure.External
         {
             try
             {
-                var apiKey = await GetApiKeyAsync(cancellationToken);
-                if (string.IsNullOrWhiteSpace(apiKey))
+                var apiKeyResult = await GetApiKeyAsync(cancellationToken);
+                if (!apiKeyResult.IsSuccess || string.IsNullOrWhiteSpace(apiKeyResult.Data))
                 {
                     return Result<WeatherDto>.Failure("Weather API key not configured");
                 }
 
+                var apiKey = apiKeyResult.Data;
                 var client = _httpClientFactory.CreateClient();
                 var requestUrl = $"{BASE_URL}?lat={latitude}&lon={longitude}&appid={apiKey}&units=metric&exclude=minutely,hourly";
 
@@ -188,12 +189,13 @@ namespace Location.Core.Infrastructure.External
         {
             try
             {
-                var apiKey = await GetApiKeyAsync(cancellationToken);
-                if (string.IsNullOrWhiteSpace(apiKey))
+                var apiKeyResult = await GetApiKeyAsync(cancellationToken);
+                if (!apiKeyResult.IsSuccess || string.IsNullOrWhiteSpace(apiKeyResult.Data))
                 {
                     return Result<WeatherForecastDto>.Failure("Weather API key not configured");
                 }
 
+                var apiKey = apiKeyResult.Data;
                 var client = _httpClientFactory.CreateClient();
                 var requestUrl = $"{BASE_URL}?lat={latitude}&lon={longitude}&appid={apiKey}&units=metric&exclude=minutely,hourly";
 
@@ -228,6 +230,7 @@ namespace Location.Core.Infrastructure.External
         {
             try
             {
+                // Location repository returns direct results (not wrapped in Result)
                 var locations = await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
 
                 int successCount = 0;
@@ -256,17 +259,18 @@ namespace Location.Core.Infrastructure.External
             }
         }
 
-        private async Task<string> GetApiKeyAsync(CancellationToken cancellationToken)
+        private async Task<Result<string>> GetApiKeyAsync(CancellationToken cancellationToken)
         {
-            var setting = await _unitOfWork.Settings.GetByKeyAsync(API_KEY_SETTING, cancellationToken);
+            // Settings repository returns Result wrapped values
+            var settingResult = await _unitOfWork.Settings.GetByKeyAsync(API_KEY_SETTING, cancellationToken);
 
-            if (setting != null)
+            if (!settingResult.IsSuccess || settingResult.Data == null)
             {
-                return setting.Data.Value;
+                _logger.LogWarning("Weather API key not found in settings");
+                return Result<string>.Failure("API key not found");
             }
 
-            _logger.LogWarning("Weather API key not found in settings");
-            return string.Empty;
+            return Result<string>.Success(settingResult.Data.Value);
         }
 
         private WeatherDto MapToDto(OpenWeatherResponse response)

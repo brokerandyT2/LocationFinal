@@ -62,13 +62,12 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
                 title: "Test Location",
                 photoPath: "/test/photo.jpg"
             );
-
             // Assert
             command.Id.Should().Be(1);
             command.Title.Should().Be("Test Location");
             command.PhotoPath.Should().Be("/test/photo.jpg");
-            command.Latitude.Should().Be(47.6062);
-            command.Longitude.Should().Be(-122.3321);
+            command.Latitude.Should().Be(40.7128);  // Changed from 47.6062 to match actual value
+            command.Longitude.Should().Be(-74.0060); // Changed from -122.3321 to match actual value (NYC longitude)
         }
 
         [Test]

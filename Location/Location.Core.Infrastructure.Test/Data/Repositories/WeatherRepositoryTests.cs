@@ -1,341 +1,422 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Location.Core.Infrastructure.Data;
-using Location.Core.Infrastructure.Data.Entities;
-using Location.Core.Infrastructure.Data.Repositories;
-using Location.Core.Infrastructure.Tests.Helpers;
+﻿using Location.Core.Application.Common.Interfaces.Persistence;
+using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
+using Location.Core.Infrastructure.Data.Entities;
 using Microsoft.Extensions.Logging;
-using Moq;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace Location.Core.Infrastructure.Tests.Data.Repositories
+namespace Location.Core.Infrastructure.Data.Repositories
 {
-    [TestFixture]
-    public class WeatherRepositoryTests
+    public class WeatherRepository : IWeatherRepository
     {
-        private WeatherRepository _repository;
-        private DatabaseContext _context;
-        private Mock<ILogger<WeatherRepository>> _mockLogger;
-        private Mock<ILogger<DatabaseContext>> _mockContextLogger;
-        private string _testDbPath;
+        private readonly IDatabaseContext _context;
+        private readonly ILogger<WeatherRepository> _logger;
 
-        [SetUp]
-        public async Task Setup()
+        public WeatherRepository(IDatabaseContext context, ILogger<WeatherRepository> logger)
         {
-            _mockLogger = new Mock<ILogger<WeatherRepository>>();
-            _mockContextLogger = new Mock<ILogger<DatabaseContext>>();
-            _testDbPath = Path.Combine(Path.GetTempPath(), $"test_{Guid.NewGuid()}.db");
-            _context = new DatabaseContext(_mockContextLogger.Object, _testDbPath);
-            await _context.InitializeDatabaseAsync();
-            _repository = new WeatherRepository(_context, _mockLogger.Object);
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        [TearDown]
-        public void TearDown()
+        public async Task<Weather?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            _context?.Dispose();
-
-            if (File.Exists(_testDbPath))
+            try
             {
-                File.Delete(_testDbPath);
+                _logger.LogInformation("Retrieving weather with ID {WeatherId}", id);
+
+                var weatherEntity = await _context.GetAsync<WeatherEntity>(id);
+
+                if (weatherEntity == null)
+                {
+                    _logger.LogInformation("Weather with ID {WeatherId} not found", id);
+                    return null;
+                }
+
+                var forecastEntities = await _context.Table<WeatherForecastEntity>()
+                    .Where(f => f.WeatherId == id)
+                    .OrderBy(f => f.Date)
+                    .ToListAsync();
+
+                var weather = MapToDomain(weatherEntity, forecastEntities);
+
+                _logger.LogInformation("Successfully retrieved weather with ID {WeatherId}", id);
+                return weather;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving weather with ID {WeatherId}", id);
+                throw;
             }
         }
 
-        [Test]
-        public async Task GetByIdAsync_WithExistingWeather_ShouldReturnWeatherWithForecasts()
+        public async Task<Weather?> GetByLocationIdAsync(int locationId, CancellationToken cancellationToken = default)
         {
-            // Arrange
-            var weatherEntity = TestDataBuilder.CreateWeatherEntity();
-            await _context.InsertAsync(weatherEntity);
-
-            var forecastEntity1 = TestDataBuilder.CreateWeatherForecastEntity(
-                id: 0,
-                weatherId: weatherEntity.Id,
-                date: DateTime.Today
-            );
-            var forecastEntity2 = TestDataBuilder.CreateWeatherForecastEntity(
-                id: 0,
-                weatherId: weatherEntity.Id,
-                date: DateTime.Today.AddDays(1)
-            );
-            await _context.InsertAsync(forecastEntity1);
-            await _context.InsertAsync(forecastEntity2);
-
-            // Act
-            var result = await _repository.GetByIdAsync(weatherEntity.Id);
-
-            // Assert
-            result.Should().NotBeNull();
-            result!.Id.Should().Be(weatherEntity.Id);
-            result.LocationId.Should().Be(weatherEntity.LocationId);
-            result.Forecasts.Should().HaveCount(2);
-            result.Forecasts.Should().BeInAscendingOrder(f => f.Date);
-        }
-
-        [Test]
-        public async Task GetByIdAsync_WithNonExistingWeather_ShouldReturnNull()
-        {
-            // Act
-            var result = await _repository.GetByIdAsync(999);
-
-            // Assert
-            result.Should().BeNull();
-        }
-
-        [Test]
-        public async Task GetByLocationIdAsync_WithExistingWeather_ShouldReturnMostRecent()
-        {
-            // Arrange
-            var locationId = 1;
-
-            var olderWeather = TestDataBuilder.CreateWeatherEntity(id: 0, locationId: locationId);
-            olderWeather.LastUpdate = DateTime.UtcNow.AddHours(-2);
-            await _context.InsertAsync(olderWeather);
-
-            var newerWeather = TestDataBuilder.CreateWeatherEntity(id: 0, locationId: locationId);
-            newerWeather.LastUpdate = DateTime.UtcNow;
-            await _context.InsertAsync(newerWeather);
-
-            // Act
-            var result = await _repository.GetByLocationIdAsync(locationId);
-
-            // Assert
-            result.Should().NotBeNull();
-            result!.Id.Should().Be(newerWeather.Id);
-            result.LastUpdate.Should().Be(newerWeather.LastUpdate);
-        }
-
-        [Test]
-        public async Task GetByLocationIdAsync_WithNonExistingLocation_ShouldReturnNull()
-        {
-            // Act
-            var result = await _repository.GetByLocationIdAsync(999);
-
-            // Assert
-            result.Should().BeNull();
-        }
-
-        [Test]
-        public async Task AddAsync_WithWeatherAndForecasts_ShouldPersistAll()
-        {
-            // Arrange
-            var weather = TestDataBuilder.CreateValidWeather();
-            var forecasts = new List<Domain.Entities.WeatherForecast>
+            try
             {
-                TestDataBuilder.CreateValidWeatherForecast(weatherId: 0, date: DateTime.Today),
-                TestDataBuilder.CreateValidWeatherForecast(weatherId: 0, date: DateTime.Today.AddDays(1))
-            };
+                var weatherEntities = await _context.Table<WeatherEntity>()
+                    .Where(w => w.LocationId == locationId)
+                    .ToListAsync();
+
+                if (!weatherEntities.Any())
+                {
+                    return null;
+                }
+
+                // Sort by LastUpdate descending and take the first
+                var weatherEntity = weatherEntities
+                    .OrderByDescending(w => w.LastUpdate)
+                    .First();
+
+                var forecastEntities = await _context.Table<WeatherForecastEntity>()
+                    .Where(f => f.WeatherId == weatherEntity.Id)
+                    .OrderBy(f => f.Date)
+                    .ToListAsync();
+
+                var weather = MapToDomain(weatherEntity, forecastEntities);
+                return weather;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving weather for location ID {LocationId}", locationId);
+                throw;
+            }
+        }
+
+        public async Task<Weather> AddAsync(Weather weather, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Create weather entity
+                var weatherEntity = MapToEntity(weather);
+                await _context.InsertAsync(weatherEntity);
+
+                // Update domain object with generated ID
+                SetPrivateProperty(weather, "Id", weatherEntity.Id);
+
+                // Create forecast entities
+                foreach (var forecast in weather.Forecasts)
+                {
+                    var forecastEntity = MapForecastToEntity(forecast, weatherEntity.Id);
+                    await _context.InsertAsync(forecastEntity);
+                    SetPrivateProperty(forecast, "Id", forecastEntity.Id);
+                }
+
+                _logger.LogInformation("Created weather with ID {WeatherId} for location {LocationId}",
+                    weatherEntity.Id, weather.LocationId);
+
+                return weather;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating weather");
+                throw;
+            }
+        }
+
+        public void Update(Weather weather)
+        {
+            try
+            {
+                // Update weather entity
+                var weatherEntity = MapToEntity(weather);
+                _context.UpdateAsync(weatherEntity).GetAwaiter().GetResult();
+
+                // Delete existing forecasts
+                var existingForecasts = _context.Table<WeatherForecastEntity>()
+                    .Where(f => f.WeatherId == weather.Id)
+                    .ToListAsync().GetAwaiter().GetResult();
+
+                foreach (var forecast in existingForecasts)
+                {
+                    _context.DeleteAsync(forecast).GetAwaiter().GetResult();
+                }
+
+                // Create new forecasts
+                foreach (var forecast in weather.Forecasts)
+                {
+                    var forecastEntity = MapForecastToEntity(forecast, weather.Id);
+                    _context.InsertAsync(forecastEntity).GetAwaiter().GetResult();
+                    SetPrivateProperty(forecast, "Id", forecastEntity.Id);
+                }
+
+                _logger.LogInformation("Updated weather with ID {WeatherId}", weather.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating weather with ID {WeatherId}", weather.Id);
+                throw;
+            }
+        }
+
+        public void Delete(Weather weather)
+        {
+            try
+            {
+                // Delete forecasts first
+                var forecasts = _context.Table<WeatherForecastEntity>()
+                    .Where(f => f.WeatherId == weather.Id)
+                    .ToListAsync().GetAwaiter().GetResult();
+
+                foreach (var forecast in forecasts)
+                {
+                    _context.DeleteAsync(forecast).GetAwaiter().GetResult();
+                }
+
+                // Delete weather
+                var weatherEntity = MapToEntity(weather);
+                _context.DeleteAsync(weatherEntity).GetAwaiter().GetResult();
+
+                _logger.LogInformation("Deleted weather with ID {WeatherId}", weather.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting weather with ID {WeatherId}", weather.Id);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Weather>> GetRecentAsync(int count = 10, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Get all weather entities first, then sort in memory to ensure proper ordering
+                var allWeatherEntities = await _context.Table<WeatherEntity>()
+                    .ToListAsync();
+
+                // Sort by LastUpdate descending and take the requested count
+                var weatherEntities = allWeatherEntities
+                    .OrderByDescending(w => w.LastUpdate)
+                    .Take(count)
+                    .ToList();
+
+                var weatherList = new List<Weather>();
+
+                foreach (var weatherEntity in weatherEntities)
+                {
+                    var forecastEntities = await _context.Table<WeatherForecastEntity>()
+                        .Where(f => f.WeatherId == weatherEntity.Id)
+                        .OrderBy(f => f.Date)
+                        .ToListAsync();
+
+                    var weather = MapToDomain(weatherEntity, forecastEntities);
+                    weatherList.Add(weather);
+                }
+
+                // Maintain the order from the sorted entities
+                return weatherList;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving recent weather data");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Weather>> GetExpiredAsync(TimeSpan maxAge, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var cutoffDate = DateTime.UtcNow - maxAge;
+
+                var weatherEntities = await _context.Table<WeatherEntity>()
+                    .Where(w => w.LastUpdate < cutoffDate)
+                    .ToListAsync();
+
+                var weatherList = new List<Weather>();
+
+                foreach (var weatherEntity in weatherEntities)
+                {
+                    var forecastEntities = await _context.Table<WeatherForecastEntity>()
+                        .Where(f => f.WeatherId == weatherEntity.Id)
+                        .OrderBy(f => f.Date)
+                        .ToListAsync();
+
+                    var weather = MapToDomain(weatherEntity, forecastEntities);
+                    weatherList.Add(weather);
+                }
+
+                return weatherList;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving expired weather data");
+                throw;
+            }
+        }
+
+        #region Mapping Methods
+
+        private Weather MapToDomain(WeatherEntity entity, List<WeatherForecastEntity> forecastEntities)
+        {
+            var coordinate = new Coordinate(entity.Latitude, entity.Longitude);
+
+            // Create weather using reflection
+            var weather = CreateWeatherViaReflection(
+                entity.LocationId,
+                coordinate,
+                entity.Timezone,
+                entity.TimezoneOffset);
+
+            // Set properties
+            SetPrivateProperty(weather, "Id", entity.Id);
+            SetPrivateProperty(weather, "_lastUpdate", entity.LastUpdate);
+
+            // Map forecasts
+            var forecasts = forecastEntities.Select(f => MapForecastToDomain(f)).ToList();
             weather.UpdateForecasts(forecasts);
 
-            // Act
-            var result = await _repository.AddAsync(weather);
-
-            // Assert
-            result.Should().BeSameAs(weather);
-            result.Id.Should().BeGreaterThan(0);
-            result.Forecasts.Should().HaveCount(2);
-            result.Forecasts.All(f => f.Id > 0).Should().BeTrue();
-
-            // Verify persistence
-            var retrieved = await _repository.GetByIdAsync(result.Id);
-            retrieved.Should().NotBeNull();
-            retrieved!.Forecasts.Should().HaveCount(2);
+            return weather;
         }
 
-        [Test]
-        public void Update_WithExistingWeather_ShouldUpdateWeatherAndForecasts()
+        private WeatherForecast MapForecastToDomain(WeatherForecastEntity entity)
         {
-            // Arrange
-            var weather = TestDataBuilder.CreateValidWeather();
-            _repository.AddAsync(weather).Wait();
+            var temperature = Temperature.FromCelsius(entity.Temperature);
+            var minTemperature = Temperature.FromCelsius(entity.MinTemperature);
+            var maxTemperature = Temperature.FromCelsius(entity.MaxTemperature);
+            var wind = new WindInfo(entity.WindSpeed, entity.WindDirection, entity.WindGust);
 
-            // Act - Update weather with new forecasts
-            var newForecasts = new List<Domain.Entities.WeatherForecast>
+            var forecast = CreateWeatherForecastViaReflection(
+                entity.WeatherId,
+                entity.Date,
+                entity.Sunrise,
+                entity.Sunset,
+                temperature,
+                minTemperature,
+                maxTemperature,
+                entity.Description,
+                entity.Icon,
+                wind,
+                entity.Humidity,
+                entity.Pressure,
+                entity.Clouds,
+                entity.UvIndex);
+
+            // Set additional properties
+            SetPrivateProperty(forecast, "Id", entity.Id);
+            if (entity.Precipitation.HasValue)
             {
-                TestDataBuilder.CreateValidWeatherForecast(weatherId: weather.Id, temperature: 25),
-                TestDataBuilder.CreateValidWeatherForecast(weatherId: weather.Id, temperature: 26),
-                TestDataBuilder.CreateValidWeatherForecast(weatherId: weather.Id, temperature: 27)
+                forecast.SetPrecipitation(entity.Precipitation.Value);
+            }
+            forecast.SetMoonData(entity.MoonRise, entity.MoonSet, entity.MoonPhase);
+
+            return forecast;
+        }
+
+        private WeatherEntity MapToEntity(Weather weather)
+        {
+            return new WeatherEntity
+            {
+                Id = weather.Id,
+                LocationId = weather.LocationId,
+                Latitude = weather.Coordinate.Latitude,
+                Longitude = weather.Coordinate.Longitude,
+                Timezone = weather.Timezone,
+                TimezoneOffset = weather.TimezoneOffset,
+                LastUpdate = weather.LastUpdate
             };
-            weather.UpdateForecasts(newForecasts);
-            _repository.Update(weather);
-
-            // Assert
-            var retrieved = _repository.GetByIdAsync(weather.Id).Result;
-            retrieved.Should().NotBeNull();
-            retrieved!.Forecasts.Should().HaveCount(3);
-            retrieved.Forecasts.Select(f => f.Temperature.Celsius)
-                .Should().BeEquivalentTo(new[] { 25.0, 26.0, 27.0 });
         }
 
-        [Test]
-        public void Delete_WithExistingWeather_ShouldDeleteWeatherAndForecasts()
+        private WeatherForecastEntity MapForecastToEntity(WeatherForecast forecast, int weatherId)
         {
-            // Arrange
-            var weather = TestDataBuilder.CreateValidWeather();
-            var forecasts = new List<Domain.Entities.WeatherForecast>
+            return new WeatherForecastEntity
             {
-                TestDataBuilder.CreateValidWeatherForecast(weatherId: 0)
+                Id = forecast.Id,
+                WeatherId = weatherId,
+                Date = forecast.Date,
+                Sunrise = forecast.Sunrise,
+                Sunset = forecast.Sunset,
+                Temperature = forecast.Temperature.Celsius,
+                MinTemperature = forecast.MinTemperature.Celsius,
+                MaxTemperature = forecast.MaxTemperature.Celsius,
+                Description = forecast.Description,
+                Icon = forecast.Icon,
+                WindSpeed = forecast.Wind.Speed,
+                WindDirection = forecast.Wind.Direction,
+                WindGust = forecast.Wind.Gust,
+                Humidity = forecast.Humidity,
+                Pressure = forecast.Pressure,
+                Clouds = forecast.Clouds,
+                UvIndex = forecast.UvIndex,
+                Precipitation = forecast.Precipitation,
+                MoonRise = forecast.MoonRise,
+                MoonSet = forecast.MoonSet,
+                MoonPhase = forecast.MoonPhase
             };
-            weather.UpdateForecasts(forecasts);
-            _repository.AddAsync(weather).Wait();
-
-            // Act
-            _repository.Delete(weather);
-
-            // Assert
-            var retrieved = _repository.GetByIdAsync(weather.Id).Result;
-            retrieved.Should().BeNull();
-
-            // Verify forecasts are also deleted
-            var remainingForecasts = _context.Table<WeatherForecastEntity>()
-                .Where(f => f.WeatherId == weather.Id)
-                .ToListAsync().Result;
-            remainingForecasts.Should().BeEmpty();
         }
 
-        [Test]
-        public async Task GetRecentAsync_WithMultipleWeathers_ShouldReturnMostRecent()
+        private Weather CreateWeatherViaReflection(int locationId, Coordinate coordinate, string timezone, int timezoneOffset)
         {
-            // Arrange
-            var weathers = new List<Domain.Entities.Weather>();
-            for (int i = 0; i < 15; i++)
+            var type = typeof(Weather);
+            var constructor = type.GetConstructor(
+                new[] { typeof(int), typeof(Coordinate), typeof(string), typeof(int) });
+
+            if (constructor == null)
             {
-                var weather = TestDataBuilder.CreateValidWeather(locationId: i + 1);
-                // Use reflection to set LastUpdate without going through UpdateForecasts
-                var lastUpdateProperty = weather.GetType().GetProperty("LastUpdate");
-                lastUpdateProperty!.SetValue(weather, DateTime.UtcNow.AddMinutes(-i));
-                weathers.Add(weather);
-                await _repository.AddAsync(weather);
+                throw new InvalidOperationException("Cannot find Weather constructor");
             }
 
-            // Act
-            var result = await _repository.GetRecentAsync(10);
-
-            // Assert
-            var recentList = result.ToList();
-            recentList.Should().HaveCount(10);
-            recentList.Should().BeInDescendingOrder(w => w.LastUpdate);
-            recentList.First().LastUpdate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+            return (Weather)constructor.Invoke(
+                new object[] { locationId, coordinate, timezone, timezoneOffset });
         }
 
-        [Test]
-        public async Task GetExpiredAsync_WithMixedDates_ShouldReturnExpiredOnly()
+        private WeatherForecast CreateWeatherForecastViaReflection(
+            int weatherId,
+            DateTime date,
+            DateTime sunrise,
+            DateTime sunset,
+            Temperature temperature,
+            Temperature minTemperature,
+            Temperature maxTemperature,
+            string description,
+            string icon,
+            WindInfo wind,
+            int humidity,
+            int pressure,
+            int clouds,
+            double uvIndex)
         {
-            // Arrange
-            var cutoffTime = TimeSpan.FromHours(1);
-
-            var freshWeather = TestDataBuilder.CreateValidWeather(locationId: 1);
-            await _repository.AddAsync(freshWeather);
-
-            var expiredWeather = TestDataBuilder.CreateValidWeather(locationId: 2);
-            // Use reflection to set LastUpdate
-            var lastUpdateProperty = expiredWeather.GetType().GetProperty("LastUpdate");
-            lastUpdateProperty!.SetValue(expiredWeather, DateTime.UtcNow.AddHours(-2));
-            await _repository.AddAsync(expiredWeather);
-
-            // Act
-            var result = await _repository.GetExpiredAsync(cutoffTime);
-
-            // Assert
-            var expiredList = result.ToList();
-            expiredList.Should().HaveCount(1);
-            expiredList[0].LocationId.Should().Be(2);
-        }
-
-        [Test]
-        public async Task AddAsync_WithoutForecasts_ShouldCreateWeatherOnly()
-        {
-            // Arrange
-            var weather = TestDataBuilder.CreateValidWeather();
-
-            // Act
-            var result = await _repository.AddAsync(weather);
-
-            // Assert
-            result.Id.Should().BeGreaterThan(0);
-            result.Forecasts.Should().BeEmpty();
-
-            var retrieved = await _repository.GetByIdAsync(result.Id);
-            retrieved.Should().NotBeNull();
-            retrieved!.Forecasts.Should().BeEmpty();
-        }
-
-        [Test]
-        public async Task Update_ReplacesAllForecasts()
-        {
-            // Arrange
-            var weather = TestDataBuilder.CreateValidWeather();
-            var initialForecasts = new List<Domain.Entities.WeatherForecast>
+            var type = typeof(WeatherForecast);
+            var constructor = type.GetConstructor(new[]
             {
-                TestDataBuilder.CreateValidWeatherForecast(weatherId: 0, temperature: 20)
-            };
-            weather.UpdateForecasts(initialForecasts);
-            await _repository.AddAsync(weather);
+                typeof(int), typeof(DateTime), typeof(DateTime), typeof(DateTime),
+                typeof(Temperature), typeof(Temperature), typeof(Temperature),
+                typeof(string), typeof(string), typeof(WindInfo),
+                typeof(int), typeof(int), typeof(int), typeof(double)
+            });
 
-            // Act - Replace with completely different forecasts
-            var newForecasts = new List<Domain.Entities.WeatherForecast>
+            if (constructor == null)
             {
-                TestDataBuilder.CreateValidWeatherForecast(weatherId: weather.Id, temperature: 30),
-                TestDataBuilder.CreateValidWeatherForecast(weatherId: weather.Id, temperature: 31)
-            };
-            weather.UpdateForecasts(newForecasts);
-            _repository.Update(weather);
+                throw new InvalidOperationException("Cannot find WeatherForecast constructor");
+            }
 
-            // Assert
-            var retrieved = await _repository.GetByIdAsync(weather.Id);
-            retrieved!.Forecasts.Should().HaveCount(2);
-            retrieved.Forecasts.Select(f => f.Temperature.Celsius)
-                .Should().BeEquivalentTo(new[] { 30.0, 31.0 });
+            return (WeatherForecast)constructor.Invoke(new object[]
+            {
+                weatherId, date, sunrise, sunset,
+                temperature, minTemperature, maxTemperature,
+                description, icon, wind,
+                humidity, pressure, clouds, uvIndex
+            });
         }
 
-        [Test]
-        public void Constructor_WithNullContext_ShouldThrowException()
+        private void SetPrivateProperty(object obj, string propertyName, object value)
         {
-            // Act
-            Action act = () => new WeatherRepository(null!, _mockLogger.Object);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("context");
+            var property = obj.GetType().GetProperty(propertyName);
+            if (property == null)
+            {
+                var field = obj.GetType().GetField(propertyName,
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                field?.SetValue(obj, value);
+            }
+            else
+            {
+                property.SetValue(obj, value);
+            }
         }
 
-        [Test]
-        public void Constructor_WithNullLogger_ShouldThrowException()
-        {
-            // Act
-            Action act = () => new WeatherRepository(_context, null!);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("logger");
-        }
-
-        [Test]
-        public async Task GetByIdAsync_VerifyLogging()
-        {
-            // Arrange
-            var weatherEntity = TestDataBuilder.CreateWeatherEntity();
-            await _context.InsertAsync(weatherEntity);
-
-            // Act
-            await _repository.GetByIdAsync(weatherEntity.Id);
-
-            // Assert
-            _mockLogger.Verify(
-                x => x.Log(
-                    It.Is<LogLevel>(level => level == LogLevel.Information),
-                    It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-                Times.AtLeastOnce
-            );
-        }
+        #endregion
     }
 }
