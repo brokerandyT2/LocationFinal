@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
-using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 
 namespace Location.Core.Application.Settings.Commands.CreateSetting
@@ -20,7 +20,7 @@ namespace Location.Core.Application.Settings.Commands.CreateSetting
         {
             var existingSettingResult = await _settingRepository.GetByKeyAsync(request.Key, cancellationToken);
 
-            if (existingSettingResult.IsSuccess && existingSettingResult.Data != null)
+            if (existingSettingResult.Id != null)
             {
                 return Result<CreateSettingCommandResponse>.Failure($"Setting with key '{request.Key}' already exists");
             }

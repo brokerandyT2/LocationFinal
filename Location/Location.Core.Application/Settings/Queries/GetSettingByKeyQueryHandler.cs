@@ -1,10 +1,6 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
-using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
-
+using MediatR;
 namespace Location.Core.Application.Settings.Queries.GetSettingByKey
 {
     public class GetSettingByKeyQueryHandler : IRequestHandler<GetSettingByKeyQuery, Result<GetSettingByKeyQueryResponse>>
