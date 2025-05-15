@@ -27,4 +27,4 @@ namespace Location.Core.Application.Mappings
             CreateMap<Setting, UpdateSettingCommandResponse>();
         }
     }
-}q
+}
