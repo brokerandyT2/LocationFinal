@@ -53,7 +53,7 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             _weatherRepositoryMock
                 .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
@@ -89,10 +89,9 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             SetPrivateField(existingWeather, "_lastUpdate", DateTime.UtcNow.AddHours(-6)); // 6 hours old
 
             var cachedWeatherDto = TestDataBuilder.CreateValidWeatherDto();
-
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             _weatherRepositoryMock
                 .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
@@ -128,7 +127,7 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             _weatherRepositoryMock
                 .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
@@ -167,7 +166,7 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             _weatherRepositoryMock
                 .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
@@ -201,7 +200,7 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Location)null);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Failure("Location not found"));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -216,6 +215,7 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
+
         [Test]
         public async Task Handle_WhenWeatherServiceFails_ShouldReturnFailure()
         {
@@ -223,9 +223,10 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             var command = new UpdateWeatherCommand { LocationId = 1, ForceUpdate = false };
             var location = TestDataBuilder.CreateValidLocation(1);
 
+            // Fix: Return Result<Location>.Success
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
             _weatherRepositoryMock
                 .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))

@@ -49,7 +49,7 @@ namespace Location.Core.Application.Tests.Locations.Queries
 
             // Mock returns IEnumerable<Location>
             _unitOfWorkMock.Setup(x => x.Locations.GetActiveAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(locations);
+                .ReturnsAsync(Result<List<Domain.Entities.Location>>.Success(locations));
 
             _mapperMock.Setup(x => x.Map<List<LocationListDto>>(It.IsAny<List<Domain.Entities.Location>>()))
                 .Returns(locationDtos);
@@ -86,7 +86,7 @@ namespace Location.Core.Application.Tests.Locations.Queries
 
             // Mock returns IEnumerable<Location>
             _unitOfWorkMock.Setup(x => x.Locations.GetAllAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(locations);
+                .ReturnsAsync(Result<List<Domain.Entities.Location>>.Success(locations));
 
             _mapperMock.Setup(x => x.Map<List<LocationListDto>>(It.IsAny<List<Domain.Entities.Location>>()))
                 .Returns(locationDtos);
@@ -122,7 +122,7 @@ namespace Location.Core.Application.Tests.Locations.Queries
 
             // Mock returns IEnumerable<Location>
             _unitOfWorkMock.Setup(x => x.Locations.GetActiveAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(locations);
+                .ReturnsAsync(Result<List<Domain.Entities.Location>>.Success(locations));
 
             _mapperMock.Setup(x => x.Map<List<LocationListDto>>(It.IsAny<List<Domain.Entities.Location>>()))
                 .Returns(locationDtos);
@@ -152,7 +152,7 @@ namespace Location.Core.Application.Tests.Locations.Queries
 
             // Mock returns empty IEnumerable<Location>
             _unitOfWorkMock.Setup(x => x.Locations.GetActiveAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(emptyList);
+                .ReturnsAsync(Result<List<Domain.Entities.Location>>.Success(emptyList));
 
             _mapperMock.Setup(x => x.Map<List<LocationListDto>>(It.IsAny<List<Domain.Entities.Location>>()))
                 .Returns(emptyDtoList);

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Moq;
-using NUnit.Framework;
+﻿using FluentAssertions;
 using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Utilities;
-using FluentAssertions;
+using Moq;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 {

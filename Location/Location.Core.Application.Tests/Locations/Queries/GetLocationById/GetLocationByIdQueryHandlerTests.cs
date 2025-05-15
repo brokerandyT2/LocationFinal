@@ -5,8 +5,6 @@ using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Locations.Queries.GetLocationById;
 using Location.Core.Domain.ValueObjects;
 using Moq;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById

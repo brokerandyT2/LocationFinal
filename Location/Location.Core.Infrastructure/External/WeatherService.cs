@@ -109,12 +109,14 @@ namespace Location.Core.Infrastructure.External
         {
             try
             {
-                // Get location details
-                var location = await _unitOfWork.Locations.GetByIdAsync(locationId, cancellationToken);
-                if (location == null)
+                // Get location details - extract from Result<T>
+                var locationResult = await _unitOfWork.Locations.GetByIdAsync(locationId, cancellationToken);
+                if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
                     return Result<WeatherDto>.Failure("Location not found");
                 }
+
+                var location = locationResult.Data;
 
                 // Fetch weather for the location's coordinates
                 var weatherResult = await GetWeatherAsync(
@@ -158,10 +160,11 @@ namespace Location.Core.Infrastructure.External
                 forecasts.Add(currentForecast);
                 weather.UpdateForecasts(forecasts);
 
-                // Save to database
-                var existingWeather = await _unitOfWork.Weather.GetByLocationIdAsync(locationId, cancellationToken);
-                if (existingWeather != null)
+                // Save to database - extract from Result<T>
+                var existingWeatherResult = await _unitOfWork.Weather.GetByLocationIdAsync(locationId, cancellationToken);
+                if (existingWeatherResult.IsSuccess && existingWeatherResult.Data != null)
                 {
+                    var existingWeather = existingWeatherResult.Data;
                     existingWeather.UpdateForecasts(forecasts);
                     _unitOfWork.Weather.Update(existingWeather);
                 }
@@ -230,10 +233,16 @@ namespace Location.Core.Infrastructure.External
         {
             try
             {
-                // Location repository returns direct results (not wrapped in Result)
-                var locations = await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
+                // Get active locations - extract from Result<T>
+                var locationsResult = await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
+                if (!locationsResult.IsSuccess || locationsResult.Data == null)
+                {
+                    return Result<int>.Failure("Failed to retrieve active locations");
+                }
 
+                var locations = locationsResult.Data;
                 int successCount = 0;
+
                 foreach (var location in locations)
                 {
                     try
@@ -261,7 +270,6 @@ namespace Location.Core.Infrastructure.External
 
         private async Task<Result<string>> GetApiKeyAsync(CancellationToken cancellationToken)
         {
-            // Settings repository returns Result wrapped values
             var settingResult = await _unitOfWork.Settings.GetByKeyAsync(API_KEY_SETTING, cancellationToken);
 
             if (!settingResult.IsSuccess || settingResult.Data == null)

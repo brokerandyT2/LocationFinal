@@ -1,9 +1,6 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Domain.ValueObjects;
@@ -15,7 +12,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
     public class SaveLocationCommandHandlerTests
     {
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-        private readonly Mock<ILocationRepository> _locationRepositoryMock;
+        private readonly Mock<Location.Core.Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly SaveLocationCommandHandler _handler;
 
@@ -50,8 +47,8 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
                 new Address(command.City, command.State));
 
             _locationRepositoryMock
-                .Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(newLocation);
+     .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+     .ReturnsAsync(Result<Domain.Entities.Location>.Success(newLocation));
 
             var locationDto = new LocationDto { Id = 1, Title = command.Title };
             _mapperMock
@@ -64,7 +61,9 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             // Assert
             Assert.IsTrue(result.IsSuccess);
             Assert.IsNotNull(result.Data);
-            _locationRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Once);
+            _locationRepositoryMock
+                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(newLocation));
         }
 
         [Fact]
@@ -89,8 +88,8 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
                 new Address(command.City, command.State));
 
             _locationRepositoryMock
-                .Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(newLocation);
+                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(newLocation));
 
             var locationDto = new LocationDto { Id = 1, Title = command.Title };
             _mapperMock
@@ -102,7 +101,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
 
             // Assert
             Assert.IsTrue(result.IsSuccess);
-            _locationRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Once);
+            _locationRepositoryMock.Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result<Domain.Entities.Location>.Success(newLocation));
         }
 
         [Fact]
@@ -129,7 +128,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(locationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(existingLocation);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Failure("Location not found"));
 
             var locationDto = new LocationDto { Id = locationId, Title = command.Title };
             _mapperMock
@@ -142,7 +141,8 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             // Assert
             Assert.IsTrue(result.IsSuccess);
             Assert.IsNotNull(result.Data);
-            _locationRepositoryMock.Verify(x => x.Update(It.IsAny<Domain.Entities.Location>()), Times.Once);
+            _locationRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Once);
+
         }
 
         [Fact]
@@ -158,7 +158,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(locationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Location)null);
+                .ReturnsAsync(Result<Domain.Entities.Location>.Failure("Location not found"));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -166,7 +166,8 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             // Assert
             Assert.IsFalse(result.IsSuccess);
             Assert.IsTrue(result.ErrorMessage.Contains("Location not found"));
-            _locationRepositoryMock.Verify(x => x.Update(It.IsAny<Domain.Entities.Location>()), Times.Never);
+            _locationRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Never);
+
         }
 
         [Fact]
@@ -184,8 +185,9 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             };
 
             _locationRepositoryMock
-                .Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ArgumentOutOfRangeException("latitude", "Latitude must be between -90 and 90"));
+
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -208,9 +210,8 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
                 City = "New York",
                 State = "NY"
             };
-
             _locationRepositoryMock
-                .Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("Database error"));
 
             // Act
