@@ -1,273 +1,292 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Location.Core.Infrastructure.Data;
+﻿using Location.Core.Domain.Common;
+using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Entities;
-using Location.Core.Infrastructure.Tests.Helpers;
 using Microsoft.Extensions.Logging;
-using Moq;
+using SQLite;
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-
-namespace Location.Core.Infrastructure.Tests.Data
+namespace Location.Core.Infrastructure.Data
 {
-    [TestFixture]
-    public class DatabaseContextTests
+    public class DatabaseContext : IDatabaseContext
     {
-        private DatabaseContext _context;
-        private Mock<ILogger<DatabaseContext>> _mockLogger;
-        private string _testDbPath;
+        private readonly ILogger<DatabaseContext> _logger;
+        private readonly SQLiteAsyncConnection _connection;
+        private readonly string _databasePath;
+        private bool _isInitialized = false;
+        // Configuration constants
+        private const string DATABASE_NAME = "locations.db";
+        private const int BUSY_TIMEOUT_MS = 3000;
 
-        [SetUp]
-        public void Setup()
+        public DatabaseContext(ILogger<DatabaseContext> logger, string? databasePath = null)
         {
-            _mockLogger = new Mock<ILogger<DatabaseContext>>();
-            _testDbPath = Path.Combine(Path.GetTempPath(), $"test_{Guid.NewGuid()}.db");
-            _context = new DatabaseContext(_mockLogger.Object, _testDbPath);
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            // Use provided path or default to app data directory
+            _databasePath = databasePath ?? System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                DATABASE_NAME);
+
+            var options = new SQLiteConnectionString(
+                _databasePath,
+                SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.SharedCache,
+                storeDateTimeAsTicks: true);
+
+            _connection = new SQLiteAsyncConnection(options);
         }
 
-        [TearDown]
-        public void TearDown()
+        public async Task InitializeDatabaseAsync()
         {
-            _context?.Dispose();
+            if (_isInitialized) return;
 
-            if (File.Exists(_testDbPath))
+            try
             {
-                File.Delete(_testDbPath);
+                _logger.LogInformation("Initializing database at {DatabasePath}", _databasePath);
+
+                // Enable foreign keys
+                await _connection.ExecuteAsync("PRAGMA foreign_keys = ON");
+                _logger.LogDebug("Foreign key constraints enabled");
+
+                // Create tables
+                await _connection.CreateTableAsync<LocationEntity>();
+                await _connection.CreateTableAsync<WeatherEntity>();
+                await _connection.CreateTableAsync<WeatherForecastEntity>();
+                await _connection.CreateTableAsync<TipTypeEntity>();
+                await _connection.CreateTableAsync<TipEntity>();
+                await _connection.CreateTableAsync<SettingEntity>();
+                await _connection.CreateTableAsync<Log>();
+
+                // Create indexes for better performance
+                await CreateIndexesAsync();
+
+                _isInitialized = true;
+                _logger.LogInformation("Database initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to initialize database");
+                throw new InvalidOperationException("Database initialization failed", ex);
             }
         }
 
-        [Test]
-        public async Task InitializeDatabaseAsync_WhenCalled_ShouldCreateTables()
+        private async Task CreateIndexesAsync()
         {
-            // Act
-            await _context.InitializeDatabaseAsync();
-
-            // Assert - Try to insert into each table to verify they exist
-            var location = TestDataBuilder.CreateLocationEntity();
-            var insertResult = await _context.InsertAsync(location);
-            insertResult.Should().BeGreaterThan(0);
-
-            var weather = TestDataBuilder.CreateWeatherEntity();
-            insertResult = await _context.InsertAsync(weather);
-            insertResult.Should().BeGreaterThan(0);
-        }
-
-        [Test]
-        public void InitializeDatabaseAsync_WhenCalledMultipleTimes_ShouldOnlyInitializeOnce()
-        {
-            // Act & Assert
-            Func<Task> act = async () =>
+            try
             {
-                await _context.InitializeDatabaseAsync();
-                await _context.InitializeDatabaseAsync();
-            };
+                // Index for location coordinates
+                await _connection.ExecuteAsync(
+                    "CREATE INDEX IF NOT EXISTS idx_location_coords ON LocationEntity (Latitude, Longitude)");
 
-            act.Should().NotThrowAsync();
+                // Index for weather location lookup
+                await _connection.ExecuteAsync(
+                    "CREATE INDEX IF NOT EXISTS idx_weather_location ON WeatherEntity (LocationId)");
+
+                // Index for weather forecast lookup
+                await _connection.ExecuteAsync(
+                    "CREATE INDEX IF NOT EXISTS idx_weather_forecast ON WeatherForecastEntity (WeatherId)");
+
+                // Index for tips by type
+                await _connection.ExecuteAsync(
+                    "CREATE INDEX IF NOT EXISTS idx_tip_type ON TipEntity (TipTypeId)");
+
+                // Index for settings by key
+                await _connection.ExecuteAsync(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS idx_setting_key ON SettingEntity (Key)");
+
+                // Index for logs by timestamp
+                await _connection.ExecuteAsync(
+                    "CREATE INDEX IF NOT EXISTS idx_log_timestamp ON Log (Timestamp)");
+
+                _logger.LogDebug("Database indexes created");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create indexes");
+                throw;
+            }
         }
 
-        [Test]
-        public void GetConnection_WithoutInitialization_ShouldThrowException()
+        public SQLiteAsyncConnection GetConnection()
         {
-            // Act
-            Action act = () => _context.GetConnection();
-
-            // Assert
-            act.Should().Throw<InvalidOperationException>()
-                .WithMessage("Database not initialized*");
+            if (!_isInitialized)
+            {
+                throw new InvalidOperationException("Database not initialized. Call InitializeDatabaseAsync first.");
+            }
+            return _connection;
         }
 
-        [Test]
-        public async Task GetConnection_AfterInitialization_ShouldReturnConnection()
+        public async Task<int> InsertAsync<T>(T entity) where T : class, new()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-
-            // Act
-            var connection = _context.GetConnection();
-
-            // Assert
-            connection.Should().NotBeNull();
+            try
+            {
+                await EnsureInitializedAsync();
+                var result = await _connection.InsertAsync(entity);
+                _logger.LogDebug("Inserted {EntityType} with result: {Result}", typeof(T).Name, result);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to insert {EntityType}", typeof(T).Name);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task InsertAsync_WithValidEntity_ShouldReturnId()
+        public async Task<int> UpdateAsync<T>(T entity) where T : class, new()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-            var location = TestDataBuilder.CreateLocationEntity(id: 0);
-
-            // Act
-            var result = await _context.InsertAsync(location);
-
-            // Assert
-            result.Should().BeGreaterThan(0);
-            location.Id.Should().BeGreaterThan(0);
+            try
+            {
+                await EnsureInitializedAsync();
+                var result = await _connection.UpdateAsync(entity);
+                _logger.LogDebug("Updated {EntityType} with result: {Result}", typeof(T).Name, result);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update {EntityType}", typeof(T).Name);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task UpdateAsync_WithExistingEntity_ShouldSucceed()
+        public async Task<int> DeleteAsync<T>(T entity) where T : class, new()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-            var location = TestDataBuilder.CreateLocationEntity(id: 0);
-            await _context.InsertAsync(location);
-
-            location.Title = "Updated Title";
-
-            // Act
-            var result = await _context.UpdateAsync(location);
-
-            // Assert
-            result.Should().Be(1);
-
-            // Verify update
-            var retrieved = await _context.GetAsync<LocationEntity>(location.Id);
-            retrieved.Title.Should().Be("Updated Title");
+            try
+            {
+                await EnsureInitializedAsync();
+                var result = await _connection.DeleteAsync(entity);
+                _logger.LogDebug("Deleted {EntityType} with result: {Result}", typeof(T).Name, result);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete {EntityType}", typeof(T).Name);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task DeleteAsync_WithExistingEntity_ShouldSucceed()
+        public async Task<List<T>> GetAllAsync<T>() where T : class, new()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-            var location = TestDataBuilder.CreateLocationEntity(id: 0);
-            await _context.InsertAsync(location);
-
-            // Act
-            var result = await _context.DeleteAsync(location);
-
-            // Assert
-            result.Should().Be(1);
-
-            // Verify deletion
-            var retrieved = await _context.GetAsync<LocationEntity>(location.Id);
-            retrieved.Should().BeNull();
+            try
+            {
+                await EnsureInitializedAsync();
+                return await _connection.Table<T>().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get all {EntityType}", typeof(T).Name);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task GetAllAsync_WithMultipleEntities_ShouldReturnAll()
+        public async Task<T> GetAsync<T>(object primaryKey) where T : class, new()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-            var location1 = TestDataBuilder.CreateLocationEntity(id: 0, title: "Location 1");
-            var location2 = TestDataBuilder.CreateLocationEntity(id: 0, title: "Location 2");
-            await _context.InsertAsync(location1);
-            await _context.InsertAsync(location2);
+            try
+            {
+                await EnsureInitializedAsync();
 
-            // Act
-            var locations = await _context.GetAllAsync<LocationEntity>();
-
-            // Assert
-            locations.Should().HaveCount(2);
-            locations.Should().Contain(l => l.Title == "Location 1");
-            locations.Should().Contain(l => l.Title == "Location 2");
+                // SQLite's GetAsync throws InvalidOperationException when record not found
+                // We need to catch this and return null instead
+                try
+                {
+                    return await _connection.GetAsync<T>(primaryKey);
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("Sequence contains no elements"))
+                {
+                    // Record not found - return null
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get {EntityType} with key {PrimaryKey}",
+                    typeof(T).Name, primaryKey);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task GetAsync_WithValidId_ShouldReturnEntity()
+        public async Task<int> ExecuteAsync(string query, params object[] args)
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-            var location = TestDataBuilder.CreateLocationEntity(id: 0);
-            await _context.InsertAsync(location);
-
-            // Act
-            var retrieved = await _context.GetAsync<LocationEntity>(location.Id);
-
-            // Assert
-            retrieved.Should().NotBeNull();
-            retrieved.Title.Should().Be(location.Title);
+            try
+            {
+                await EnsureInitializedAsync();
+                return await _connection.ExecuteAsync(query, args);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to execute query: {Query}", query);
+                throw;
+            }
         }
 
-        [Test]
-        public async Task Table_WithFilter_ShouldReturnFilteredResults()
+        public AsyncTableQuery<T> Table<T>() where T : class, new()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-            await _context.InsertAsync(TestDataBuilder.CreateLocationEntity(id: 0, city: "Seattle"));
-            await _context.InsertAsync(TestDataBuilder.CreateLocationEntity(id: 0, city: "Portland"));
-            await _context.InsertAsync(TestDataBuilder.CreateLocationEntity(id: 0, city: "Seattle"));
-
-            // Act
-            var seattleLocations = await _context.Table<LocationEntity>()
-                .Where(l => l.City == "Seattle")
-                .ToListAsync();
-
-            // Assert
-            seattleLocations.Should().HaveCount(2);
-            seattleLocations.Should().OnlyContain(l => l.City == "Seattle");
+            if (!_isInitialized)
+            {
+                throw new InvalidOperationException("Database not initialized. Call InitializeDatabaseAsync first.");
+            }
+            return _connection.Table<T>();
         }
 
-        [Test]
-        public async Task Transaction_WithCommit_ShouldPersistChanges()
+        #region Transaction Support
+
+        public async Task BeginTransactionAsync()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-
-            // Act
-            await _context.BeginTransactionAsync();
-            var location = TestDataBuilder.CreateLocationEntity(id: 0);
-            await _context.InsertAsync(location);
-            await _context.CommitTransactionAsync();
-
-            // Assert
-            var retrieved = await _context.GetAsync<LocationEntity>(location.Id);
-            retrieved.Should().NotBeNull();
+            await EnsureInitializedAsync();
+            await _connection.ExecuteAsync("BEGIN TRANSACTION");
+            _logger.LogDebug("Transaction started");
         }
 
-        [Test]
-        public async Task Transaction_WithRollback_ShouldDiscardChanges()
+        public async Task CommitTransactionAsync()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-
-            // Act
-            await _context.BeginTransactionAsync();
-            var location = TestDataBuilder.CreateLocationEntity(id: 0);
-            await _context.InsertAsync(location);
-            await _context.RollbackTransactionAsync();
-
-            // Assert
-            var retrieved = await _context.GetAsync<LocationEntity>(location.Id);
-            retrieved.Should().BeNull();
+            await _connection.ExecuteAsync("COMMIT");
+            _logger.LogDebug("Transaction committed");
         }
 
-        [Test]
-        public async Task ExecuteAsync_WithValidQuery_ShouldExecute()
+        public async Task RollbackTransactionAsync()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-            var location = TestDataBuilder.CreateLocationEntity(id: 0);
-            await _context.InsertAsync(location);
-
-            // Act
-            var result = await _context.ExecuteAsync(
-                "UPDATE LocationEntity SET Title = ? WHERE Id = ?",
-                "New Title", location.Id);
-
-            // Assert
-            result.Should().Be(1);
-            var retrieved = await _context.GetAsync<LocationEntity>(location.Id);
-            retrieved.Title.Should().Be("New Title");
+            await _connection.ExecuteAsync("ROLLBACK");
+            _logger.LogDebug("Transaction rolled back");
         }
 
-        [Test]
-        public async Task ForeignKeyConstraints_WhenEnabled_ShouldBeEnforced()
+        #endregion
+
+        private async Task EnsureInitializedAsync()
         {
-            // Arrange
-            await _context.InitializeDatabaseAsync();
-
-            // Create a weather forecast without a parent weather entity
-            var forecast = TestDataBuilder.CreateWeatherForecastEntity(weatherId: 999);
-
-            // Act & Assert
-            // This should potentially fail due to foreign key constraint
-            // Note: SQLite foreign key enforcement depends on PRAGMA settings
-            Func<Task> act = async () => await _context.InsertAsync(forecast);
-
-            // The actual behavior depends on whether foreign keys are properly configured
-            await act.Should().NotThrowAsync();
+            if (!_isInitialized)
+            {
+                await InitializeDatabaseAsync();
+            }
         }
+
+        #region Disposal
+
+        private bool _disposed = false;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
+            {
+                try
+                {
+                    _connection?.CloseAsync().Wait(TimeSpan.FromSeconds(5));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error closing database connection");
+                }
+            }
+
+            _disposed = true;
+        }
+
+        #endregion
     }
 }

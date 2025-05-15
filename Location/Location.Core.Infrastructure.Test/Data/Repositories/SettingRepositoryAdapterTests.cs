@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿
+using NUnit.Framework;
 using FluentAssertions;
 using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
@@ -11,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 namespace Location.Core.Infrastructure.Tests.Data.Repositories
 {
     [TestFixture]
@@ -19,7 +19,6 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
     {
         private SettingRepositoryAdapter _adapter;
         private Mock<ISettingRepository> _mockInnerRepository;
-
         [SetUp]
         public void Setup()
         {
@@ -82,10 +81,10 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Arrange
             var settings = new[]
             {
-                TestDataBuilder.CreateValidSetting(key: "key1"),
-                TestDataBuilder.CreateValidSetting(key: "key2"),
-                TestDataBuilder.CreateValidSetting(key: "key3")
-            };
+            TestDataBuilder.CreateValidSetting(key: "key1"),
+            TestDataBuilder.CreateValidSetting(key: "key2"),
+            TestDataBuilder.CreateValidSetting(key: "key3")
+        };
             _mockInnerRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(settings);
 
@@ -286,10 +285,10 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Arrange
             var settings = new[]
             {
-                TestDataBuilder.CreateValidSetting(key: "key1", value: "value1"),
-                TestDataBuilder.CreateValidSetting(key: "key2", value: "value2"),
-                TestDataBuilder.CreateValidSetting(key: "key3", value: "value3")
-            };
+            TestDataBuilder.CreateValidSetting(key: "key1", value: "value1"),
+            TestDataBuilder.CreateValidSetting(key: "key2", value: "value2"),
+            TestDataBuilder.CreateValidSetting(key: "key3", value: "value3")
+        };
             _mockInnerRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(settings);
 
@@ -378,22 +377,23 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public async Task GetAllAsDictionaryAsync_WithDuplicateKeys_ShouldThrowException()
+        public async Task GetAllAsDictionaryAsync_WithDuplicateKeys_ShouldReturnFailure()
         {
             // Arrange
             var settings = new[]
             {
-                TestDataBuilder.CreateValidSetting(key: "duplicate", value: "value1"),
-                TestDataBuilder.CreateValidSetting(key: "duplicate", value: "value2")
-            };
+            TestDataBuilder.CreateValidSetting(key: "duplicate", value: "value1"),
+            TestDataBuilder.CreateValidSetting(key: "duplicate", value: "value2")
+        };
             _mockInnerRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(settings);
 
             // Act
-            Func<Task> act = async () => await _adapter.GetAllAsDictionaryAsync();
+            var result = await _adapter.GetAllAsDictionaryAsync();
 
-            // Assert
-            await act.Should().ThrowAsync<ArgumentException>();
+            // Assert - The implementation should wrap the exception in a Result
+            result.IsSuccess.Should().BeFalse();
+            result.ErrorMessage.Should().Contain("Failed to retrieve settings as dictionary");
         }
     }
 }

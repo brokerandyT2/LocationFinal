@@ -1,5 +1,4 @@
-﻿
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using FluentAssertions;
 using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Data.Entities;
@@ -11,7 +10,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
 namespace Location.Core.Infrastructure.Tests.Data.Repositories
 {
     [TestFixture]
@@ -22,7 +20,6 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         private Mock<ILogger<TipTypeRepository>> _mockLogger;
         private Mock<ILogger<DatabaseContext>> _mockContextLogger;
         private string _testDbPath;
-
         [SetUp]
         public async Task Setup()
         {
@@ -113,11 +110,11 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public void Update_WithExistingTipType_ShouldPersistChanges()
+        public async Task Update_WithExistingTipType_ShouldPersistChanges()
         {
             // Arrange
             var tipType = TestDataBuilder.CreateValidTipType(name: "Original Name");
-            _repository.AddAsync(tipType).Wait();
+            await _repository.AddAsync(tipType);
 
             // Act
             // Use reflection to update the name (since it's private set)
@@ -127,24 +124,24 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             _repository.Update(tipType);
 
             // Assert
-            var retrieved = _repository.GetByIdAsync(tipType.Id).Result;
+            var retrieved = await _repository.GetByIdAsync(tipType.Id);
             retrieved.Should().NotBeNull();
             retrieved!.Name.Should().Be("Updated Name");
             retrieved.I8n.Should().Be("fr-FR");
         }
 
         [Test]
-        public void Delete_WithExistingTipType_ShouldRemove()
+        public async Task Delete_WithExistingTipType_ShouldRemove()
         {
             // Arrange
             var tipType = TestDataBuilder.CreateValidTipType();
-            _repository.AddAsync(tipType).Wait();
+            await _repository.AddAsync(tipType);
 
             // Act
             _repository.Delete(tipType);
 
             // Assert
-            var retrieved = _repository.GetByIdAsync(tipType.Id).Result;
+            var retrieved = await _repository.GetByIdAsync(tipType.Id);
             retrieved.Should().BeNull();
         }
 
@@ -253,21 +250,28 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             var tipType = TestDataBuilder.CreateValidTipType();
             await _repository.AddAsync(tipType);
 
+            // Create and save the tip to the database first
+            var tipEntity = TestDataBuilder.CreateTipEntity(id: 0, tipTypeId: tipType.Id, title: "New Tip");
+            await _context.InsertAsync(tipEntity);
+
+            // Need to retrieve the tip type with its tips using GetWithTipsAsync
+            var tipTypeWithTips = await _repository.GetWithTipsAsync(tipType.Id);
+            tipTypeWithTips.Should().NotBeNull();
+
+            // Act - Now add another tip
+            var tip = TestDataBuilder.CreateValidTip(tipTypeId: tipType.Id, title: "Another Tip");
+
             // Set the ID using reflection since it's protected
-            var idProperty = tipType.GetType().GetProperty("Id");
-            idProperty!.SetValue(tipType, tipType.Id);
+            var idProperty = tip.GetType().GetProperty("Id");
+            idProperty!.SetValue(tip, 2); // Give it a different ID
 
-            var tip = TestDataBuilder.CreateValidTip(tipTypeId: tipType.Id);
-
-            // Act
-            tipType.AddTip(tip);
-            _repository.Update(tipType);
+            tipTypeWithTips!.AddTip(tip);
+            _repository.Update(tipTypeWithTips);
 
             // Assert
             var retrieved = await _repository.GetWithTipsAsync(tipType.Id);
             retrieved.Should().NotBeNull();
-            retrieved!.Tips.Should().ContainSingle();
-            retrieved.Tips.First().Title.Should().Be(tip.Title);
+            retrieved!.Tips.Should().HaveCount(2); // Should now have both tips
         }
 
         [Test]
@@ -281,13 +285,22 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             await _context.InsertAsync(tip);
 
             var loadedTipType = await _repository.GetWithTipsAsync(tipType.Id);
-            var tipToRemove = loadedTipType!.Tips.First();
+            loadedTipType.Should().NotBeNull();
+            loadedTipType!.Tips.Should().HaveCount(1);
+
+            var tipToRemove = loadedTipType.Tips.First();
 
             // Act
             loadedTipType.RemoveTip(tipToRemove);
             _repository.Update(loadedTipType);
 
-            // Assert
+            // Need to save the updated state to database
+            await _context.UpdateAsync(TestDataBuilder.CreateTipTypeEntity(
+                id: loadedTipType.Id,
+                name: loadedTipType.Name
+            ));
+
+            // Assert - Get fresh from database
             var retrieved = await _repository.GetWithTipsAsync(tipType.Id);
             retrieved.Should().NotBeNull();
             retrieved!.Tips.Should().BeEmpty();

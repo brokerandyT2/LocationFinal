@@ -1,5 +1,4 @@
-﻿
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using FluentAssertions;
 using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Data.Entities;
@@ -11,7 +10,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
 namespace Location.Core.Infrastructure.Tests.Data.Repositories
 {
     [TestFixture]
@@ -22,7 +20,6 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         private Mock<ILogger<SettingRepository>> _mockLogger;
         private Mock<ILogger<DatabaseContext>> _mockContextLogger;
         private string _testDbPath;
-
         [SetUp]
         public async Task Setup()
         {
@@ -167,27 +164,28 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public void AddAsync_WithDuplicateKey_ShouldThrowException()
+        public async Task AddAsync_WithDuplicateKey_ShouldThrowException()
         {
             // Arrange
             var setting1 = TestDataBuilder.CreateValidSetting(key: "duplicate_key");
             var setting2 = TestDataBuilder.CreateValidSetting(key: "duplicate_key");
 
             // Act
-            _repository.AddAsync(setting1).Wait();
+            await _repository.AddAsync(setting1);
+
+            // Act & Assert
             Func<Task> act = async () => await _repository.AddAsync(setting2);
 
-            // Assert
-            act.Should().ThrowAsync<InvalidOperationException>()
+            await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("*duplicate_key*already exists*");
         }
 
         [Test]
-        public void Update_WithExistingSetting_ShouldPersistChanges()
+        public async Task Update_WithExistingSetting_ShouldPersistChanges()
         {
             // Arrange
             var setting = TestDataBuilder.CreateValidSetting();
-            _repository.AddAsync(setting).Wait();
+            await _repository.AddAsync(setting);
             var originalTimestamp = setting.Timestamp;
 
             // Act
@@ -195,24 +193,24 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             _repository.Update(setting);
 
             // Assert
-            var retrieved = _repository.GetByIdAsync(setting.Id).Result;
+            var retrieved = await _repository.GetByIdAsync(setting.Id);
             retrieved.Should().NotBeNull();
             retrieved!.Value.Should().Be("updated_value");
             retrieved.Timestamp.Should().BeAfter(originalTimestamp);
         }
 
         [Test]
-        public void Delete_WithExistingSetting_ShouldRemove()
+        public async Task Delete_WithExistingSetting_ShouldRemove()
         {
             // Arrange
             var setting = TestDataBuilder.CreateValidSetting();
-            _repository.AddAsync(setting).Wait();
+            await _repository.AddAsync(setting);
 
             // Act
             _repository.Delete(setting);
 
             // Assert
-            var retrieved = _repository.GetByIdAsync(setting.Id).Result;
+            var retrieved = await _repository.GetByIdAsync(setting.Id);
             retrieved.Should().BeNull();
         }
 
