@@ -1,17 +1,14 @@
-﻿using MediatR;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using MediatR;
+using Microsoft.Extensions.Logging;
 using Location.Core.Application.Common.Interfaces;
 
 namespace Location.Core.Application.Common.Behaviors
 {
-    /// <summary>
-    /// Pipeline behavior for logging request/response information
-    /// </summary>
     public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>
     {
@@ -59,7 +56,6 @@ namespace Location.Core.Application.Common.Behaviors
                         requestJson);
                 }
 
-                // Check if response is IResult to log success/failure
                 if (response is IResult result && !result.IsSuccess)
                 {
                     _logger.LogWarning(

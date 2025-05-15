@@ -8,10 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Locations\Queries\GetLocations\" />
-    <Folder Include="Tips\Commands\" />
-    <Folder Include="Tips\DTOs\" />
-    <Folder Include="Tips\Queries\" />
-    <Folder Include="Weather\Commands\UpdateWeather\" />
     <Folder Include="Weather\Queries\GetWeatherByLocation\" />
   </ItemGroup>
 
