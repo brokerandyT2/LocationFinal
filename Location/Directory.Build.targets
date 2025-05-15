@@ -1,0 +1,5 @@
+<Project>
+  <Target Name="GenerateCoverageReport" AfterTargets="RunTests">
+    <Exec Command="reportgenerator -reports:&quot;$(MSBuildProjectDirectory)/TestResults/**/coverage.cobertura.xml&quot; -targetdir:&quot;$(MSBuildProjectDirectory)/coverage-report&quot; -reporttypes:Html" />
+  </Target>
+</Project>

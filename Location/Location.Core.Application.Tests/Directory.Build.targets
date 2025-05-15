@@ -1,0 +1,15 @@
+<Project>
+
+  <!-- Inject runsettings file argument to VSTest -->
+  <Target Name="SetRunSettings" BeforeTargets="VSTest">
+    <PropertyGroup>
+      <VSTestAdditionalArgs>--settings &quot;$(RunSettingsFile)&quot;</VSTestAdditionalArgs>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Generate per-project HTML report -->
+  <Target Name="GenerateCoverageReport" AfterTargets="VSTest">
+    <Exec Command="reportgenerator -reports:&quot;$(MSBuildProjectDirectory)\TestResults\**\coverage.cobertura.xml&quot; -targetdir:&quot;$(MSBuildProjectDirectory)\coverage-report&quot; -reporttypes:Html" />
+  </Target>
+
+</Project>

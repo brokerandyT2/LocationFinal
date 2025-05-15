@@ -1,0 +1,15 @@
+<Project>
+
+  <!-- Ensure this runsettings file is used for this project -->
+  <Target Name="SetRunSettings" BeforeTargets="VSTest">
+    <PropertyGroup>
+      <RunSettingsFile>$(MSBuildProjectDirectory)\coverlet.runsettings</RunSettingsFile>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Generate per-project HTML report -->
+  <Target Name="GenerateCoverageReport" AfterTargets="VSTest">
+    <Exec Command="reportgenerator -reports:&quot;$(MSBuildProjectDirectory)\TestResults\**\coverage.cobertura.xml&quot; -targetdir:&quot;$(MSBuildProjectDirectory)\coverage-report&quot; -reporttypes:Html" />
+  </Target>
+
+</Project>
