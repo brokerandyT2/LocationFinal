@@ -18,4 +18,5 @@ namespace Location.Core.Converters
             throw new NotImplementedException();
         }
     }
+
 }

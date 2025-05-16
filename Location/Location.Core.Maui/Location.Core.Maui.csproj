@@ -58,6 +58,8 @@
     <PackageReference Include="epj.Expander.Maui" Version="1.0.3" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.70" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
+    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
   </ItemGroup>
 
   <ItemGroup>

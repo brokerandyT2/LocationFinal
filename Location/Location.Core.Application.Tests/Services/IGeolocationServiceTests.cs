@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Location.Core.Application.Services;
 using Location.Core.Application.Common.Models;
+using GeolocationAccuracy = Location.Core.Application.Services.GeolocationAccuracy;
 
 namespace Location.Core.Application.Tests.Services
 {

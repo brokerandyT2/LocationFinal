@@ -1,0 +1,432 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddEmail" xml:space="preserve">
+    <value>Providing your email address will allow us to backup your data to the cloud.  This is needed so that if you change devices, we can restore your data.  In addition, your email address is used to help encrypt your database.</value>
+  </data>
+  <data name="AddLocationTutorial" xml:space="preserve">
+    <value>Add Location Tutorial</value>
+  </data>
+  <data name="AddPhoto" xml:space="preserve">
+    <value>Add Photo</value>
+  </data>
+  <data name="aperture" xml:space="preserve">
+    <value>Aperture:</value>
+  </data>
+  <data name="aperturenocolon" xml:space="preserve">
+    <value>Aperture</value>
+  </data>
+  <data name="AstronomicalDawn" xml:space="preserve">
+    <value>Astronomical Dawn</value>
+  </data>
+  <data name="AstronomicalDusk" xml:space="preserve">
+    <value>Astronomical Dusk</value>
+  </data>
+  <data name="baseexposure" xml:space="preserve">
+    <value>Base Exposure:</value>
+  </data>
+  <data name="BlankEmail" xml:space="preserve">
+    <value>By not entering your email address, your data will not be backed up to the cloud.</value>
+  </data>
+  <data name="Blue" xml:space="preserve">
+    <value>Blue</value>
+  </data>
+  <data name="calculate" xml:space="preserve">
+    <value>Calculate: </value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="choosedate" xml:space="preserve">
+    <value>Choose Date:</value>
+  </data>
+  <data name="chooseyourlocation" xml:space="preserve">
+    <value>Choose Location:</value>
+  </data>
+  <data name="CloseLocationDetails" xml:space="preserve">
+    <value>Close Location Details</value>
+  </data>
+  <data name="Contrast" xml:space="preserve">
+    <value>Contrast</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date:</value>
+  </data>
+  <data name="datenocolon" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description:</value>
+  </data>
+  <data name="Detail" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Direction" xml:space="preserve">
+    <value>Direction</value>
+  </data>
+  <data name="EndMonitoring" xml:space="preserve">
+    <value>Stop Monitoring</value>
+  </data>
+  <data name="equivalentexposure" xml:space="preserve">
+    <value>Equivalent Exposure: </value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="EvaluateScene" xml:space="preserve">
+    <value>Evaluate Scene</value>
+  </data>
+  <data name="ExposureCalculatorTutorial" xml:space="preserve">
+    <value>Exposure Calculator Tutorial</value>
+  </data>
+  <data name="exposureincrements" xml:space="preserve">
+    <value>Exposure Increments: </value>
+  </data>
+  <data name="ExposurePaid" xml:space="preserve">
+    <value>Exposure Calculator is a paid feature.  You may upgrade your {0} plan to the paid tier of {1}.  Or you may watch an adverstisement.</value>
+  </data>
+  <data name="fixvalue" xml:space="preserve">
+    <value>Fixed Value:</value>
+  </data>
+  <data name="Forecast" xml:space="preserve">
+    <value>Forecast:</value>
+  </data>
+  <data name="fStop" xml:space="preserve">
+    <value>f: </value>
+  </data>
+  <data name="fstopnocolon" xml:space="preserve">
+    <value>f Stop</value>
+  </data>
+  <data name="full" xml:space="preserve">
+    <value>1/1</value>
+  </data>
+  <data name="goldenhourevening" xml:space="preserve">
+    <value>Evening Golden Hour Start:</value>
+  </data>
+  <data name="goldenhourmorning" xml:space="preserve">
+    <value>Morning Golden Hour End:</value>
+  </data>
+  <data name="Green" xml:space="preserve">
+    <value>Green</value>
+  </data>
+  <data name="Gusts" xml:space="preserve">
+    <value>Gusts</value>
+  </data>
+  <data name="half" xml:space="preserve">
+    <value>1/2</value>
+  </data>
+  <data name="High" xml:space="preserve">
+    <value>High:</value>
+  </data>
+  <data name="Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="iso" xml:space="preserve">
+    <value>ISO: </value>
+  </data>
+  <data name="isonocolon" xml:space="preserve">
+    <value>ISO</value>
+  </data>
+  <data name="Latitude" xml:space="preserve">
+    <value>Latitude:</value>
+  </data>
+  <data name="LightMeterTutorial" xml:space="preserve">
+    <value>Light Meter Tutorial</value>
+  </data>
+  <data name="ListLocationsTutorial" xml:space="preserve">
+    <value>List Locations Tutorial</value>
+  </data>
+  <data name="LoginFailed" xml:space="preserve">
+    <value>Login failed. Please try again.</value>
+  </data>
+  <data name="Longitude" xml:space="preserve">
+    <value>Longitude:</value>
+  </data>
+  <data name="Low" xml:space="preserve">
+    <value>Low:</value>
+  </data>
+  <data name="MeasuringStopped" xml:space="preserve">
+    <value>Light Meter Stopped</value>
+  </data>
+  <data name="NorthernHemisphere" xml:space="preserve">
+    <value>Northern Hemisphere</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="overunderexpose" xml:space="preserve">
+    <value>Over or Under Expose:</value>
+  </data>
+  <data name="PleaseWait" xml:space="preserve">
+    <value>This process will take some time.</value>
+  </data>
+  <data name="pleasewaitlong" xml:space="preserve">
+    <value>This process will take some time.  Depending on your device, it could take several minutes.</value>
+  </data>
+  <data name="ProvideEmail" xml:space="preserve">
+    <value>Providing your email address will allow us to restore your data should you change devices.</value>
+  </data>
+  <data name="Red" xml:space="preserve">
+    <value>Red</value>
+  </data>
+  <data name="results" xml:space="preserve">
+    <value>Results:</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="SceneEvaluationTutorial" xml:space="preserve">
+    <value>Scene Evaluation Tutorial</value>
+  </data>
+  <data name="selectonetiptype" xml:space="preserve">
+    <value>Please Select a Photo Tip Type: </value>
+  </data>
+  <data name="SendToExposureCalculator" xml:space="preserve">
+    <value>Send To Exposure Calculator</value>
+  </data>
+  <data name="SettingsTutorial" xml:space="preserve">
+    <value>Settings Tutorial</value>
+  </data>
+  <data name="shutter" xml:space="preserve">
+    <value>Shutter</value>
+  </data>
+  <data name="shutterspeed" xml:space="preserve">
+    <value>Shutter Speed: </value>
+  </data>
+  <data name="shutterspeednocolon" xml:space="preserve">
+    <value>Shutter Speed</value>
+  </data>
+  <data name="solarnoon" xml:space="preserve">
+    <value>Solar Noon:</value>
+  </data>
+  <data name="SouthernHemisphere" xml:space="preserve">
+    <value>Southern Hemisphere</value>
+  </data>
+  <data name="StartMonitoring" xml:space="preserve">
+    <value>Start Monitoring</value>
+  </data>
+  <data name="SubscriptionExpiration" xml:space="preserve">
+    <value>Subscription Expiration:</value>
+  </data>
+  <data name="SubscriptionType" xml:space="preserve">
+    <value>Type of Subscription:</value>
+  </data>
+  <data name="SunCalculations" xml:space="preserve">
+    <value>Sun Events</value>
+  </data>
+  <data name="SunCalculationsTutorial" xml:space="preserve">
+    <value>Sun Calculations Tutorial</value>
+  </data>
+  <data name="SunLocationTutorial" xml:space="preserve">
+    <value>Sun Location Tutorial</value>
+  </data>
+  <data name="Sunrise" xml:space="preserve">
+    <value>Sun Rise: </value>
+  </data>
+  <data name="Sunset" xml:space="preserve">
+    <value>Sun Set:</value>
+  </data>
+  <data name="Switch" xml:space="preserve">
+    <value>Switch</value>
+  </data>
+  <data name="SwitchClockType" xml:space="preserve">
+    <value>Switch Clock Format</value>
+  </data>
+  <data name="SwitchDateFormat" xml:space="preserve">
+    <value>Swich Date Format</value>
+  </data>
+  <data name="SwitchHemisphere" xml:space="preserve">
+    <value>Switch Hemisphere</value>
+  </data>
+  <data name="TakeReading" xml:space="preserve">
+    <value>Take Reading</value>
+  </data>
+  <data name="TemperatureFormat" xml:space="preserve">
+    <value>Temperature Scale</value>
+  </data>
+  <data name="Test" xml:space="preserve">
+    <value>Test</value>
+  </data>
+  <data name="Testt" xml:space="preserve">
+    <value>testt</value>
+  </data>
+  <data name="thirds" xml:space="preserve">
+    <value>1/3</value>
+  </data>
+  <data name="TipsTutorial" xml:space="preserve">
+    <value>Tips Tutorial</value>
+  </data>
+  <data name="TipViewed" xml:space="preserve">
+    <value>Tips Viewed</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Title:</value>
+  </data>
+  <data name="TowardsWind" xml:space="preserve">
+    <value>Towards Wind</value>
+  </data>
+  <data name="TwelveHourClocks" xml:space="preserve">
+    <value>12 Hour Clocks</value>
+  </data>
+  <data name="TwentyFourHourClocks" xml:space="preserve">
+    <value>24 Hour Clocks</value>
+  </data>
+  <data name="ViewAll" xml:space="preserve">
+    <value>View All Graphs</value>
+  </data>
+  <data name="VolumeUpDown" xml:space="preserve">
+    <value>NOTE: Ambient Light is deteremend from your "selfie camera" location.  When facing the sensor away from you, you may use your Volume Butons to "stop" the light meter.  Subsequently you may use them to "start" the light meter.</value>
+  </data>
+  <data name="Weather" xml:space="preserve">
+    <value>Weather</value>
+  </data>
+  <data name="WeatherDisplayTutorial" xml:space="preserve">
+    <value>Weather Display Tutorial</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Welcome to PixMap.  Please take this opportunity to configure your application.  You may return to this screen using the 'gear' icon in the top right corner of your screen.</value>
+  </data>
+  <data name="Wind" xml:space="preserve">
+    <value>Wind Direction</value>
+  </data>
+  <data name="WindDirection" xml:space="preserve">
+    <value>Wind Direction</value>
+  </data>
+  <data name="WindSpeed" xml:space="preserve">
+    <value>Wind Speed</value>
+  </data>
+  <data name="WithWind" xml:space="preserve">
+    <value>With Wind</value>
+  </data>
+  <data name="AccessIsFreeByWatchingAds" xml:space="preserve">
+    <value>Free Access by Watching Ads</value>
+  </data>
+  <data name="ErrorUpdatingSetting" xml:space="preserve">
+    <value>There was an error saving your preference.  Please try again.</value>
+  </data>
+  <data name="SubscriptionRequired" xml:space="preserve">
+    <value>Subscription is Required for this Feature</value>
+  </data>
+  <data name="WatchAdForAccess" xml:space="preserve">
+    <value>Would you like to watch a short Advertisement to gain {0} hours of access to this feature?</value>
+  </data>
+</root>
