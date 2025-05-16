@@ -9,6 +9,7 @@
     <ProjectReference Include="..\Location.Core.Application\Location.Core.Application.csproj" />
     <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
     <ProjectReference Include="..\Location.Core.Infrastructure\Location.Core.Infrastructure.csproj" />
+    <ProjectReference Include="..\Location.Photography.Domain\Location.Photography.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

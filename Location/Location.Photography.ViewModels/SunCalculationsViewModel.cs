@@ -1,25 +1,22 @@
-﻿// Location.Photography.Shared.ViewModels/SunCalculationsViewModel.cs
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿// Location.Photography.Shared.ViewModels.SunCalculations.cs
 using CommunityToolkit.Mvvm.Input;
-using Innovative.SolarCalculator;
-
+using Location.Core.Domain.Entities;
 using Location.Core.ViewModels;
-using System;
-using System.Collections.Generic;
+using Location.Photography.Domain.Services;
+using Location.Photography.ViewModels.Interfaces;
+using Location.Photography.ViewModels;
+
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows.Input;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using OperationErrorEventArgs = Location.Photography.ViewModels.OperationErrorEventArgs;
 
-namespace Location.Photography.ViewModels
+namespace Location.Photography.Shared.ViewModels
 {
-    public partial class SunCalculationsViewModel : ViewModelBase, ISunCalculations
+    public partial class SunCalculations : ViewModelBase, ISunCalculations
     {
-        private readonly ISunCalculator _sunCalculatorService;
-
         #region Fields
+        private readonly ISunCalculatorService _sunCalculatorService;
         private List<LocationViewModel> _locations = new List<LocationViewModel>();
         private LocationViewModel _selectedLocation;
         private double _latitude;
@@ -325,7 +322,7 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region Constructor
-        public SunCalculations(ISunCalculator sunCalculatorService)
+        public SunCalculations(ISunCalculatorService sunCalculatorService)
         {
             _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
 
@@ -347,18 +344,16 @@ namespace Location.Photography.ViewModels
                     return; // Do not calculate for default coordinates
                 }
 
-                TimeZoneInfo localTimeZone = TimeZoneInfo.FindSystemTimeZoneById(TimeZoneInfo.Local.Id);
-                SolarTimes solarTimes = new SolarTimes(Date, Latitude, Longitude);
-
-                Sunrise = TimeZoneInfo.ConvertTimeFromUtc(solarTimes.Sunrise.ToUniversalTime(), localTimeZone);
-                Sunset = TimeZoneInfo.ConvertTimeFromUtc(solarTimes.Sunset.ToUniversalTime(), localTimeZone);
-                SolarNoon = TimeZoneInfo.ConvertTimeFromUtc(solarTimes.SolarNoon.ToUniversalTime(), localTimeZone);
-                AstronomicalDawn = TimeZoneInfo.ConvertTimeFromUtc(solarTimes.DawnAstronomical.ToUniversalTime(), localTimeZone);
-                NauticalDawn = TimeZoneInfo.ConvertTimeFromUtc(solarTimes.DawnNautical.ToUniversalTime(), localTimeZone);
-                NauticalDusk = TimeZoneInfo.ConvertTimeFromUtc(solarTimes.DuskNautical.ToUniversalTime(), localTimeZone);
-                AstronomicalDusk = TimeZoneInfo.ConvertTimeFromUtc(solarTimes.DuskAstronomical.ToUniversalTime(), localTimeZone);
-                Civildawn = TimeZoneInfo.ConvertTimeFromUtc(solarTimes.DawnCivil.ToUniversalTime(), localTimeZone);
-                Civildusk = TimeZoneInfo.ConvertTimeFromUtc(solarTimes.DuskCivil.ToUniversalTime(), localTimeZone);
+                // Calculate sun times using our custom service
+                Sunrise = _sunCalculatorService.GetSunrise(Date, Latitude, Longitude);
+                Sunset = _sunCalculatorService.GetSunset(Date, Latitude, Longitude);
+                SolarNoon = _sunCalculatorService.GetSolarNoon(Date, Latitude, Longitude);
+                AstronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(Date, Latitude, Longitude);
+                AstronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(Date, Latitude, Longitude);
+                NauticalDawn = _sunCalculatorService.GetNauticalDawn(Date, Latitude, Longitude);
+                NauticalDusk = _sunCalculatorService.GetNauticalDusk(Date, Latitude, Longitude);
+                Civildawn = _sunCalculatorService.GetCivilDawn(Date, Latitude, Longitude);
+                Civildusk = _sunCalculatorService.GetCivilDusk(Date, Latitude, Longitude);
             }
             catch (Exception ex)
             {
@@ -389,7 +384,7 @@ namespace Location.Photography.ViewModels
             {
                 ErrorMessage = $"Error loading locations: {ex.Message}";
                 OnErrorOccurred(new OperationErrorEventArgs(
-                    Locations.Core.Shared.ViewModels.OperationErrorSource.Unknown,
+                    Location.Core.ViewModels.OperationErrorSource.Unknown,
                     ErrorMessage,
                     ex));
             }

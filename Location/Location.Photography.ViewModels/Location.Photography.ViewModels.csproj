@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Location.Core.ViewModels\Location.Core.ViewModels.csproj" />
+    <ProjectReference Include="..\Location.Photography.Domain\Location.Photography.Domain.csproj" />
   </ItemGroup>
 
 </Project>
