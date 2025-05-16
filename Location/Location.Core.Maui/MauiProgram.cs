@@ -30,12 +30,18 @@ namespace Location.Core.Maui
             builder.Services.AddInfrastructure();
 
             // Register MAUI services
-            builder.Services.AddSingleton<IAlertService, AlertService>();
+
             builder.Services.AddSingleton<IGeolocationService, GeolocationService>();
             builder.Services.AddSingleton<IMediaService, MediaService>();
 
             builder.Services.AddTransient<INotificationHandler<AlertEvent>, AlertEventHandler>();
+            builder.Services.AddTransient<LocationViewModel>();
+            builder.Services.AddTransient<WeatherViewModel>();
 
+            // Register Pages
+            builder.Services.AddTransient<Views.AddLocation>();
+            builder.Services.AddTransient<Views.EditLocation>();
+            builder.Services.AddTransient<Views.WeatherDisplay>();
             // Register ViewModels 
             builder.Services.AddTransient<LocationViewModel>();
 

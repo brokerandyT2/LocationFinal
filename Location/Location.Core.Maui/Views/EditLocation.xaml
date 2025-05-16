@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Location.Core.Maui.Views.EditLocation"
+             xmlns:models="clr-namespace:Location.Core.ViewModels;assembly=Location.Core.ViewModels"
+             xmlns:strings="clr-namespace:Location.Core.Maui.Resources"
+             xmlns:system="clr-namespace:System;assembly=netstandard"
+             Title="Edit Location"
+             x:DataType="models:LocationViewModel">
+
+    <Grid>
+        <ScrollView>
+            <Grid Padding="10" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Image Source="{Binding Photo}" 
+                       Grid.Column="0" 
+                       Grid.ColumnSpan="4" 
+                       HeightRequest="150" 
+                       Grid.Row="0"
+                       Aspect="AspectFill"
+                       Margin="5"/>
+
+                <ImageButton Pressed="ImageButton_Pressed" 
+                             Source="closeoutlinecustom.png" 
+                             Grid.Row="0" 
+                             Grid.Column="3" 
+                             Padding="5" 
+                             CornerRadius="10"
+                             MinimumHeightRequest="50"
+                             Margin="5"/>
+
+                <Label Text="{x:Static system:Environment.NewLine}" 
+                       Grid.Column="1" 
+                       Grid.ColumnSpan="4" 
+                       Grid.Row="1"
+                       FontSize="14"
+                       Margin="5"/>
+
+                <Button Text="{x:Static strings:AppResources.Weather}" 
+                        Grid.Row="2" 
+                        Grid.Column="1" 
+                        x:Name="WeatherButton" 
+                        Pressed="WeatherButton_Pressed"
+                        Padding="5"
+                        CornerRadius="10"
+                        MinimumHeightRequest="50"
+                        FontSize="14"
+                        Margin="5"/>
+
+                <Button Text="{x:Static strings:AppResources.SunCalculations}" 
+                        Grid.Row="2" 
+                        Grid.Column="2" 
+                        x:Name="SunEvents" 
+                        Pressed="SunEvents_Pressed"
+                        Padding="5"
+                        CornerRadius="10"
+                        MinimumHeightRequest="50"
+                        FontSize="14"
+                        Margin="5"/>
+
+                <Label Text="{x:Static system:Environment.NewLine}" 
+                       Grid.Column="0" 
+                       Grid.ColumnSpan="4" 
+                       Grid.Row="3"
+                       FontSize="14"
+                       Margin="5"/>
+
+                <Label Text="{x:Static strings:AppResources.Title}" 
+                       FontSize="14" 
+                       Grid.Row="3" 
+                       Grid.ColumnSpan="4" 
+                       HorizontalOptions="Start"
+                       Margin="5"/>
+
+                <Entry IsPassword="False" 
+                       IsSpellCheckEnabled="True" 
+                       IsTextPredictionEnabled="True" 
+                       Text="{Binding Title}" 
+                       Grid.Row="4" 
+                       Grid.Column="0" 
+                       Grid.ColumnSpan="4"
+                       FontSize="14"
+                       Margin="5"/>
+
+                <Label Grid.Row="5" 
+                       Grid.Column="0" 
+                       Text="{x:Static strings:AppResources.Latitude}" 
+                       FontSize="14" 
+                       x:Name="Latitude" 
+                       HorizontalOptions="Start"
+                       Margin="5"/>
+
+                <Label Grid.Row="5" 
+                       Grid.Column="2" 
+                       Text="{x:Static strings:AppResources.Longitude}" 
+                       FontSize="14" 
+                       x:Name="Longitude" 
+                       HorizontalOptions="Start"
+                       Margin="5"/>
+
+                <Label Grid.Row="6" 
+                       Grid.Column="0" 
+                       Text="{Binding Latitude}" 
+                       FontSize="14" 
+                       HorizontalOptions="Start"
+                       Margin="5"/>
+
+                <Label Grid.Row="6" 
+                       Grid.Column="2" 
+                       Text="{Binding Longitude}" 
+                       FontSize="14" 
+                       HorizontalOptions="Start"
+                       Margin="5"/>
+
+                <Label Text="{x:Static system:Environment.NewLine}" 
+                       Grid.Column="0" 
+                       Grid.ColumnSpan="4" 
+                       Grid.Row="7"
+                       FontSize="14"
+                       Margin="5"/>
+
+                <Label Text="{x:Static strings:AppResources.Description}" 
+                       FontSize="14" 
+                       Grid.Row="8" 
+                       Grid.ColumnSpan="4" 
+                       HorizontalOptions="Start"
+                       Margin="5"/>
+
+                <Editor Text="{Binding Description}" 
+                        Grid.Row="9" 
+                        Grid.Column="0" 
+                        Grid.ColumnSpan="4"
+                        HeightRequest="150"
+                        FontSize="14"
+                        Margin="5"
+                        AutoSize="TextChanges"
+                        VerticalTextAlignment="Start"/>
+
+                <Button x:Name="Save" 
+                        Text="Save" 
+                        HeightRequest="50" 
+                        Grid.Column="0" 
+                        Grid.Row="10" 
+                        Command="{Binding SaveCommand}"
+                        Grid.ColumnSpan="4"
+                        Padding="5"
+                        CornerRadius="10"
+                        MinimumHeightRequest="50"
+                        FontSize="14"
+                        Margin="5"/>
+
+                <Button x:Name="CloseModal" 
+                        Text="{x:Static strings:AppResources.CloseLocationDetails}" 
+                        Pressed="CloseModal_Pressed"
+                        Grid.Row="10" 
+                        Grid.ColumnSpan="2"
+                        Padding="5"
+                        CornerRadius="10"
+                        MinimumHeightRequest="50"
+                        FontSize="14" 
+                        IsVisible="False"
+                        Margin="5"/>
+            </Grid>
+        </ScrollView>
+
+        <!-- Busy indicator overlay -->
+        <Grid IsVisible="{Binding IsBusy}" 
+              BackgroundColor="{StaticResource TransparentOverlayBrush}">
+            <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- Error message -->
+        <Grid IsVisible="{Binding IsError}" 
+              BackgroundColor="{StaticResource TransparentErrorBrush}"
+              VerticalOptions="End">
+            <Label Text="{Binding ErrorMessage}" 
+                   TextColor="{StaticResource ErrorRed}"
+                   Margin="20"
+                   FontSize="14"/>
+        </Grid>
+    </Grid>
+</ContentPage>

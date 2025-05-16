@@ -5,7 +5,7 @@ using Location.Core.Application.Events;
 using System;
 using System.Threading.Tasks;
 using Location.Core.Application.Common.Interfaces;
-using IEventBus = Location.Core.Application.Services.IEventBus;
+
 
 namespace Location.Core.ViewModels
 {
@@ -17,6 +17,9 @@ namespace Location.Core.ViewModels
         private bool _isBusy;
         private bool _isError;
         private string _errorMessage = string.Empty;
+
+        // Add the ErrorOccurred event to BaseViewModel
+        public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
 
         public bool IsBusy
         {
@@ -33,6 +36,9 @@ namespace Location.Core.ViewModels
                 {
                     // When IsError is set to true, publish the error
                     PublishErrorAsync(ErrorMessage).ConfigureAwait(false);
+
+                    // Also trigger the ErrorOccurred event
+                    OnErrorOccurred(ErrorMessage);
                 }
             }
         }
@@ -64,10 +70,27 @@ namespace Location.Core.ViewModels
             }
         }
 
+        // Add the OnErrorOccurred method to BaseViewModel
+        protected virtual void OnErrorOccurred(string message)
+        {
+            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(message));
+        }
+
         public virtual void Dispose()
         {
             // Base implementation is empty, derived classes can override
             GC.SuppressFinalize(this);
+        }
+    }
+
+    // Move the OperationErrorEventArgs class to BaseViewModel file
+    public class OperationErrorEventArgs : EventArgs
+    {
+        public string Message { get; }
+
+        public OperationErrorEventArgs(string message)
+        {
+            Message = message;
         }
     }
 }

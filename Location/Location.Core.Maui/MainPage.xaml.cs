@@ -1,24 +1,17 @@
 ﻿namespace Location.Core.Maui
 {
-    public partial class MainPage : ContentPage
+    public partial class MainPage : TabbedPage
     {
         int count = 0;
 
         public MainPage()
         {
             InitializeComponent();
+            this.Children.Add(new Views.AddLocation());
+            this.Children.Add(new Views.LocationsPage());
+            this.Children.Add(new Views.TipsPage());
         }
 
-        private void OnCounterClicked(object? sender, EventArgs e)
-        {
-            count++;
-
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
-        }
+       
     }
 }

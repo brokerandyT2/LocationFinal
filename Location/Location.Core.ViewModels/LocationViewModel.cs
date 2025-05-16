@@ -304,14 +304,5 @@ namespace Location.Core.ViewModels
         }
     }
 
-    // Event args for error notifications
-    public class OperationErrorEventArgs : EventArgs
-    {
-        public string Message { get; }
 
-        public OperationErrorEventArgs(string message)
-        {
-            Message = message;
-        }
-    }
 }

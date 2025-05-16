@@ -21,17 +21,17 @@ namespace Location.Core.Maui.Services
             switch (notification.Type)
             {
                 case AlertType.Success:
-                    await _alertService.DisplayAlert(notification.Title, notification.Message, "OK");
+                    await _alertService.ShowSuccessAlertAsync(notification.Message, notification.Title);
                     break;
                 case AlertType.Warning:
-                    await _alertService.DisplayAlert("Warning: " + notification.Title, notification.Message, "OK");
+                    await _alertService.ShowWarningAlertAsync(notification.Message, notification.Title);
                     break;
                 case AlertType.Error:
-                    await _alertService.DisplayAlert("Error: " + notification.Title, notification.Message, "OK");
+                    await _alertService.ShowErrorAlertAsync(notification.Message, notification.Title);
                     break;
                 case AlertType.Info:
                 default:
-                    await _alertService.DisplayAlert(notification.Title, notification.Message, "OK");
+                    await _alertService.ShowInfoAlertAsync(notification.Message, notification.Title);
                     break;
             }
         }
