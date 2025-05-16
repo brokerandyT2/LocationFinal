@@ -34,8 +34,60 @@ namespace Location.Core.ViewModels
         [RelayCommand]
         private async Task LoadLocationsAsync(CancellationToken cancellationToken = default)
         {
-            // Implementation remains the same - keep your existing implementation
-            // Just add the error event trigger when errors occur
+            try
+            {
+                IsBusy = true;
+                IsError = false;
+                ErrorMessage = string.Empty;
+
+                // Create query for active locations (not deleted)
+                var query = new GetLocationsQuery
+                {
+                    PageNumber = 1,
+                    PageSize = 100,
+                    IncludeDeleted = false
+                };
+
+                // Send the query through MediatR
+                var result = await _mediator.Send(query, cancellationToken);
+
+                if (result.IsSuccess && result.Data != null)
+                {
+                    // Clear current collection and add new items
+                    Locations.Clear();
+
+                    foreach (var locationDto in result.Data.Items)
+                    {
+                        Locations.Add(new LocationListItemViewModel
+                        {
+                            Id = locationDto.Id,
+                            Title = locationDto.Title,
+                            Latitude = locationDto.Latitude,
+                            Longitude = locationDto.Longitude,
+                            Photo = locationDto.PhotoPath,
+                            IsDeleted = locationDto.IsDeleted
+                        });
+                    }
+                }
+                else
+                {
+                    // Handle error
+                    ErrorMessage = result.ErrorMessage ?? "Failed to load locations";
+                    IsError = true;
+                    OnErrorOccurred(ErrorMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle unexpected errors
+                ErrorMessage = $"Error loading locations: {ex.Message}";
+                IsError = true;
+                OnErrorOccurred(ErrorMessage);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         // Add this method to raise the event
