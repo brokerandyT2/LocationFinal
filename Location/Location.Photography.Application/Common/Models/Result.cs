@@ -1,76 +1,88 @@
-﻿using System;
+﻿// Location.Photography.Application/Common/Models/Result.cs
+using System;
 
 namespace Location.Photography.Application.Common.Models
 {
-    /// <summary>
-    /// Represents the result of an operation with error handling
-    /// </summary>
     public class Result<T>
     {
-        private Result(bool isSuccess, T data, string message, Exception exception = null)
+        public bool IsSuccess { get; private set; }
+        public T Data { get; private set; }
+        public string ErrorMessage { get; private set; }
+        public Exception Exception { get; private set; }
+
+        private Result(bool isSuccess, T data, string errorMessage, Exception exception = null)
         {
             IsSuccess = isSuccess;
             Data = data;
-            Message = message;
+            ErrorMessage = errorMessage;
             Exception = exception;
         }
 
-        /// <summary>
-        /// Whether the operation was successful
-        /// </summary>
-        public bool IsSuccess { get; }
-
-        /// <summary>
-        /// The data returned by the operation (if successful)
-        /// </summary>
-        public T Data { get; }
-
-        /// <summary>
-        /// Descriptive message (error message if operation failed)
-        /// </summary>
-        public string Message { get; }
-
-        /// <summary>
-        /// Exception that caused the failure (if applicable)
-        /// </summary>
-        public Exception Exception { get; }
-
-        /// <summary>
-        /// Creates a successful result with data
-        /// </summary>
-        public static Result<T> Success(T data, string message = null)
+        public static Result<T> Success(T data)
         {
-            return new Result<T>(true, data, message ?? "Operation completed successfully");
+            return new Result<T>(true, data, string.Empty, null);
         }
 
-        /// <summary>
-        /// Creates a failure result with error details
-        /// </summary>
-        public static Result<T> Failure(string message, Exception exception = null)
+        public static Result<T> Failure(string errorMessage)
         {
-            return new Result<T>(false, default, message, exception);
+            return new Result<T>(false, default, errorMessage, null);
+        }
+
+        public static Result<T> Failure(string errorMessage, Exception exception)
+        {
+            return new Result<T>(false, default, errorMessage, exception);
+        }
+
+        public static implicit operator Result(Result<T> result)
+        {
+            return result.IsSuccess
+                ? Result.Success()
+                : Result.Failure(result.ErrorMessage, result.Exception);
+        }
+
+        public Result<TDestination> MapTo<TDestination>(Func<T, TDestination> mapper)
+        {
+            if (!IsSuccess)
+                return Result<TDestination>.Failure(ErrorMessage, Exception);
+
+            try
+            {
+                var destination = mapper(Data);
+                return Result<TDestination>.Success(destination);
+            }
+            catch (Exception ex)
+            {
+                return Result<TDestination>.Failure($"Error mapping data: {ex.Message}", ex);
+            }
         }
     }
 
-    /// <summary>
-    /// Static class for creating Result objects
-    /// </summary>
-    public static class Result
+    public class Result
     {
-        /// <summary>
-        /// Creates a successful result with data
-        /// </summary>
-        public static Result<T> Success<T>(T data, string message = null)
+        public bool IsSuccess { get; private set; }
+        public string ErrorMessage { get; private set; }
+        public Exception Exception { get; private set; }
+
+        private Result(bool isSuccess, string errorMessage, Exception exception = null)
         {
-            return Result<T>.Success(data, message);
+            IsSuccess = isSuccess;
+            ErrorMessage = errorMessage;
+            Exception = exception;
         }
 
-        /// <summary>
-        /// Creates a failure result with error details
-        /// </summary>
-        public static Result<T> Failure<T>(string message, Exception exception = null)
+        public static Result Success()
         {
-            return Result<T>.Failure(message, exception);
+            return new Result(true, string.Empty, null);
+        }
+
+        public static Result Failure(string errorMessage)
+        {
+            return new Result(false, errorMessage, null);
+        }
+
+        public static Result Failure(string errorMessage, Exception exception)
+        {
+            return new Result(false, errorMessage, exception);
         }
     }
 }

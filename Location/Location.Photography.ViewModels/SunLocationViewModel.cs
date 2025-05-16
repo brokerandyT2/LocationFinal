@@ -1,15 +1,21 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// Location.Photography.ViewModels/SunLocationViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.ViewModels;
-using Location.Photography.Domain.Interfaces;
+using Location.Photography.Domain.Services;
+using Location.Photography.ViewModels.Events;
+using Location.Photography.ViewModels.Interfaces;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Devices.Sensors;
 using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Location.Photography.ViewModels
 {
-    public partial class SunLocationViewModel : ViewModelBase, ISunLocation
+    public class SunLocationViewModel : ObservableObject, ISunLocation
     {
         #region Fields
         private DateTime _selectedDateTime = DateTime.Now;
@@ -20,89 +26,78 @@ namespace Location.Photography.ViewModels
         private double _sunElevation;
         private double _deviceTilt;
         private bool _elevationMatched;
+        private DateTime _selectedDate = DateTime.Now;
+        private TimeSpan _selectedTime = DateTime.Now.TimeOfDay;
+        private ObservableCollection<LocationViewModel> _locations = new ObservableCollection<LocationViewModel>();
         private bool _beginMonitoring;
+        private bool _isBusy;
+        private string _errorMessage = string.Empty;
+        private readonly ISunCalculatorService _sunCalculatorService;
 
         private const double SunSmoothingFactor = 0.1;
         private const double NorthSmoothingFactor = 0.1;
         #endregion
 
+        #region Events
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
+        #endregion
+
         #region Properties
-        public DateTime SelectedDateTime
+        public bool IsBusy
         {
-            get => _selectedDateTime;
+            get => _isBusy;
             set
             {
-                if (SetProperty(ref _selectedDateTime, value))
+                if (_isBusy != value)
                 {
-                    CalculateSunDirection(NorthRotationAngle);
+                    _isBusy = value;
+                    OnPropertyChanged();
                 }
             }
         }
 
-        public double Latitude
+        public string ErrorMessage
         {
-            get => _latitude;
+            get => _errorMessage;
             set
             {
-                if (SetProperty(ref _latitude, value))
+                if (_errorMessage != value)
                 {
-                    CalculateSunDirection(NorthRotationAngle);
+                    _errorMessage = value;
+                    OnPropertyChanged();
                 }
             }
         }
 
-        public double Longitude
+        public DateTime SelectedDate
         {
-            get => _longitude;
+            get => _selectedDate;
             set
             {
-                if (SetProperty(ref _longitude, value))
+                if (_selectedDate != value)
                 {
-                    CalculateSunDirection(NorthRotationAngle);
+                    _selectedDate = value;
+                    OnPropertyChanged();
+                    SelectedDateTime = new DateTime(_selectedDate.Year, _selectedDate.Month, _selectedDate.Day,
+                        _selectedTime.Hours, _selectedTime.Minutes, _selectedTime.Seconds);
                 }
             }
         }
 
-        public double NorthRotationAngle
+        public TimeSpan SelectedTime
         {
-            get => _northRotationAngle;
-            set => SetProperty(ref _northRotationAngle, value);
-        }
-
-        public double SunDirection
-        {
-            get => _sunDirection;
-            set => SetProperty(ref _sunDirection, value);
-        }
-
-        public double SunElevation
-        {
-            get => _sunElevation;
+            get => _selectedTime;
             set
             {
-                if (SetProperty(ref _sunElevation, value))
+                if (_selectedTime != value)
                 {
-                    CheckElevationMatch();
+                    _selectedTime = value;
+                    OnPropertyChanged();
+                    SelectedDateTime = new DateTime(SelectedDateTime.Year, SelectedDateTime.Month, SelectedDateTime.Day,
+                        _selectedTime.Hours, _selectedTime.Minutes, _selectedTime.Seconds);
                 }
             }
-        }
-
-        public double DeviceTilt
-        {
-            get => _deviceTilt;
-            set
-            {
-                if (SetProperty(ref _deviceTilt, value))
-                {
-                    CheckElevationMatch();
-                }
-            }
-        }
-
-        public bool ElevationMatched
-        {
-            get => _elevationMatched;
-            set => SetProperty(ref _elevationMatched, value);
         }
 
         public bool BeginMonitoring
@@ -110,8 +105,11 @@ namespace Location.Photography.ViewModels
             get => _beginMonitoring;
             set
             {
-                if (SetProperty(ref _beginMonitoring, value))
+                if (_beginMonitoring != value)
                 {
+                    _beginMonitoring = value;
+                    OnPropertyChanged();
+
                     if (_beginMonitoring)
                     {
                         StartSensors();
@@ -123,48 +121,204 @@ namespace Location.Photography.ViewModels
                 }
             }
         }
-        #endregion
 
-        #region Commands
+        public ObservableCollection<LocationViewModel> Locations
+        {
+            get => _locations;
+            set
+            {
+                if (_locations != value)
+                {
+                    _locations = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Interface compatibility properties
+        public DateTime SelectedDateTime
+        {
+            get => _selectedDateTime;
+            set
+            {
+                if (_selectedDateTime != value)
+                {
+                    _selectedDateTime = value;
+                    OnPropertyChanged();
+                    CalculateSunDirection(NorthRotationAngle);
+                }
+            }
+        }
+
+        public double Latitude
+        {
+            get => _latitude;
+            set
+            {
+                if (_latitude != value)
+                {
+                    _latitude = value;
+                    OnPropertyChanged();
+                    CalculateSunDirection(NorthRotationAngle);
+                }
+            }
+        }
+
+        public double Longitude
+        {
+            get => _longitude;
+            set
+            {
+                if (_longitude != value)
+                {
+                    _longitude = value;
+                    OnPropertyChanged();
+                    CalculateSunDirection(NorthRotationAngle);
+                }
+            }
+        }
+
+        public double NorthRotationAngle
+        {
+            get => _northRotationAngle;
+            set
+            {
+                if (_northRotationAngle != value)
+                {
+                    _northRotationAngle = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public double SunDirection
+        {
+            get => _sunDirection;
+            set
+            {
+                if (_sunDirection != value)
+                {
+                    _sunDirection = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public double SunElevation
+        {
+            get => _sunElevation;
+            set
+            {
+                if (_sunElevation != value)
+                {
+                    _sunElevation = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public double DeviceTilt
+        {
+            get => _deviceTilt;
+            set
+            {
+                if (_deviceTilt != value)
+                {
+                    _deviceTilt = value;
+                    OnPropertyChanged();
+                    CheckElevationMatch();
+                }
+            }
+        }
+
+        public bool ElevationMatched
+        {
+            get => _elevationMatched;
+            set
+            {
+                if (_elevationMatched != value)
+                {
+                    _elevationMatched = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Commands
         public ICommand StartMonitoringCommand { get; }
         public ICommand StopMonitoringCommand { get; }
         #endregion
 
-        #region Constructor
+        #region Constructors
+        /// <summary>
+        /// Default constructor for design-time and when created by SQLite
+        /// </summary>
         public SunLocationViewModel()
         {
+            _locations = new ObservableCollection<LocationViewModel>();
+            _selectedDate = DateTime.Now;
+            _selectedTime = DateTime.Now.TimeOfDay;
+            _sunCalculatorService = null!;
+
             // Initialize commands
-            StartMonitoringCommand = new RelayCommand(() => BeginMonitoring = true, () => !BeginMonitoring && !IsBusy);
-            StopMonitoringCommand = new RelayCommand(() => BeginMonitoring = false, () => BeginMonitoring && !IsBusy);
+            StartMonitoringCommand = new RelayCommand(() => BeginMonitoring = true, () => !_beginMonitoring && !IsBusy);
+            StopMonitoringCommand = new RelayCommand(() => BeginMonitoring = false, () => _beginMonitoring && !IsBusy);
+        }
+
+        public SunLocationViewModel(ISunCalculatorService sunCalculatorService)
+        {
+            _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
+            _locations = new ObservableCollection<LocationViewModel>();
+            _selectedDate = DateTime.Now;
+            _selectedTime = DateTime.Now.TimeOfDay;
+
+            // Initialize commands
+            StartMonitoringCommand = new RelayCommand(() => BeginMonitoring = true, () => !_beginMonitoring && !IsBusy);
+            StopMonitoringCommand = new RelayCommand(() => BeginMonitoring = false, () => _beginMonitoring && !IsBusy);
         }
         #endregion
 
         #region Methods
-        public void CalculateSunDirection(double heading)
+        private void Compass_ReadingChanged(object sender, CompassChangedEventArgs e)
         {
-            try
+            if (BeginMonitoring)
             {
+                var heading = e.Reading.HeadingMagneticNorth;
                 UpdateNorthRotationAngle(heading);
-
-                // Simplified placeholder calculation
-                var dt = SelectedDateTime;
-                double solarAzimuth = 180; // This would be calculated by your ISunCalculatorService
-                double solarElevation = 45; // This would be calculated by your ISunCalculatorService
-
-                double angleDiff = NormalizeAngle(solarAzimuth - heading);
-                SunDirection = SmoothAngle(SunDirection, angleDiff, SunSmoothingFactor);
-                SunElevation = solarElevation;
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = $"Error calculating sun direction: {ex.Message}";
-                IsError = true;
+                CalculateSunDirection(heading);
             }
         }
 
         private void UpdateNorthRotationAngle(double rawHeading)
         {
             NorthRotationAngle = SmoothAngle(NorthRotationAngle, rawHeading, NorthSmoothingFactor);
+        }
+
+        private void CalculateSunDirection(double heading)
+        {
+            try
+            {
+                var dt = SelectedDateTime;
+
+                // Use the sun calculator service if available
+                double solarAzimuth = 0;
+                if (_sunCalculatorService != null)
+                {
+                    solarAzimuth = _sunCalculatorService.GetSolarAzimuth(dt, Latitude, Longitude);
+                    SunElevation = _sunCalculatorService.GetSolarElevation(dt, Latitude, Longitude);
+                }
+
+                double angleDiff = NormalizeAngle(solarAzimuth - heading);
+                SunDirection = SmoothAngle(SunDirection, angleDiff, SunSmoothingFactor);
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Error calculating sun direction: {ex.Message}";
+                OnErrorOccurred(new OperationErrorEventArgs(
+                    OperationErrorSource.Unknown,
+                    ErrorMessage,
+                    ex));
+            }
         }
 
         public void StartSensors()
@@ -186,7 +340,10 @@ namespace Location.Photography.ViewModels
             catch (Exception ex)
             {
                 ErrorMessage = $"Error starting sensors: {ex.Message}";
-                IsError = true;
+                OnErrorOccurred(new OperationErrorEventArgs(
+                    OperationErrorSource.Unknown,
+                    ErrorMessage,
+                    ex));
             }
         }
 
@@ -209,17 +366,10 @@ namespace Location.Photography.ViewModels
             catch (Exception ex)
             {
                 ErrorMessage = $"Error stopping sensors: {ex.Message}";
-                IsError = true;
-            }
-        }
-
-        private void Compass_ReadingChanged(object sender, CompassChangedEventArgs e)
-        {
-            if (BeginMonitoring)
-            {
-                var heading = e.Reading.HeadingMagneticNorth;
-                UpdateNorthRotationAngle(heading);
-                CalculateSunDirection(heading);
+                OnErrorOccurred(new OperationErrorEventArgs(
+                    OperationErrorSource.Unknown,
+                    ErrorMessage,
+                    ex));
             }
         }
 
@@ -233,14 +383,13 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        private void CheckElevationMatch()
+        private async void CheckElevationMatch()
         {
             if (BeginMonitoring)
             {
                 if (Math.Abs(DeviceTilt - SunElevation) <= 3)
                 {
-                    // On the main thread check for vibration support and provide haptic feedback
-                    MainThread.BeginInvokeOnMainThread(async () =>
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
                         try
                         {
@@ -278,6 +427,17 @@ namespace Location.Photography.ViewModels
             if (angle < 0) angle += 360;
             return angle;
         }
+
+        /// <summary>
+        /// Raise the error event
+        /// </summary>
+        protected virtual void OnErrorOccurred(OperationErrorEventArgs e)
+        {
+            ErrorOccurred?.Invoke(this, e);
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         #endregion
     }
 }

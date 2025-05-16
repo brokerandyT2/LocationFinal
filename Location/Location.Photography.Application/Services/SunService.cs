@@ -1,4 +1,6 @@
-﻿using Location.Core.Application.Common.Models;
+﻿// Location.Photography.Application/Services/SunService.cs
+using Location.Core.Application.Common.Models;
+using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using System;
 using System.Threading;
@@ -31,7 +33,6 @@ namespace Location.Photography.Application.Services
                     Longitude = longitude
                 };
 
-                // Use Task.FromResult since the operation is synchronous
                 return Result<SunPositionDto>.Success(result);
             }
             catch (Exception ex)
@@ -44,43 +45,26 @@ namespace Location.Photography.Application.Services
         {
             try
             {
-                var sunrise = _sunCalculatorService.GetSunrise(date, latitude, longitude);
-                var sunset = _sunCalculatorService.GetSunset(date, latitude, longitude);
-                var solarNoon = _sunCalculatorService.GetSolarNoon(date, latitude, longitude);
-                var astronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(date, latitude, longitude);
-                var astronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(date, latitude, longitude);
-                var nauticalDawn = _sunCalculatorService.GetNauticalDawn(date, latitude, longitude);
-                var nauticalDusk = _sunCalculatorService.GetNauticalDusk(date, latitude, longitude);
-                var civilDawn = _sunCalculatorService.GetCivilDawn(date, latitude, longitude);
-                var civilDusk = _sunCalculatorService.GetCivilDusk(date, latitude, longitude);
-
-                // Calculate golden hour (typically 1 hour after sunrise and 1 hour before sunset)
-                var goldenHourMorningStart = sunrise;
-                var goldenHourMorningEnd = sunrise.AddHours(1);
-                var goldenHourEveningStart = sunset.AddHours(-1);
-                var goldenHourEveningEnd = sunset;
-
                 var result = new SunTimesDto
                 {
                     Date = date,
                     Latitude = latitude,
                     Longitude = longitude,
-                    Sunrise = sunrise,
-                    Sunset = sunset,
-                    SolarNoon = solarNoon,
-                    AstronomicalDawn = astronomicalDawn,
-                    AstronomicalDusk = astronomicalDusk,
-                    NauticalDawn = nauticalDawn,
-                    NauticalDusk = nauticalDusk,
-                    CivilDawn = civilDawn,
-                    CivilDusk = civilDusk,
-                    GoldenHourMorningStart = goldenHourMorningStart,
-                    GoldenHourMorningEnd = goldenHourMorningEnd,
-                    GoldenHourEveningStart = goldenHourEveningStart,
-                    GoldenHourEveningEnd = goldenHourEveningEnd
+                    Sunrise = _sunCalculatorService.GetSunrise(date, latitude, longitude),
+                    Sunset = _sunCalculatorService.GetSunset(date, latitude, longitude),
+                    SolarNoon = _sunCalculatorService.GetSolarNoon(date, latitude, longitude),
+                    AstronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(date, latitude, longitude),
+                    AstronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(date, latitude, longitude),
+                    NauticalDawn = _sunCalculatorService.GetNauticalDawn(date, latitude, longitude),
+                    NauticalDusk = _sunCalculatorService.GetNauticalDusk(date, latitude, longitude),
+                    CivilDawn = _sunCalculatorService.GetCivilDawn(date, latitude, longitude),
+                    CivilDusk = _sunCalculatorService.GetCivilDusk(date, latitude, longitude),
+                    GoldenHourMorningStart = _sunCalculatorService.GetSunrise(date, latitude, longitude),
+                    GoldenHourMorningEnd = _sunCalculatorService.GetSunrise(date, latitude, longitude).AddHours(1),
+                    GoldenHourEveningStart = _sunCalculatorService.GetSunset(date, latitude, longitude).AddHours(-1),
+                    GoldenHourEveningEnd = _sunCalculatorService.GetSunset(date, latitude, longitude)
                 };
 
-                // Use Task.FromResult since the operation is synchronous
                 return Result<SunTimesDto>.Success(result);
             }
             catch (Exception ex)

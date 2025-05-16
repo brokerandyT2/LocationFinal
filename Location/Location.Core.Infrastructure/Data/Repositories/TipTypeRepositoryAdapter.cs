@@ -30,5 +30,25 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         public void Delete(TipType tipType)
             => _innerRepository.Delete(tipType);
+        public Task<Result<TipType>> CreateEntityAsync(TipType entity, CancellationToken cancellationToken = default)
+        {
+            // Implementation logic here
+            // This is just a stub - would need to be implemented with actual data persistence logic
+            return Task.FromResult(Result<TipType>.Success(entity));
+        }
+
+        public Task<Result<Tip>> CreateEntityAsync(Tip entity, CancellationToken cancellationToken = default)
+        {
+            // Implementation logic here
+            // This is just a stub - would need to be implemented with actual data persistence logic
+            return Task.FromResult(Result<Tip>.Success(entity));
+        }
+
+        public Task<Result<Location.Core.Domain.Entities.Location>> CreateEntityAsync(Location.Core.Domain.Entities.Location entity, CancellationToken cancellationToken = default)
+        {
+            // Implementation logic here
+            // This is just a stub - would need to be implemented with actual data persistence logic
+            return Task.FromResult(Result<Location.Core.Domain.Entities.Location>.Success(entity));
+        }
     }
 }

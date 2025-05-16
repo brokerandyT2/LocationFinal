@@ -5,6 +5,7 @@ using Location.Core.Application.Events;
 using System;
 using System.Threading.Tasks;
 using Location.Core.Application.Common.Interfaces;
+using Location.Photography.ViewModels.Events;
 
 
 namespace Location.Photography.ViewModels
@@ -84,13 +85,5 @@ namespace Location.Photography.ViewModels
     }
 
     // Move the OperationErrorEventArgs class to BaseViewModel file
-    public class OperationErrorEventArgs : EventArgs
-    {
-        public string Message { get; }
-
-        public OperationErrorEventArgs(string message)
-        {
-            Message = message;
-        }
-    }
+   
 }
