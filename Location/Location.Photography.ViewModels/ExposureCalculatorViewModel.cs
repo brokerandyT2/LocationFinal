@@ -1,18 +1,14 @@
-﻿using Location.Photography.Application.Services;
-using Location.Photography.ViewModels;
-using Location.Photography.ViewModels.Events;
-using MediatR;
-using System;
-using System.ComponentModel;
-using System.Threading.Tasks;
-using System.Windows.Input;
+﻿// Location.Photography.ViewModels/ExposureCalculatorViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
+using Location.Core.Application.Common.Models;
+using Location.Photography.Application.Services;
+using Location.Photography.ViewModels.Events;
+using MediatR;
 
-namespace Location.Photography.Maui.Views.Premium
+namespace Location.Photography.ViewModels
 {
-    public class ExposureCalculatorViewModel : ViewModelBase
+    public class ExposureCalculatorViewModel : ObservableObject
     {
         #region Fields
         private readonly IMediator _mediator;
@@ -33,8 +29,13 @@ namespace Location.Photography.Maui.Views.Premium
         private ExposureIncrements _fullHalfThirds;
         private FixedValue _toCalculate;
         private double _evValue;
+        private bool _vmIsBusy;
         private bool _showError;
         private string _errorMessage;
+        #endregion
+
+        #region Events
+        public event EventHandler<OperationErrorEventArgs> ErrorOccurred;
         #endregion
 
         #region Properties
@@ -135,13 +136,19 @@ namespace Location.Photography.Maui.Views.Premium
             set => SetProperty(ref _evValue, value);
         }
 
+        public bool VmIsBusy
+        {
+            get => _vmIsBusy;
+            set => SetProperty(ref _vmIsBusy, value);
+        }
+
         public bool ShowError
         {
             get => _showError;
             set => SetProperty(ref _showError, value);
         }
 
-        public new string ErrorMessage
+        public string ErrorMessage
         {
             get => _errorMessage;
             set
@@ -149,24 +156,29 @@ namespace Location.Photography.Maui.Views.Premium
                 if (SetProperty(ref _errorMessage, value))
                 {
                     ShowError = !string.IsNullOrEmpty(value);
-                    base.ErrorMessage = value;
+                    if (ShowError)
+                    {
+                        OnErrorOccurred(new OperationErrorEventArgs(
+                            OperationErrorSource.Unknown,
+                            value));
+                    }
                 }
             }
         }
         #endregion
 
         #region Commands
-        public ICommand CalculateCommand { get; }
-        public ICommand ResetCommand { get; }
+        public IRelayCommand CalculateCommand { get; }
+        public IRelayCommand ResetCommand { get; }
         #endregion
 
-        #region Constructor
+        #region Constructors
         public ExposureCalculatorViewModel()
         {
             // Design-time constructor
-            _shutterSpeedsForPicker = new string[] { "1/1000", "1/500", "1/250", "1/125", "1/60", "1/30", "1/15", "1/8", "1/4", "1/2", "1" };
-            _apeaturesForPicker = new string[] { "f/1.4", "f/2", "f/2.8", "f/4", "f/5.6", "f/8", "f/11", "f/16", "f/22" };
-            _isosForPicker = new string[] { "100", "200", "400", "800", "1600", "3200", "6400" };
+            _shutterSpeedsForPicker = ShutterSpeeds.Full;
+            _apeaturesForPicker = Apetures.Full;
+            _isosForPicker = ISOs.Full;
 
             CalculateCommand = new RelayCommand(Calculate);
             ResetCommand = new RelayCommand(Reset);
@@ -181,6 +193,11 @@ namespace Location.Photography.Maui.Views.Premium
             CalculateCommand = new RelayCommand(Calculate);
             ResetCommand = new RelayCommand(Reset);
 
+            // Default values
+            _fullHalfThirds = ExposureIncrements.Full;
+            _toCalculate = FixedValue.ShutterSpeeds;
+            _evValue = 0;
+
             // Load initial picker values
             LoadPickerValuesAsync().ConfigureAwait(false);
         }
@@ -191,58 +208,59 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                // Use the IExposureCalculatorService to get the values based on the current increment
-                var shutterSpeedsResult = await _exposureCalculatorService.GetShutterSpeedsAsync(FullHalfThirds);
-                if (shutterSpeedsResult.IsSuccess && shutterSpeedsResult.Data != null)
-                {
-                    ShutterSpeedsForPicker = shutterSpeedsResult.Data;
-                }
+                VmIsBusy = true;
+                ShowError = false;
 
-                var aperturesResult = await _exposureCalculatorService.GetAperturesAsync(FullHalfThirds);
-                if (aperturesResult.IsSuccess && aperturesResult.Data != null)
-                {
-                    ApeaturesForPicker = aperturesResult.Data;
-                }
+                string incrementString = GetIncrementString();
 
-                var isosResult = await _exposureCalculatorService.GetIsosAsync(FullHalfThirds);
-                if (isosResult.IsSuccess && isosResult.Data != null)
-                {
-                    ISOsForPicker = isosResult.Data;
-                }
+                // Use the shared utility classes to get the appropriate values
+                ShutterSpeedsForPicker = ShutterSpeeds.GetScale(incrementString);
+                ApeaturesForPicker = Apetures.GetScale(incrementString);
+                ISOsForPicker = ISOs.GetScale(incrementString);
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error loading exposure values: {ex.Message}";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    OperationErrorSource.Unknown,
-                    ErrorMessage,
-                    ex));
+                HandleError(ex, "Error loading exposure values");
+            }
+            finally
+            {
+                VmIsBusy = false;
             }
         }
 
-        /// <summary>
-        /// Performs exposure calculation based on the selected values and fixed parameter
-        /// </summary>
+        private string GetIncrementString()
+        {
+            return FullHalfThirds switch
+            {
+                ExposureIncrements.Full => "Full",
+                ExposureIncrements.Half => "Halves",
+                ExposureIncrements.Third => "Thirds",
+                _ => "Full"
+            };
+        }
+
         public void Calculate()
         {
             try
             {
-                IsBusy = true;
+                VmIsBusy = true;
                 ShowError = false;
-                ErrorMessage = string.Empty;
 
-                // Prepare the base exposure triangle
+                // Store the old values for comparison
+                StoreOldValues();
+
+                // Create base exposure triangle
                 var baseExposure = new ExposureTriangleDto
                 {
-                    ShutterSpeed = ShutterSpeedSelected,
-                    Aperture = FStopSelected,
-                    Iso = ISOSelected
+                    ShutterSpeed = OldShutterSpeed,
+                    Aperture = OldFstop,
+                    Iso = OldISO
                 };
 
-                // Apply EV adjustment (if any)
-                // TODO: Apply the EV value to the calculation
+                // Apply EV compensation if needed
+                ApplyEVCompensation(ref baseExposure);
 
-                // Perform calculation based on what's fixed
+                // Perform calculations based on what's fixed
                 Task<Result<ExposureSettingsDto>> resultTask = null;
 
                 switch (ToCalculate)
@@ -251,10 +269,12 @@ namespace Location.Photography.Maui.Views.Premium
                         resultTask = _exposureCalculatorService.CalculateShutterSpeedAsync(
                             baseExposure, FStopSelected, ISOSelected, FullHalfThirds);
                         break;
+
                     case FixedValue.Aperture:
                         resultTask = _exposureCalculatorService.CalculateApertureAsync(
                             baseExposure, ShutterSpeedSelected, ISOSelected, FullHalfThirds);
                         break;
+
                     case FixedValue.ISO:
                         resultTask = _exposureCalculatorService.CalculateIsoAsync(
                             baseExposure, ShutterSpeedSelected, FStopSelected, FullHalfThirds);
@@ -263,7 +283,7 @@ namespace Location.Photography.Maui.Views.Premium
 
                 if (resultTask != null)
                 {
-                    var result = resultTask.Result;
+                    var result = resultTask.GetAwaiter().GetResult();
 
                     if (result.IsSuccess && result.Data != null)
                     {
@@ -281,25 +301,33 @@ namespace Location.Photography.Maui.Views.Premium
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error calculating exposure: {ex.Message}";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    OperationErrorSource.Unknown,
-                    ErrorMessage,
-                    ex));
+                HandleError(ex, "Error calculating exposure");
             }
             finally
             {
-                IsBusy = false;
+                VmIsBusy = false;
             }
         }
 
-        /// <summary>
-        /// Reset to default values
-        /// </summary>
+        private void StoreOldValues()
+        {
+            OldShutterSpeed = ShutterSpeedSelected;
+            OldFstop = FStopSelected;
+            OldISO = ISOSelected;
+        }
+
+        private void ApplyEVCompensation(ref ExposureTriangleDto exposure)
+        {
+            // This would adjust the base exposure based on EV compensation
+            // For now, we're just using the base exposure as is
+            // In a real implementation, you would modify the exposure values based on EVValue
+        }
+
         public void Reset()
         {
             try
             {
+                // Reset to default values
                 if (ShutterSpeedsForPicker?.Length > 0)
                     ShutterSpeedSelected = ShutterSpeedsForPicker[0];
 
@@ -313,16 +341,30 @@ namespace Location.Photography.Maui.Views.Premium
                 ToCalculate = FixedValue.ShutterSpeeds;
                 FullHalfThirds = ExposureIncrements.Full;
 
-                Calculate();
+                // Clear results
+                ShutterSpeedResult = string.Empty;
+                FStopResult = string.Empty;
+                ISOResult = string.Empty;
+
+                // Clear error message
+                ShowError = false;
+                ErrorMessage = string.Empty;
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error resetting exposure calculator: {ex.Message}";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    OperationErrorSource.Unknown,
-                    ErrorMessage,
-                    ex));
+                HandleError(ex, "Error resetting exposure calculator");
             }
+        }
+
+        protected virtual void OnErrorOccurred(OperationErrorEventArgs e)
+        {
+            ErrorOccurred?.Invoke(this, e);
+        }
+
+        private void HandleError(Exception ex, string message)
+        {
+            ErrorMessage = $"{message}: {ex.Message}";
+            OnErrorOccurred(new OperationErrorEventArgs(OperationErrorSource.Unknown, ErrorMessage, ex));
         }
         #endregion
     }

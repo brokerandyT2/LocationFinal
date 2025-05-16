@@ -1,10 +1,17 @@
-﻿using Microsoft.Extensions.Logging;
-using Location.Photography.Application;
-using Location.Photography.Domain.Services;
-using Location.Photography.Infrastructure;
-using Location.Photography.Infrastructure.Services;
-using Location.Photography.ViewModels;
+﻿// Location.Photography.Maui/MauiProgram.cs
 using CommunityToolkit.Maui;
+using Location.Core.Application;
+using Location.Core.Application.Alerts;
+using Location.Core.Application.Services;
+using Location.Core.Infrastructure;
+using Location.Core.Maui.Services;
+using Location.Core.ViewModels;
+using Location.Photography.Application;
+using Location.Photography.Infrastructure;
+using Location.Photography.ViewModels;
+using MediatR;
+using Microsoft.Extensions.Logging;
+
 namespace Location.Photography.Maui
 {
     public static class MauiProgram
@@ -21,28 +28,41 @@ namespace Location.Photography.Maui
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            // Add photography-specific services
-            AddPhotographyServices(builder.Services);
+            // Register the core application layer
+            builder.Services.AddApplication();
+
+            // Register the infrastructure layer
+            builder.Services.AddInfrastructure();
+
+            // Register Photography application and infrastructure
+            builder.Services.AddPhotographyApplication();
+            builder.Services.AddPhotographyInfrastructure();
+
+            // Register MAUI services
+            builder.Services.AddSingleton<IGeolocationService, GeolocationService>();
+            builder.Services.AddSingleton<IMediaService, MediaService>();
+            builder.Services.AddTransient<INotificationHandler<AlertEvent>, AlertEventHandler>();
+
+            // Register Core ViewModels
+            builder.Services.AddTransient<ViewModels.LocationViewModel>();
+            builder.Services.AddTransient<WeatherViewModel>();
+
+            // Register Photography ViewModels
+            builder.Services.AddTransient<ExposureCalculatorViewModel>();
+
+            // Register Core Pages
+            builder.Services.AddTransient<Location.Core.Maui.Views.AddLocation>();
+            builder.Services.AddTransient<Location.Core.Maui.Views.EditLocation>();
+            builder.Services.AddTransient<Location.Core.Maui.Views.WeatherDisplay>();
+
+            // Register Photography Pages
+            builder.Services.AddTransient<Location.Photography.Maui.Views.Premium.ExposureCalculator>();
 
 #if DEBUG
-            builder.Services.AddLogging(configure =>
-            {
-                configure.AddConsole();
-                configure.SetMinimumLevel(LogLevel.Debug);
-            });
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();
-        }
-
-        private static void AddPhotographyServices(IServiceCollection services)
-        {
-            // Register domain services
-            services.AddSingleton<ISunCalculatorService, SunCalculatorService>();
-
-            // Register viewmodels
-            services.AddTransient<SunLocationViewModel>();
-            services.AddTransient<SunCalculationsViewModel>();
         }
     }
 }

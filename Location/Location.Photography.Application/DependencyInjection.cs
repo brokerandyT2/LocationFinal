@@ -1,4 +1,5 @@
-﻿// Location.Photography.Application/DependencyInjection.cs
+﻿// Location.Photography.Application/DependencyInjection.cs - updated version
+using FluentValidation;
 using Location.Core.Application.Common.Behaviors;
 using Location.Photography.Application.Services;
 using MediatR;
@@ -17,8 +18,8 @@ namespace Location.Photography.Application
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             });
 
-            // Register application services
-            services.AddScoped<ISunService, SunService>();
+            // Register validators
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
             return services;
         }

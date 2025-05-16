@@ -1,4 +1,5 @@
-﻿using Location.Core.Application.Common.Models;
+﻿// Location.Photography.Application/Services/IExposureCalculatorService.cs
+using Location.Core.Application.Common.Models;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,27 +51,5 @@ namespace Location.Photography.Application.Services
         /// Gets available ISO values for the specified increment
         /// </summary>
         Task<Result<string[]>> GetIsosAsync(ExposureIncrements increments, CancellationToken cancellationToken = default);
-    }
-
-    public class ExposureTriangleDto
-    {
-        public string ShutterSpeed { get; set; } = string.Empty;
-        public string Aperture { get; set; } = string.Empty;
-        public string Iso { get; set; } = string.Empty;
-    }
-
-    public class ExposureSettingsDto
-    {
-        public string ShutterSpeed { get; set; } = string.Empty;
-        public string Aperture { get; set; } = string.Empty;
-        public string Iso { get; set; } = string.Empty;
-        public string ErrorMessage { get; set; } = string.Empty;
-    }
-
-    public enum ExposureIncrements
-    {
-        Full,
-        Half,
-        Third
     }
 }

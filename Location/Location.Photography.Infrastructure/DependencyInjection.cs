@@ -1,5 +1,8 @@
-﻿
+﻿// Location.Photography.Infrastructure/DependencyInjection.cs
+using Location.Photography.Application.Services;
+using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure.Extensions;
+using Location.Photography.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Location.Photography.Infrastructure
@@ -11,7 +14,9 @@ namespace Location.Photography.Infrastructure
             // Register database initializer
             services.AddDatabaseInitializer();
 
-            // Add other photography-specific infrastructure services here
+            // Register photography services
+            services.AddScoped<ISunCalculatorService, SunCalculatorService>();
+            services.AddScoped<IExposureCalculatorService, ExposureCalculatorService>();
 
             return services;
         }
