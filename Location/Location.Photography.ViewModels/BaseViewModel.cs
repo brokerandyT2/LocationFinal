@@ -49,7 +49,7 @@ namespace Location.Photography.ViewModels
             set => SetProperty(ref _errorMessage, value);
         }
 
-        protected BaseViewModel(IAlertService? alertService = null, IEventBus? eventBus = null)
+        protected ViewModelBase(IAlertService? alertService = null, IEventBus? eventBus = null)
         {
             _alertService = alertService;
             _eventBus = eventBus;

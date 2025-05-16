@@ -1,4 +1,4 @@
-﻿using Location.Core.Application.Common.Models;
+﻿using Location.Photography.Application.Common.Models;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

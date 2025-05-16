@@ -6,17 +6,17 @@ using Location.Core.Infrastructure;
 using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Location.Core.Maui
 {
-    public static class LocationCoreExtensions
+    public static class MauiProgram
     {
-        /// <summary>
-        /// Adds the Location Core services and configurations to the MAUI application
-        /// </summary>
-        public static MauiAppBuilder UseLocationCore(this MauiAppBuilder builder)
+        public static MauiApp CreateMauiApp()
         {
+            var builder = MauiApp.CreateBuilder();
             builder
+                .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
@@ -33,8 +33,9 @@ namespace Location.Core.Maui
             // Register MAUI services
             builder.Services.AddSingleton<IGeolocationService, GeolocationService>();
             builder.Services.AddSingleton<IMediaService, MediaService>();
-
             builder.Services.AddTransient<INotificationHandler<AlertEvent>, AlertEventHandler>();
+
+            // Register ViewModels
             builder.Services.AddTransient<LocationViewModel>();
             builder.Services.AddTransient<WeatherViewModel>();
 
@@ -43,39 +44,11 @@ namespace Location.Core.Maui
             builder.Services.AddTransient<Views.EditLocation>();
             builder.Services.AddTransient<Views.WeatherDisplay>();
 
-            // Register ViewModels 
-            builder.Services.AddTransient<LocationViewModel>();
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Registers view navigation services for the Location Core
-        /// </summary>
-        public static MauiAppBuilder ConfigureLocationCoreNavigation(this MauiAppBuilder builder)
-        {
-            // Add navigation-specific registrations here
-            // This method can be called separately if needed
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Optional method to add platform-specific implementations
-        /// </summary>
-        public static MauiAppBuilder ConfigureLocationCorePlatformServices(this MauiAppBuilder builder)
-        {
-#if ANDROID
-            // Android-specific registrations
-#elif IOS
-            // iOS-specific registrations
-#elif WINDOWS
-            // Windows-specific registrations
-#elif MACCATALYST
-            // MacCatalyst-specific registrations
+#if DEBUG
+            builder.Logging.AddDebug();
 #endif
 
-            return builder;
+            return builder.Build();
         }
     }
 }

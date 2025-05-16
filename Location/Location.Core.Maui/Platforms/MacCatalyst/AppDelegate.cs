@@ -1,10 +1,10 @@
 ﻿using Foundation;
 
-namespace Location.Core.Maui
+namespace Location.Core.Maui.Platforms.MacCatalyst
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate
     {
-        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+        protected override MauiApp CreateMauiApp() => Location.Core.Maui.MauiProgram.CreateMauiApp();
     }
 }

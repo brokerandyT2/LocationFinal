@@ -1,19 +1,10 @@
-﻿// Location.Photography.Shared.ViewModels.SunCalculations.cs
-using CommunityToolkit.Mvvm.Input;
-using Location.Core.Domain.Entities;
-using Location.Core.ViewModels;
+﻿using CommunityToolkit.Mvvm.Input;
 using Location.Photography.Domain.Services;
-using Location.Photography.ViewModels.Interfaces;
-using Location.Photography.ViewModels;
-
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using OperationErrorEventArgs = Location.Photography.ViewModels.OperationErrorEventArgs;
 
-namespace Location.Photography.Shared.ViewModels
+namespace Location.Photography.ViewModels
 {
-    public partial class SunCalculations : ViewModelBase, ISunCalculations
+    public partial class SunCalculationsViewModel : ViewModelBase
     {
         #region Fields
         private readonly ISunCalculatorService _sunCalculatorService;
@@ -27,26 +18,22 @@ namespace Location.Photography.Shared.ViewModels
 
         private DateTime _sunrise = DateTime.Now;
         private DateTime _sunset = DateTime.Now;
-        private DateTime _solarnoon = DateTime.Now;
+        private DateTime _solarNoon = DateTime.Now;
         private DateTime _astronomicalDawn = DateTime.Now;
-        private DateTime _nauticaldawn = DateTime.Now;
-        private DateTime _nauticaldusk = DateTime.Now;
+        private DateTime _nauticalDawn = DateTime.Now;
+        private DateTime _nauticalDusk = DateTime.Now;
         private DateTime _astronomicalDusk = DateTime.Now;
-        private DateTime _civildawn = DateTime.Now;
-        private DateTime _civildusk = DateTime.Now;
+        private DateTime _civilDawn = DateTime.Now;
+        private DateTime _civilDusk = DateTime.Now;
 
         private string _locationPhoto = string.Empty;
         #endregion
 
         #region Properties
-        public List<LocationViewModel> LocationsS
+        public List<LocationViewModel> Locations
         {
             get => _locations;
-            set
-            {
-                _locations = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _locations, value);
         }
 
         public LocationViewModel SelectedLocation
@@ -54,17 +41,12 @@ namespace Location.Photography.Shared.ViewModels
             get => _selectedLocation;
             set
             {
-                if (_selectedLocation != value)
+                if (SetProperty(ref _selectedLocation, value) && _selectedLocation != null)
                 {
-                    _selectedLocation = value;
-                    if (_selectedLocation != null)
-                    {
-                        Latitude = _selectedLocation.Lattitude;
-                        Longitude = _selectedLocation.Longitude;
-                        LocationPhoto = _selectedLocation.Photo;
-                        CalculateSun();
-                    }
-                    OnPropertyChanged();
+                    Latitude = _selectedLocation.Latitude;
+                    Longitude = _selectedLocation.Longitude;
+                    LocationPhoto = _selectedLocation.Photo;
+                    CalculateSunAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -72,21 +54,13 @@ namespace Location.Photography.Shared.ViewModels
         public double Latitude
         {
             get => _latitude;
-            set
-            {
-                _latitude = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _latitude, value);
         }
 
         public double Longitude
         {
             get => _longitude;
-            set
-            {
-                _longitude = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _longitude, value);
         }
 
         public DateTime Date
@@ -94,20 +68,17 @@ namespace Location.Photography.Shared.ViewModels
             get => _date;
             set
             {
-                _date = value;
-                OnPropertyChanged();
-                CalculateSun();
+                if (SetProperty(ref _date, value))
+                {
+                    CalculateSunAsync().ConfigureAwait(false);
+                }
             }
         }
 
         public string DateFormat
         {
             get => _dateFormat;
-            set
-            {
-                _dateFormat = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _dateFormat, value);
         }
 
         public string TimeFormat
@@ -115,20 +86,20 @@ namespace Location.Photography.Shared.ViewModels
             get => _timeFormat;
             set
             {
-                _timeFormat = value;
-                OnPropertyChanged();
-                // Update all formatted time strings
-                OnPropertyChanged(nameof(SunRiseFormatted));
-                OnPropertyChanged(nameof(SunSetFormatted));
-                OnPropertyChanged(nameof(SolarNoonFormatted));
-                OnPropertyChanged(nameof(GoldenHourMorningFormatted));
-                OnPropertyChanged(nameof(GoldenHourEveningFormatted));
-                OnPropertyChanged(nameof(AstronomicalDawnFormatted));
-                OnPropertyChanged(nameof(AstronomicalDuskFormatted));
-                OnPropertyChanged(nameof(NauticalDawnFormatted));
-                OnPropertyChanged(nameof(NauticalDuskFormatted));
-                OnPropertyChanged(nameof(CivilDawnFormatted));
-                OnPropertyChanged(nameof(CivilDuskFormatted));
+                if (SetProperty(ref _timeFormat, value))
+                {
+                    OnPropertyChanged(nameof(SunriseFormatted));
+                    OnPropertyChanged(nameof(SunsetFormatted));
+                    OnPropertyChanged(nameof(SolarNoonFormatted));
+                    OnPropertyChanged(nameof(GoldenHourMorningFormatted));
+                    OnPropertyChanged(nameof(GoldenHourEveningFormatted));
+                    OnPropertyChanged(nameof(AstronomicalDawnFormatted));
+                    OnPropertyChanged(nameof(AstronomicalDuskFormatted));
+                    OnPropertyChanged(nameof(NauticalDawnFormatted));
+                    OnPropertyChanged(nameof(NauticalDuskFormatted));
+                    OnPropertyChanged(nameof(CivilDawnFormatted));
+                    OnPropertyChanged(nameof(CivilDuskFormatted));
+                }
             }
         }
 
@@ -137,11 +108,12 @@ namespace Location.Photography.Shared.ViewModels
             get => _sunrise;
             set
             {
-                _sunrise = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(SunRiseFormatted));
-                OnPropertyChanged(nameof(GoldenHourMorning));
-                OnPropertyChanged(nameof(GoldenHourMorningFormatted));
+                if (SetProperty(ref _sunrise, value))
+                {
+                    OnPropertyChanged(nameof(SunriseFormatted));
+                    OnPropertyChanged(nameof(GoldenHourMorning));
+                    OnPropertyChanged(nameof(GoldenHourMorningFormatted));
+                }
             }
         }
 
@@ -150,22 +122,24 @@ namespace Location.Photography.Shared.ViewModels
             get => _sunset;
             set
             {
-                _sunset = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(SunSetFormatted));
-                OnPropertyChanged(nameof(GoldenHourEvening));
-                OnPropertyChanged(nameof(GoldenHourEveningFormatted));
+                if (SetProperty(ref _sunset, value))
+                {
+                    OnPropertyChanged(nameof(SunsetFormatted));
+                    OnPropertyChanged(nameof(GoldenHourEvening));
+                    OnPropertyChanged(nameof(GoldenHourEveningFormatted));
+                }
             }
         }
 
         public DateTime SolarNoon
         {
-            get => _solarnoon;
+            get => _solarNoon;
             set
             {
-                _solarnoon = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(SolarNoonFormatted));
+                if (SetProperty(ref _solarNoon, value))
+                {
+                    OnPropertyChanged(nameof(SolarNoonFormatted));
+                }
             }
         }
 
@@ -174,9 +148,10 @@ namespace Location.Photography.Shared.ViewModels
             get => _astronomicalDawn;
             set
             {
-                _astronomicalDawn = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(AstronomicalDawnFormatted));
+                if (SetProperty(ref _astronomicalDawn, value))
+                {
+                    OnPropertyChanged(nameof(AstronomicalDawnFormatted));
+                }
             }
         }
 
@@ -185,129 +160,91 @@ namespace Location.Photography.Shared.ViewModels
             get => _astronomicalDusk;
             set
             {
-                _astronomicalDusk = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(AstronomicalDuskFormatted));
+                if (SetProperty(ref _astronomicalDusk, value))
+                {
+                    OnPropertyChanged(nameof(AstronomicalDuskFormatted));
+                }
             }
         }
 
         public DateTime NauticalDawn
         {
-            get => _nauticaldawn;
+            get => _nauticalDawn;
             set
             {
-                _nauticaldawn = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(NauticalDawnFormatted));
+                if (SetProperty(ref _nauticalDawn, value))
+                {
+                    OnPropertyChanged(nameof(NauticalDawnFormatted));
+                }
             }
         }
 
         public DateTime NauticalDusk
         {
-            get => _nauticaldusk;
+            get => _nauticalDusk;
             set
             {
-                _nauticaldusk = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(NauticalDuskFormatted));
+                if (SetProperty(ref _nauticalDusk, value))
+                {
+                    OnPropertyChanged(nameof(NauticalDuskFormatted));
+                }
             }
         }
 
-        public DateTime Civildawn
+        public DateTime CivilDawn
         {
-            get => _civildawn;
+            get => _civilDawn;
             set
             {
-                _civildawn = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CivilDawnFormatted));
+                if (SetProperty(ref _civilDawn, value))
+                {
+                    OnPropertyChanged(nameof(CivilDawnFormatted));
+                }
             }
         }
 
-        public DateTime Civildusk
+        public DateTime CivilDusk
         {
-            get => _civildusk;
+            get => _civilDusk;
             set
             {
-                _civildusk = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CivilDuskFormatted));
+                if (SetProperty(ref _civilDusk, value))
+                {
+                    OnPropertyChanged(nameof(CivilDuskFormatted));
+                }
             }
         }
 
-        public DateTime GoldenHourMorning
-        {
-            get => _sunrise.AddHours(1);
-        }
+        public DateTime GoldenHourMorning => Sunrise.AddHours(1);
 
-        public DateTime GoldenHourEvening
-        {
-            get => _sunset.AddHours(-1);
-        }
+        public DateTime GoldenHourEvening => Sunset.AddHours(-1);
 
-        public string SunRiseFormatted
-        {
-            get => _sunrise.ToString(TimeFormat);
-        }
+        public string SunriseFormatted => Sunrise.ToString(TimeFormat);
 
-        public string SunSetFormatted
-        {
-            get => _sunset.ToString(TimeFormat);
-        }
+        public string SunsetFormatted => Sunset.ToString(TimeFormat);
 
-        public string SolarNoonFormatted
-        {
-            get => _solarnoon.ToString(TimeFormat);
-        }
+        public string SolarNoonFormatted => SolarNoon.ToString(TimeFormat);
 
-        public string GoldenHourMorningFormatted
-        {
-            get => GoldenHourMorning.ToString(TimeFormat);
-        }
+        public string GoldenHourMorningFormatted => GoldenHourMorning.ToString(TimeFormat);
 
-        public string GoldenHourEveningFormatted
-        {
-            get => GoldenHourEvening.ToString(TimeFormat);
-        }
+        public string GoldenHourEveningFormatted => GoldenHourEvening.ToString(TimeFormat);
 
-        public string AstronomicalDawnFormatted
-        {
-            get => _astronomicalDawn.ToString(TimeFormat);
-        }
+        public string AstronomicalDawnFormatted => AstronomicalDawn.ToString(TimeFormat);
 
-        public string AstronomicalDuskFormatted
-        {
-            get => _astronomicalDusk.ToString(TimeFormat);
-        }
+        public string AstronomicalDuskFormatted => AstronomicalDusk.ToString(TimeFormat);
 
-        public string NauticalDawnFormatted
-        {
-            get => _nauticaldawn.ToString(TimeFormat);
-        }
+        public string NauticalDawnFormatted => NauticalDawn.ToString(TimeFormat);
 
-        public string NauticalDuskFormatted
-        {
-            get => _nauticaldusk.ToString(TimeFormat);
-        }
+        public string NauticalDuskFormatted => NauticalDusk.ToString(TimeFormat);
 
-        public string CivilDawnFormatted
-        {
-            get => _civildawn.ToString(TimeFormat);
-        }
+        public string CivilDawnFormatted => CivilDawn.ToString(TimeFormat);
 
-        public string CivilDuskFormatted
-        {
-            get => _civildusk.ToString(TimeFormat);
-        }
+        public string CivilDuskFormatted => CivilDusk.ToString(TimeFormat);
 
         public string LocationPhoto
         {
             get => _locationPhoto;
-            set
-            {
-                _locationPhoto = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _locationPhoto, value);
         }
         #endregion
 
@@ -316,35 +253,30 @@ namespace Location.Photography.Shared.ViewModels
         public ICommand CalculateSunTimesCommand { get; }
         #endregion
 
-        #region Events
-        public event PropertyChangedEventHandler? PropertyChanged;
-        public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
-        #endregion
-
         #region Constructor
-        public SunCalculations(ISunCalculatorService sunCalculatorService)
+        public SunCalculationsViewModel(ISunCalculatorService sunCalculatorService)
         {
             _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
 
             LoadLocationsCommand = new AsyncRelayCommand(LoadLocationsAsync);
-            CalculateSunTimesCommand = new RelayCommand(CalculateSun);
+            CalculateSunTimesCommand = new AsyncRelayCommand(CalculateSunAsync);
         }
         #endregion
 
         #region Methods
-        public void CalculateSun()
+        private async Task CalculateSunAsync()
         {
             try
             {
-                IsBusy = true;
-                ErrorMessage = string.Empty;
-
                 if (Latitude == 0 && Longitude == 0)
                 {
                     return; // Do not calculate for default coordinates
                 }
 
-                // Calculate sun times using our custom service
+                IsBusy = true;
+                ErrorMessage = string.Empty;
+
+                // Calculate sun times directly using the service
                 Sunrise = _sunCalculatorService.GetSunrise(Date, Latitude, Longitude);
                 Sunset = _sunCalculatorService.GetSunset(Date, Latitude, Longitude);
                 SolarNoon = _sunCalculatorService.GetSolarNoon(Date, Latitude, Longitude);
@@ -352,16 +284,13 @@ namespace Location.Photography.Shared.ViewModels
                 AstronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(Date, Latitude, Longitude);
                 NauticalDawn = _sunCalculatorService.GetNauticalDawn(Date, Latitude, Longitude);
                 NauticalDusk = _sunCalculatorService.GetNauticalDusk(Date, Latitude, Longitude);
-                Civildawn = _sunCalculatorService.GetCivilDawn(Date, Latitude, Longitude);
-                Civildusk = _sunCalculatorService.GetCivilDusk(Date, Latitude, Longitude);
+                CivilDawn = _sunCalculatorService.GetCivilDawn(Date, Latitude, Longitude);
+                CivilDusk = _sunCalculatorService.GetCivilDusk(Date, Latitude, Longitude);
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Error calculating sun times: {ex.Message}";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    Locations.Core.Shared.ViewModels.OperationErrorSource.Unknown,
-                    ErrorMessage,
-                    ex));
+                IsError = true;
             }
             finally
             {
@@ -376,33 +305,56 @@ namespace Location.Photography.Shared.ViewModels
                 IsBusy = true;
                 ErrorMessage = string.Empty;
 
-                // Note: In a real implementation, this would call a service to get locations
-                // For now, we'll assume this method would be implemented to load data
-                await Task.Delay(100); // Placeholder
+                // This is a placeholder for loading locations from a repository
+                // In a real implementation, you would use a service or repository to load locations
+                await Task.Delay(100); // Simulating data loading
+
+                // Populate with sample data for now
+                var locationViewModels = new List<LocationViewModel>
+                {
+                    new LocationViewModel
+                    {
+                        Id = 1,
+                        Name = "Indianapolis",
+                        Description = "Capital of Indiana",
+                        Latitude = 39.7684,
+                        Longitude = -86.1581,
+                        Photo = "Resources/Images/indy.jpg"
+                    },
+                    new LocationViewModel
+                    {
+                        Id = 2,
+                        Name = "Chicago",
+                        Description = "Windy City",
+                        Latitude = 41.8781,
+                        Longitude = -87.6298,
+                        Photo = "Resources/Images/chicago.jpg"
+                    }
+                };
+
+                Locations = locationViewModels;
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Error loading locations: {ex.Message}";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    Location.Core.ViewModels.OperationErrorSource.Unknown,
-                    ErrorMessage,
-                    ex));
+                IsError = true;
             }
             finally
             {
                 IsBusy = false;
             }
         }
-
-        protected virtual void OnErrorOccurred(OperationErrorEventArgs e)
-        {
-            ErrorOccurred?.Invoke(this, e);
-        }
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
         #endregion
+    }
+
+    // Simple LocationViewModel for SunCalculationsViewModel to use
+    public class LocationViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string Photo { get; set; }
     }
 }

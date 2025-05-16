@@ -59,9 +59,19 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.70" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Location.Core.Application\Location.Core.Application.csproj" />
+    <ProjectReference Include="..\Location.Core.Maui\Location.Core.Maui.csproj" />
+    <ProjectReference Include="..\Location.Photography.Application\Location.Photography.Application.csproj" />
+    <ProjectReference Include="..\Location.Photography.Domain\Location.Photography.Domain.csproj" />
+    <ProjectReference Include="..\Location.Photography.Infrastructure\Location.Photography.Infrastructure.csproj" />
+    <ProjectReference Include="..\Location.Photography.ViewModels\Location.Photography.ViewModels.csproj" />
+  </ItemGroup>
 
 </Project>

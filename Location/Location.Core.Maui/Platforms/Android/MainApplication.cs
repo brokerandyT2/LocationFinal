@@ -11,6 +11,6 @@ namespace Location.Core.Maui
         {
         }
 
-        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+        protected override MauiApp CreateMauiApp() => Location.Core.Maui.MauiProgram.CreateMauiApp();
     }
 }
