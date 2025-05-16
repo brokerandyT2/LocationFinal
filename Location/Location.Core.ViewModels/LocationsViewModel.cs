@@ -16,6 +16,9 @@ namespace Location.Core.ViewModels
     {
         private readonly IMediator _mediator;
 
+        // Add the event
+        public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
+
         public ObservableCollection<LocationListItemViewModel> Locations { get; } = new();
 
         public LocationsViewModel(IMediator mediator) : base(null)
@@ -31,11 +34,18 @@ namespace Location.Core.ViewModels
         [RelayCommand]
         private async Task LoadLocationsAsync(CancellationToken cancellationToken = default)
         {
-            // Implementation remains the same
+            // Implementation remains the same - keep your existing implementation
+            // Just add the error event trigger when errors occur
+        }
+
+        // Add this method to raise the event
+        protected virtual void OnErrorOccurred(string message)
+        {
+            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(message));
         }
     }
 
-    // Make this class public to match the accessibility of the Locations property
+    // Keep your existing LocationListItemViewModel implementation unchanged
     public partial class LocationListItemViewModel : ObservableObject
     {
         private int _id;
