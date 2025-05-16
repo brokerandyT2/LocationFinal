@@ -2,6 +2,10 @@ using Location.Core.Application.Services;
 using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using MediatR;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Maui.Views
 {
@@ -12,6 +16,7 @@ namespace Location.Core.Maui.Views
         private readonly INavigationService _navigationService;
         private readonly IMediaService _mediaService;
         private readonly IGeolocationService _geolocationService;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
         public LocationsPage(
             IMediator mediator,
@@ -22,14 +27,16 @@ namespace Location.Core.Maui.Views
         {
             InitializeComponent();
 
-            _mediator = mediator;
-            _alertService = alertService;
-            _navigationService = navigationService;
-            _mediaService = mediaService;
-            _geolocationService = geolocationService;
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
+            _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+            _mediaService = mediaService ?? throw new ArgumentNullException(nameof(mediaService));
+            _geolocationService = geolocationService ?? throw new ArgumentNullException(nameof(geolocationService));
 
             // Initialize the view model
-            BindingContext = new LocationsViewModel(_mediator);
+            var viewModel = new LocationsViewModel(_mediator, _alertService);
+            viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+            BindingContext = viewModel;
         }
 
         protected override async void OnAppearing()
@@ -39,7 +46,26 @@ namespace Location.Core.Maui.Views
             // Refresh locations whenever the page appears
             if (BindingContext is LocationsViewModel viewModel)
             {
-                await viewModel.LoadLocationsCommand.ExecuteAsync(null);
+                await viewModel.LoadLocationsCommand.ExecuteAsync(_cts.Token);
+            }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+
+            // Unsubscribe from ViewModel events
+            if (BindingContext is LocationsViewModel viewModel)
+            {
+                viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
+            }
+
+            // Cancel any pending operations
+            if (!_cts.IsCancellationRequested)
+            {
+                _cts.Cancel();
+                _cts.Dispose();
+                _cts = new CancellationTokenSource();
             }
         }
 
@@ -72,6 +98,15 @@ namespace Location.Core.Maui.Views
 
                 await _navigationService.NavigateToModalAsync(page);
             }
+        }
+
+        private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
+        {
+            // Display error to user if it's not already displayed in the UI
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await _alertService.ShowErrorAlertAsync(e.Message, "Error");
+            });
         }
     }
 }

@@ -1,10 +1,8 @@
-// Location.Core.Maui/Views/TipsPage.xaml.cs
 using Location.Core.Application.Services;
-using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using MediatR;
-using Microsoft.Maui.Controls;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Location.Core.Maui.Views
@@ -13,21 +11,21 @@ namespace Location.Core.Maui.Views
     {
         private readonly IMediator _mediator;
         private readonly IAlertService _alertService;
-        private readonly INavigationService _navigationService;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
         public TipsPage(
             IMediator mediator,
-            IAlertService alertService,
-            INavigationService navigationService)
+            IAlertService alertService)
         {
             InitializeComponent();
 
-            _mediator = mediator;
-            _alertService = alertService;
-            _navigationService = navigationService;
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
 
             // Initialize the view model
-            BindingContext = new TipsViewModel(_mediator);
+            var viewModel = new TipsViewModel(_mediator, _alertService);
+            viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+            BindingContext = viewModel;
         }
 
         protected override async void OnAppearing()
@@ -37,17 +35,44 @@ namespace Location.Core.Maui.Views
             // Load tip types when the page appears
             if (BindingContext is TipsViewModel viewModel)
             {
-                await viewModel.LoadTipTypesCommand.ExecuteAsync(null);
+                await viewModel.LoadTipTypesCommand.ExecuteAsync(_cts.Token);
+            }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+
+            // Unsubscribe from ViewModel events
+            if (BindingContext is TipsViewModel viewModel)
+            {
+                viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
+            }
+
+            // Cancel any pending operations
+            if (!_cts.IsCancellationRequested)
+            {
+                _cts.Cancel();
+                _cts.Dispose();
+                _cts = new CancellationTokenSource();
             }
         }
 
         private async void OnAddTipClicked(object sender, EventArgs e)
         {
-            // We'll implement this later to add new tips
-            await _alertService.DisplayAlert(
-                "Coming Soon",
+            // Implementation for adding new tips (future feature)
+            await _alertService.ShowInfoAlertAsync(
                 "Adding new tips will be implemented in a future update.",
-                "OK");
+                "Coming Soon");
+        }
+
+        private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
+        {
+            // Display error to user if it's not already displayed in the UI
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await _alertService.ShowErrorAlertAsync(e.Message, "Error");
+            });
         }
     }
 }

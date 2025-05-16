@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Application.Services
 {
-    public interface IAlertingService
+    public interface IAlertService
     {
         Task ShowInfoAlertAsync(string message, string title = "Information");
         Task ShowSuccessAlertAsync(string message, string title = "Success");

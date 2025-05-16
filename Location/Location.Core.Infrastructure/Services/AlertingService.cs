@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Services
 {
-    public class AlertingService : IAlertingService
+    public class AlertingService : IAlertService
     {
         private readonly IMediator _mediator;
 

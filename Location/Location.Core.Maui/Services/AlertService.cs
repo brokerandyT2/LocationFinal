@@ -3,7 +3,7 @@ using Microsoft.Maui.Controls;
 
 namespace Location.Core.Maui.Services
 {
-    public class AlertService : Location.Core.Application.Services.IAlertingService
+    public class AlertService : Location.Core.Application.Services.IAlertService
     {
         public async Task DisplayAlert(string title, string message, string cancel)
         {

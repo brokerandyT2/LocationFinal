@@ -66,7 +66,7 @@ namespace Location.Core.ViewModels
             IMediator mediator,
             IMediaService mediaService,
             IGeolocationService geolocationService,
-            IAlertingService alertingService) 
+            IAlertService alertingService) 
             : base(alertingService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -131,6 +131,176 @@ namespace Location.Core.ViewModels
         protected virtual void OnErrorOccurred(string message)
         {
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(message));
+        }
+        // Addition to LocationViewModel.cs - implement LoadLocationAsync method
+
+        [RelayCommand]
+        private async Task LoadLocationAsync(int id, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                IsBusy = true;
+                IsError = false;
+                ErrorMessage = string.Empty;
+
+                // Create query
+                var query = new GetLocationByIdQuery { Id = id };
+
+                // Send query using MediatR
+                var result = await _mediator.Send(query, cancellationToken);
+
+                if (result.IsSuccess && result.Data != null)
+                {
+                    // Update properties from result
+                    Id = result.Data.Id;
+                    Title = result.Data.Title;
+                    Description = result.Data.Description;
+                    Latitude = result.Data.Latitude;
+                    Longitude = result.Data.Longitude;
+                    City = result.Data.City;
+                    State = result.Data.State;
+                    Photo = result.Data.PhotoPath;
+                    Timestamp = result.Data.Timestamp;
+                    IsNewLocation = false;
+                }
+                else
+                {
+                    // Handle error
+                    ErrorMessage = result.ErrorMessage ?? $"Failed to load location with ID {id}";
+                    IsError = true;
+                    OnErrorOccurred(ErrorMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle error
+                ErrorMessage = $"Error loading location: {ex.Message}";
+                IsError = true;
+                OnErrorOccurred(ErrorMessage);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task TakePhotoAsync()
+        {
+            try
+            {
+                IsBusy = true;
+                IsError = false;
+                ErrorMessage = string.Empty;
+
+                // Check if capture is supported
+                var supportResult = await _mediaService.IsCaptureSupported();
+                if (!supportResult.IsSuccess || !supportResult.Data)
+                {
+                    // Try to pick a photo instead
+                    var pickResult = await _mediaService.PickPhotoAsync();
+                    if (pickResult.IsSuccess)
+                    {
+                        Photo = pickResult.Data;
+                    }
+                    else
+                    {
+                        ErrorMessage = pickResult.ErrorMessage ?? "Failed to pick photo";
+                        IsError = true;
+                        OnErrorOccurred(ErrorMessage);
+                    }
+                    return;
+                }
+
+                // Capture a photo
+                var result = await _mediaService.CapturePhotoAsync();
+                if (result.IsSuccess)
+                {
+                    Photo = result.Data;
+                }
+                else
+                {
+                    ErrorMessage = result.ErrorMessage ?? "Failed to capture photo";
+                    IsError = true;
+                    OnErrorOccurred(ErrorMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Error taking photo: {ex.Message}";
+                IsError = true;
+                OnErrorOccurred(ErrorMessage);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task StartLocationTrackingAsync()
+        {
+            try
+            {
+                if (IsLocationTracking)
+                    return;
+
+                IsBusy = true;
+
+                // Request location permissions
+                var permissionResult = await _geolocationService.RequestPermissionsAsync();
+                if (!permissionResult.IsSuccess || !permissionResult.Data)
+                {
+                    // Not critical, just log
+                    System.Diagnostics.Debug.WriteLine("Location permission denied");
+                    return;
+                }
+
+                // Start tracking
+                var result = await _geolocationService.StartTrackingAsync();
+                if (result.IsSuccess && result.Data)
+                {
+                    IsLocationTracking = true;
+
+                    // Get current location immediately
+                    var locationResult = await _geolocationService.GetCurrentLocationAsync();
+                    if (locationResult.IsSuccess && locationResult.Data != null)
+                    {
+                        Latitude = Math.Round(locationResult.Data.Latitude, 6);
+                        Longitude = Math.Round(locationResult.Data.Longitude, 6);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Not critical, just log
+                System.Diagnostics.Debug.WriteLine($"Error starting location tracking: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task StopLocationTrackingAsync()
+        {
+            try
+            {
+                if (!IsLocationTracking)
+                    return;
+
+                var result = await _geolocationService.StopTrackingAsync();
+                if (result.IsSuccess)
+                {
+                    IsLocationTracking = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Not critical, just log
+                System.Diagnostics.Debug.WriteLine($"Error stopping location tracking: {ex.Message}");
+            }
         }
     }
 

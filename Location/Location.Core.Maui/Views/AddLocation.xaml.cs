@@ -1,9 +1,10 @@
 using Location.Core.Application.Locations.Queries.GetLocationById;
 using Location.Core.Application.Services;
-using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using MediatR;
-using Microsoft.Maui.Controls;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Maui.Views
 {
@@ -17,6 +18,7 @@ namespace Location.Core.Maui.Views
         private readonly IAlertService _alertService;
         private readonly int _locationId;
         private readonly bool _isEditMode;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
         #endregion
 
@@ -80,10 +82,7 @@ namespace Location.Core.Maui.Views
             else
             {
                 // Create new location ViewModel with services
-                var viewModel = new LocationViewModel(
-                    _mediator,
-                    _mediaService,
-                    _geolocationService);
+                var viewModel = new LocationViewModel(_mediator, _mediaService, _geolocationService, _alertService);
 
                 // Subscribe to error events
                 viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
@@ -106,79 +105,65 @@ namespace Location.Core.Maui.Views
             try
             {
                 // Show loading indicator
-                var loadingViewModel = new LocationViewModel
+                var loadingViewModel = new LocationViewModel(_mediator, _mediaService, _geolocationService, _alertService)
                 {
                     IsBusy = true
                 };
                 BindingContext = loadingViewModel;
 
-                // Load the location using MediatR query
+                // Create a fully initialized view model with services
+                var viewModel = new LocationViewModel(_mediator, _mediaService, _geolocationService, _alertService);
+
+                // Subscribe to error events
+                viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+
+                // Set as binding context
+                BindingContext = viewModel;
+
+                // Create query
                 var query = new GetLocationByIdQuery { Id = id };
-                var result = await _mediator.Send(query);
+
+                // Send query using MediatR
+                var result = await _mediator.Send(query, _cts.Token);
 
                 if (result.IsSuccess && result.Data != null)
                 {
-                    // Create a fully initialized view model with the loaded data
-                    var loadedViewModel = new LocationViewModel(
-                        _mediator,
-                        _mediaService,
-                        _geolocationService);
-
-                    // Copy properties from the result to the new view model
-                    loadedViewModel.Id = result.Data.Id;
-                    loadedViewModel.Title = result.Data.Title;
-                    loadedViewModel.Description = result.Data.Description;
-                    loadedViewModel.Latitude = result.Data.Latitude;
-                    loadedViewModel.Longitude = result.Data.Longitude;
-                    loadedViewModel.City = result.Data.City;
-                    loadedViewModel.State = result.Data.State;
-                    loadedViewModel.Photo = result.Data.PhotoPath ?? string.Empty;
-                    loadedViewModel.Timestamp = result.Data.Timestamp;
-
-                    // Mark as existing location
-                    loadedViewModel.IsNewLocation = false;
-
-                    // Subscribe to error events
-                    loadedViewModel.ErrorOccurred += ViewModel_ErrorOccurred;
-
-                    // Set as binding context
-                    BindingContext = loadedViewModel;
+                    // Update properties from result
+                    viewModel.Id = result.Data.Id;
+                    viewModel.Title = result.Data.Title;
+                    viewModel.Description = result.Data.Description;
+                    viewModel.Latitude = result.Data.Latitude;
+                    viewModel.Longitude = result.Data.Longitude;
+                    viewModel.City = result.Data.City;
+                    viewModel.State = result.Data.State;
+                    viewModel.Photo = result.Data.PhotoPath;
+                    viewModel.Timestamp = result.Data.Timestamp;
+                    viewModel.IsNewLocation = false;
                 }
                 else
                 {
-                    // Create a new view model with error
-                    var errorViewModel = new LocationViewModel(
-                        _mediator,
-                        _mediaService,
-                        _geolocationService)
-                    {
-                        IsError = true,
-                        ErrorMessage = result.ErrorMessage ?? "Failed to load location"
-                    };
-                    BindingContext = errorViewModel;
-
-                    // Display error to user
-
+                    // Handle error - setting these properties will trigger the error event
+                    viewModel.ErrorMessage = result.ErrorMessage ?? $"Failed to load location with ID {id}";
+                    viewModel.IsError = true;
+                    // Don't call OnErrorOccurred directly as it's protected
                 }
             }
             catch (Exception ex)
             {
                 // Handle error loading location
+                await _alertService.ShowErrorAlertAsync($"Error loading location: {ex.Message}", "Error");
 
                 // Create a new view model with error
-                var errorViewModel = new LocationViewModel(
-                    _mediator,
-                    _mediaService,
-                    _geolocationService)
+                var errorViewModel = new LocationViewModel(_mediator, _mediaService, _geolocationService, _alertService)
                 {
                     IsError = true,
                     ErrorMessage = $"Error loading location: {ex.Message}"
                 };
+                errorViewModel.ErrorOccurred += ViewModel_ErrorOccurred;
                 BindingContext = errorViewModel;
             }
             finally
             {
-                // Ensure busy indicator is hidden
                 if (BindingContext is LocationViewModel vm)
                 {
                     vm.IsBusy = false;
@@ -210,10 +195,7 @@ namespace Location.Core.Maui.Views
                     else
                     {
                         // Create a new view model with services for a new location
-                        var newViewModel = new LocationViewModel(
-                            _mediator,
-                            _mediaService,
-                            _geolocationService);
+                        var newViewModel = new LocationViewModel(_mediator, _mediaService, _geolocationService, _alertService);
 
                         // Subscribe to error events
                         newViewModel.ErrorOccurred += ViewModel_ErrorOccurred;
@@ -225,7 +207,7 @@ namespace Location.Core.Maui.Views
                         await GetCurrentLocationAsync();
 
                         // Show success message
-
+                        await _alertService.ShowSuccessAlertAsync("Location saved successfully", "Success");
                     }
                 }
             }
@@ -238,8 +220,7 @@ namespace Location.Core.Maui.Views
         {
             if (BindingContext is LocationViewModel viewModel)
             {
-                // We'll use SaveCommand for now, but this should be updated once we know the correct command
-                await viewModel.SaveCommand.ExecuteAsync(null);
+                await viewModel.TakePhotoCommand.ExecuteAsync(null);
             }
         }
 
@@ -259,7 +240,7 @@ namespace Location.Core.Maui.Views
             // Display error to user if it's not already displayed in the UI
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-
+                await _alertService.ShowErrorAlertAsync(e.Message, "Error");
             });
         }
 
@@ -276,18 +257,8 @@ namespace Location.Core.Maui.Views
             {
                 try
                 {
-                    // For now, we won't use a specific location command until we know the correct one
-                    // Let's just use the geolocation service directly
-                    if (_geolocationService != null)
-                    {
-                        var result = await _geolocationService.GetCurrentLocationAsync();
-                        if (result.IsSuccess && result.Data != null)
-                        {
-                            // Update the view model with the current location
-                            viewModel.Latitude = Math.Round(result.Data.Latitude, 6);
-                            viewModel.Longitude = Math.Round(result.Data.Longitude, 6);
-                        }
-                    }
+                    // Start location tracking on the view model
+                    await viewModel.StartLocationTrackingCommand.ExecuteAsync(null);
                 }
                 catch (Exception ex)
                 {
@@ -335,8 +306,19 @@ namespace Location.Core.Maui.Views
             {
                 viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
 
-                // Not using the location tracking commands for now
-                // We'll just let the page dispose normally
+                // Ensure location tracking is stopped when leaving the page
+                if (viewModel.IsLocationTracking)
+                {
+                    viewModel.StopLocationTrackingCommand.Execute(null);
+                }
+            }
+
+            // Cancel any pending operations
+            if (!_cts.IsCancellationRequested)
+            {
+                _cts.Cancel();
+                _cts.Dispose();
+                _cts = new CancellationTokenSource();
             }
         }
 

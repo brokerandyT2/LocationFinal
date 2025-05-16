@@ -8,7 +8,7 @@ namespace Location.Core.ViewModels
 {
     public abstract class BaseViewModel : ObservableObject, IDisposable
     {
-        private readonly IAlertingService? _alertingService;
+        private readonly IAlertService? _alertService;
 
         private bool _isBusy;
         private bool _isError;
@@ -39,17 +39,17 @@ namespace Location.Core.ViewModels
             set => SetProperty(ref _errorMessage, value);
         }
 
-        protected BaseViewModel(IAlertService? alertingService = null)
+        protected BaseViewModel(IAlertService? alertService = null)
         {
-            _alertingService = alertingService;
+            _alertService = alertService;
         }
 
         protected virtual async Task PublishErrorAsync(string message)
         {
             // Only publish if we have an alerting service
-            if (_alertingService != null)
+            if (_alertService != null)
             {
-                await _alertingService.ShowErrorAlertAsync(message, "Error");
+                await _alertService.ShowErrorAlertAsync(message, "Error");
             }
         }
 

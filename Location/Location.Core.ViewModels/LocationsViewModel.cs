@@ -23,7 +23,7 @@ namespace Location.Core.ViewModels
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        public LocationsViewModel(IMediator mediator, IAlertingService alertingService) : base(alertingService)
+        public LocationsViewModel(IMediator mediator, IAlertService alertingService) : base(alertingService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
