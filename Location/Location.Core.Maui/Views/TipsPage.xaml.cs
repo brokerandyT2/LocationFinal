@@ -13,6 +13,8 @@ namespace Location.Core.Maui.Views
         private readonly IAlertService _alertService;
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
+        [Obsolete("This constructor is for tooling or serialization purposes only. Use the constructor with dependencies instead.")]
+        public TipsPage() { throw new NotImplementedException(); }
         public TipsPage(
             IMediator mediator,
             IAlertService alertService)

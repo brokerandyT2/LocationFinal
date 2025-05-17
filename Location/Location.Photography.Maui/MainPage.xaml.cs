@@ -1,24 +1,24 @@
-﻿namespace Location.Photography.Maui
-{
-    public partial class MainPage : ContentPage
-    {
-        int count = 0;
+﻿using core = Location.Core.Maui.Views;
 
+namespace Location.Photography.Maui
+{
+    public partial class MainPage : TabbedPage
+    {
+        bool isLoggedIn = false;
+        
         public MainPage()
         {
             InitializeComponent();
+
+
+            if (isLoggedIn)
+            {
+                this.Children.Add(new core.AddLocation());
+                this.Children.Add(new core.LocationsPage());
+                this.Children.Add(new core.TipsPage());
+            }
         }
 
-        private void OnCounterClicked(object? sender, EventArgs e)
-        {
-            count++;
-
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
-        }
+       
     }
 }

@@ -38,6 +38,12 @@ namespace Location.Core.Maui.Views
             viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
             BindingContext = viewModel;
         }
+        // Parameterless constructor marked as obsolete to prevent usage
+        [Obsolete("This constructor is for tooling or serialization purposes only. Use the constructor with dependencies instead.")]
+        public LocationsPage()
+        {
+            throw new InvalidOperationException("This constructor is not intended to be used.");
+        }
 
         protected override async void OnAppearing()
         {
