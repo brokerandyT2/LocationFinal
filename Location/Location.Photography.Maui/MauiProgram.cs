@@ -9,6 +9,7 @@ using Location.Core.ViewModels;
 using Location.Photography.Application;
 using Location.Photography.Infrastructure;
 using Location.Photography.ViewModels;
+using Location.Photography.ViewModels.Premium;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -59,6 +60,8 @@ namespace Location.Photography.Maui
             builder.Services.AddTransient<Location.Photography.Maui.Views.Premium.ExposureCalculator>();
             builder.Services.AddTransient<Views.Premium.SunCalculator>();
             builder.Services.AddTransient<Views.Premium.SunLocation>();
+            builder.Services.AddTransient<SunCalculatorViewModel>();
+            builder.Services.AddTransient<Views.Premium.SunCalculator>();
 
 #if DEBUG
             builder.Logging.AddDebug();

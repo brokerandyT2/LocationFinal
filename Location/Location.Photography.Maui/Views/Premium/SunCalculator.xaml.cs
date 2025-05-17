@@ -1,6 +1,7 @@
+// Location.Photography.Maui.Views.Premium/SunCalculator.xaml.cs
 using Location.Core.Application.Services;
-using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
+using Location.Photography.ViewModels.Premium;
 using Microsoft.Maui.Controls;
 using System;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace Location.Photography.Maui.Views.Premium
 {
     public partial class SunCalculator : ContentPage
     {
-        private readonly SunCalculationsViewModel _viewModel;
+        private readonly SunCalculatorViewModel _viewModel;
         private readonly IAlertService _alertService;
 
         public SunCalculator()
@@ -18,7 +19,7 @@ namespace Location.Photography.Maui.Views.Premium
             InitializeComponent();
         }
 
-        public SunCalculator(SunCalculationsViewModel viewModel, IAlertService alertService)
+        public SunCalculator(SunCalculatorViewModel viewModel, IAlertService alertService)
         {
             InitializeComponent();
 
@@ -37,8 +38,11 @@ namespace Location.Photography.Maui.Views.Premium
 
             try
             {
+                // Load locations when page appears
                 await _viewModel.LoadLocationsAsync();
-                _viewModel.CalculateSun();
+
+                // Initial calculation will happen automatically after location is selected
+                // due to the property changed handler in the view model
             }
             catch (Exception ex)
             {
@@ -60,13 +64,13 @@ namespace Location.Photography.Maui.Views.Premium
         private void LocationPicker_SelectedIndexChanged(object sender, EventArgs e)
         {
             // The binding will handle updating the ViewModel's SelectedLocation property
-            // which will trigger the calculation of sun times
+            // which will trigger the calculation of sun times through the property changed handler
         }
 
         private void DatePicker_DateSelected(object sender, DateChangedEventArgs e)
         {
             // The binding will handle updating the ViewModel's Date property
-            // which will trigger the calculation of sun times
+            // which will trigger the calculation of sun times through the property changed handler
         }
 
         private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
