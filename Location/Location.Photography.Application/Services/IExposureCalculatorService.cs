@@ -1,4 +1,4 @@
-﻿// Location.Photography.Application/Services/IExposureCalculatorService.cs
+﻿
 using Location.Core.Application.Common.Models;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +15,8 @@ namespace Location.Photography.Application.Services
             string targetAperture,
             string targetIso,
             ExposureIncrements increments,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default,
+            double evCompensation = 0);
 
         /// <summary>
         /// Calculates a new aperture based on the base exposure and desired shutter speed and ISO
@@ -25,7 +26,8 @@ namespace Location.Photography.Application.Services
             string targetShutterSpeed,
             string targetIso,
             ExposureIncrements increments,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default,
+            double evCompensation = 0);
 
         /// <summary>
         /// Calculates a new ISO based on the base exposure and desired shutter speed and aperture
@@ -35,7 +37,8 @@ namespace Location.Photography.Application.Services
             string targetShutterSpeed,
             string targetAperture,
             ExposureIncrements increments,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default,
+            double evCompensation = 0);
 
         /// <summary>
         /// Gets available shutter speed values for the specified increment

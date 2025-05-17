@@ -19,14 +19,6 @@ namespace Location.Photography.Application.Commands.ExposureCalculator
         public double EvCompensation { get; set; }
     }
 
-    public enum FixedValue
-    {
-        ShutterSpeeds = 0,
-        ISO = 1,
-        Empty = 2,
-        Aperture = 3
-    }
-
     public class CalculateExposureCommandHandler : IRequestHandler<CalculateExposureCommand, Result<ExposureSettingsDto>>
     {
         private readonly IExposureCalculatorService _exposureCalculatorService;
@@ -40,23 +32,23 @@ namespace Location.Photography.Application.Commands.ExposureCalculator
         {
             try
             {
-                // Apply EV compensation if needed (simplified implementation)
-                // In a real implementation, you would modify the exposure values based on EVValue
-
                 // Perform calculations based on what's fixed
                 switch (request.ToCalculate)
                 {
                     case FixedValue.ShutterSpeeds:
                         return await _exposureCalculatorService.CalculateShutterSpeedAsync(
-                            request.BaseExposure, request.TargetAperture, request.TargetIso, request.Increments, cancellationToken);
+                            request.BaseExposure, request.TargetAperture, request.TargetIso, request.Increments,
+                            cancellationToken, request.EvCompensation);
 
                     case FixedValue.Aperture:
                         return await _exposureCalculatorService.CalculateApertureAsync(
-                            request.BaseExposure, request.TargetShutterSpeed, request.TargetIso, request.Increments, cancellationToken);
+                            request.BaseExposure, request.TargetShutterSpeed, request.TargetIso, request.Increments,
+                            cancellationToken, request.EvCompensation);
 
                     case FixedValue.ISO:
                         return await _exposureCalculatorService.CalculateIsoAsync(
-                            request.BaseExposure, request.TargetShutterSpeed, request.TargetAperture, request.Increments, cancellationToken);
+                            request.BaseExposure, request.TargetShutterSpeed, request.TargetAperture, request.Increments,
+                            cancellationToken, request.EvCompensation);
 
                     default:
                         return Result<ExposureSettingsDto>.Failure("Invalid calculation type");

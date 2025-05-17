@@ -1,5 +1,6 @@
 ﻿// Location.Photography.Application/Commands/ExposureCalculator/CalculateExposureCommandValidator.cs
 using FluentValidation;
+using Location.Photography.Application.Services;
 
 namespace Location.Photography.Application.Commands.ExposureCalculator
 {

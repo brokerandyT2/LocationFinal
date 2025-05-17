@@ -1,5 +1,4 @@
-﻿// Location.Photography.ViewModels/ExposureCalculatorViewModel.cs
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
@@ -257,9 +256,6 @@ namespace Location.Photography.ViewModels
                     Iso = OldISO
                 };
 
-                // Apply EV compensation if needed
-                ApplyEVCompensation(ref baseExposure);
-
                 // Perform calculations based on what's fixed
                 Task<Result<ExposureSettingsDto>> resultTask = null;
 
@@ -267,17 +263,17 @@ namespace Location.Photography.ViewModels
                 {
                     case FixedValue.ShutterSpeeds:
                         resultTask = _exposureCalculatorService.CalculateShutterSpeedAsync(
-                            baseExposure, FStopSelected, ISOSelected, FullHalfThirds);
+                            baseExposure, FStopSelected, ISOSelected, FullHalfThirds, default, EVValue);
                         break;
 
                     case FixedValue.Aperture:
                         resultTask = _exposureCalculatorService.CalculateApertureAsync(
-                            baseExposure, ShutterSpeedSelected, ISOSelected, FullHalfThirds);
+                            baseExposure, ShutterSpeedSelected, ISOSelected, FullHalfThirds, default, EVValue);
                         break;
 
                     case FixedValue.ISO:
                         resultTask = _exposureCalculatorService.CalculateIsoAsync(
-                            baseExposure, ShutterSpeedSelected, FStopSelected, FullHalfThirds);
+                            baseExposure, ShutterSpeedSelected, FStopSelected, FullHalfThirds, default, EVValue);
                         break;
                 }
 
@@ -314,13 +310,6 @@ namespace Location.Photography.ViewModels
             OldShutterSpeed = ShutterSpeedSelected;
             OldFstop = FStopSelected;
             OldISO = ISOSelected;
-        }
-
-        private void ApplyEVCompensation(ref ExposureTriangleDto exposure)
-        {
-            // This would adjust the base exposure based on EV compensation
-            // For now, we're just using the base exposure as is
-            // In a real implementation, you would modify the exposure values based on EVValue
         }
 
         public void Reset()

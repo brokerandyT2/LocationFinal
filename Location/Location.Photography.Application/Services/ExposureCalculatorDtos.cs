@@ -1,5 +1,4 @@
-﻿// Location.Photography.Application/Services/ExposureCalculatorDtos.cs
-using System;
+﻿using System;
 
 namespace Location.Photography.Application.Services
 {
@@ -25,6 +24,9 @@ namespace Location.Photography.Application.Services
         Third
     }
 
+    /// <summary>
+    /// Defines which part of the exposure triangle should be calculated
+    /// </summary>
     public enum FixedValue
     {
         ShutterSpeeds = 0,
