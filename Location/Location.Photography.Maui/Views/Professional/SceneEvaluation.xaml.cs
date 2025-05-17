@@ -18,7 +18,8 @@ public partial class SceneEvaluation : ContentPage
         // Subscribe to error events
         _viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
     }
-
+    [Obsolete("This constructor is for tooling or serialization purposes only. Use the constructor with dependencies instead.")]
+    public SceneEvaluation() { throw new NotImplementedException(); }
     protected override void OnAppearing()
     {
         base.OnAppearing();

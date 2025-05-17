@@ -17,6 +17,9 @@ namespace Location.Photography.Infrastructure
         public static readonly string TimeFormat = "TimeFormat";
         public static readonly string USTimeformat = "hh:mm tt";
         public static readonly string InternationalTimeFormat = "HH:mm";
+        // Adding the pattern formats to align with Core
+        public static readonly string USTimeformat_Pattern = "hh:mm tt";
+        public static readonly string InternationalTimeFormat_Pattern = "HH:mm";
 
         // Temperature settings
         public static readonly string TemperatureType = "TemperatureType";

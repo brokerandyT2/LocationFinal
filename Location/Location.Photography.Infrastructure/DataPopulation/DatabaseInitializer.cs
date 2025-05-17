@@ -1,9 +1,8 @@
-﻿// Location.Photography.Infrastructure/DatabaseInitializer.cs
+﻿// Location.Photography.Infrastructure/DataPopulation/DatabaseInitializer.cs
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Domain.Entities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -34,16 +33,15 @@ namespace Location.Photography.Infrastructure
             string dateFormat = "MMM/dd/yyyy",
             string timeFormat = "hh:mm tt",
             string windDirection = "towardsWind",
-            string email = "",
-            CancellationToken cancellationToken = default)
+            string email = "")
         {
             try
             {
                 _logger.LogInformation("Starting database population");
 
-                await CreateTipTypesAsync(cancellationToken);
-                await CreateSampleLocationsAsync(cancellationToken);
-                await CreateSettingsAsync(hemisphere, tempFormat, dateFormat, timeFormat, windDirection, email, cancellationToken);
+                await CreateTipTypesAsync();
+                await CreateSampleLocationsAsync();
+                await CreateSettingsAsync(hemisphere, tempFormat, dateFormat, timeFormat, windDirection, email);
 
                 _logger.LogInformation("Database population completed successfully");
             }
@@ -55,7 +53,7 @@ namespace Location.Photography.Infrastructure
             }
         }
 
-        private async Task CreateTipTypesAsync(CancellationToken cancellationToken)
+        private async Task CreateTipTypesAsync()
         {
             var tipTypeNames = new[]
             {
@@ -68,7 +66,8 @@ namespace Location.Photography.Infrastructure
                 var tipType = new TipType(name);
                 tipType.SetLocalization("en-US");
 
-                var typeResult = await _unitOfWork.TipTypes.CreateEntityAsync(tipType, cancellationToken);
+                // Create tip type in repository
+                var typeResult = await _unitOfWork.TipTypes.CreateEntityAsync(tipType);
 
                 if (!typeResult.IsSuccess || typeResult.Data == null)
                 {
@@ -85,7 +84,7 @@ namespace Location.Photography.Infrastructure
                 tip.UpdatePhotographySettings("f/1", "1/125", "50");
                 tip.SetLocalization("en-US");
 
-                var tipResult = await _unitOfWork.Tips.CreateAsync(tip, cancellationToken);
+                var tipResult = await _unitOfWork.Tips.CreateAsync(tip);
                 if (!tipResult.IsSuccess)
                 {
                     _logger.LogWarning("Failed to create tip for type {Name}: {Error}", name, tipResult.ErrorMessage);
@@ -95,7 +94,7 @@ namespace Location.Photography.Infrastructure
             _logger.LogInformation("Created {Count} tip types with sample tips", tipTypeNames.Length);
         }
 
-        private async Task CreateSampleLocationsAsync(CancellationToken cancellationToken)
+        private async Task CreateSampleLocationsAsync()
         {
             var sampleLocations = new List<(string Title, string Description, double Latitude, double Longitude, string Photo)>
             {
@@ -139,7 +138,7 @@ namespace Location.Photography.Infrastructure
                     location.AttachPhoto(photo);
                 }
 
-                var result = await _unitOfWork.Locations.CreateAsync(location, cancellationToken);
+                var result = await _unitOfWork.Locations.CreateAsync(location);
                 if (!result.IsSuccess)
                 {
                     _logger.LogWarning("Failed to create location {Title}: {Error}", title, result.ErrorMessage);
@@ -155,62 +154,89 @@ namespace Location.Photography.Infrastructure
             string dateFormat,
             string timeFormat,
             string windDirection,
-            string email,
-            CancellationToken cancellationToken)
+            string email)
         {
             var guid = Guid.NewGuid().ToString();
 
             var settings = new List<(string Key, string Value, string Description)>
             {
                 // Core settings
-                ("Hemisphere", hemisphere, "User's hemisphere (north/south)"),
-                ("FirstName", "", "User's first name"),
-                ("LastName", "", "User's last name"),
-                ("UniqueID", guid, "Unique identifier for the installation"),
-                ("LastBulkWeatherUpdate", DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
-                ("DefaultLanguage", "en-US", "Default language setting"),
-                ("WindDirection", windDirection, "Wind direction setting (towardsWind/withWind)"),
-                ("CameraRefresh", "2000", "Camera refresh rate in milliseconds"),
-                ("AppOpenCounter", "1", "Number of times the app has been opened"),
-                ("TimeFormat", timeFormat, "Time format (12h/24h)"),
-                ("DateFormat", dateFormat, "Date format (US/International)"),
-                ("WeatherURL", "https://api.openweathermap.org/data/3.0/onecall", "Weather API URL"),
-                ("WeatherApiKey", "aa24f449cced50c0491032b2f955d610", "Weather API key"),
-                ("FreePremiumAdSupported", "false", "Whether the app is running in ad-supported mode"),
-                ("TemperatureType", tempFormat, "Temperature format (F/C)"),
-                ("DeviceInfo", "", "Device information"),
-                ("Email", email, "User's email address"),
-
-                // Feature viewed flags
-                ("SettingsViewed", "false", "Whether the settings page has been viewed"),
-                ("HomePageViewed", "false", "Whether the home page has been viewed"),
-                ("LocationListViewed", "false", "Whether the location list has been viewed"),
-                ("TipsViewed", "false", "Whether the tips page has been viewed"),
-                ("ExposureCalcViewed", "false", "Whether the exposure calculator has been viewed"),
-                ("LightMeterViewed", "false", "Whether the light meter has been viewed"),
-                ("SceneEvaluationViewed", "false", "Whether the scene evaluation has been viewed"),
-                ("AddLocationViewed", "false", "Whether the add location page has been viewed"),
-                ("WeatherDisplayViewed", "false", "Whether the weather display has been viewed"),
-                ("SunCalculatorViewed", "false", "Whether the sun calculator has been viewed"),
-
-                // Ad view timestamps
-                ("ExposureCalcAdViewedTimeStamp", DateTime.Now.AddDays(-1).ToString(), "Timestamp of last exposure calculator ad view"),
-                ("LightMeterAdViewedTimeStamp", DateTime.Now.AddDays(-1).ToString(), "Timestamp of last light meter ad view"),
-                ("SceneEvaluationAdViewedTimeStamp", DateTime.Now.AddDays(-1).ToString(), "Timestamp of last scene evaluation ad view"),
-                ("SunCalculatorAdViewedTimeStamp", DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun calculator ad view"),
-                ("SunLocationAdViewedTimeStamp", DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun location ad view"),
-                ("WeatherDisplayAdViewedTimeStamp", DateTime.Now.AddDays(-1).ToString(), "Timestamp of last weather display ad view"),
-
-                // Subscription settings
-                ("SubscriptionType", "Free", "Subscription type (Free/Premium)"),
-                ("SubscriptionExpiration", DateTime.Now.AddDays(-1).ToString(), "Subscription expiration date"),
-                ("AdGivesHours", "12", "Hours of premium access granted per ad view")
+                (MagicStrings.Hemisphere, hemisphere, "User's hemisphere (north/south)"),
+                (MagicStrings.FirstName, "", "User's first name"),
+                (MagicStrings.LastName, "", "User's last name"),
+                (MagicStrings.UniqueID, guid, "Unique identifier for the installation"),
+                (MagicStrings.LastBulkWeatherUpdate, DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
+                (MagicStrings.DefaultLanguage, "en-US", "Default language setting"),
+                (MagicStrings.WindDirection, windDirection, "Wind direction setting (towardsWind/withWind)"),
+                (MagicStrings.CameraRefresh, "2000", "Camera refresh rate in milliseconds"),
+                (MagicStrings.AppOpenCounter, "1", "Number of times the app has been opened"),
+                (MagicStrings.TimeFormat, timeFormat, "Time format (12h/24h)"),
+                (MagicStrings.DateFormat, dateFormat, "Date format (US/International)"),
+                (MagicStrings.WeatherURL, "https://api.openweathermap.org/data/3.0/onecall", "Weather API URL"),
+                (MagicStrings.Weather_API_Key, "aa24f449cced50c0491032b2f955d610", "Weather API key"),
+                (MagicStrings.FreePremiumAdSupported, "false", "Whether the app is running in ad-supported mode"),
+                (MagicStrings.TemperatureType, tempFormat, "Temperature format (F/C)"),
+                (MagicStrings.DeviceInfo, "", "Device information"),
+                (MagicStrings.Email, email, "User's email address"),
             };
+
+            // Add additional settings based on the build configuration
+#if DEBUG
+            // Debug mode settings - features already viewed and additional functionality
+            var debugSettings = new List<(string Key, string Value, string Description)>
+            {
+                (MagicStrings.SettingsViewed, MagicStrings.True_string, "Whether the settings page has been viewed"),
+                (MagicStrings.HomePageViewed, MagicStrings.True_string, "Whether the home page has been viewed"),
+                (MagicStrings.LocationListViewed, MagicStrings.True_string, "Whether the location list has been viewed"),
+                (MagicStrings.TipsViewed, MagicStrings.True_string, "Whether the tips page has been viewed"),
+                (MagicStrings.ExposureCalcViewed, MagicStrings.True_string, "Whether the exposure calculator has been viewed"),
+                (MagicStrings.LightMeterViewed, MagicStrings.True_string, "Whether the light meter has been viewed"),
+                (MagicStrings.SceneEvaluationViewed, MagicStrings.True_string, "Whether the scene evaluation has been viewed"),
+                (MagicStrings.AddLocationViewed, MagicStrings.True_string, "Whether the add location page has been viewed"),
+                (MagicStrings.WeatherDisplayViewed, MagicStrings.True_string, "Whether the weather display has been viewed"),
+                (MagicStrings.SunCalculatorViewed, MagicStrings.True_string, "Whether the sun calculator has been viewed"),
+                (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last exposure calculator ad view"),
+                (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last light meter ad view"),
+                (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last scene evaluation ad view"),
+                (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun calculator ad view"),
+                (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun location ad view"),
+                (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last weather display ad view"),
+                (MagicStrings.SubscriptionType, MagicStrings.Premium, "Subscription type (Free/Premium)"),
+                (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(100).ToString(), "Subscription expiration date"),
+                (MagicStrings.AdGivesHours, "24", "Hours of premium access granted per ad view")
+            };
+            settings.AddRange(debugSettings);
+#else
+            // Release mode settings - features not viewed and basic functionality
+            var releaseSettings = new List<(string Key, string Value, string Description)>
+            {
+                (MagicStrings.SettingsViewed, MagicStrings.False_string, "Whether the settings page has been viewed"),
+                (MagicStrings.HomePageViewed, MagicStrings.False_string, "Whether the home page has been viewed"),
+                (MagicStrings.LocationListViewed, MagicStrings.False_string, "Whether the location list has been viewed"),
+                (MagicStrings.TipsViewed, MagicStrings.False_string, "Whether the tips page has been viewed"),
+                (MagicStrings.ExposureCalcViewed, MagicStrings.False_string, "Whether the exposure calculator has been viewed"),
+                (MagicStrings.LightMeterViewed, MagicStrings.False_string, "Whether the light meter has been viewed"),
+                (MagicStrings.SceneEvaluationViewed, MagicStrings.False_string, "Whether the scene evaluation has been viewed"),
+                (MagicStrings.AddLocationViewed, MagicStrings.False_string, "Whether the add location page has been viewed"),
+                (MagicStrings.WeatherDisplayViewed, MagicStrings.False_string, "Whether the weather display has been viewed"),
+                (MagicStrings.SunCalculatorViewed, MagicStrings.False_string, "Whether the sun calculator has been viewed"),
+                (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last exposure calculator ad view"),
+                (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last light meter ad view"),
+                (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last scene evaluation ad view"),
+                (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun calculator ad view"),
+                (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun location ad view"),
+                (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last weather display ad view"),
+                (MagicStrings.SubscriptionType, MagicStrings.Free, "Subscription type (Free/Premium)"),
+                (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(-1).ToString(), "Subscription expiration date"),
+                (MagicStrings.AdGivesHours, "12", "Hours of premium access granted per ad view")
+            };
+            settings.AddRange(releaseSettings);
+#endif
 
             foreach (var (key, value, description) in settings)
             {
                 var setting = new Setting(key, value, description);
-                var result = await _unitOfWork.Settings.UpsertAsync(setting, cancellationToken);
+                var result = await _unitOfWork.Settings.UpsertAsync(setting);
                 if (!result.IsSuccess)
                 {
                     _logger.LogWarning("Failed to create setting {Key}: {Error}", key, result.ErrorMessage);
@@ -218,30 +244,6 @@ namespace Location.Photography.Infrastructure
             }
 
             _logger.LogInformation("Created {Count} settings", settings.Count);
-        }
-    }
-
-    public static class DatabaseInitializerExtensions
-    {
-        public static async Task SeedDatabaseAsync(
-            this IServiceProvider serviceProvider,
-            string hemisphere = "north",
-            string tempFormat = "F",
-            string dateFormat = "MMM/dd/yyyy",
-            string timeFormat = "hh:mm tt",
-            string windDirection = "towardsWind",
-            string email = "",
-            CancellationToken cancellationToken = default)
-        {
-            using var scope = serviceProvider.CreateScope();
-            var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
-            await initializer.InitializeDatabaseAsync(
-                hemisphere, tempFormat, dateFormat, timeFormat, windDirection, email, cancellationToken);
-        }
-
-        public static IServiceCollection AddDatabaseInitializer(this IServiceCollection services)
-        {
-            return services.AddScoped<DatabaseInitializer>();
         }
     }
 }

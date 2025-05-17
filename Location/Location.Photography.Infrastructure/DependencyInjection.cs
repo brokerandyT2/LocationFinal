@@ -12,7 +12,7 @@ namespace Location.Photography.Infrastructure
         public static IServiceCollection AddPhotographyInfrastructure(this IServiceCollection services)
         {
             // Register database initializer
-            services.AddDatabaseInitializer();
+            //services.AddDatabaseInitializer();
 
             // Register photography services
             services.AddScoped<ISunCalculatorService, SunCalculatorService>();

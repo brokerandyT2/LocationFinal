@@ -8,10 +8,12 @@ using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using Location.Photography.Application;
 using Location.Photography.Infrastructure;
+using Location.Photography.Maui.Views;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Premium;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace Location.Photography.Maui
 {
@@ -39,10 +41,14 @@ namespace Location.Photography.Maui
             builder.Services.AddPhotographyApplication();
             builder.Services.AddPhotographyInfrastructure();
 
+            // Register the database initializer for use during onboarding
+            //builder.Services.AddDatabaseInitializer();
+
             // Register MAUI services
             builder.Services.AddSingleton<IGeolocationService, GeolocationService>();
             builder.Services.AddSingleton<IMediaService, MediaService>();
             builder.Services.AddTransient<INotificationHandler<AlertEvent>, AlertEventHandler>();
+           // builder.Services.AddTransient<INotificationHandler<AlertEvent>, AlertEventHandler>();
 
             // Register Core ViewModels
             builder.Services.AddTransient<ViewModels.LocationViewModel>();
@@ -56,7 +62,8 @@ namespace Location.Photography.Maui
             builder.Services.AddTransient<Location.Core.Maui.Views.EditLocation>();
             builder.Services.AddTransient<Location.Core.Maui.Views.WeatherDisplay>();
 
-            // Register Photography Pages
+            // Register Photography Pages including UserOnboarding
+            builder.Services.AddTransient<UserOnboarding>();
             builder.Services.AddTransient<Location.Photography.Maui.Views.Premium.ExposureCalculator>();
             builder.Services.AddTransient<Views.Premium.SunCalculator>();
             builder.Services.AddTransient<Views.Premium.SunLocation>();
