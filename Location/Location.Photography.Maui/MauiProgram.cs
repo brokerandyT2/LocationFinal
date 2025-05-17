@@ -57,6 +57,8 @@ namespace Location.Photography.Maui
 
             // Register Photography Pages
             builder.Services.AddTransient<Location.Photography.Maui.Views.Premium.ExposureCalculator>();
+            builder.Services.AddTransient<Views.Premium.SunCalculator>();
+            builder.Services.AddTransient<Views.Premium.SunLocation>();
 
 #if DEBUG
             builder.Logging.AddDebug();

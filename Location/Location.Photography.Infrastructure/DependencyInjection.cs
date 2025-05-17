@@ -4,7 +4,7 @@ using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure.Extensions;
 using Location.Photography.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
-
+using Location.Photography.Maui;
 namespace Location.Photography.Infrastructure
 {
     public static class DependencyInjection
@@ -17,7 +17,6 @@ namespace Location.Photography.Infrastructure
             // Register photography services
             services.AddScoped<ISunCalculatorService, SunCalculatorService>();
             services.AddScoped<IExposureCalculatorService, ExposureCalculatorService>();
-
             return services;
         }
     }
