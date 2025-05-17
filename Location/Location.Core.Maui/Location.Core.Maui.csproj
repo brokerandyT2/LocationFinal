@@ -65,6 +65,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Location.Core.Converters\Location.Core.Converters.csproj" />
+    <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
     <ProjectReference Include="..\Location.Core.Infrastructure\Location.Core.Infrastructure.csproj" />
     <ProjectReference Include="..\Location.Core.ViewModels\Location.Core.ViewModels.csproj" />
   </ItemGroup>
