@@ -13,13 +13,15 @@ namespace Location.Core.Infrastructure.Data.Repositories
         private readonly Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository _innerRepository;
         private readonly Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository _innerLocationRepository;
         Location.Core.Application.Common.Interfaces.Persistence.ITipRepository _innerTipRepository;
-        public TipTypeRepositoryAdapter(Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository innerRepository, Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository locationRepository, Location.Core.Application.Common.Interfaces.Persistence.ITipRepository tiprepo)
+        public TipTypeRepositoryAdapter(
+            Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository innerRepository,
+            Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository locationRepository,
+            Location.Core.Application.Common.Interfaces.Persistence.ITipRepository tipRepository)
         {
             _innerRepository = innerRepository ?? throw new ArgumentNullException(nameof(innerRepository));
-            _innerLocationRepository = locationRepository ?? throw new ArgumentNullException(nameof(_innerLocationRepository));
-            _innerTipRepository = tiprepo ?? throw new ArgumentNullException(nameof(tiprepo));
+            _innerLocationRepository = locationRepository ?? throw new ArgumentNullException(nameof(locationRepository));
+            _innerTipRepository = tipRepository ?? throw new ArgumentNullException(nameof(tipRepository));
         }
-
         public Task<TipType?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
             => _innerRepository.GetByIdAsync(id, cancellationToken);
 

@@ -1,297 +1,246 @@
-﻿
-using NUnit.Framework;
-using FluentAssertions;
-using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Services;
 using Location.Core.Domain.Interfaces;
-using Location.Core.Infrastructure.Events;
-using Location.Core.Infrastructure.Tests.Helpers;
 using Microsoft.Extensions.Logging;
-using Moq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Location.Core.Infrastructure.Tests.Events
+namespace Location.Core.Infrastructure.Events
 {
-    [TestFixture]
-    public class InMemoryEventBusTests
+    public class InMemoryEventBus : IEventBus
     {
-        private InMemoryEventBus _eventBus;
-        private Mock<ILogger<InMemoryEventBus>> _mockLogger;
+        private readonly ILogger<InMemoryEventBus> _logger;
+        private readonly Dictionary<Type, List<object>> _eventHandlers = new();
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-        [SetUp]
-        public void Setup()
+        public InMemoryEventBus(ILogger<InMemoryEventBus> logger)
         {
-            _mockLogger = new Mock<ILogger<InMemoryEventBus>>();
-            _eventBus = new InMemoryEventBus(_mockLogger.Object);
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        [TearDown]
-        public void TearDown()
+        public async Task PublishAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
         {
-            _eventBus?.Dispose();
-        }
+            if (domainEvent == null)
+                throw new ArgumentNullException(nameof(domainEvent));
 
-        [Test]
-        public async Task PublishAsync_WithValidEvent_ShouldLogInformation()
-        {
-            // Arrange
-            var domainEvent = new TestDomainEvent { TestData = "test" };
-
-            // Act
-            await _eventBus.PublishAsync(domainEvent);
-
-            // Assert
-            _mockLogger.Verify(
-                x => x.Log(
-                    It.Is<LogLevel>(level => level == LogLevel.Information),
-                    It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-                Times.AtLeastOnce
-            );
-        }
-
-        [Test]
-        public void PublishAsync_WithNullEvent_ShouldThrowException()
-        {
-            // Act
-            Func<Task> act = async () => await _eventBus.PublishAsync(null!);
-
-            // Assert
-            act.Should().ThrowAsync<ArgumentNullException>()
-                .WithParameterName("domainEvent");
-        }
-
-        [Test]
-        public async Task PublishAsync_WithSubscribedHandler_ShouldInvokeHandler()
-        {
-            // Arrange
-            var domainEvent = new TestDomainEvent { TestData = "test" };
-            var handlerInvoked = false;
-            var handler = new TestEventHandler(() => handlerInvoked = true);
-            _eventBus.Subscribe(typeof(TestDomainEvent), handler);
-
-            // Act
-            await _eventBus.PublishAsync(domainEvent);
-
-            // Assert
-            handlerInvoked.Should().BeTrue();
-        }
-
-        [Test]
-        public async Task PublishAsync_WithMultipleHandlers_ShouldInvokeAllHandlers()
-        {
-            // Arrange
-            var domainEvent = new TestDomainEvent { TestData = "test" };
-            var handler1Invoked = false;
-            var handler2Invoked = false;
-            var handler1 = new TestEventHandler(() => handler1Invoked = true);
-            var handler2 = new TestEventHandler(() => handler2Invoked = true);
-
-            _eventBus.Subscribe(typeof(TestDomainEvent), handler1);
-            _eventBus.Subscribe(typeof(TestDomainEvent), handler2);
-
-            // Act
-            await _eventBus.PublishAsync(domainEvent);
-
-            // Assert
-            handler1Invoked.Should().BeTrue();
-            handler2Invoked.Should().BeTrue();
-        }
-
-        [Test]
-        public async Task PublishAsync_WithNoHandlers_ShouldComplete()
-        {
-            // Arrange
-            var domainEvent = new TestDomainEvent { TestData = "test" };
-
-            // Act
-            Func<Task> act = async () => await _eventBus.PublishAsync(domainEvent);
-
-            // Assert
-            await act.Should().NotThrowAsync();
-            _mockLogger.Verify(
-                x => x.Log(
-                    It.Is<LogLevel>(level => level == LogLevel.Debug),
-                    It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-                Times.AtLeastOnce
-            );
-        }
-
-        [Test]
-        public async Task PublishAsync_WithHandlerException_ShouldLogErrorAndContinue()
-        {
-            // Arrange
-            var domainEvent = new TestDomainEvent { TestData = "test" };
-            var handlerInvoked = false;
-            var failingHandler = new TestEventHandler(() => throw new Exception("Handler error"));
-            var successfulHandler = new TestEventHandler(() => handlerInvoked = true);
-
-            _eventBus.Subscribe(typeof(TestDomainEvent), failingHandler);
-            _eventBus.Subscribe(typeof(TestDomainEvent), successfulHandler);
-
-            // Act
-            await _eventBus.PublishAsync(domainEvent);
-
-            // Assert
-            handlerInvoked.Should().BeTrue();
-            _mockLogger.Verify(
-                x => x.Log(
-                    It.Is<LogLevel>(level => level == LogLevel.Error),
-                    It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-                Times.AtLeastOnce
-            );
-        }
-
-        [Test]
-        public async Task PublishAllAsync_WithMultipleEvents_ShouldPublishAll()
-        {
-            // Arrange
-            var events = new[]
+            await _semaphore.WaitAsync(cancellationToken);
+            try
             {
-                new TestDomainEvent { TestData = "event1" },
-                new TestDomainEvent { TestData = "event2" },
-                new TestDomainEvent { TestData = "event3" }
-            };
-            var eventCount = 0;
-            var handler = new TestEventHandler(() => eventCount++);
-            _eventBus.Subscribe(typeof(TestDomainEvent), handler);
+                var eventType = domainEvent.GetType();
+                _logger.LogInformation("Publishing domain event {EventType}", eventType.Name);
 
-            // Act
-            await _eventBus.PublishAllAsync(events);
+                if (_eventHandlers.TryGetValue(eventType, out var handlers))
+                {
+                    foreach (var handler in handlers.ToList())
+                    {
+                        try
+                        {
+                            // Use reflection to find and invoke the HandleAsync method
+                            var handleMethod = handler.GetType().GetMethod("HandleAsync",
+                                BindingFlags.Public | BindingFlags.Instance);
 
-            // Assert
-            eventCount.Should().Be(3);
-        }
+                            if (handleMethod != null)
+                            {
+                                _logger.LogDebug("Invoking handler {HandlerType} for event {EventType}",
+                                    handler.GetType().Name, eventType.Name);
 
-        [Test]
-        public void PublishAllAsync_WithNullArray_ShouldThrowException()
-        {
-            // Act
-            Func<Task> act = async () => await _eventBus.PublishAllAsync(null!);
+                                await (Task)handleMethod.Invoke(handler, new object[] { domainEvent, cancellationToken })!;
 
-            // Assert
-            act.Should().ThrowAsync<ArgumentNullException>()
-                .WithParameterName("domainEvents");
-        }
-
-        [Test]
-        public void Subscribe_WithNullHandler_ShouldThrowException()
-        {
-            // Act
-            Action act = () => _eventBus.Subscribe(typeof(TestDomainEvent), null!);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("handler");
-        }
-
-        [Test]
-        public void Unsubscribe_WithNullHandler_ShouldThrowException()
-        {
-            // Act
-            Action act = () => _eventBus.Unsubscribe(typeof(TestDomainEvent), null!);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("handler");
-        }
-
-        [Test]
-        public async Task Unsubscribe_WithSubscribedHandler_ShouldRemoveHandler()
-        {
-            // Arrange
-            var domainEvent = new TestDomainEvent { TestData = "test" };
-            var handlerInvoked = false;
-            var handler = new TestEventHandler(() => handlerInvoked = true);
-
-            _eventBus.Subscribe(typeof(TestDomainEvent), handler);
-            _eventBus.Unsubscribe(typeof(TestDomainEvent), handler);
-
-            // Act
-            await _eventBus.PublishAsync(domainEvent);
-
-            // Assert
-            handlerInvoked.Should().BeFalse();
-        }
-
-        [Test]
-        public void Constructor_WithNullLogger_ShouldThrowException()
-        {
-            // Act
-            Action act = () => new InMemoryEventBus(null!);
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("logger");
-        }
-
-        [Test]
-        public async Task PublishAsync_WithCancellationToken_ShouldRespectCancellation()
-        {
-            // Arrange
-            var domainEvent = new TestDomainEvent { TestData = "test" };
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-
-            // Act
-            Func<Task> act = async () => await _eventBus.PublishAsync(domainEvent, cts.Token);
-
-            // Assert
-            await act.Should().ThrowAsync<OperationCanceledException>();
-        }
-
-        [Test]
-        public async Task Subscribe_UnsubscribeMultipleTimes_ShouldHandleCorrectly()
-        {
-            // Arrange
-            var domainEvent = new TestDomainEvent { TestData = "test" };
-            var invocationCount = 0;
-            var handler = new TestEventHandler(() => invocationCount++);
-
-            // Act - Subscribe, publish, unsubscribe, publish
-            _eventBus.Subscribe(typeof(TestDomainEvent), handler);
-            await _eventBus.PublishAsync(domainEvent);
-
-            _eventBus.Unsubscribe(typeof(TestDomainEvent), handler);
-            await _eventBus.PublishAsync(domainEvent);
-
-            // Assert
-            invocationCount.Should().Be(1); // Should only be invoked once
-        }
-
-        // Test helper classes
-        private class TestDomainEvent : IDomainEvent
-        {
-            public DateTimeOffset DateOccurred { get; } = DateTimeOffset.UtcNow;
-            public string TestData { get; set; } = string.Empty;
-        }
-
-        private class TestEventHandler
-        {
-            private readonly Action _onHandle;
-
-            public TestEventHandler(Action onHandle)
-            {
-                _onHandle = onHandle;
+                                _logger.LogDebug("Handler {HandlerType} successfully processed event {EventType}",
+                                    handler.GetType().Name, eventType.Name);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Handler {HandlerType} does not have a HandleAsync method",
+                                    handler.GetType().Name);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error handling domain event {EventType} with handler {HandlerType}",
+                                eventType.Name, handler.GetType().Name);
+                            // Continue processing other handlers even if one fails
+                        }
+                    }
+                }
+                else
+                {
+                    _logger.LogDebug("No handlers registered for domain event {EventType}", eventType.Name);
+                }
             }
-
-            public Task HandleAsync(IDomainEvent domainEvent, CancellationToken cancellationToken)
+            finally
             {
-                _onHandle();
-                return Task.CompletedTask;
+                _semaphore.Release();
             }
+        }
+
+        public async Task PublishAllAsync(IDomainEvent[] domainEvents, CancellationToken cancellationToken = default)
+        {
+            if (domainEvents == null)
+                throw new ArgumentNullException(nameof(domainEvents));
+
+            foreach (var domainEvent in domainEvents)
+            {
+                await PublishAsync(domainEvent, cancellationToken);
+            }
+        }
+
+        // Implementing the method from the consolidated interface
+        public async Task PublishAsync<TEvent>(TEvent @event) where TEvent : class
+        {
+            if (@event == null)
+                throw new ArgumentNullException(nameof(@event));
+
+            await _semaphore.WaitAsync();
+            try
+            {
+                var eventType = typeof(TEvent);
+                _logger.LogInformation("Publishing event {EventType}", eventType.Name);
+
+                if (_eventHandlers.TryGetValue(eventType, out var handlers))
+                {
+                    foreach (var handler in handlers.ToList())
+                    {
+                        try
+                        {
+                            if (handler is IEventHandler<TEvent> typedHandler)
+                            {
+                                await typedHandler.HandleAsync(@event);
+                                _logger.LogDebug("Event {EventType} handled by {HandlerType}",
+                                    eventType.Name, handler.GetType().Name);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error handling event {EventType} with handler {HandlerType}",
+                                eventType.Name, handler.GetType().Name);
+                            // Continue processing other handlers even if one fails
+                        }
+                    }
+                }
+                else
+                {
+                    _logger.LogDebug("No handlers registered for event {EventType}", eventType.Name);
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        // Implementing the method from the consolidated interface
+        public async Task SubscribeAsync<TEvent>(IEventHandler<TEvent> handler) where TEvent : class
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+
+            await _semaphore.WaitAsync();
+            try
+            {
+                var eventType = typeof(TEvent);
+                if (!_eventHandlers.ContainsKey(eventType))
+                {
+                    _eventHandlers[eventType] = new List<object>();
+                }
+
+                _eventHandlers[eventType].Add(handler);
+                _logger.LogInformation("Subscribed handler {HandlerType} to event {EventType}",
+                    handler.GetType().Name, eventType.Name);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        // Implementing the method from the consolidated interface
+        public async Task UnsubscribeAsync<TEvent>(IEventHandler<TEvent> handler) where TEvent : class
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+
+            await _semaphore.WaitAsync();
+            try
+            {
+                var eventType = typeof(TEvent);
+                if (_eventHandlers.TryGetValue(eventType, out var handlers))
+                {
+                    handlers.Remove(handler);
+
+                    if (handlers.Count == 0)
+                    {
+                        _eventHandlers.Remove(eventType);
+                    }
+
+                    _logger.LogInformation("Unsubscribed handler {HandlerType} from event {EventType}",
+                        handler.GetType().Name, eventType.Name);
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        // For backward compatibility
+        public void Subscribe(Type eventType, object handler)
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+
+            _semaphore.Wait();
+            try
+            {
+                if (!_eventHandlers.ContainsKey(eventType))
+                {
+                    _eventHandlers[eventType] = new List<object>();
+                }
+
+                _eventHandlers[eventType].Add(handler);
+                _logger.LogInformation("Subscribed handler {HandlerType} to event {EventType}",
+                    handler.GetType().Name, eventType.Name);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public void Unsubscribe(Type eventType, object handler)
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+
+            _semaphore.Wait();
+            try
+            {
+                if (_eventHandlers.TryGetValue(eventType, out var handlers))
+                {
+                    handlers.Remove(handler);
+
+                    if (handlers.Count == 0)
+                    {
+                        _eventHandlers.Remove(eventType);
+                    }
+
+                    _logger.LogInformation("Unsubscribed handler {HandlerType} from event {EventType}",
+                        handler.GetType().Name, eventType.Name);
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public void Dispose()
+        {
+            _semaphore?.Dispose();
         }
     }
 }

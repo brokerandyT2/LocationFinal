@@ -1,10 +1,8 @@
-﻿// Location.Photography.Infrastructure/DependencyInjection.cs
-using Location.Photography.Application.Services;
+﻿using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
-using Location.Photography.Infrastructure.Extensions;
 using Location.Photography.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Location.Photography.Maui;
+using Microsoft.Extensions.Logging;
 namespace Location.Photography.Infrastructure
 {
     public static class DependencyInjection
@@ -14,9 +12,15 @@ namespace Location.Photography.Infrastructure
             // Register database initializer
             //services.AddDatabaseInitializer();
 
-            // Register photography services
             services.AddScoped<ISunCalculatorService, SunCalculatorService>();
+            services.AddScoped<ISunService, SunService>();
+
+            // Register exposure calculation services
+            services.AddScoped<IExposureTriangleService, ExposureTriangleService>();
             services.AddScoped<IExposureCalculatorService, ExposureCalculatorService>();
+
+            // Register other photography services
+            services.AddScoped<ISceneEvaluationService, SceneEvaluationService>();
             return services;
         }
     }

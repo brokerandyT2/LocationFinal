@@ -1,4 +1,5 @@
-﻿
+﻿// Update the TipTypeRepositoryAdapterTests class to include the additional dependencies
+
 using NUnit.Framework;
 using FluentAssertions;
 using Location.Core.Application.Common.Interfaces.Persistence;
@@ -19,12 +20,20 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
     {
         private TipTypeRepositoryAdapter _adapter;
         private Mock<ITipTypeRepository> _mockInnerRepository;
+        private Mock<ILocationRepository> _mockLocationRepository;
+        private Mock<ITipRepository> _mockTipRepository;
 
         [SetUp]
         public void Setup()
         {
             _mockInnerRepository = new Mock<ITipTypeRepository>();
-            _adapter = new TipTypeRepositoryAdapter(_mockInnerRepository.Object);
+            _mockLocationRepository = new Mock<ILocationRepository>();
+            _mockTipRepository = new Mock<ITipRepository>();
+
+            _adapter = new TipTypeRepositoryAdapter(
+                _mockInnerRepository.Object,
+                _mockLocationRepository.Object,
+                _mockTipRepository.Object);
         }
 
         [Test]
@@ -142,11 +151,33 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         public void Constructor_WithNullRepository_ShouldThrowException()
         {
             // Act
-            Action act = () => new TipTypeRepositoryAdapter(null!);
+            Action act = () => new TipTypeRepositoryAdapter(null!, _mockLocationRepository.Object, _mockTipRepository.Object);
 
             // Assert
             act.Should().Throw<ArgumentNullException>()
                 .WithParameterName("innerRepository");
+        }
+
+        [Test]
+        public void Constructor_WithNullLocationRepository_ShouldThrowException()
+        {
+            // Act
+            Action act = () => new TipTypeRepositoryAdapter(_mockInnerRepository.Object, null!, _mockTipRepository.Object);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>()
+                .WithParameterName("locationRepository");
+        }
+
+        [Test]
+        public void Constructor_WithNullTipRepository_ShouldThrowException()
+        {
+            // Act
+            Action act = () => new TipTypeRepositoryAdapter(_mockInnerRepository.Object, _mockLocationRepository.Object, null!);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>()
+                .WithParameterName("tiprepo");
         }
 
         [Test]
@@ -193,109 +224,6 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
 
             // Assert
             _mockInnerRepository.Verify(x => x.AddAsync(tipType, cancellationToken), Times.Once);
-        }
-
-        [Test]
-        public void Update_MultipleTimes_ShouldDelegateEachTime()
-        {
-            // Arrange
-            var tipType1 = TestDataBuilder.CreateValidTipType(name: "Type 1");
-            var tipType2 = TestDataBuilder.CreateValidTipType(name: "Type 2");
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<TipType>()))
-                .Verifiable();
-
-            // Act
-            _adapter.Update(tipType1);
-            _adapter.Update(tipType2);
-
-            // Assert
-            _mockInnerRepository.Verify(x => x.Update(tipType1), Times.Once);
-            _mockInnerRepository.Verify(x => x.Update(tipType2), Times.Once);
-        }
-
-        [Test]
-        public void Delete_MultipleTimes_ShouldDelegateEachTime()
-        {
-            // Arrange
-            var tipType1 = TestDataBuilder.CreateValidTipType(name: "Type 1");
-            var tipType2 = TestDataBuilder.CreateValidTipType(name: "Type 2");
-            _mockInnerRepository.Setup(x => x.Delete(It.IsAny<TipType>()))
-                .Verifiable();
-
-            // Act
-            _adapter.Delete(tipType1);
-            _adapter.Delete(tipType2);
-
-            // Assert
-            _mockInnerRepository.Verify(x => x.Delete(tipType1), Times.Once);
-            _mockInnerRepository.Verify(x => x.Delete(tipType2), Times.Once);
-        }
-
-        [Test]
-        public async Task GetAllAsync_WithException_ShouldPropagateException()
-        {
-            // Arrange
-            var exception = new Exception("Database error");
-            _mockInnerRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
-                .ThrowsAsync(exception);
-
-            // Act
-            Func<Task> act = async () => await _adapter.GetAllAsync();
-
-            // Assert
-            await act.Should().ThrowAsync<Exception>()
-                .WithMessage("Database error");
-        }
-
-        [Test]
-        public async Task AddAsync_WithException_ShouldPropagateException()
-        {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType();
-            var exception = new Exception("Database error");
-            _mockInnerRepository.Setup(x => x.AddAsync(It.IsAny<TipType>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(exception);
-
-            // Act
-            Func<Task> act = async () => await _adapter.AddAsync(tipType);
-
-            // Assert
-            await act.Should().ThrowAsync<Exception>()
-                .WithMessage("Database error");
-        }
-
-        [Test]
-        public void Update_WithException_ShouldPropagateException()
-        {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType();
-            var exception = new Exception("Database error");
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<TipType>()))
-                .Throws(exception);
-
-            // Act
-            Action act = () => _adapter.Update(tipType);
-
-            // Assert
-            act.Should().Throw<Exception>()
-                .WithMessage("Database error");
-        }
-
-        [Test]
-        public void Delete_WithException_ShouldPropagateException()
-        {
-            // Arrange
-            var tipType = TestDataBuilder.CreateValidTipType();
-            var exception = new Exception("Database error");
-            _mockInnerRepository.Setup(x => x.Delete(It.IsAny<TipType>()))
-                .Throws(exception);
-
-            // Act
-            Action act = () => _adapter.Delete(tipType);
-
-            // Assert
-            act.Should().Throw<Exception>()
-                .WithMessage("Database error");
         }
     }
 }

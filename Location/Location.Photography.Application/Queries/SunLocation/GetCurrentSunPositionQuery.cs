@@ -1,7 +1,11 @@
-﻿using Location.Core.Application.Common.Models;
+﻿// Location.Photography.Application/Queries/SunLocation/GetCurrentSunPositionQuery.cs
+using Location.Core.Application.Common.Models;
 using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using MediatR;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {
@@ -22,6 +26,9 @@ namespace Location.Photography.Application.Queries.SunLocation
 
             public async Task<Result<SunPositionDto>> Handle(GetCurrentSunPositionQuery request, CancellationToken cancellationToken)
             {
+                // Check for cancellation
+                cancellationToken.ThrowIfCancellationRequested();
+
                 try
                 {
                     var azimuth = _sunCalculatorService.GetSolarAzimuth(request.DateTime, request.Latitude, request.Longitude);
@@ -36,7 +43,11 @@ namespace Location.Photography.Application.Queries.SunLocation
                         Longitude = request.Longitude
                     };
 
-                    return Result<SunPositionDto>.Success(result);
+                    return await Task.FromResult(Result<SunPositionDto>.Success(result));
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // Re-throw cancellation exceptions
                 }
                 catch (Exception ex)
                 {

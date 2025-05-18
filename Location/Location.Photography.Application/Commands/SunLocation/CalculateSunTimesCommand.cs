@@ -1,4 +1,5 @@
-﻿using Location.Core.Application.Common.Models;
+﻿// Location.Photography.Application/Commands/SunLocation/CalculateSunTimesCommand.cs
+using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
 using MediatR;
@@ -25,11 +26,27 @@ namespace Location.Photography.Application.Commands.SunLocation
 
             public async Task<Result<SunTimesDto>> Handle(CalculateSunTimesCommand request, CancellationToken cancellationToken)
             {
-                return await _sunService.GetSunTimesAsync(
-                    request.Latitude,
-                    request.Longitude,
-                    request.Date,
-                    cancellationToken);
+                try
+                {
+                    // Check for cancellation
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Call the sun service to get the sun times
+                    return await _sunService.GetSunTimesAsync(
+                        request.Latitude,
+                        request.Longitude,
+                        request.Date,
+                        cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw; // Re-throw cancellation exceptions
+                }
+                catch (Exception ex)
+                {
+                    // Handle unexpected exceptions by returning a failure result
+                    return Result<SunTimesDto>.Failure($"Error calculating sun times: {ex.Message}");
+                }
             }
         }
     }

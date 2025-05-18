@@ -25,5 +25,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
     <ProjectReference Include="..\Location.Core.Infrastructure\Location.Core.Infrastructure.csproj" />
+    <ProjectReference Include="..\Location.Photography.Infrastructure\Location.Photography.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

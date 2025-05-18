@@ -19,6 +19,8 @@ namespace Location.Photography.Application.Services
 
         public async Task<Result<SunPositionDto>> GetSunPositionAsync(double latitude, double longitude, DateTime dateTime, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 var azimuth = _sunCalculatorService.GetSolarAzimuth(dateTime, latitude, longitude);
@@ -43,6 +45,8 @@ namespace Location.Photography.Application.Services
 
         public async Task<Result<SunTimesDto>> GetSunTimesAsync(double latitude, double longitude, DateTime date, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 var result = new SunTimesDto
