@@ -175,8 +175,8 @@ namespace Location.Photography.Infrastructure.Services
         #region Helper Methods
 
         private double CalculateEvDifference(
-            double baseParam1, double baseParam2,
-            double targetParam1, double targetParam2)
+    double baseParam1, double baseParam2,
+    double targetParam1, double targetParam2)
         {
             // For shutter: more time = more light = negative EV
             // For aperture: higher f-number = less light = positive EV (squared due to area)
@@ -193,7 +193,7 @@ namespace Location.Photography.Infrastructure.Services
             double evParam2 = 0;
             if (baseParam2 != 0 && targetParam2 != 0)
             {
-                evParam2 = Math.Log(baseParam2 / targetParam2) / LOG2;
+                evParam2 = Math.Log(targetParam2 / baseParam2) / LOG2;
             }
 
             // Total EV difference
@@ -209,10 +209,9 @@ namespace Location.Photography.Infrastructure.Services
             if (shutterSpeed.Contains('/'))
             {
                 string[] parts = shutterSpeed.Split('/');
-                if (parts.Length == 2 && double.TryParse(parts[0], out double numerator) &&
-                    double.TryParse(parts[1], out double denominator) && denominator != 0)
+                if (parts.Length == 2 && double.TryParse(parts[1], out double denominator) && denominator != 0)
                 {
-                    return numerator / denominator;
+                    return 1 / denominator;
                 }
             }
             // Handle speeds with seconds mark like "30""
@@ -304,6 +303,12 @@ namespace Location.Photography.Infrastructure.Services
 
         private string FindClosestValue(string[] values, double target)
         {
+            if (values[0].Contains('/') && target < 0.0001)
+            {
+                // For extremely fast shutter speeds like "1/16000" that aren't in the standard list
+                return values[0]; // Return the fastest available speed
+            }
+
             if (values == null || values.Length == 0)
                 throw new ArgumentException("Values array is empty or null");
 
