@@ -150,7 +150,8 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
-                return Result<string[]>.Success(ShutterSpeeds.GetScale(increments.ToString()));
+                string step = increments.ToString();
+                return Result<string[]>.Success(ShutterSpeeds.GetScale(step));
             }
             catch (Exception ex)
             {
@@ -165,7 +166,8 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
-                return Result<string[]>.Success(Apetures.GetScale(increments.ToString()));
+                string step = increments.ToString();
+                return Result<string[]>.Success(Apetures.GetScale(step));
             }
             catch (Exception ex)
             {
@@ -180,7 +182,9 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
-                return Result<string[]>.Success(ISOs.GetScale(increments.ToString()));
+                string step = increments.ToString();
+                return Result<string[]>.Success(ISOs.GetScale(step));
+               
             }
             catch (Exception ex)
             {

@@ -127,8 +127,8 @@ namespace Location.Photography.Application.Services
             return step switch
             {
                 "Full" => Full,
-                "Halves" => Halves,
-                "Thirds" => Thirds,
+                "Half" => Halves,
+                "Third" => Thirds,
                 _ => Full
             };
         }
@@ -216,8 +216,8 @@ namespace Location.Photography.Application.Services
             return step switch
             {
                 "Full" => Full,
-                "Halves" => Halves,
-                "Thirds" => Thirds,
+                "Half" => Halves,
+                "Third" => Thirds,
                 _ => Full
             };
         }
@@ -288,8 +288,8 @@ namespace Location.Photography.Application.Services
             return step switch
             {
                 "Full" => Full,
-                "Halves" => Halves,
-                "Thirds" => Thirds,
+                "Half" => Halves,
+                "Third" => Thirds,
                 _ => Full
             };
         }

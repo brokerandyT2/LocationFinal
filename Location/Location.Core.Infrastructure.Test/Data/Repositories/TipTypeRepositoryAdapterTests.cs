@@ -177,9 +177,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
 
             // Assert
             act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("tiprepo");
+                .WithParameterName("tipRepository");
         }
-
         [Test]
         public async Task GetByIdAsync_WithCancellationToken_ShouldPassThrough()
         {

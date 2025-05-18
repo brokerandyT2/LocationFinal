@@ -25,11 +25,18 @@ namespace Location.Photography.Application.Commands.SunLocation
 
             public async Task<Result<SunPositionDto>> Handle(CalculateSunPositionCommand request, CancellationToken cancellationToken)
             {
-                return await _sunService.GetSunPositionAsync(
-                    request.Latitude,
-                    request.Longitude,
-                    request.DateTime,
-                    cancellationToken);
+                try
+                {
+                    return await _sunService.GetSunPositionAsync(
+                        request.Latitude,
+                        request.Longitude,
+                        request.DateTime,
+                        cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    return Result<SunPositionDto>.Failure($"Error calculating sun position: {ex.Message}");
+                }
             }
         }
     }
