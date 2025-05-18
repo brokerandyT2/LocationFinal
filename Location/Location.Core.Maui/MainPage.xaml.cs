@@ -1,4 +1,5 @@
-﻿using Location.Core.Application.Services;
+﻿using Location.Core.Application.Common.Interfaces.Persistence;
+using Location.Core.Application.Services;
 using Location.Core.Maui.Services;
 using MediatR;
 
@@ -18,11 +19,11 @@ namespace Location.Core.Maui
             IAlertService alertService,
             INavigationService navigationService,
             IMediaService mediaService,
-            IGeolocationService geolocationService)
+            IGeolocationService geolocationService, ITipRepository tipRepo, ITipTypeRepository tiptype)
         {
             this.Children.Add(new Views.AddLocation());
             this.Children.Add(new Views.LocationsPage(mediator, alertService, navigationService, mediaService, geolocationService));
-            this.Children.Add(new Views.TipsPage(mediator, alertService));
+            this.Children.Add(new Views.TipsPage(mediator, alertService,tipRepo, tiptype));
         }
 
 

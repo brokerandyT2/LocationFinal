@@ -128,7 +128,7 @@ namespace Location.Core.Infrastructure.Data
         public SQLiteAsyncConnection GetConnection()
         {
             if (!_isInitialized)
-            {
+            { 
                 throw new InvalidOperationException("Database not initialized. Call InitializeDatabaseAsync first.");
             }
             return _connection;
@@ -229,7 +229,7 @@ namespace Location.Core.Infrastructure.Data
         {
             if (!_isInitialized)
             {
-                throw new InvalidOperationException("Database not initialized. Call InitializeDatabaseAsync first.");
+                EnsureInitializedAsync().GetAwaiter().GetResult();
             }
             return _connection.Table<T>();
         }

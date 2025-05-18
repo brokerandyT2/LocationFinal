@@ -19,6 +19,7 @@ namespace Location.Photography.Maui
             InitializeComponent();
             _serviceProvider = serviceProvider;
             _logger = logger;
+            DatabaseSetup.EnsureDatabaseInitialized(serviceProvider);
         }
 
         protected override async void OnStart()

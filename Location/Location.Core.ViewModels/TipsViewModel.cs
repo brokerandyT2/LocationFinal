@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Services;
 using Location.Core.Application.Tips.Queries.GetAllTipTypes;
 using Location.Core.Application.Tips.Queries.GetTipsByType;
@@ -16,7 +17,8 @@ namespace Location.Core.ViewModels
     public partial class TipsViewModel : BaseViewModel
     {
         private readonly IMediator _mediator;
-
+        private readonly ITipTypeRepository _tiptyperepo;
+        private readonly ITipRepository _tiprepo;
         // Add the event
         public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
 
@@ -34,9 +36,11 @@ namespace Location.Core.ViewModels
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        public TipsViewModel(IMediator mediator, IAlertService alertingService) : base(alertingService)
+        public TipsViewModel(IMediator mediator, IAlertService alertingService, ITipTypeRepository tipTypeRepository, ITipRepository tiprepo) : base(alertingService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _tiptyperepo = tipTypeRepository;
+            _tiprepo = tiprepo;
         }
 
         [RelayCommand]
@@ -45,6 +49,8 @@ namespace Location.Core.ViewModels
             // Keep your existing implementation
             // Just add error event trigger when errors occur:
             // OnErrorOccurred(ErrorMessage);
+             await _tiptyperepo.GetAllAsync(cancellationToken);
+            return;
         }
 
         [RelayCommand]
@@ -53,6 +59,8 @@ namespace Location.Core.ViewModels
             // Keep your existing implementation
             // Just add error event trigger when errors occur:
             // OnErrorOccurred(ErrorMessage);
+           await _tiprepo.GetByTipTypeIdAsync(tipTypeId, cancellationToken);
+            return;
         }
 
         partial void OnSelectedTipTypeChanged(TipTypeItemViewModel? value)

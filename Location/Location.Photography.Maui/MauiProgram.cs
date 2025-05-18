@@ -2,8 +2,11 @@
 using CommunityToolkit.Maui;
 using Location.Core.Application;
 using Location.Core.Application.Alerts;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Services;
 using Location.Core.Infrastructure;
+using Location.Core.Infrastructure.Data;
+using Location.Core.Infrastructure.Data.Repositories;
 using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using Location.Photography.Application;
@@ -70,6 +73,8 @@ namespace Location.Photography.Maui
             builder.Services.AddTransient<Location.Core.Maui.Views.AddLocation>();
             builder.Services.AddTransient<Location.Core.Maui.Views.EditLocation>();
             builder.Services.AddTransient<Location.Core.Maui.Views.WeatherDisplay>();
+            builder.Services.AddSingleton<Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository, Location.Core.Infrastructure.Data.Repositories.TipTypeRepository>();
+            builder.Services.AddSingleton<Location.Core.Application.Common.Interfaces.Persistence.ITipRepository, Location.Core.Infrastructure.Data.Repositories.TipRepository>();
             builder.Services.AddSingleton<IAlertService, Location.Core.Infrastructure.Services.AlertingService>(); // Adjust class name if different
             builder.Services.AddSingleton<INavigationService, NavigationService>(); // Adjust class name if different
             // Register Photography Pages including UserOnboarding
@@ -92,6 +97,15 @@ namespace Location.Photography.Maui
 #endif
 
             return builder.Build();
+        }
+    }
+    public static class DatabaseSetup
+    {
+        public static async Task EnsureDatabaseInitialized(IServiceProvider services)
+        {
+            using var scope = services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<IDatabaseContext>();
+            await dbContext.InitializeDatabaseAsync();
         }
     }
 }

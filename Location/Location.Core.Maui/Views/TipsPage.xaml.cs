@@ -1,3 +1,4 @@
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Services;
 using Location.Core.ViewModels;
 using MediatR;
@@ -12,20 +13,23 @@ namespace Location.Core.Maui.Views
         private readonly IMediator _mediator;
         private readonly IAlertService _alertService;
         private CancellationTokenSource _cts = new CancellationTokenSource();
-
+        private readonly ITipRepository _tipRepository;
+        private readonly ITipTypeRepository _tipTypeRepository;
         [Obsolete("This constructor is for tooling or serialization purposes only. Use the constructor with dependencies instead.")]
         public TipsPage() { throw new NotImplementedException(); }
         public TipsPage(
             IMediator mediator,
-            IAlertService alertService)
+            IAlertService alertService, ITipRepository tipRepo, ITipTypeRepository tipType)
         {
             InitializeComponent();
 
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
+            _tipRepository = tipRepo ?? throw new ArgumentNullException(nameof(tipRepo));
+            _tipTypeRepository = tipType ?? throw new ArgumentNullException(nameof(tipType));
 
             // Initialize the view model
-            var viewModel = new TipsViewModel(_mediator, _alertService);
+            var viewModel = new TipsViewModel(_mediator, _alertService, _tipTypeRepository, _tipRepository);
             viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
             BindingContext = viewModel;
         }

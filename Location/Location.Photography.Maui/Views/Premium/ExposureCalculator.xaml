@@ -155,7 +155,7 @@
                    Grid.Row="6" 
                    Grid.ColumnSpan="4" 
                    VerticalOptions="End"
-                   Margin="5"/>
+                   Margin="5" />
 
             <!-- Base Exposure -->
             <Label Text="{x:Static strings:AppResources.baseexposure}" 
