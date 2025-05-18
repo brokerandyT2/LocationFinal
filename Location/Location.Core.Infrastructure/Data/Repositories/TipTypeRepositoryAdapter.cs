@@ -11,9 +11,13 @@ namespace Location.Core.Infrastructure.Data.Repositories
     public class TipTypeRepositoryAdapter : ITipTypeRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository _innerRepository;
-        public TipTypeRepositoryAdapter(Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository innerRepository)
+        private readonly Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository _innerLocationRepository;
+        Location.Core.Application.Common.Interfaces.Persistence.ITipRepository _innerTipRepository;
+        public TipTypeRepositoryAdapter(Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository innerRepository, Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository locationRepository, Location.Core.Application.Common.Interfaces.Persistence.ITipRepository tiprepo)
         {
             _innerRepository = innerRepository ?? throw new ArgumentNullException(nameof(innerRepository));
+            _innerLocationRepository = locationRepository ?? throw new ArgumentNullException(nameof(_innerLocationRepository));
+            _innerTipRepository = tiprepo ?? throw new ArgumentNullException(nameof(tiprepo));
         }
 
         public Task<TipType?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
@@ -30,25 +34,64 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         public void Delete(TipType tipType)
             => _innerRepository.Delete(tipType);
-        public Task<Result<TipType>> CreateEntityAsync(TipType entity, CancellationToken cancellationToken = default)
+        public async Task<Result<TipType>> CreateEntityAsync(TipType entity, CancellationToken cancellationToken = default)
         {
-            // Implementation logic here
-            // This is just a stub - would need to be implemented with actual data persistence logic
-            return Task.FromResult(Result<TipType>.Success(entity));
+            try
+            {
+                // Call the inner repository's AddAsync method to persist the entity
+                var createdEntity = await _innerRepository.AddAsync(entity, cancellationToken);
+
+                // Return a successful result with the created entity
+                return Result<TipType>.Success(createdEntity);
+            }
+            catch (Exception ex)
+            {
+                // Return a failure result with the exception message
+                return Result<TipType>.Failure($"Failed to create TipType: {ex.Message}");
+            }
         }
 
-        public Task<Result<Tip>> CreateEntityAsync(Tip entity, CancellationToken cancellationToken = default)
+        public async Task<Result<Tip>> CreateEntityAsync(Tip entity, CancellationToken cancellationToken = default)
         {
-            // Implementation logic here
-            // This is just a stub - would need to be implemented with actual data persistence logic
-            return Task.FromResult(Result<Tip>.Success(entity));
+            try
+            {
+                // Since this adapter is for TipTypeRepository, we need to use the appropriate repository
+                // Assuming we can access the TipRepository through some means like a service provider
+                // or through the TipType's relationship
+
+                // If the inner repository has access to tip creation:
+                //var createdTip = await _innerRepository.AddAsync(entity, cancellationToken);
+
+                // If there's no direct method, you might need to inject ITipRepository separately
+                var createdTip = await _innerTipRepository.AddAsync(entity, cancellationToken);
+
+                return Result<Tip>.Success(createdTip);
+            }
+            catch (Exception ex)
+            {
+                return Result<Tip>.Failure($"Failed to create Tip: {ex.Message}");
+            }
         }
 
-        public Task<Result<Location.Core.Domain.Entities.Location>> CreateEntityAsync(Location.Core.Domain.Entities.Location entity, CancellationToken cancellationToken = default)
+        public async Task<Result<Location.Core.Domain.Entities.Location>> CreateEntityAsync(Location.Core.Domain.Entities.Location entity, CancellationToken cancellationToken = default)
         {
-            // Implementation logic here
-            // This is just a stub - would need to be implemented with actual data persistence logic
-            return Task.FromResult(Result<Location.Core.Domain.Entities.Location>.Success(entity));
+            try
+            {
+                // Similar to the Tip case, this adapter is for TipTypeRepository
+                // We would need to access the LocationRepository appropriately
+
+                // If the inner repository has access to location creation:
+                var createdLocation = await _innerLocationRepository.AddAsync(entity, cancellationToken);
+
+                // If there's no direct method, you might need to inject ILocationRepository separately
+                // var createdLocation = await _locationRepository.AddAsync(entity, cancellationToken);
+
+                return Result<Location.Core.Domain.Entities.Location>.Success(createdLocation);
+            }
+            catch (Exception ex)
+            {
+                return Result<Location.Core.Domain.Entities.Location>.Failure($"Failed to create Location: {ex.Message}");
+            }
         }
     }
 }

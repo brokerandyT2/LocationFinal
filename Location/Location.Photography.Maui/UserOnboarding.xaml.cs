@@ -148,7 +148,7 @@ namespace Location.Photography.Maui.Views
 
                 // Save critical settings to secure storage for quick access
                 await SaveToSecureStorageAsync(email);
-
+                save.IsEnabled = false;
                 // Show processing indicator
                 processingOverlay.IsVisible = true;
 
@@ -160,7 +160,12 @@ namespace Location.Photography.Maui.Views
                     // Initialize database with all settings on a background thread
                     CancellationTokenSource cts = new CancellationTokenSource();
 
-                  
+                    await MainThread.InvokeOnMainThreadAsync(() => {
+                        loadingIndicator.IsRunning = true;
+                    });
+
+                    // Brief delay to ensure UI updates
+                    await Task.Delay(50);
 
                     await Task.Run(async () =>
                     {
@@ -185,7 +190,10 @@ namespace Location.Photography.Maui.Views
                 finally
                 {
                     // Hide processing indicator
-                    processingOverlay.IsVisible = false;
+                    await MainThread.InvokeOnMainThreadAsync(() => {
+                        processingOverlay.IsVisible = false;
+                        save.IsEnabled = true;
+                    });
                 }
             }
         }

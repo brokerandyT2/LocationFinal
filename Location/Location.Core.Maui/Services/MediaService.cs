@@ -30,7 +30,9 @@ namespace Location.Core.Maui.Services
                     return Result<string>.Failure("Photo capture is not supported on this device");
                 }
 
-                var photo = await MediaPicker.CapturePhotoAsync();
+
+                var photo = await MediaPicker.Default.CapturePhotoAsync();
+
                 if (photo == null)
                 {
                     return Result<string>.Failure("No photo was captured");
@@ -49,7 +51,7 @@ namespace Location.Core.Maui.Services
 
                 return Result<string>.Success(filePath);
             }
-            catch (FeatureNotSupportedException)
+            catch (FeatureNotSupportedException fe)
             {
                 return Result<string>.Failure("Photo capture is not supported on this device");
             }
