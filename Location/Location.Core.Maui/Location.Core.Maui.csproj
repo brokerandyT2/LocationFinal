@@ -68,6 +68,7 @@
     <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
     <ProjectReference Include="..\Location.Core.Infrastructure\Location.Core.Infrastructure.csproj" />
     <ProjectReference Include="..\Location.Core.ViewModels\Location.Core.ViewModels.csproj" />
+    <ProjectReference Include="..\Location.Photography.ViewModels\Location.Photography.ViewModels.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,6 +4,8 @@ using Location.Core.Application.Common.Models;
 
 namespace Location.Core.Application.Tests.Common.Models
 {
+    [Category("View Model Support Class")]
+    [Category("Error Tests")]
     [TestFixture]
     public class ErrorTests
     {

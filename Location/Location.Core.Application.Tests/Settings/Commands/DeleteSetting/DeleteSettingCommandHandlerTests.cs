@@ -10,6 +10,9 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Settings.Commands.DeleteSetting
 {
+    [Category("Setting")]
+    [Category("Delete")]
+
     [TestFixture]
     public class DeleteSettingCommandHandlerTests
     {

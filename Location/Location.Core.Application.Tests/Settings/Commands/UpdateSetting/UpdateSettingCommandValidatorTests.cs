@@ -4,6 +4,9 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Settings.Commands.UpdateSetting
 {
+    [Category("Setting")]
+    [Category("Update")]
+
     [TestFixture]
     public class UpdateSettingCommandValidatorTests
     {

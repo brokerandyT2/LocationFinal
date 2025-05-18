@@ -23,6 +23,8 @@ namespace Location.Core.Application.Mappings
             CreateMap<Domain.Entities.Location, LocationListDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+                .ForMember(dest => dest.Latitude, opt => opt.MapFrom(src => src.Coordinate.Latitude)) // Add this mapping
+                .ForMember(dest => dest.Longitude, opt => opt.MapFrom(src => src.Coordinate.Longitude)) // Add this mapping
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Address.City))
                 .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.Address.State))
                 .ForMember(dest => dest.PhotoPath, opt => opt.MapFrom(src => src.PhotoPath))

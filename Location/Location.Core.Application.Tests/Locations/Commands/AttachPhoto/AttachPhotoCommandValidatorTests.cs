@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.AttachPhoto
 {
+    [Category("Locations")]
+    [Category("PHOTO Management")]
     [TestFixture]
     public class AttachPhotoCommandValidatorTests
     {

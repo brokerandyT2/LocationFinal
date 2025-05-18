@@ -9,7 +9,7 @@ public partial class SceneEvaluation : ContentPage
 {
     private readonly SceneEvaluationViewModel _viewModel;
 
-    public SceneEvaluation(SceneEvaluationViewModel viewModel)
+    public SceneEvaluation(Location.Photography.ViewModels.SceneEvaluationViewModel viewModel)
     {
         InitializeComponent();
         _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
@@ -18,8 +18,7 @@ public partial class SceneEvaluation : ContentPage
         // Subscribe to error events
         _viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
     }
-    [Obsolete("This constructor is for tooling or serialization purposes only. Use the constructor with dependencies instead.")]
-    public SceneEvaluation() { throw new NotImplementedException(); }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();

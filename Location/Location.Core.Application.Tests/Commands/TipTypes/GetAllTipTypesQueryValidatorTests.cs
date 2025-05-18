@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Commands.TipTypes
 {
+    [Category("Tip Types")]
+
     [TestFixture]
     public class GetAllTipTypesQueryValidatorTests
     {

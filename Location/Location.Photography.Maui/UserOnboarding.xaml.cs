@@ -22,7 +22,7 @@ namespace Location.Photography.Maui.Views
         #endregion
 
         #region Fields
-
+        private string _guid;
         private bool _saveAttempted = false;
 
         #endregion
@@ -36,15 +36,16 @@ namespace Location.Photography.Maui.Views
         {
             InitializeComponent();
         }
-
+        private readonly IServiceProvider _serviceProvider;
         /// <summary>
         /// Main constructor with DI
         /// </summary>
-        public UserOnboarding(IAlertService alertService, DatabaseInitializer databaseInitializer, ILogger<UserOnboarding> logger)
+        public UserOnboarding(IAlertService alertService, DatabaseInitializer databaseInitializer, ILogger<UserOnboarding> logger, IServiceProvider serviceProvider)
         {
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _databaseInitializer = databaseInitializer ?? throw new ArgumentNullException(nameof(databaseInitializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serviceProvider = serviceProvider;
             InitializeComponent();
         }
 
@@ -158,22 +159,17 @@ namespace Location.Photography.Maui.Views
                   await  SecureStorage.SetAsync(MagicStrings.UniqueID, guid);
                     // Initialize database with all settings on a background thread
                     CancellationTokenSource cts = new CancellationTokenSource();
+
+                  
+
                     await Task.Run(async () =>
                     {
-                        await _databaseInitializer.InitializeDatabaseAsync(
-                            hemisphere,
-                            temperatureFormat,
-                            dateFormat,
-                            timeFormat,
-                            windDirection,
-                            email,
-                            guid,
-                            cts.Token
-                        );
+                         await _databaseInitializer.InitializeDatabaseAsync(cts.Token,hemisphere,temperatureFormat,dateFormat,timeFormat,
+                            windDirection,email,_guid);
                     });
 
                     // Navigate to the main page on success
-                    await Navigation.PushAsync(new MainPage());
+                    await Navigation.PushAsync(new MainPage(_serviceProvider));
                 }
                 catch (Exception ex)
                 {
@@ -198,17 +194,17 @@ namespace Location.Photography.Maui.Views
         {
             try
             {
+                _guid = Guid.NewGuid().ToString();
                 // Save only sensitive user info to secure storage
                 await SecureStorage.Default.SetAsync(MagicStrings.Email, email);
-                await SecureStorage.Default.SetAsync(MagicStrings.UniqueID, Guid.NewGuid().ToString());
+                await SecureStorage.Default.SetAsync(MagicStrings.UniqueID, _guid);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning("Failed to save to SecureStorage, falling back to Preferences: {Message}", ex.Message);
 
                 // Fall back to Preferences if SecureStorage fails
-                Preferences.Default.Set(MagicStrings.Email, email);
-                Preferences.Default.Set(MagicStrings.UniqueID, Guid.NewGuid().ToString());
+                
             }
         }
 

@@ -10,6 +10,7 @@ using GeolocationAccuracy = Location.Core.Application.Services.GeolocationAccura
 
 namespace Location.Core.Application.Tests.Services
 {
+    [Category("GeoLocation Service")]
     [TestFixture]
     public class IGeolocationServiceTests
     {

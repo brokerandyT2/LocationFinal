@@ -16,7 +16,7 @@ namespace Location.Core.Application.Commands.TipTypes
 
         public CreateTipTypeCommandHandler(ITipTypeRepository tipTypeRepository)
         {
-            _tipTypeRepository = tipTypeRepository;
+            _tipTypeRepository = tipTypeRepository ?? throw new ArgumentNullException(nameof(tipTypeRepository));
         }
 
         public async Task<Result<TipTypeDto>> Handle(CreateTipTypeCommand request, CancellationToken cancellationToken)

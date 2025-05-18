@@ -21,10 +21,10 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>Location.Photography.Maui</ApplicationTitle>
+		<ApplicationTitle>PixMap</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.location.photography.maui</ApplicationId>
+		<ApplicationId>com.x3squaredcircles.location.photography</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>

@@ -15,6 +15,9 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Queries.Locations.GetNearbyLocations
 {
+    [Category("Locations")]
+    [Category("Query")]
+
     [TestFixture]
     public class GetNearbyLocationsQueryHandlerTests
     {

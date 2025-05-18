@@ -5,8 +5,10 @@ using Location.Core.Application.Services;
 using Location.Core.Infrastructure;
 using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
+using Location.Photography.ViewModels;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using LocationViewModel = Location.Core.ViewModels.LocationViewModel;
 
 namespace Location.Core.Maui
 {
@@ -34,7 +36,7 @@ namespace Location.Core.Maui
             builder.Services.AddSingleton<IGeolocationService, GeolocationService>();
             builder.Services.AddSingleton<IMediaService, MediaService>();
             builder.Services.AddTransient<INotificationHandler<AlertEvent>, AlertEventHandler>();
-
+            builder.Services.AddTransient<SceneEvaluationViewModel>();
             // Register ViewModels
             builder.Services.AddTransient<LocationViewModel>();
             builder.Services.AddTransient<WeatherViewModel>();

@@ -7,6 +7,9 @@ using System.Collections.Generic;
 
 namespace Location.Core.Application.Tests.Weather.DTOs
 {
+    [Category("Weather")]
+    [Category("DTO")]
+
     [TestFixture]
     public class WeatherForecastDtoTests
     {

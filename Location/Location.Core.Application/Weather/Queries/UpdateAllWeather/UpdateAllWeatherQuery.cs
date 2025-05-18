@@ -18,8 +18,10 @@ namespace Location.Core.Application.Weather.Queries.UpdateAllWeather
 
         public UpdateAllWeatherQueryHandler(IWeatherService weatherService)
         {
-            _weatherService = weatherService;
+            _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
         }
+
+
 
         public async Task<Result<int>> Handle(UpdateAllWeatherQuery request, CancellationToken cancellationToken)
         {

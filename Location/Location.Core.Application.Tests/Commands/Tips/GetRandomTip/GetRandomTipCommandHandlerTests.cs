@@ -12,6 +12,7 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Commands.Tips.GetRandomTip
 {
+    [Category("Tips")]
     [TestFixture]
     public class GetRandomTipCommandHandlerTests
     {

@@ -3,7 +3,8 @@ using Location.Core.Application.Commands.Locations;
 using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.RestoreLocation
-{
+{        [Category("Locations")]
+        [Category("Restore Location")]
     [TestFixture]
     public class RestoreLocationCommandValidatorTests
     {

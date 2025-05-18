@@ -1,4 +1,7 @@
 ﻿using FluentValidation;
+using System;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Location.Core.Application.Commands.Locations
 {
@@ -7,27 +10,31 @@ namespace Location.Core.Application.Commands.Locations
         public AttachPhotoCommandValidator()
         {
             RuleFor(x => x.LocationId)
-                .GreaterThan(0).WithMessage("LocationId must be greater than 0");
+                .GreaterThan(0)
+                .WithMessage("LocationId must be greater than 0");
 
             RuleFor(x => x.PhotoPath)
-                .NotEmpty().WithMessage("Photo path is required")
-                .Must(BeAValidPath).WithMessage("Photo path is not valid");
+                .NotEmpty()
+                .WithMessage("Photo path is required")
+                .Must(BeValidPath)
+                .WithMessage("Photo path is not valid");
         }
 
-        private bool BeAValidPath(string? path)
+        private bool BeValidPath(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
                 return false;
 
-            try
-            {
-                var fileName = System.IO.Path.GetFileName(path);
-                return !string.IsNullOrEmpty(fileName);
-            }
-            catch
-            {
+            // Invalid path characters
+            char[] invalidChars = Path.GetInvalidPathChars();
+            if (path.IndexOfAny(invalidChars) >= 0)
                 return false;
-            }
+
+            // Check for invalid characters in paths that are not caught by GetInvalidPathChars
+            if (path.Contains("|") || path.Contains("<") || path.Contains(">") || path.Contains("\"") || path.Contains("?") || path.Contains("*"))
+                return false;
+
+            return true;
         }
     }
 }

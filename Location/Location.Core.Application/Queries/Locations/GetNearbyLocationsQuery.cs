@@ -23,23 +23,32 @@ namespace Location.Core.Application.Queries.Locations
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public GetNearbyLocationsQueryHandler(
-            IUnitOfWork unitOfWork,
-            IMapper mapper)
+        public GetNearbyLocationsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public async Task<Result<List<LocationListDto>>> Handle(GetNearbyLocationsQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                var locations = await _unitOfWork.Locations.GetNearbyAsync(
+                var result = await _unitOfWork.Locations.GetNearbyAsync(
                     request.Latitude,
                     request.Longitude,
                     request.DistanceKm,
                     cancellationToken);
+
+                if (!result.IsSuccess)
+                {
+                    return Result<List<LocationListDto>>.Failure(result.ErrorMessage);
+                }
+
+                var locations = result.Data;
+                if (locations == null)
+                {
+                    return Result<List<LocationListDto>>.Success(new List<LocationListDto>());
+                }
 
                 var locationDtos = _mapper.Map<List<LocationListDto>>(locations);
                 return Result<List<LocationListDto>>.Success(locationDtos);

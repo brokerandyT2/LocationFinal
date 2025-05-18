@@ -12,6 +12,9 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Settings.Queries.GetAllSettings
 {
+    [Category("Setting")]
+    [Category("Get")]
+
     [TestFixture]
     public class GetAllSettingsQueryHandlerTests
     {

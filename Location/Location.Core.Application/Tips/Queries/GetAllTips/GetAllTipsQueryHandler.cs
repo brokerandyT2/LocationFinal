@@ -1,10 +1,15 @@
-﻿using Location.Core.Application.Common.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Tips.DTOs;
 using MediatR;
 
 namespace Location.Core.Application.Tips.Queries.GetAllTips
 {
-    public class GetAllTipsQueryHandler : IRequestHandler<GetAllTipsQuery, Result<List<GetAllTipsQueryResponse>>>
+    public class GetAllTipsQueryHandler : IRequestHandler<GetAllTipsQuery, Result<List<TipDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
 
@@ -13,30 +18,41 @@ namespace Location.Core.Application.Tips.Queries.GetAllTips
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
-        public async Task<Result<List<GetAllTipsQueryResponse>>> Handle(GetAllTipsQuery request, CancellationToken cancellationToken)
+        public async Task<Result<List<TipDto>>> Handle(GetAllTipsQuery request, CancellationToken cancellationToken)
         {
-            var result = await _unitOfWork.Tips.GetAllAsync(cancellationToken);
-
-            if (!result.IsSuccess || result.Data == null)
+            try
             {
-                return Result<List<GetAllTipsQueryResponse>>.Failure(result.ErrorMessage ?? "Failed to retrieve tips");
+                var result = await _unitOfWork.Tips.GetAllAsync(cancellationToken);
+
+                if (!result.IsSuccess)
+                {
+                    return Result<List<TipDto>>.Failure("Failed to retrieve tips");
+                }
+
+                var tips = result.Data;
+                var tipDtos = new List<TipDto>();
+
+                foreach (var tip in tips)
+                {
+                    tipDtos.Add(new TipDto
+                    {
+                        Id = tip.Id,
+                        TipTypeId = tip.TipTypeId,
+                        Title = tip.Title,
+                        Content = tip.Content,
+                        Fstop = tip.Fstop,
+                        ShutterSpeed = tip.ShutterSpeed,
+                        Iso = tip.Iso,
+                        I8n = tip.I8n
+                    });
+                }
+
+                return Result<List<TipDto>>.Success(tipDtos);
             }
-
-            var tips = result.Data;
-
-            var response = tips.Select(tip => new GetAllTipsQueryResponse
+            catch (Exception ex)
             {
-                Id = tip.Id,
-                TipTypeId = tip.TipTypeId,
-                Title = tip.Title,
-                Content = tip.Content,
-                Fstop = tip.Fstop,
-                ShutterSpeed = tip.ShutterSpeed,
-                Iso = tip.Iso,
-                I8n = tip.I8n
-            }).ToList();
-
-            return Result<List<GetAllTipsQueryResponse>>.Success(response);
+                return Result<List<TipDto>>.Failure($"Failed to retrieve tips: {ex.Message}");
+            }
         }
     }
 }

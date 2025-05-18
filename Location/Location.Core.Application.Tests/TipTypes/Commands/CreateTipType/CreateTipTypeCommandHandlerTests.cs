@@ -11,6 +11,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.TipTypes.Commands.CreateTipType
 {
+    [Category("Tips")]
+    [Category("Create")]
     [TestFixture]
     public class CreateTipTypeCommandHandlerTests
     {

@@ -6,6 +6,8 @@ using MediatR;
 
 namespace Location.Core.Application.Tests.Locations.Queries.GetLocations
 {
+    [Category("Locations")]
+    [Category("Query")]
     [TestFixture]
     public class GetLocationsQueryTests
     {

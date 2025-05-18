@@ -18,6 +18,7 @@ namespace Location.Core.Application.Tips.Queries.GetTipById
 
         public async Task<Result<GetTipByIdQueryResponse>> Handle(GetTipByIdQuery request, CancellationToken cancellationToken)
         {
+
             var result = await _unitOfWork.Tips.GetByIdAsync(request.Id, cancellationToken);
 
             if (!result.IsSuccess || result.Data == null)

@@ -5,6 +5,9 @@ using System;
 
 namespace Location.Core.Application.Tests.Weather.DTOs
 {
+    [Category("Weather")]
+    [Category("DTO")]
+
     [TestFixture]
     public class WeatherDtoTests
     {

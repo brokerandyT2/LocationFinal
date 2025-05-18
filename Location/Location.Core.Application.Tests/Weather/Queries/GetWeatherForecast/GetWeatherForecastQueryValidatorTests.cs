@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherForecast
 {
+    [Category("Weather")]
+    [Category("Get")]
     [TestFixture]
     public class GetWeatherForecastQueryValidatorTests
     {

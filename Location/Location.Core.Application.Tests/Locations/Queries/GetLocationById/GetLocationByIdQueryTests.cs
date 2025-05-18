@@ -7,6 +7,7 @@ using Location.Core.Application.Locations.Queries.GetLocationById;
 
 namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 {
+    [Category("Locations")]
     [TestFixture]
     public class GetLocationByIdQueryTests
     {

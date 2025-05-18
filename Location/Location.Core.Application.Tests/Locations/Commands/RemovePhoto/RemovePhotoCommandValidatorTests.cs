@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.RemovePhoto
 {
+    [Category("Locations")]
+    [Category("PHOTO Management")]
     [TestFixture]
     public class RemovePhotoCommandValidatorTests
     {

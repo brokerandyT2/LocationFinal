@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using MediatR;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Tips.DTOs;
 
 namespace Location.Core.Application.Tips.Queries.GetAllTips
 {
-    public class GetAllTipsQuery : IRequest<Result<List<GetAllTipsQueryResponse>>>
+    public class GetAllTipsQuery : IRequest<Result<List<TipDto>>>
     {
     }
 

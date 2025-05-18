@@ -60,11 +60,11 @@ namespace Location.Core.Infrastructure.Data
 
             try
             {
-                _logger.LogInformation("Initializing database at {DatabasePath}", _databasePath);
+                //_logger.LogInformation("Initializing database at {DatabasePath}", _databasePath);
 
                 // Enable foreign keys
                 await _connection.ExecuteAsync("PRAGMA foreign_keys = ON");
-                _logger.LogDebug("Foreign key constraints enabled");
+               // _logger.LogDebug("Foreign key constraints enabled");
 
                 // Create tables
                 await _connection.CreateTableAsync<LocationEntity>();

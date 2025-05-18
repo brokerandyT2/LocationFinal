@@ -29,7 +29,28 @@ namespace Location.Photography.Maui
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
+            // Set a default page first
+            MainPage = new Microsoft.Maui.Controls.ContentPage
+            {
+                Content = new Microsoft.Maui.Controls.StackLayout
+                {
+                    Children =
+            {
+                new Microsoft.Maui.Controls.ActivityIndicator
+                {
+                    IsRunning = true,
+                    HorizontalOptions = Microsoft.Maui.Controls.LayoutOptions.Center,
+                    VerticalOptions = Microsoft.Maui.Controls.LayoutOptions.Center
+                }
+            }
+                }
+            };
+
             var window = base.CreateWindow(activationState);
+
+            // Initialize the app immediately after creating the window
+            _ = InitializeAppAsync();
+
             return window;
         }
 
@@ -53,7 +74,7 @@ namespace Location.Photography.Maui
                 {
                     // User has completed onboarding, show the main app
                     _logger.LogInformation("Onboarding already completed, showing MainPage");
-                    MainPage = new MainPage();
+                    MainPage = new MainPage(_serviceProvider);
 
                     // Increment app open counter
                     await IncrementAppOpenCounterAsync();
@@ -64,7 +85,7 @@ namespace Location.Photography.Maui
                 _logger.LogError(ex, "Error during app initialization");
 
                 // Fallback to main page in case of error
-                MainPage = new MainPage();
+                MainPage = new MainPage(_serviceProvider);
             }
         }
 

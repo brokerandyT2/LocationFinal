@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Tips.Commands.CreateTip
 {
+    [Category("Tips")]
+    [Category("Create")]
     [TestFixture]
     public class CreateTipCommandValidatorTests
     {

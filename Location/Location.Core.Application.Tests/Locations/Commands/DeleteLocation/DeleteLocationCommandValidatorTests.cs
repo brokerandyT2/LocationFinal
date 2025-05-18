@@ -7,6 +7,8 @@ using Location.Core.Application.Commands.Locations;
 
 namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 {
+    [Category("Locations")]
+    [Category("Delete Location")]
     [TestFixture]
     public class DeleteLocationCommandValidatorTests
     {

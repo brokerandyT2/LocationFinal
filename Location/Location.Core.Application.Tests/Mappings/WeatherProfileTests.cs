@@ -9,6 +9,8 @@ using System.Linq;
 
 namespace Location.Core.Application.Tests.Mappings
 {
+    [Category("Tip")]
+    [Category("Profile")]
     [TestFixture]
     public class WeatherProfileTests
     {

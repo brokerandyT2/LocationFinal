@@ -14,6 +14,7 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Common.Behaviors
 {
+    [Category("Validations")]
     [TestFixture]
     public class ValidationBehaviorTests
     {

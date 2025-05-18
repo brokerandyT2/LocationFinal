@@ -28,15 +28,29 @@ namespace Location.Photography.Infrastructure
         }
 
         public async Task InitializeDatabaseAsync(
+            CancellationToken ctx,
             string hemisphere = "north",
             string tempFormat = "F",
             string dateFormat = "MMM/dd/yyyy",
             string timeFormat = "hh:mm tt",
             string windDirection = "towardsWind",
-            string email = "")
+            string email = "",
+            string guid = ""
+            )
         {
             try
             {
+                var databaseContext = (_unitOfWork as Location.Core.Infrastructure.UnitOfWork.UnitOfWork)?.GetDatabaseContext();
+                if (databaseContext != null)
+                {
+                    await databaseContext.InitializeDatabaseAsync();
+                }
+                else
+                {
+                    _logger.LogWarning("DatabaseContext not available through UnitOfWork");
+                }
+
+
                 _logger.LogInformation("Starting database population");
 
                 await CreateTipTypesAsync();
@@ -236,10 +250,10 @@ namespace Location.Photography.Infrastructure
             foreach (var (key, value, description) in settings)
             {
                 var setting = new Setting(key, value, description);
-                var result = await _unitOfWork.Settings.UpsertAsync(setting);
+                var result = await _unitOfWork.Settings.CreateAsync(setting);
                 if (!result.IsSuccess)
                 {
-                    _logger.LogWarning("Failed to create setting {Key}: {Error}", key, result.ErrorMessage);
+                    //_logger.LogWarning("Failed to create setting {Key}: {Error}", key, result.ErrorMessage);
                 }
             }
 

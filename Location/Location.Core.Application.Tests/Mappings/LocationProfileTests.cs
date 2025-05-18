@@ -7,6 +7,8 @@ using Location.Core.Domain.ValueObjects;
 
 namespace Location.Core.Application.Tests.Mappings
 {
+    [Category("Locations")]
+    [Category("Profile")]
     [TestFixture]
     public class LocationProfileTests
     {
@@ -200,7 +202,9 @@ namespace Location.Core.Application.Tests.Mappings
 
             CreateMap<Domain.Entities.Location, LocationListDto>()
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Address.City))
-                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.Address.State));
+                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.Address.State))
+                .ForMember(dest => dest.Latitude, opt => opt.MapFrom(src => src.Coordinate.Latitude))
+                .ForMember(dest => dest.Longitude, opt => opt.MapFrom(src => src.Coordinate.Longitude));
         }
     }
 }

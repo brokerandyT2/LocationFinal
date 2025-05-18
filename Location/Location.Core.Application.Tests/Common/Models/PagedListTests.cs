@@ -6,6 +6,8 @@ using System.Linq;
 
 namespace Location.Core.Application.Tests.Common.Models
 {
+    [Category("View Model Support Class")]
+    [Category("Paging")]
     [TestFixture]
     public class PagedListTests
     {

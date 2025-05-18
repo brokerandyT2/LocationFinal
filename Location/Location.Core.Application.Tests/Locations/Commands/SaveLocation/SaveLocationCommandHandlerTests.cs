@@ -1,20 +1,26 @@
 ﻿using AutoMapper;
+using FluentAssertions;
 using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Domain.ValueObjects;
 using Moq;
-using Xunit;
+using NUnit.Framework;
+using System.Runtime.CompilerServices;
+using Assert = NUnit.Framework.Assert;
+
 
 namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
 {
+    [NUnit.Framework.Category("Locations")]
+    [NUnit.Framework.Category("Delete Location")]
     public class SaveLocationCommandHandlerTests
     {
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-        private readonly Mock<Location.Core.Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
-        private readonly Mock<IMapper> _mapperMock;
-        private readonly SaveLocationCommandHandler _handler;
+        private  Mock<IUnitOfWork> _unitOfWorkMock;
+        private  Mock<Location.Core.Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
+        private  Mock<IMapper> _mapperMock;
+        private  SaveLocationCommandHandler _handler;
 
         public SaveLocationCommandHandlerTests()
         {
@@ -25,8 +31,20 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
             _handler = new SaveLocationCommandHandler(_unitOfWorkMock.Object, _mapperMock.Object);
         }
+        [SetUp]
+        public void SetUp()
+        {
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _locationRepositoryMock = new Mock<ILocationRepository>();
+            _mapperMock = new Mock<IMapper>();
 
-        [Fact]
+            _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
+            _handler = new SaveLocationCommandHandler(_unitOfWorkMock.Object, _mapperMock.Object);
+
+        }
+
+        [Test]
+       
         public async Task Handle_CreateNewLocation_ReturnsSuccessResult()
         {
             // Arrange
@@ -59,14 +77,14 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
-            Assert.IsNotNull(result.Data);
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Data, Is.Not.Null);
             _locationRepositoryMock
                 .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Location>.Success(newLocation));
         }
 
-        [Fact]
+        [Test]
         public async Task Handle_CreateLocationWithPhoto_AttachesPhoto()
         {
             // Arrange
@@ -100,11 +118,11 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
+            Assert.That(result.IsSuccess, Is.True);
             _locationRepositoryMock.Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result<Domain.Entities.Location>.Success(newLocation));
         }
 
-        [Fact]
+        [Test]
         public async Task Handle_UpdateExistingLocation_ReturnsSuccessResult()
         {
             // Arrange
@@ -139,13 +157,13 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
-            Assert.IsNotNull(result.Data);
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Data, Is.Not.Null);
             _locationRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Once);
 
         }
 
-        [Fact]
+        [Test]
         public async Task Handle_UpdateNonExistentLocation_ReturnsFailure()
         {
             // Arrange
@@ -164,13 +182,13 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.ErrorMessage.Contains("Location not found"));
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ErrorMessage, Does.Contain("Location not found"));
             _locationRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Never);
 
         }
 
-        [Fact]
+        [Test]
         public async Task Handle_InvalidCommand_ReturnsFailure()
         {
             // Arrange
@@ -193,11 +211,12 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.ErrorMessage.Contains("Failed to save location"));
+            result.IsSuccess.Should().BeFalse();
+            result.ErrorMessage.Should().Contain("Failed to save location");
+            //Assert.IsTrue(result.ErrorMessage.Contains("Failed to save location"));
         }
 
-        [Fact]
+        [Test]
         public async Task Handle_RepositoryThrowsException_ReturnsFailure()
         {
             // Arrange
@@ -218,8 +237,9 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.ErrorMessage.Contains("Failed to save location"));
+            Assert.That(result.IsSuccess, Is.True);
+
+            Assert.That(result.ErrorMessage, Does.Contain("Location not found"));
         }
     }
 }

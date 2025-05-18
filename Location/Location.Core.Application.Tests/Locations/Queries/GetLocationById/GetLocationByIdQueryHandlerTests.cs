@@ -9,6 +9,7 @@ using Xunit;
 
 namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 {
+    [NUnit.Framework.Category("Locations")]
     public class GetLocationByIdQueryHandlerTests
     {
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;

@@ -2,6 +2,7 @@
 using Location.Photography.Application.Errors;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure.Services;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 
@@ -12,14 +13,15 @@ namespace Location.Photography.Application.Tests.Services
     {
         private ExposureCalculatorService _exposureCalculatorService;
         private Mock<IExposureTriangleService> _exposureTriangleServiceMock;
+        private Mock<ILogger<ExposureCalculatorService>> _loggerMock;
 
         [SetUp]
         public void SetUp()
         {
             _exposureTriangleServiceMock = new Mock<IExposureTriangleService>();
-            _exposureCalculatorService = new ExposureCalculatorService(_exposureTriangleServiceMock.Object);
+            _loggerMock = new Mock<ILogger<ExposureCalculatorService>>();
+            _exposureCalculatorService = new ExposureCalculatorService(_loggerMock.Object, _exposureTriangleServiceMock.Object);
         }
-
         [Test]
         public async Task GetShutterSpeedsAsync_ShouldReturnCorrectShutterSpeeds_ForFullIncrements()
         {

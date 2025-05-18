@@ -11,6 +11,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Settings.Commands.CreateSetting
 {
+    [Category("Tips")]
+    [Category("Delete")]
     [TestFixture]
     public class CreateSettingCommandHandlerTests
     {

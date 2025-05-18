@@ -8,6 +8,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 {
+    [Category("Locations")]
+    [Category("Delete Location")]
     [TestFixture]
     public class DeleteLocationCommandHandlerTests
     {

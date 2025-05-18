@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Settings.Commands.CreateSetting
 {
+    [Category("Setting")]
+    [Category("Create")]
     [TestFixture]
     public class CreateSettingCommandValidatorTests
     {

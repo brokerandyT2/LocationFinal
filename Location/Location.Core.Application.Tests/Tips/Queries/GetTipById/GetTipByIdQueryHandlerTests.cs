@@ -11,6 +11,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Tips.Queries.GetTipById
 {
+    [Category("Tips")]
+    [Category("Get")]
     [TestFixture]
     public class GetTipByIdQueryHandlerTests
     {

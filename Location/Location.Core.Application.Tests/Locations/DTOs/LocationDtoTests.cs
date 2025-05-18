@@ -5,6 +5,7 @@ using System;
 
 namespace Location.Core.Application.Tests.Locations.DTOs
 {
+    [Category("Locations")]
     [TestFixture]
     public class LocationDtoTests
     {

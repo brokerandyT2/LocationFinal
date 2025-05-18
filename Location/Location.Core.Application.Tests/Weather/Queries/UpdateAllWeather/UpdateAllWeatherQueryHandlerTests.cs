@@ -11,6 +11,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Weather.Queries.UpdateAllWeather
 {
+    [Category("Weather")]
+    [Category("Update")]
     [TestFixture]
     public class UpdateAllWeatherQueryHandlerTests
     {

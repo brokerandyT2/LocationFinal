@@ -46,7 +46,10 @@ namespace Location.Core.Infrastructure.UnitOfWork
             _logger.LogDebug("SaveChangesAsync called");
             return await Task.FromResult(1);
         }
-
+        public IDatabaseContext GetDatabaseContext()
+        {
+            return _context;
+        }
         public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
         {
             if (_inTransaction)

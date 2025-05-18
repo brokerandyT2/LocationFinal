@@ -48,6 +48,7 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<IGeolocationService, GeolocationService>();
             builder.Services.AddSingleton<IMediaService, MediaService>();
             builder.Services.AddTransient<INotificationHandler<AlertEvent>, AlertEventHandler>();
+        
            // builder.Services.AddTransient<INotificationHandler<AlertEvent>, AlertEventHandler>();
 
             // Register Core ViewModels
@@ -56,12 +57,19 @@ namespace Location.Photography.Maui
 
             // Register Photography ViewModels
             builder.Services.AddTransient<ExposureCalculatorViewModel>();
+            var coreAssembly = System.Reflection.Assembly.Load("Location.Core.Application");
+            var photographyAssembly = System.Reflection.Assembly.Load("Location.Photography.Application");
 
+            builder.Services.AddMediatR(cfg => {
+                cfg.RegisterServicesFromAssembly(coreAssembly);
+                cfg.RegisterServicesFromAssembly(photographyAssembly);
+            });
             // Register Core Pages
             builder.Services.AddTransient<Location.Core.Maui.Views.AddLocation>();
             builder.Services.AddTransient<Location.Core.Maui.Views.EditLocation>();
             builder.Services.AddTransient<Location.Core.Maui.Views.WeatherDisplay>();
-
+            builder.Services.AddSingleton<IAlertService, Location.Core.Infrastructure.Services.AlertingService>(); // Adjust class name if different
+            builder.Services.AddSingleton<INavigationService, NavigationService>(); // Adjust class name if different
             // Register Photography Pages including UserOnboarding
             builder.Services.AddTransient<UserOnboarding>();
             builder.Services.AddTransient<Location.Photography.Maui.Views.Premium.ExposureCalculator>();
@@ -69,6 +77,13 @@ namespace Location.Photography.Maui
             builder.Services.AddTransient<Views.Premium.SunLocation>();
             builder.Services.AddTransient<SunCalculatorViewModel>();
             builder.Services.AddTransient<Views.Premium.SunCalculator>();
+            builder.Services.AddTransient<Location.Core.Maui.Views.LocationsPage>();
+            builder.Services.AddTransient<Core.ViewModels.LocationsViewModel>();
+            builder.Services.AddTransient<Location.Photography.Maui.Views.Professional.SceneEvaluation>();
+            builder.Services.AddTransient<Location.Photography.ViewModels.SceneEvaluationViewModel>();
+            builder.Services.AddTransient<DatabaseInitializer>();
+            builder.Services.AddTransient<Location.Core.Maui.Views.TipsPage>();
+            builder.Services.AddTransient<Core.ViewModels.TipsViewModel>();
 
 #if DEBUG
             builder.Logging.AddDebug();

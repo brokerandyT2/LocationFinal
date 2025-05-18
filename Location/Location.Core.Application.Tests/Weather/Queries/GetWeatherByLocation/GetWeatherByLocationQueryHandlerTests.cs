@@ -14,6 +14,8 @@ using Location.Core.Application.Weather.DTOs;
 
 namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
 {
+    [Category("Weather")]
+    [Category("Get")]
     [TestFixture]
     public class GetWeatherByLocationQueryHandlerTests
     {

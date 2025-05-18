@@ -13,6 +13,7 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Commands.Locations.RestoreLocation
 {
+    [Category("Locations")]
     [TestFixture]
     public class RestoreLocationCommandHandlerTests
     {

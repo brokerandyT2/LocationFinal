@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Tips.Commands.DeleteTip
 {
+    [Category("Tips")]
+    [Category("Delete")]
     [TestFixture]
     public class DeleteTipCommandValidatorTests
     {

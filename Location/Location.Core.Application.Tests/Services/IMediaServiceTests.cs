@@ -8,6 +8,7 @@ using Location.Core.Application.Common.Models;
 
 namespace Location.Core.Application.Tests.Services
 {
+    [Category("Media Service")]
     [TestFixture]
     public class IMediaServiceTests
     {

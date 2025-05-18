@@ -12,6 +12,7 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Common.Behaviors
 {
+    [Category("Logging")]
     [TestFixture]
     public class LoggingBehaviorTests
     {

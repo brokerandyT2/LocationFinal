@@ -14,25 +14,73 @@ namespace Location.Core.Infrastructure.Services
         {
             _mediator = mediator;
         }
-
+        private bool _isHandlingAlert = false; // Add this flag
         public async Task ShowInfoAlertAsync(string message, string title = "Information")
         {
-            await _mediator.Publish(new AlertEvent(message, title, AlertType.Info));
+            if (_isHandlingAlert)
+            { return; }
+
+            if (!_isHandlingAlert)
+            {
+                try
+                {
+                    await _mediator.Publish(new AlertEvent(message, title, AlertType.Info));
+                    _isHandlingAlert = true;
+                }
+                finally
+                { _isHandlingAlert = false; }
+            }
         }
 
         public async Task ShowSuccessAlertAsync(string message, string title = "Success")
         {
-            await _mediator.Publish(new AlertEvent(message, title, AlertType.Success));
+            if (_isHandlingAlert)
+            { return; }
+
+            if (!_isHandlingAlert)
+            {
+                try
+                {
+                    await _mediator.Publish(new AlertEvent(message, title, AlertType.Success));
+                    _isHandlingAlert = true;
+                }
+                finally
+                { _isHandlingAlert = false; }
+            }
         }
 
         public async Task ShowWarningAlertAsync(string message, string title = "Warning")
         {
-            await _mediator.Publish(new AlertEvent(message, title, AlertType.Warning));
+            if (_isHandlingAlert)
+            { return; }
+
+            if (!_isHandlingAlert)
+            {
+                try
+                {
+                    await _mediator.Publish(new AlertEvent(message, title, AlertType.Warning));
+                    _isHandlingAlert = true;
+                }
+                finally
+                { _isHandlingAlert = false; }
+            }
         }
 
         public async Task ShowErrorAlertAsync(string message, string title = "Error")
         {
-            await _mediator.Publish(new AlertEvent(message, title, AlertType.Error));
+            if(_isHandlingAlert)
+            { return; }
+
+            if (!_isHandlingAlert)
+            {
+                try
+                {_isHandlingAlert = true;
+                    await _mediator.Publish(new AlertEvent(message, title, AlertType.Error));
+                    
+                }
+                finally
+                { _isHandlingAlert = false; }
+            }
         }
     }
 }

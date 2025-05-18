@@ -10,6 +10,7 @@ using Location.Core.Application.Tests.Utilities;
 
 namespace Location.Core.Application.Tests.Services
 {
+    [Category("Weather Service")]
     [TestFixture]
     public class IWeatherServiceTests
     {

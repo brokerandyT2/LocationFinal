@@ -4,6 +4,9 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Queries.Locations.GetLocationByTitle
 {
+    [Category("Locations")]
+    [Category("Query")]
+
     [TestFixture]
     public class GetLocationByTitleQueryValidatorTests
     {

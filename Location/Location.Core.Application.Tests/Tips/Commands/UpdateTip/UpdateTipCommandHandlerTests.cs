@@ -11,6 +11,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Tips.Commands.UpdateTip
 {
+    [Category("Tips")]
+    [Category("Update")]
     [TestFixture]
     public class UpdateTipCommandHandlerTests
     {

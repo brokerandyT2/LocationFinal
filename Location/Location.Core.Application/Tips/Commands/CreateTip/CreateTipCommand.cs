@@ -4,10 +4,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Tips.DTOs;
 
 namespace Location.Core.Application.Tips.Commands.CreateTip
 {
-    public class CreateTipCommand : IRequest<Result<CreateTipCommandResponse>>
+    public class CreateTipCommand : IRequest<Result<List<TipDto>>>
     {
         public int TipTypeId { get; set; }
         public string Title { get; set; } = string.Empty;

@@ -14,12 +14,16 @@ namespace Location.Photography.Infrastructure.Services
     public class ExposureCalculatorService : IExposureCalculatorService
     {
         private readonly ILogger<ExposureCalculatorService> _logger;
-
+        private readonly IExposureTriangleService _exposureTriangleService;
         public ExposureCalculatorService(ILogger<ExposureCalculatorService> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
+        public ExposureCalculatorService(ILogger<ExposureCalculatorService> logger, IExposureTriangleService exposureTriangleService)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _exposureTriangleService = exposureTriangleService ?? throw new ArgumentNullException(nameof(exposureTriangleService));
+        }
         public async Task<Result<ExposureSettingsDto>> CalculateShutterSpeedAsync(
             ExposureTriangleDto baseExposure,
             string targetAperture,

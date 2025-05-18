@@ -19,7 +19,7 @@ namespace Location.Core.Application.Commands.Tips
 
         public GetRandomTipCommandHandler(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task<Result<TipDto>> Handle(GetRandomTipCommand request, CancellationToken cancellationToken)

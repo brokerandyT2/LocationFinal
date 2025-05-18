@@ -6,7 +6,7 @@
              xmlns:models="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
              xmlns:strings="clr-namespace:Location.Photography.Maui.Resources"
              xmlns:system="clr-namespace:System;assembly=netstandard"             
-             Title="Photography Setup">
+             Title="PixMap Setup">
     <ContentPage.BindingContext>
         <models:SettingsViewModel />
     </ContentPage.BindingContext>

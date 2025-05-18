@@ -15,6 +15,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
 {
+    [Category("Weather")]
+    [Category("Update")]
     [TestFixture]
     public class UpdateWeatherCommandHandlerTests
     {

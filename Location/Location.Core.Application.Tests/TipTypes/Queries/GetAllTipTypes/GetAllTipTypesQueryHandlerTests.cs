@@ -13,6 +13,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.TipTypes.Queries.GetAllTipTypes
 {
+    [Category("Tips")]
+    [Category("Get All")]
     [TestFixture]
     public class GetAllTipTypesQueryHandlerTests
     {

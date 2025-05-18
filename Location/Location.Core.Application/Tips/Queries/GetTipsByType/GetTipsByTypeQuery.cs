@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using MediatR;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Tips.DTOs;
 
 namespace Location.Core.Application.Tips.Queries.GetTipsByType
 {
-    public class GetTipsByTypeQuery : IRequest<Result<List<GetTipsByTypeQueryResponse>>>
+    public class GetTipsByTypeQuery : IRequest<Result<List<TipDto>>>
     {
         public int TipTypeId { get; set; }
     }

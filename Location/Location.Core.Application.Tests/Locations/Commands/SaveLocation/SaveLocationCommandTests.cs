@@ -5,6 +5,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
 {
+    [Category("Locations")]
+    [Category("Delete Location")]
     [TestFixture]
     public class SaveLocationCommandTests
     {

@@ -13,6 +13,8 @@ using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Commands.Locations.AttachPhoto
 {
+    [Category("Locations")]
+    [Category("PHOTO Management")]
     [TestFixture]
     public class AttachPhotoCommandHandlerTests
     {

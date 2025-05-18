@@ -15,7 +15,7 @@ namespace Location.Core.Application.Queries.TipTypes
 
         public GetTipTypeByIdQueryHandler(ITipTypeRepository tipTypeRepository)
         {
-            _tipTypeRepository = tipTypeRepository;
+            _tipTypeRepository = tipTypeRepository ?? throw new ArgumentNullException(nameof(tipTypeRepository));
         }
 
         public async Task<Result<TipTypeDto>> Handle(GetTipTypeByIdQuery request, CancellationToken cancellationToken)
