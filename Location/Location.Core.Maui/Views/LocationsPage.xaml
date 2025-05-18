@@ -30,6 +30,7 @@
                             <Label Text="{Binding Title}" FontAttributes="Bold" />
                             <Label Text="{Binding FormattedCoordinates}" FontSize="Caption" />
                         </VerticalStackLayout>
+                        <ImageButton Source="map.png" Pressed="ImageButton_Pressed"></ImageButton>
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

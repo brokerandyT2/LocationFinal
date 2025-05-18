@@ -31,6 +31,8 @@ namespace Location.Photography.Maui
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
+            builder.Services.AddSingleton<MauiAlertService>();
+            builder.Services.AddSingleton<IAlertService>(sp => sp.GetRequiredService<MauiAlertService>());
             // Register the core application layer
             builder.Services.AddApplication();
 

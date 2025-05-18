@@ -1,5 +1,4 @@
-﻿// Location.Core.Maui/Services/AlertEventHandler.cs
-using Location.Core.Application.Alerts;
+﻿using Location.Core.Application.Alerts;
 using Location.Core.Application.Services;
 using MediatR;
 using System.Threading;
@@ -10,14 +9,25 @@ namespace Location.Core.Maui.Services
     public class AlertEventHandler : INotificationHandler<AlertEvent>
     {
         private readonly IAlertService _alertService;
+        // Add a type check to ensure we're using MauiAlertService
+        private readonly bool _isSafeAlertService;
 
         public AlertEventHandler(IAlertService alertService)
         {
             _alertService = alertService;
+            // Check if the implementation is safe (not AlertingService)
+            _isSafeAlertService = alertService.GetType().Name != "AlertingService";
         }
 
         public async Task Handle(AlertEvent notification, CancellationToken cancellationToken)
         {
+            // Skip handling if we detect we're using AlertingService to prevent circular references
+            if (!_isSafeAlertService)
+            {
+                // Log or handle the situation (optional)
+                return;
+            }
+
             switch (notification.Type)
             {
                 case AlertType.Success:

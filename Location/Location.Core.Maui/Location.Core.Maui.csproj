@@ -108,4 +108,8 @@
     <Folder Include="Resources\Splash\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <MauiImage Include="Resources\Images\map.svg" />
+  </ItemGroup>
+
 </Project>

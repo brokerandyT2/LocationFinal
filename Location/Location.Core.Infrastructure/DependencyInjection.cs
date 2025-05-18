@@ -14,6 +14,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Location.Core.Infrastructure
 {
@@ -31,7 +32,15 @@ namespace Location.Core.Infrastructure
             services.AddScoped<TipRepository>();
             services.AddScoped<TipTypeRepository>();
             services.AddScoped<SettingRepository>();
-            services.AddScoped<IAlertService, AlertingService>();
+
+            // IMPORTANT: Don't register AlertingService as IAlertService anymore
+            // We'll register the concrete type, but not as the interface implementation
+            services.AddScoped<AlertingService>();
+
+            // If an IAlertService isn't registered yet, use DirectAlertingService as a fallback
+            // This ensures infrastructure components have a non-circular alerting mechanism
+            services.AddScoped<DirectAlertingService>();
+            services.TryAddScoped<IAlertService, DirectAlertingService>();
 
             // Register persistence interfaces
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository>(sp =>

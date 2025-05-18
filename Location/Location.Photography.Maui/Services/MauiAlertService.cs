@@ -6,6 +6,14 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Maui.Services
 {
+    /*Additional Recommendation
+Consider refactoring your alert system in the future to avoid the need for circular dependencies. For example:
+
+Use a dedicated event bus for alerts instead of MediatR.
+Use a command pattern instead of services directly calling each other.
+Consider using a mediator pattern with explicit routing of alert messages.
+
+These architectural patterns can make your code more maintainable and less prone to circular dependencies.*/
     /// <summary>
     /// MAUI implementation of the IAlertService interface
     /// </summary>

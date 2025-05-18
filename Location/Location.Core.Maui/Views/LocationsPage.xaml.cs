@@ -110,5 +110,11 @@ namespace Location.Core.Maui.Views
                 await _alertService.ShowErrorAlertAsync(e.Message, "Error");
             });
         }
+
+        private void ImageButton_Pressed(object sender, EventArgs e)
+        {
+            var LocationID = ((LocationViewModel)sender).Id;
+            
+        }
     }
 }
