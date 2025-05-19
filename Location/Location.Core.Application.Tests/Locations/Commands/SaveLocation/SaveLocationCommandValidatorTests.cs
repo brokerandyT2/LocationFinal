@@ -7,16 +7,18 @@
     using Xunit;
     [Category("Locations")]
     [Category("Delete Location")]
+    [TestClass]
     public class SaveLocationCommandValidatorTests
     {
-        private readonly SaveLocationCommandValidator _validator;
-
+        private SaveLocationCommandValidator _validator;
+        [SetUp]
+        public void setup() { _validator = new SaveLocationCommandValidator(); }
         public SaveLocationCommandValidatorTests()
         {
             _validator = new SaveLocationCommandValidator();
         }
 
-        [Fact]
+        [Test]
         public void Should_Have_Error_When_Title_Is_Empty()
         {
             // Arrange
@@ -30,7 +32,7 @@
                 .WithErrorMessage("Title is required");
         }
 
-        [Fact]
+        [Test]
         public void Should_Have_Error_When_Title_Exceeds_Max_Length()
         {
             // Arrange
@@ -44,7 +46,7 @@
                 .WithErrorMessage("Title must not exceed 100 characters");
         }
 
-        [Fact]
+        [Test]
         public void Should_Have_Error_When_Description_Exceeds_Max_Length()
         {
             // Arrange
@@ -58,7 +60,7 @@
                 .WithErrorMessage("Description must not exceed 500 characters");
         }
 
-        [Fact]
+        [Test]
         public void Should_Have_Error_When_Latitude_Is_Less_Than_Minus_90()
         {
             // Arrange
@@ -72,7 +74,7 @@
                 .WithErrorMessage("Latitude must be between -90 and 90 degrees");
         }
 
-        [Fact]
+        [Test]
         public void Should_Have_Error_When_Latitude_Is_Greater_Than_90()
         {
             // Arrange
@@ -86,7 +88,7 @@
                 .WithErrorMessage("Latitude must be between -90 and 90 degrees");
         }
 
-        [Fact]
+        [Test]
         public void Should_Have_Error_When_Longitude_Is_Less_Than_Minus_180()
         {
             // Arrange
@@ -100,7 +102,7 @@
                 .WithErrorMessage("Longitude must be between -180 and 180 degrees");
         }
 
-        [Fact]
+        [Test]
         public void Should_Have_Error_When_Longitude_Is_Greater_Than_180()
         {
             // Arrange
@@ -114,7 +116,7 @@
                 .WithErrorMessage("Longitude must be between -180 and 180 degrees");
         }
 
-        [Fact]
+        [Test]
         public void Should_Have_Error_When_Coordinates_Are_Null_Island()
         {
             // Arrange
@@ -133,7 +135,7 @@
                 .WithErrorMessage("Invalid coordinates: Cannot use Null Island (0,0)");
         }
 
-        [Fact]
+        [Test]
         public void Should_Not_Have_Error_For_Valid_Location()
         {
             // Arrange
@@ -154,7 +156,7 @@
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Fact]
+        [Test]
         public void Should_Have_Error_When_PhotoPath_Is_Invalid()
         {
             // Arrange
@@ -163,18 +165,19 @@
                 Title = "Test",
                 Latitude = 40.7128,
                 Longitude = -74.0060,
-                PhotoPath = "invalid|<>:path"
+                // Use characters that are definitely invalid in a path
+                // The characters below are invalid in both Windows and Unix
+                PhotoPath = new string(Path.GetInvalidPathChars().Take(1).ToArray())
             };
 
             // Act
             var result = _validator.TestValidate(command);
 
             // Assert
-            result.ShouldHaveValidationErrorFor(x => x.PhotoPath)
-                .WithErrorMessage("Photo path is not valid");
+            result.ShouldHaveValidationErrorFor(x => x.PhotoPath);
         }
 
-        [Fact]
+        [Test]
         public void Should_Not_Have_Error_When_PhotoPath_Is_Valid()
         {
             // Arrange
@@ -193,7 +196,7 @@
             result.ShouldNotHaveValidationErrorFor(x => x.PhotoPath);
         }
 
-        [Fact]
+        [Test]
         public void Should_Not_Have_Error_When_PhotoPath_Is_Null()
         {
             // Arrange

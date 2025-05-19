@@ -5,18 +5,30 @@ using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Locations.Queries.GetLocationById;
 using Location.Core.Domain.ValueObjects;
 using Moq;
+using NUnit.Framework;
 using Xunit;
+using Assert = NUnit.Framework.Assert;
 
 namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
 {
     [NUnit.Framework.Category("Locations")]
+    [TestClass]
     public class GetLocationByIdQueryHandlerTests
     {
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-        private readonly Mock<Location.Core.Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
-        private readonly Mock<IMapper> _mapperMock;
-        private readonly GetLocationByIdQueryHandler _handler;
+        private  Mock<IUnitOfWork> _unitOfWorkMock;
+        private  Mock<Location.Core.Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
+        private  Mock<IMapper> _mapperMock;
+        private  GetLocationByIdQueryHandler _handler;
+        [SetUp]
+        public void setup()
+        {
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _locationRepositoryMock = new Mock<Location.Core.Application.Common.Interfaces.ILocationRepository>();
+            _mapperMock = new Mock<IMapper>();
+            _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
+            _handler = new GetLocationByIdQueryHandler(_unitOfWorkMock.Object, _mapperMock.Object);
 
+        }
         public GetLocationByIdQueryHandlerTests()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -26,7 +38,7 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
             _handler = new GetLocationByIdQueryHandler(_unitOfWorkMock.Object, _mapperMock.Object);
         }
 
-        [Fact]
+        [Test]
         public async Task Handle_ValidId_ReturnsSuccessResult()
         {
             // Arrange
@@ -52,12 +64,12 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
-            Assert.IsNotNull(result.Data);
-            Assert.IsTrue(locationId == result.Data.Id);
+            Assert.That(result.IsSuccess == true, Is.True);
+            Assert.That(result.Data != null);
+            Assert.That(locationId == result.Data.Id);
         }
 
-        [Fact]
+        [Test]
         public async Task Handle_InvalidId_ReturnsFailureResult()
         {
             // Arrange
@@ -73,11 +85,11 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.ErrorMessage.Contains("Location not found"));
+            Assert.That(result.IsSuccess == false, Is.True);
+            Assert.That(result.ErrorMessage.Contains("Location not found"));
         }
 
-        [Fact]
+        [Test]
         public async Task Handle_RepositoryThrowsException_ReturnsFailureResult()
         {
             // Arrange
@@ -94,8 +106,8 @@ namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.ErrorMessage.Contains("Failed to retrieve location"));
+            Assert.That(result.IsSuccess == false, Is.True);
+            Assert.That(result.ErrorMessage.Contains("Failed to retrieve location"));
         }
     }
 }

@@ -146,7 +146,7 @@ namespace Location.Photography.Infrastructure.Services
             double evDiff = shutterEvDiff + apertureEvDiff;
 
             // Apply EV compensation (negative = brighter = higher ISO per test expectations)
-            evDiff += evCompensation;
+            evDiff -= evCompensation;
 
             // Calculate the new ISO value (more EV = higher ISO)
             double newIsoValue = baseIsoValue * Math.Pow(2, evDiff);

@@ -37,7 +37,11 @@ namespace Location.Core.Application.Commands.Locations
 
             try
             {
-                // Basic path validation
+                // Check for invalid characters directly
+                if (path.Any(c => Path.GetInvalidPathChars().Contains(c)))
+                    return false;
+
+                // Some paths might not throw but still return empty filenames
                 var fileName = Path.GetFileName(path);
                 return !string.IsNullOrEmpty(fileName);
             }
