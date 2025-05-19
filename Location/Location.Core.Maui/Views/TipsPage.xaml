@@ -50,7 +50,7 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Add Button -->
+        <!-- Add Button 
         <Button Grid.Row="2"
                 Text="+"
                 HorizontalOptions="End"
@@ -58,7 +58,7 @@
                 WidthRequest="60"
                 HeightRequest="60"
                 CornerRadius="30"
-                Clicked="OnAddTipClicked"/>
+                Clicked="OnAddTipClicked"/>-->
 
         <!-- Busy indicator overlay -->
         <Grid IsVisible="{Binding IsBusy}" 
@@ -66,7 +66,7 @@
               BackgroundColor="{StaticResource TransparentOverlayBrush}">
             <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                HorizontalOptions="Center"
-                               VerticalOptions="Center"/>
+                               VerticalOptions="Center" Color="Blue"/>
         </Grid>
 
         <!-- Error message -->

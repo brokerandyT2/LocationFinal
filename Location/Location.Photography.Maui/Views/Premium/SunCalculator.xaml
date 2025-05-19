@@ -140,8 +140,8 @@
         <!-- Busy indicator overlay -->
         <Grid Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsBusy}" BackgroundColor="#80000000" Padding="10" Margin="5">
             <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                <ActivityIndicator IsRunning="{Binding IsBusy}" HeightRequest="50" WidthRequest="50" Color="White" />
-                <Label Text="Calculating, please wait..." TextColor="White" FontSize="14" Margin="5"/>
+                <ActivityIndicator IsRunning="{Binding IsBusy}" HeightRequest="50" WidthRequest="50" Color="Blue" />
+                <Label Text="Calculating, please wait..."  FontSize="14" Margin="5"/>
             </VerticalStackLayout>
         </Grid>
 

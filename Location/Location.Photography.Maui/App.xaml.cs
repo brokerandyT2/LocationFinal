@@ -16,10 +16,13 @@ namespace Location.Photography.Maui
 
         public App(IServiceProvider serviceProvider, ILogger<App> logger)
         {
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
             InitializeComponent();
+
             _serviceProvider = serviceProvider;
             _logger = logger;
-            DatabaseSetup.EnsureDatabaseInitialized(serviceProvider);
+            DatabaseSetup.EnsureDatabaseInitialized(serviceProvider).RunSynchronously();
         }
 
         protected override async void OnStart()

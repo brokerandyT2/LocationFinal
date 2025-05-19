@@ -143,9 +143,8 @@
                     <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                           HeightRequest="50" 
                                           WidthRequest="50" 
-                                          Color="White" />
+                                          Color="Blue" />
                     <Label Text="Processing image, please wait..." 
-                              TextColor="White" 
                               FontSize="14"
                               Margin="5"/>
                 </VerticalStackLayout>

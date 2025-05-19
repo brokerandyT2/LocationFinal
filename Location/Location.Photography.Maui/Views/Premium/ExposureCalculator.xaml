@@ -306,7 +306,7 @@
                     <ActivityIndicator IsRunning="{Binding VmIsBusy}" 
                                        HeightRequest="50" 
                                        WidthRequest="50" 
-                                       Color="White" />
+                                       Color="Blue" />
                     <Label Text="Processing, please wait..." 
                            TextColor="White" 
                            FontSize="14"

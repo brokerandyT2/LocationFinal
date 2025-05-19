@@ -16,6 +16,8 @@ namespace Location.Core.Maui
     {
         public static MauiApp CreateMauiApp()
         {
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture =System.Globalization.CultureInfo.InvariantCulture;
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()

@@ -33,6 +33,7 @@
                 <Button x:Name="AddPhoto" 
                         Pressed="AddPhoto_Pressed"
                         ImageSource="{Binding Photo, TargetNullValue='landscape.png'}" 
+                        
                         Background="{StaticResource Gray400}" 
                         Grid.Column="0" 
                         Grid.ColumnSpan="4" 
@@ -153,7 +154,7 @@
                         FontSize="14"
                         IsVisible="False"
                         Margin="5"/>
-            </Grid>
+            </Grid> 
         </ScrollView>
 
         <!-- Busy indicator overlay -->
@@ -167,7 +168,7 @@
                 <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                    HeightRequest="50" 
                                    WidthRequest="50" 
-                                   Color="White" />
+                                   Color="Blue" />
                 <Label Text="Processing, please wait..." 
                        TextColor="White" 
                        FontSize="14"

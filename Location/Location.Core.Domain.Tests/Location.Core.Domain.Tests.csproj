@@ -11,6 +11,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="coverage-report\**" />
+    <EmbeddedResource Remove="coverage-report\**" />
+    <MauiCss Remove="coverage-report\**" />
+    <MauiXaml Remove="coverage-report\**" />
+    <None Remove="coverage-report\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

@@ -19,8 +19,7 @@
         {
             // This is just a base implementation
             // Your vertical apps should override this with their specific MainPage
-            throw new NotImplementedException(
-                "Implement this method in your specific vertical app");
+            return new Window(new MainPage());
         }
     }
 

@@ -131,7 +131,7 @@ namespace Location.Photography.Maui.Views
             bool isValid = validationBehavior?.IsValid ?? false;
             bool hasText = !string.IsNullOrWhiteSpace(emailAddress.Text);
 
-            UpdateValidationMessageVisibility();
+           
 
             if (isValid && hasText)
             {
@@ -196,6 +196,7 @@ namespace Location.Photography.Maui.Views
                     });
                 }
             }
+            else { UpdateValidationMessageVisibility(); }
         }
 
         private async Task SaveToSecureStorageAsync(string email)

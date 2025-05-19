@@ -187,7 +187,7 @@
               BackgroundColor="{StaticResource TransparentOverlayBrush}">
             <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                HorizontalOptions="Center"
-                               VerticalOptions="Center"/>
+                               VerticalOptions="Center" Color="Blue"/>
         </Grid>
 
         <!-- Error message -->
