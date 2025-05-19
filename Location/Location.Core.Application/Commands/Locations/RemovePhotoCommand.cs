@@ -13,7 +13,13 @@ namespace Location.Core.Application.Commands.Locations
     {
         public int LocationId { get; set; }
     }
-
+    /// <summary>
+    /// Handles the removal of a photo from a location and updates the location's state in the data store.
+    /// </summary>
+    /// <remarks>This handler processes a <see cref="RemovePhotoCommand"/> to remove a photo associated with a
+    /// specific location. It retrieves the location, removes the photo, updates the location in the data store, and
+    /// saves the changes. If the operation is successful, the updated location is returned as a <see
+    /// cref="LocationDto"/>.</remarks>
     public class RemovePhotoCommandHandler : IRequestHandler<RemovePhotoCommand, Result<LocationDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -26,7 +32,12 @@ namespace Location.Core.Application.Commands.Locations
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-
+        /// <summary>
+        /// /// Handles the removal of a photo from a location and updates the location in the data store.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<Result<LocationDto>> Handle(RemovePhotoCommand request, CancellationToken cancellationToken)
         {
             try

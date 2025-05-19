@@ -12,7 +12,15 @@ namespace Location.Core.Application.Commands.Locations
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
-
+        /// <summary>
+        /// Handles the deletion of a location by its identifier.
+        /// </summary>
+        /// <remarks>If the location is not found or the update operation fails, the method returns a
+        /// failure result with an appropriate error message.</remarks>
+        /// <param name="request">The command containing the identifier of the location to delete.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A <see cref="Result{T}"/> indicating the success or failure of the operation.  Returns <see
+        /// langword="true"/> if the location was successfully deleted; otherwise, <see langword="false"/>.</returns>
         public async Task<Result<bool>> Handle(DeleteLocationCommand request, CancellationToken cancellationToken)
         {
             try

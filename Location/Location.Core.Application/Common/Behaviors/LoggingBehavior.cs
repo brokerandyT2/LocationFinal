@@ -9,16 +9,40 @@ using Location.Core.Application.Common.Interfaces;
 
 namespace Location.Core.Application.Common.Behaviors
 {
+    /// <summary>
+    /// Implements a pipeline behavior that logs the execution of requests and their responses.
+    /// </summary>
+    /// <remarks>This behavior logs the start and completion of each request, including its execution time. If
+    /// the request takes longer than 500 milliseconds, a warning is logged. If the response implements <see
+    /// cref="IResult"/> and indicates a failure, the errors are logged as warnings. In the event of an exception, the
+    /// behavior logs the error and rethrows the exception.</remarks>
+    /// <typeparam name="TRequest">The type of the request being handled.</typeparam>
+    /// <typeparam name="TResponse">The type of the response returned by the request handler.</typeparam>
     public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>
     {
         private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoggingBehavior{TRequest, TResponse}"/> class.
+        /// </summary>
+        /// <param name="logger">The logger instance used to log information about the behavior.  Cannot be <see langword="null"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger"/> is <see langword="null"/>.</exception>
         public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
+        /// <summary>
+        /// Handles a request by invoking the next handler in the pipeline and logging relevant information.
+        /// </summary>
+        /// <remarks>This method logs the start, completion, and any errors encountered during the
+        /// handling of the request.  It also logs warnings for long-running requests or requests that complete with a
+        /// failure result.</remarks>
+        /// <param name="request">The request object to be processed. Cannot be <see langword="null"/>.</param>
+        /// <param name="next">The delegate representing the next handler in the pipeline.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the response of type
+        /// <typeparamref name="TResponse"/>.</returns>
         public async Task<TResponse> Handle(
             TRequest request,
             RequestHandlerDelegate<TResponse> next,

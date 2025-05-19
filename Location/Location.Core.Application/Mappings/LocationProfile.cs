@@ -4,8 +4,25 @@ using Location.Core.Application.Locations.DTOs;
 
 namespace Location.Core.Application.Mappings
 {
+    /// <summary>
+    /// Provides mapping configurations between the <see cref="Domain.Entities.Location"/> entity and its corresponding
+    /// Data Transfer Objects (DTOs).
+    /// </summary>
+    /// <remarks>This profile defines mappings for converting <see cref="Domain.Entities.Location"/> to and
+    /// from <see cref="LocationDto"/> and <see cref="LocationListDto"/>. It also includes reverse mappings for creating
+    /// <see cref="Domain.Entities.Location"/> instances from DTOs, with custom handling for complex value objects such
+    /// as <see cref="Domain.ValueObjects.Coordinate"/> and <see cref="Domain.ValueObjects.Address"/>.</remarks>
     public class LocationProfile : Profile
     {
+        /// <summary>
+        /// Configures mapping profiles for the <see cref="Domain.Entities.Location"/> entity and its related DTOs.
+        /// </summary>
+        /// <remarks>This profile defines mappings between the <see cref="Domain.Entities.Location"/>
+        /// entity and the following DTOs: <list type="bullet"> <item><description><see cref="LocationDto"/>: Includes
+        /// detailed information about a location.</description></item> <item><description><see
+        /// cref="LocationListDto"/>: Includes summary information for listing locations.</description></item> </list>
+        /// Additionally, reverse mappings are configured to map from DTOs back to the <see
+        /// cref="Domain.Entities.Location"/> entity.</remarks>
         public LocationProfile()
         {
             CreateMap<Domain.Entities.Location, LocationDto>()

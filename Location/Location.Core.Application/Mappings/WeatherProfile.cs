@@ -5,8 +5,24 @@ using System.Linq;
 
 namespace Location.Core.Application.Mappings
 {
+    /// <summary>
+    /// Provides mapping configurations for weather-related domain entities and data transfer objects (DTOs).
+    /// </summary>
+    /// <remarks>This class defines mappings between domain entities, such as <see
+    /// cref="Domain.Entities.Weather"/> and  <see cref="WeatherForecast"/>, and their corresponding DTOs, such as <see
+    /// cref="WeatherDto"/> and  <see cref="WeatherForecastDto"/>. These mappings are used to transform data between the
+    /// domain layer  and the application layer, ensuring consistency and simplifying data handling.  The mappings
+    /// include transformations for properties such as temperature, wind information, humidity,  and other
+    /// weather-related attributes. Special handling is applied to nested objects and value objects,  such as
+    /// coordinates and wind details, to ensure proper conversion.</remarks>
     public class WeatherProfile : Profile
     {
+        /// <summary>
+        /// Configures mapping profiles for weather-related domain entities and data transfer objects (DTOs).
+        /// </summary>
+        /// <remarks>This class defines mappings between domain entities and their corresponding DTOs
+        /// using AutoMapper. It includes mappings for weather data, forecasts, and related properties, ensuring
+        /// seamless transformation between domain models and DTOs for use in application layers.</remarks>
         public WeatherProfile()
         {
             // Weather to WeatherDto mapping

@@ -8,15 +8,34 @@ using MediatR;
 
 namespace Location.Core.Application.Tips.Commands.UpdateTip
 {
+    /// <summary>
+    /// Handles the update operation for a tip by processing the provided command and updating the corresponding data.
+    /// </summary>
+    /// <remarks>This handler retrieves the tip by its identifier, updates its content, photography settings,
+    /// and localization, and then persists the changes to the repository. Note that the <c>TipTypeId</c> cannot be
+    /// updated once the tip is created.</remarks>
     public class UpdateTipCommandHandler : IRequest<Result<List<TipDto>>>
     {
         private readonly ITipRepository _tipRepository;
-
+        /// <summary>
+        /// Handles the command to update an existing tip.
+        /// </summary>
+        /// <param name="tipRepository">The repository used to access and update tip data. Cannot be <see langword="null"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="tipRepository"/> is <see langword="null"/>.</exception>
         public UpdateTipCommandHandler(ITipRepository tipRepository)
         {
             _tipRepository = tipRepository ?? throw new ArgumentNullException(nameof(tipRepository));
         }
-
+        /// <summary>
+        /// Handles the update operation for a tip, applying the specified changes and returning the updated tip data.
+        /// </summary>
+        /// <remarks>This method retrieves the tip by its ID, applies the updates specified in the
+        /// command, and saves the changes to the repository. If the operation fails at any stage, a failure result is
+        /// returned with an appropriate error message.</remarks>
+        /// <param name="request">The command containing the details of the tip to update, including its ID and updated properties.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A <see cref="Result{T}"/> containing the updated <see cref="TipDto"/> if the operation succeeds; otherwise,
+        /// a failure result with an error message.</returns>
         public async Task<Result<TipDto>> Handle(UpdateTipCommand request, CancellationToken cancellationToken)
         {
             try

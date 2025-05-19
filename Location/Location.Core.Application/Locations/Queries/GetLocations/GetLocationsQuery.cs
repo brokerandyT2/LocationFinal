@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Application.Locations.Queries.GetLocations
 {
+    /// <summary>
+    /// Represents a query to retrieve a paginated list of locations, optionally filtered by a search term and including
+    /// deleted entries.
+    /// </summary>
+    /// <remarks>This query is used to request a paginated list of locations from the data source.  The
+    /// results can be filtered by a search term and can optionally include deleted locations.</remarks>
     public class GetLocationsQuery : IRequest<Result<PagedList<LocationListDto>>>
     {
         public int PageNumber { get; set; } = 1;
@@ -14,16 +20,34 @@ namespace Location.Core.Application.Locations.Queries.GetLocations
         public string? SearchTerm { get; set; }
         public bool IncludeDeleted { get; set; } = false;
     }
-
+    /// <summary>
+    /// Handles the query to retrieve a paginated list of locations based on the specified criteria.
+    /// </summary>
+    /// <remarks>This handler processes the <see cref="GetLocationsQuery"/> to retrieve location data,
+    /// optionally including deleted locations, filtering by a search term, and returning the results in a paginated
+    /// format.</remarks>
     public class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, Result<PagedList<LocationListDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetLocationsQueryHandler"/> class.
+        /// </summary>
+        /// <param name="unitOfWork">The unit of work used to access the data layer. This parameter cannot be null.</param>
         public GetLocationsQueryHandler(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
-
+        /// <summary>
+        /// Handles the retrieval of a paginated list of locations based on the specified query parameters.
+        /// </summary>
+        /// <remarks>This method retrieves locations from the data source, optionally filters them by a
+        /// search term, maps them to DTOs, and returns a paginated result. If an error occurs during the operation, a
+        /// failure result is returned with the corresponding error message.</remarks>
+        /// <param name="request">The query parameters for retrieving locations, including pagination, search term, and whether to include
+        /// deleted locations.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A <see cref="Result{T}"/> containing a <see cref="PagedList{T}"/> of <see cref="LocationListDto"/> objects
+        /// if the operation is successful; otherwise, a failure result with an error message.</returns>
         public async Task<Result<PagedList<LocationListDto>>> Handle(GetLocationsQuery request, CancellationToken cancellationToken)
         {
             try

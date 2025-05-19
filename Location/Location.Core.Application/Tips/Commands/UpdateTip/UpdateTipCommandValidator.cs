@@ -2,8 +2,27 @@
 
 namespace Location.Core.Application.Tips.Commands.UpdateTip
 {
+    /// <summary>
+    /// Provides validation rules for the <see cref="UpdateTipCommand"/> class.
+    /// </summary>
+    /// <remarks>This validator ensures that all required properties of the <see cref="UpdateTipCommand"/> are
+    /// provided and meet the specified constraints. Validation includes checks for non-empty fields, maximum lengths,
+    /// and numeric constraints where applicable.</remarks>
     public class UpdateTipCommandValidator : AbstractValidator<UpdateTipCommand>
     {
+        /// <summary>
+        /// Validates the properties of an <see cref="UpdateTipCommand"/> to ensure they meet the required rules.
+        /// </summary>
+        /// <remarks>This validator enforces the following rules: <list type="bullet">
+        /// <item><description><c>Id</c> must be greater than 0.</description></item>
+        /// <item><description><c>TipTypeId</c> must be greater than 0.</description></item>
+        /// <item><description><c>Title</c> is required and must not exceed 100 characters.</description></item>
+        /// <item><description><c>Content</c> is required and must not exceed 1000 characters.</description></item>
+        /// <item><description><c>Fstop</c> must not exceed 20 characters.</description></item>
+        /// <item><description><c>ShutterSpeed</c> must not exceed 20 characters.</description></item>
+        /// <item><description><c>Iso</c> must not exceed 20 characters.</description></item>
+        /// <item><description><c>I8n</c> (localization) is required and must not exceed 10
+        /// characters.</description></item> </list></remarks>
         public UpdateTipCommandValidator()
         {
             RuleFor(x => x.Id)

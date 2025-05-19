@@ -2,8 +2,29 @@
 
 namespace Location.Core.Application.Commands.Locations
 {
+    /// <summary>
+    /// Validates the properties of a <see cref="SaveLocationCommand"/> to ensure they meet the required constraints.
+    /// </summary>
+    /// <remarks>This validator enforces the following rules: <list type="bullet">
+    /// <item><description><c>Title</c> must not be empty and must not exceed 100 characters.</description></item>
+    /// <item><description><c>Description</c> must not exceed 500 characters.</description></item>
+    /// <item><description><c>Latitude</c> must be between -90 and 90 degrees.</description></item>
+    /// <item><description><c>Longitude</c> must be between -180 and 180 degrees.</description></item>
+    /// <item><description>Coordinates cannot represent Null Island (0,0).</description></item> <item><description>If
+    /// provided, <c>PhotoPath</c> must be a valid file path.</description></item> </list></remarks>
     public class SaveLocationCommandValidator : AbstractValidator<SaveLocationCommand>
     {
+        /// <summary>
+        /// Validates the properties of a save location command to ensure they meet the required constraints.
+        /// </summary>
+        /// <remarks>This validator enforces the following rules: <list type="bullet">
+        /// <item><description><c>Title</c> must not be empty and must not exceed 100 characters.</description></item>
+        /// <item><description><c>Description</c> must not exceed 500 characters.</description></item>
+        /// <item><description><c>Latitude</c> must be between -90 and 90 degrees.</description></item>
+        /// <item><description><c>Longitude</c> must be between -180 and 180 degrees.</description></item>
+        /// <item><description>Coordinates cannot represent Null Island (0,0).</description></item>
+        /// <item><description><c>PhotoPath</c>, if provided, must be a valid file path.</description></item>
+        /// </list></remarks>
         public SaveLocationCommandValidator()
         {
             RuleFor(x => x.Title)
@@ -29,7 +50,15 @@ namespace Location.Core.Application.Commands.Locations
                 .Must(BeAValidPath).When(x => !string.IsNullOrEmpty(x.PhotoPath))
                 .WithMessage("Photo path is not valid");
         }
-
+        /// <summary>
+        /// Determines whether the specified path is valid.
+        /// </summary>
+        /// <remarks>A path is considered valid if it does not contain invalid characters as defined by
+        /// <see cref="System.IO.Path.GetInvalidPathChars"/> and resolves to a non-empty file name. If the path is <see
+        /// langword="null"/> or consists only of whitespace, it is treated as valid.</remarks>
+        /// <param name="path">The path to validate. Can be <see langword="null"/> or empty.</param>
+        /// <returns><see langword="true"/> if the path is <see langword="null"/>, empty, or contains no invalid characters and
+        /// resolves to a valid file name; otherwise, <see langword="false"/>.</returns>
         private bool BeAValidPath(string? path)
         {
             if (string.IsNullOrWhiteSpace(path))

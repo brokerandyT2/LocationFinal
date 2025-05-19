@@ -13,7 +13,22 @@ namespace Location.Core.Domain.Rules
         private const int MaxForecastDays = 7;
         private const double MinTemperature = -273.15; // Absolute zero in Celsius
         private const double MaxTemperature = 70; // Reasonable max temperature in Celsius
-
+        /// <summary>
+        /// Validates the specified <see cref="Weather"/> object and identifies any validation errors.
+        /// </summary>
+        /// <remarks>This method performs a series of checks to ensure the <paramref name="weather"/>
+        /// object meets all required criteria: <list type="bullet"> <item><description>The <paramref name="weather"/>
+        /// object must not be <see langword="null"/>.</description></item> <item><description>The <c>LocationId</c>
+        /// property must be greater than 0.</description></item> <item><description>The <c>Coordinate</c> property must
+        /// not be <see langword="null"/>.</description></item> <item><description>The <c>Timezone</c> property must not
+        /// be <see langword="null"/> or whitespace.</description></item> <item><description>The number of daily
+        /// forecasts must not exceed the maximum allowed days.</description></item> </list> Additionally, each forecast
+        /// in the <c>Forecasts</c> collection is validated individually.</remarks>
+        /// <param name="weather">The <see cref="Weather"/> object to validate. Cannot be <see langword="null"/>.</param>
+        /// <param name="errors">When this method returns, contains a list of validation error messages, if any.  If the <paramref
+        /// name="weather"/> object is valid, the list will be empty.</param>
+        /// <returns><see langword="true"/> if the <paramref name="weather"/> object is valid; otherwise, <see
+        /// langword="false"/>.</returns>
         public static bool IsValid(Weather weather, out List<string> errors)
         {
             errors = new List<string>();
@@ -52,7 +67,20 @@ namespace Location.Core.Domain.Rules
 
             return errors.Count == 0;
         }
-
+        /// <summary>
+        /// Validates the specified weather forecast and collects any validation errors.
+        /// </summary>
+        /// <remarks>This method checks the weather forecast for various constraints, including: <list
+        /// type="bullet"> <item><description>Temperature must be within the valid range defined by
+        /// <c>MinTemperature</c> and <c>MaxTemperature</c>.</description></item> <item><description>Minimum temperature
+        /// must not exceed maximum temperature.</description></item> <item><description>Humidity must be between 0 and
+        /// 100 percent.</description></item> <item><description>Cloud coverage must be between 0 and 100
+        /// percent.</description></item> <item><description>UV index must be between 0 and 15.</description></item>
+        /// <item><description>Moon phase must be between 0 and 1.</description></item> </list> If any of these
+        /// constraints are violated, a descriptive error message is added to the <paramref name="errors"/>
+        /// list.</remarks>
+        /// <param name="forecast">The weather forecast to validate. Must not be null.</param>
+        /// <param name="errors">A list to which validation error messages will be added. Must not be null.</param>
         private static void ValidateForecast(WeatherForecast forecast, List<string> errors)
         {
             if (forecast.Temperature?.Celsius < MinTemperature || forecast.Temperature?.Celsius > MaxTemperature)
@@ -85,7 +113,13 @@ namespace Location.Core.Domain.Rules
                 errors.Add($"Invalid moon phase for {forecast.Date:yyyy-MM-dd}");
             }
         }
-
+        /// <summary>
+        /// Determines whether the specified weather data is considered stale based on the given maximum age.
+        /// </summary>
+        /// <param name="weather">The weather data to evaluate. Must not be <see langword="null"/>.</param>
+        /// <param name="maxAge">The maximum allowable age for the weather data. Must be a positive <see cref="TimeSpan"/>.</param>
+        /// <returns><see langword="true"/> if the weather data is older than the specified maximum age; otherwise, <see
+        /// langword="false"/>.</returns>
         public static bool IsStale(Weather weather, TimeSpan maxAge)
         {
             return DateTime.UtcNow - weather.LastUpdate > maxAge;

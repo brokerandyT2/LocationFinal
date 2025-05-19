@@ -13,6 +13,7 @@ namespace Location.Core.Infrastructure.Data
     public interface IDatabaseContext
     {
         Task InitializeDatabaseAsync();
+  
         SQLiteAsyncConnection GetConnection();
         Task<int> InsertAsync<T>(T entity) where T : class, new();
         Task<int> UpdateAsync<T>(T entity) where T : class, new();
@@ -53,18 +54,30 @@ namespace Location.Core.Infrastructure.Data
 
             _connection = new SQLiteAsyncConnection(options);
         }
-
+        /// <summary>
+        /// Asynchronously initializes the database by creating necessary tables, enabling foreign key constraints,  and
+        /// setting up indexes for improved performance.
+        /// </summary>
+        /// <remarks>This method ensures that the database is properly configured and ready for use. It
+        /// performs the following steps: <list type="bullet"> <item><description>Enables foreign key constraints to
+        /// maintain referential integrity.</description></item> <item><description>Creates tables for all required
+        /// entities.</description></item> <item><description>Creates indexes to optimize query
+        /// performance.</description></item> </list> If the database has already been initialized, the method returns
+        /// immediately without performing any actions.</remarks>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Thrown if an error occurs during database initialization. The inner exception contains details about the
+        /// failure.</exception>
         public async Task InitializeDatabaseAsync()
         {
             if (_isInitialized) return;
 
             try
             {
-                //_logger.LogInformation("Initializing database at {DatabasePath}", _databasePath);
+                _logger.LogInformation("Initializing database at {DatabasePath}", _databasePath);
 
                 // Enable foreign keys
                 await _connection.ExecuteAsync("PRAGMA foreign_keys = ON");
-               // _logger.LogDebug("Foreign key constraints enabled");
+                _logger.LogDebug("Foreign key constraints enabled");
 
                 // Create tables
                 await _connection.CreateTableAsync<LocationEntity>();
@@ -87,7 +100,13 @@ namespace Location.Core.Infrastructure.Data
                 throw new InvalidOperationException("Database initialization failed", ex);
             }
         }
-
+        /// <summary>
+        /// Asynchronously creates database indexes to optimize query performance.
+        /// </summary>
+        /// <remarks>This method ensures that necessary indexes are created for various database entities,
+        /// such as locations, weather data, tips, settings, and logs. If an index already exists,  it will not be
+        /// recreated. The method logs the success or failure of the operation.</remarks>
+        /// <returns></returns>
         private async Task CreateIndexesAsync()
         {
             try

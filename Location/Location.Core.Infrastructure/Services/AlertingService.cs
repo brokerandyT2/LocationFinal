@@ -22,7 +22,15 @@ These architectural patterns can make your code more maintainable and less prone
         {
             _mediator = mediator;
         }
-
+        /// <summary>
+        /// Displays an informational alert with the specified message and title.
+        /// </summary>
+        /// <remarks>This method ensures that only one alert is handled at a time. If an alert is already
+        /// being handled,  subsequent calls to this method will return immediately without displaying a new
+        /// alert.</remarks>
+        /// <param name="message">The message to display in the alert. This parameter cannot be null or empty.</param>
+        /// <param name="title">The title of the alert. Defaults to "Information" if not specified.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task ShowInfoAlertAsync(string message, string title = "Information")
         {
             if (_isHandlingAlert)
@@ -38,7 +46,14 @@ These architectural patterns can make your code more maintainable and less prone
                 _isHandlingAlert = false;
             }
         }
-
+        /// <summary>
+        /// Displays a success alert with the specified message and title.
+        /// </summary>
+        /// <remarks>This method ensures that only one alert is handled at a time. If an alert is already
+        /// being handled, the method will return without displaying a new alert.</remarks>
+        /// <param name="message">The message to display in the alert. This parameter cannot be null or empty.</param>
+        /// <param name="title">The title of the alert. Defaults to <see langword="Success"/> if not specified.</param>
+        /// <returns>A task that represents the asynchronous operation of displaying the alert.</returns>
         public async Task ShowSuccessAlertAsync(string message, string title = "Success")
         {
             if (_isHandlingAlert)
@@ -54,7 +69,15 @@ These architectural patterns can make your code more maintainable and less prone
                 _isHandlingAlert = false;
             }
         }
-
+        /// <summary>
+        /// Displays a warning alert with the specified message and title.
+        /// </summary>
+        /// <remarks>This method ensures that only one alert is handled at a time. If an alert is already
+        /// being handled,  subsequent calls to this method will be ignored until the current alert is
+        /// completed.</remarks>
+        /// <param name="message">The message to display in the warning alert. Cannot be null or empty.</param>
+        /// <param name="title">The title of the warning alert. Defaults to "Warning" if not specified.</param>
+        /// <returns></returns>
         public async Task ShowWarningAlertAsync(string message, string title = "Warning")
         {
             if (_isHandlingAlert)
@@ -70,7 +93,15 @@ These architectural patterns can make your code more maintainable and less prone
                 _isHandlingAlert = false;
             }
         }
-
+        /// <summary>
+        /// Displays an error alert with the specified message and title.
+        /// </summary>
+        /// <remarks>This method ensures that only one alert is displayed at a time. If an alert is
+        /// already being handled,  subsequent calls to this method will be ignored until the current alert is
+        /// completed.</remarks>
+        /// <param name="message">The error message to display in the alert. This parameter cannot be null or empty.</param>
+        /// <param name="title">The title of the alert. Defaults to <see langword="Error"/> if not specified.</param>
+        /// <returns>A task that represents the asynchronous operation of displaying the alert.</returns>
         public async Task ShowErrorAlertAsync(string message, string title = "Error")
         {
             if (_isHandlingAlert)

@@ -28,7 +28,16 @@ namespace Location.Core.Application.Commands.Locations
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-
+        /// <summary>
+        /// Handles the process of attaching a photo to a location and updating the location in the data store.
+        /// </summary>
+        /// <remarks>This method retrieves the location by its ID, attaches the specified photo, updates
+        /// the location in the data store, and saves the changes. If the location is not found or the update fails, a
+        /// failure result is returned.</remarks>
+        /// <param name="request">The command containing the location ID and the path to the photo to be attached.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A <see cref="Result{T}"/> containing a <see cref="LocationDto"/> if the operation succeeds; otherwise, a
+        /// failure result with an error message.</returns>
         public async Task<Result<LocationDto>> Handle(AttachPhotoCommand request, CancellationToken cancellationToken)
         {
             try
