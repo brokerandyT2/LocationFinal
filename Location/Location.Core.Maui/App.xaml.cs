@@ -9,6 +9,7 @@
         {
             // Any shared initialization can go here
             // Note: InitializeComponent is removed as it's specific to each implementing app
+            var x = string.Empty;
         }
 
         /// <summary>

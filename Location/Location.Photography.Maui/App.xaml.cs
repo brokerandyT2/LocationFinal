@@ -22,13 +22,14 @@ namespace Location.Photography.Maui
 
             _serviceProvider = serviceProvider;
             _logger = logger;
-            DatabaseSetup.EnsureDatabaseInitialized(serviceProvider);
+           // await DatabaseSetup.EnsureDatabaseInitialized(serviceProvider);
         }
 
         protected override async void OnStart()
         {
             base.OnStart();
             await InitializeAppAsync();
+            await DatabaseSetup.EnsureDatabaseInitialized(_serviceProvider);
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

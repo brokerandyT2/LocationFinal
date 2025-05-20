@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
+
     public class LocationRepository : Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository
     {
         private readonly IDatabaseContext _context;
