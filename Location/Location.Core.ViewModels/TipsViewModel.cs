@@ -231,9 +231,9 @@ namespace Location.Core.ViewModels
         public bool HasCameraSettings => !string.IsNullOrEmpty(Fstop) || !string.IsNullOrEmpty(ShutterSpeed) || !string.IsNullOrEmpty(Iso);
 
         public string CameraSettingsDisplay =>
-            $"{(string.IsNullOrEmpty(Fstop) ? "" : $"F{Fstop} ")}" +
-            $"{(string.IsNullOrEmpty(ShutterSpeed) ? "" : $"{ShutterSpeed} ")}" +
-            $"{(string.IsNullOrEmpty(Iso) ? "" : $"ISO {Iso}")}".Trim();
+            $"{(string.IsNullOrEmpty(Fstop) ? "" : $"F: {Fstop} ")}" +
+            $"{(string.IsNullOrEmpty(ShutterSpeed) ? "" : $"Shutter: {ShutterSpeed} ")}" +
+            $"{(string.IsNullOrEmpty(Iso) ? "" : $"ISO: {Iso}")}".Trim();
     }
 
     public class TipTypeItemViewModel : ObservableObject
