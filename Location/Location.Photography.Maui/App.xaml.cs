@@ -13,6 +13,8 @@ namespace Location.Photography.Maui
     {
         private readonly ILogger<App> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private bool _isInitializing = false;
+        private TaskCompletionSource _initializationTcs = new TaskCompletionSource();
 
         public App(IServiceProvider serviceProvider, ILogger<App> logger)
         {
@@ -22,41 +24,74 @@ namespace Location.Photography.Maui
 
             _serviceProvider = serviceProvider;
             _logger = logger;
-           // await DatabaseSetup.EnsureDatabaseInitialized(serviceProvider);
-        }
-
-        protected override async void OnStart()
-        {
-            base.OnStart();
-            await InitializeAppAsync();
-            await DatabaseSetup.EnsureDatabaseInitialized(_serviceProvider);
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            // Set a default page first
+            // Set a loading page first
             MainPage = new Microsoft.Maui.Controls.ContentPage
             {
                 Content = new Microsoft.Maui.Controls.StackLayout
                 {
                     Children =
-            {
-                new Microsoft.Maui.Controls.ActivityIndicator
                 {
-                    IsRunning = true,
-                    HorizontalOptions = Microsoft.Maui.Controls.LayoutOptions.Center,
-                    VerticalOptions = Microsoft.Maui.Controls.LayoutOptions.Center
+                    new Microsoft.Maui.Controls.ActivityIndicator
+                    {
+                        IsRunning = true,
+                        HorizontalOptions = Microsoft.Maui.Controls.LayoutOptions.Center,
+                        VerticalOptions = Microsoft.Maui.Controls.LayoutOptions.Center
+                    }
                 }
-            }
                 }
             };
 
             var window = base.CreateWindow(activationState);
 
-            // Initialize the app immediately after creating the window
-            _ = InitializeAppAsync();
+            // Trigger initialization once (if not already happening)
+            if (!_isInitializing)
+            {
+                _isInitializing = true;
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        // First initialize the database
+                        _logger.LogInformation("Starting database initialization");
+                        await DatabaseSetup.EnsureDatabaseInitialized(_serviceProvider);
+                        _logger.LogInformation("Database initialization completed");
+
+                        // Then initialize the app UI
+                        await InitializeAppAsync();
+                        _initializationTcs.SetResult();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error during application initialization");
+                        _initializationTcs.SetException(ex);
+
+                        // Show error UI or fallback UI on main thread
+                        MainThread.BeginInvokeOnMainThread(() => {
+                            MainPage = new Microsoft.Maui.Controls.ContentPage
+                            {
+                                Content = new Microsoft.Maui.Controls.Label
+                                {
+                                    Text = "An error occurred during startup. Please restart the app.",
+                                    HorizontalOptions = Microsoft.Maui.Controls.LayoutOptions.Center,
+                                    VerticalOptions = Microsoft.Maui.Controls.LayoutOptions.Center
+                                }
+                            };
+                        });
+                    }
+                });
+            }
 
             return window;
+        }
+
+        protected override void OnStart()
+        {
+            base.OnStart();
+            // No database initialization here - moved to the CreateWindow sequence
         }
 
         private async Task InitializeAppAsync()
@@ -66,31 +101,42 @@ namespace Location.Photography.Maui
                 // Check if email setting exists as a proxy for completed onboarding
                 bool isOnboarded = await HasCompletedOnboardingAsync();
 
-                if (!isOnboarded)
-                {
-                    // User hasn't completed onboarding, show the onboarding page
-                    _logger.LogInformation("Onboarding not completed, showing UserOnboarding page");
+                // UI updates must happen on the main thread
+                await MainThread.InvokeOnMainThreadAsync(() => {
+                    if (!isOnboarded)
+                    {
+                        // User hasn't completed onboarding, show the onboarding page
+                        _logger.LogInformation("Onboarding not completed, showing UserOnboarding page");
 
-                    // Resolve UserOnboarding from DI container
-                    var onboardingPage = _serviceProvider.GetRequiredService<UserOnboarding>();
-                    MainPage = new NavigationPage(onboardingPage);
-                }
-                else
-                {
-                    // User has completed onboarding, show the main app
-                    _logger.LogInformation("Onboarding already completed, showing MainPage");
-                    MainPage = new MainPage(_serviceProvider);
+                        // Resolve UserOnboarding from DI container
+                        var onboardingPage = _serviceProvider.GetRequiredService<UserOnboarding>();
+                        MainPage = new NavigationPage(onboardingPage);
+                    }
+                    else
+                    {
+                        // User has completed onboarding, show the main app
+                        _logger.LogInformation("Onboarding already completed, showing MainPage");
+                        MainPage = new MainPage(_serviceProvider);
+                    }
+                });
 
-                    // Increment app open counter
+                // Increment app open counter after UI is set
+                if (isOnboarded)
+                {
                     await IncrementAppOpenCounterAsync();
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during app initialization");
+                _logger.LogError(ex, "Error during app UI initialization");
 
-                // Fallback to main page in case of error
-                MainPage = new MainPage(_serviceProvider);
+                // Show fallback UI on main thread
+                await MainThread.InvokeOnMainThreadAsync(() => {
+                    MainPage = new MainPage(_serviceProvider);
+                });
+
+                // Re-throw to be caught by the outer handler
+                throw;
             }
         }
 
