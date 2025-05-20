@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
+
     public class SettingRepository : ISettingRepository
     {
         private readonly IDatabaseContext _context;
@@ -41,7 +42,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
             {
                 var entity = await _context.Table<SettingEntity>()
                     .Where(s => s.Key == key)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync().ConfigureAwait(false); 
 
                 return entity != null ? MapToDomain(entity) : null;
             }

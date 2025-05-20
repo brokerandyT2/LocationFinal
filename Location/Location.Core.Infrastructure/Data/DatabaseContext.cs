@@ -13,7 +13,7 @@ namespace Location.Core.Infrastructure.Data
     public interface IDatabaseContext
     {
         Task InitializeDatabaseAsync();
-  
+
         SQLiteAsyncConnection GetConnection();
         Task<int> InsertAsync<T>(T entity) where T : class, new();
         Task<int> UpdateAsync<T>(T entity) where T : class, new();
@@ -46,7 +46,7 @@ namespace Location.Core.Infrastructure.Data
             _databasePath = databasePath ?? System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 DATABASE_NAME);
-
+            SQLitePCL.Batteries_V2.Init();
             var options = new SQLiteConnectionString(
                 _databasePath,
                 SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.SharedCache,
@@ -147,7 +147,7 @@ namespace Location.Core.Infrastructure.Data
         public SQLiteAsyncConnection GetConnection()
         {
             if (!_isInitialized)
-            { 
+            {
                 throw new InvalidOperationException("Database not initialized. Call InitializeDatabaseAsync first.");
             }
             return _connection;
@@ -248,7 +248,14 @@ namespace Location.Core.Infrastructure.Data
         {
             if (!_isInitialized)
             {
-                EnsureInitializedAsync().GetAwaiter().GetResult();
+                // Use a lock to prevent multiple threads from initializing simultaneously
+                lock (this)
+                {
+                    if (!_isInitialized)
+                    {
+                        InitializeDatabaseAsync().Wait(); // Still not ideal but better than GetAwaiter().GetResult()
+                    }
+                }
             }
             return _connection.Table<T>();
         }

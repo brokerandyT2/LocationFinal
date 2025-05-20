@@ -67,7 +67,7 @@
              CheckedChanged="RadioButton_CheckedChanged"
              Style="{StaticResource RadioButtonStyle}"/>
 
-            <!-- Color Temperature and Tint Dials -->
+            <!-- Color Temperature and Tint Dials 
             <controls:ColorTemperatureDial 
                    Grid.Row="3" 
                    Grid.Column="0" 
@@ -92,7 +92,7 @@
                    Margin="10"
                    HeightRequest="180"
                    WidthRequest="180"
-                   HorizontalOptions="Center"/>
+                   HorizontalOptions="Center"/>-->
 
             <!-- Evaluate Scene Button -->
             <Button Text="Evaluate Scene" 

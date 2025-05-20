@@ -246,7 +246,7 @@ namespace Location.Photography.ViewModels
                 ShowError = false;
 
                 // Store the old values for comparison
-                StoreOldValues();
+                //StoreOldValues();
 
                 // Create base exposure triangle
                 var baseExposure = new ExposureTriangleDto

@@ -1,10 +1,16 @@
 using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Services;
+using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Domain.Services;
+using Location.Photography.Infrastructure;
 using Location.Photography.ViewModels;
 using MediatR;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using ILocationRepository = Location.Core.Application.Common.Interfaces.ILocationRepository;
+using ISettingRepository = Location.Core.Application.Common.Interfaces.Persistence.ISettingRepository;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 namespace Location.Photography.Maui.Views.Premium
@@ -40,26 +46,38 @@ namespace Location.Photography.Maui.Views.Premium
             IMediator mediator,
             IAlertService alertService,
             ILocationRepository locationRepository,
-            ISunCalculatorService sunCalculatorService)
+            ISunCalculatorService sunCalculatorService, ISettingRepository setting)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _locationRepository = locationRepository ?? throw new ArgumentNullException(nameof(locationRepository));
             _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
-
+            _settingRepository = setting ?? throw new ArgumentNullException(nameof(setting));
             InitializeComponent();
             InitializeViewModel();
         }
-
+        private ISettingRepository _settingRepository;
         #endregion
+
+        protected override async void OnNavigatedTo(NavigatedToEventArgs args)
+        {
+            base.OnNavigatedTo(args);
+            date.Format = (await _settingRepository.GetByKeyAsync(MagicStrings.DateFormat)).Value;
+            time.Format = (await _settingRepository.GetByKeyAsync(MagicStrings.TimeFormat)).Value;
+
+        }
+
 
         #region Initialization
 
         /// <summary>
         /// Sets up the ViewModel with the required services
         /// </summary>
-        private void InitializeViewModel()
+        private async Task InitializeViewModel()
         {
+
+           
+
             try
             {
                 // Create the view model
@@ -90,7 +108,7 @@ namespace Location.Photography.Maui.Views.Premium
                 if (BindingContext is SunLocationViewModel viewModel)
                 {
                     viewModel.IsBusy = true;
-
+                    //viewModel.Locations =
                     // Get locations from the repository
                     var result = await _locationRepository.GetAllAsync();
 
@@ -116,6 +134,7 @@ namespace Location.Photography.Maui.Views.Premium
                             // Update the sun position after the location is set
                             await UpdateSunPositionAsync(viewModel);
                         }
+
                     }
                     else
                     {
@@ -226,7 +245,8 @@ namespace Location.Photography.Maui.Views.Premium
         private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
         {
             // Display error to user if it's not already displayed in the UI
-            MainThread.BeginInvokeOnMainThread(async () => {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
                 await _alertService.ShowErrorAlertAsync(
                     e.Message,
                     "Error");
@@ -313,7 +333,8 @@ namespace Location.Photography.Maui.Views.Premium
             System.Diagnostics.Debug.WriteLine($"Error: {message}. {ex.Message}");
 
             // Display alert to user
-            MainThread.BeginInvokeOnMainThread(async () => {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
                 await _alertService.ShowErrorAlertAsync(message, "Error");
             });
 

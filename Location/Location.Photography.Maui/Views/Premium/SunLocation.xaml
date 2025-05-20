@@ -34,7 +34,7 @@
             <Picker x:Name="locationPicker" 
                     Grid.Row="0" 
                     ItemsSource="{Binding Locations}" 
-                    ItemDisplayBinding="{Binding Title}"
+                    ItemDisplayBinding="{Binding Name}"
                     SelectedIndexChanged="locationPicker_SelectedIndexChanged" 
                     FontSize="14"
                     Margin="5"/>
