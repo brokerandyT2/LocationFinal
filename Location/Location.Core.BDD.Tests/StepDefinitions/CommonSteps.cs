@@ -1,12 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using FluentAssertions;
+using Location.Core.BDD.Tests.Support;
+using TechTalk.SpecFlow;
 using System.Threading.Tasks;
+using System;
 
 namespace Location.Core.BDD.Tests.StepDefinitions
 {
-    internal class CommonSteps
+    [Binding]
+    public class CommonSteps
     {
+        private readonly ApiContext _context;
+
+        public CommonSteps(ApiContext context)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+        }
+
+        [Given(@"the application is initialized for testing")]
+        public void GivenTheApplicationIsInitializedForTesting()
+        {
+            // This step is handled by the ScenarioHooks which initializes the API context
+            // We just need to verify that the context is available and initialized
+            _context.Should().NotBeNull("API context should be initialized");
+        }
+
+        [Then(@"I should receive a successful result")]
+        public void ThenIShouldReceiveASuccessfulResult()
+        {
+            var lastResult = _context.GetLastResult<object>();
+            lastResult.Should().NotBeNull("Result should be available");
+            lastResult.IsSuccess.Should().BeTrue("Operation should be successful");
+        }
+
+        [Then(@"I should receive a failure result")]
+        public void ThenIShouldReceiveAFailureResult()
+        {
+            var lastResult = _context.GetLastResult<object>();
+            lastResult.Should().NotBeNull("Result should be available");
+            lastResult.IsSuccess.Should().BeFalse("Operation should have failed");
+        }
+
+        [Then(@"the error message should contain ""(.*)""")]
+        public void ThenTheErrorMessageShouldContain(string errorText)
+        {
+            var lastResult = _context.GetLastResult<object>();
+            lastResult.Should().NotBeNull("Result should be available");
+            lastResult.ErrorMessage.Should().Contain(errorText, $"Error message should contain '{errorText}'");
+        }
     }
 }
