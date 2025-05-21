@@ -25,7 +25,7 @@ Scenario: Find a location by title
     When I search for a location with title "Empire State"
     Then I should receive a successful location result
     And the result should contain a location with title "Empire State"
-    And the location should have the following details:
+    And the location search result should have the following details:
         | City     | State |
         | New York | NY    |
 

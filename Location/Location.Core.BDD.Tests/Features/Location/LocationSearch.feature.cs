@@ -224,7 +224,7 @@ await this.FeatureBackgroundAsync();
                             "New York",
                             "NY"});
 #line 28
-    await testRunner.AndAsync("the location should have the following details:", ((string)(null)), table9, "And ");
+    await testRunner.AndAsync("the location search result should have the following details:", ((string)(null)), table9, "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

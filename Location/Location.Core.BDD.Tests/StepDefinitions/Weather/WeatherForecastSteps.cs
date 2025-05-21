@@ -252,7 +252,6 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             // This should reuse the WhenIRequestTheWeatherForecastForTheLocation method
             await WhenIRequestTheWeatherForecastForTheLocation();
         }
-
         [Then(@"I should receive a successful weather forecast result")]
         public void ThenIShouldReceiveASuccessfulWeatherForecastResult()
         {

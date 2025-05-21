@@ -194,6 +194,14 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             var timeDifference = now - weatherResult.Data.LastUpdate;
             timeDifference.TotalMinutes.Should().BeLessThan(5, "Weather data should be recently updated");
         }
+        // In the method where _context is incorrectly referenced:
+        [Then(@"I should receive a successful weather update result")]
+        public void ThenIShouldReceiveASuccessfulWeatherUpdateResult()
+        {
+            var weatherResult = _apiContext.GetLastResult<WeatherDto>(); // Note: using _apiContext, not _context
+            weatherResult.Should().NotBeNull("Weather result should be available");
+            weatherResult.IsSuccess.Should().BeTrue("Weather update operation should be successful");
+        }
 
         [Then(@"I should receive a successful result")]
         public void ThenIShouldReceiveASuccessfulResult()
