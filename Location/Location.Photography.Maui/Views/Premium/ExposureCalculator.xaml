@@ -97,7 +97,7 @@
                          CheckedChanged="exposuresteps_CheckedChanged"
                          Margin="5"/>
 
-            <!-- Calculate -->
+            <!-- Calculate
             <Label Text="{x:Static strings:AppResources.calculate}" 
                    FontSize="14" 
                    FontAttributes="Bold" 
@@ -131,7 +131,7 @@
                          Grid.Row="4" 
                          Grid.Column="2" 
                          CheckedChanged="calculate_CheckedChanged"
-                         Margin="5"/>
+                         Margin="5"/> -->
 
             <!-- EV Setting -->
             <Label Text="EV (Exposure Value)" 
@@ -198,7 +198,6 @@
                     ItemsSource="{Binding ShutterSpeedsForPicker}" 
                     SelectedItem="{Binding ShutterSpeedSelected}"
                     SelectedIndexChanged="ShutterSpeed_Picker_SelectedIndexChanged"
-                    IsEnabled="False"
                     FontSize="14"
                     Margin="5"/>
 

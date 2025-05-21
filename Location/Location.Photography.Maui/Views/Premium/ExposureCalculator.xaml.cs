@@ -128,7 +128,7 @@ namespace Location.Photography.Maui.Views.Premium
 
                 // Default to calculating shutter speed
                 viewModel.ToCalculate = Application.Services.FixedValue.ShutterSpeeds;
-                ShutterSpeed_Picker.IsEnabled = false;
+                ShutterSpeed_Picker.IsEnabled = true;
                 fstop_Picker.IsEnabled = true;
                 ISO_Picker.IsEnabled = true;
 
@@ -189,8 +189,8 @@ namespace Location.Photography.Maui.Views.Premium
 
                 // Default to calculating shutter speed
                 viewModel.ToCalculate = Application.Services.FixedValue.ShutterSpeeds;
-                shutter.IsChecked = true;
-                ShutterSpeed_Picker.IsEnabled = false;
+                //shutter.IsChecked = true;
+                ShutterSpeed_Picker.IsEnabled = true;
                 fstop_Picker.IsEnabled = true;
                 ISO_Picker.IsEnabled = true;
 
@@ -325,9 +325,9 @@ namespace Location.Photography.Maui.Views.Premium
                     viewModel.ToCalculate = (Application.Services.FixedValue)value;
 
                     // Enable/disable the appropriate pickers
-                    ShutterSpeed_Picker.IsEnabled = value != 0; // Enable if not calculating shutter
-                    fstop_Picker.IsEnabled = value != 3;        // Enable if not calculating aperture
-                    ISO_Picker.IsEnabled = value != 1;          // Enable if not calculating ISO
+                    //    ShutterSpeed_Picker.IsEnabled = value != 0; // Enable if not calculating shutter
+                    //    fstop_Picker.IsEnabled = value != 3;        // Enable if not calculating aperture
+                    //    ISO_Picker.IsEnabled = value != 1;          // Enable if not calculating ISO
 
                     // Update the values from the pickers
                     PopulateViewModel();
@@ -356,10 +356,10 @@ namespace Location.Photography.Maui.Views.Premium
                 var viewModel = (ExposureCalculatorViewModel)BindingContext;
 
                 // Store the old value
-                viewModel.OldShutterSpeed = viewModel.ShutterSpeedSelected;
-
+                //viewModel.OldShutterSpeed = viewModel.ShutterSpeedSelected;
+                viewModel.SkipCalculation = (Application.Services.FixedValue)FixedValue.ShutterSpeeds;
                 // Set the new value
-                viewModel.ShutterSpeedSelected = ShutterSpeed_Picker.SelectedItem?.ToString();
+                viewModel.ShutterSpeedSelected = shutterspeedresult.Text = ShutterSpeed_Picker.SelectedItem?.ToString();
 
                 // Recalculate
                 viewModel.Calculate();
@@ -382,12 +382,12 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 // Get the view model
                 var viewModel = (ExposureCalculatorViewModel)BindingContext;
-
+                viewModel.SkipCalculation = (Application.Services.FixedValue)FixedValue.Aperture;
                 // Store the old value
-                viewModel.OldFstop = viewModel.FStopSelected;
+                //viewModel.OldFstop = viewModel.FStopSelected;
 
                 // Set the new value
-                viewModel.FStopSelected = fstop_Picker.SelectedItem?.ToString();
+                viewModel.FStopSelected = fstopresult.Text = fstop_Picker.SelectedItem?.ToString();
 
                 // Recalculate
                 viewModel.Calculate();
@@ -410,9 +410,9 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 // Get the view model
                 var viewModel = (ExposureCalculatorViewModel)BindingContext;
-
+                viewModel.SkipCalculation = (Application.Services.FixedValue)FixedValue.ISO;
                 // Store the old value
-                viewModel.OldISO = viewModel.ISOSelected;
+                // viewModel.OldISO = viewModel.ISOSelected;
 
                 // Set the new value
                 viewModel.ISOSelected = ISO_Picker.SelectedItem?.ToString();

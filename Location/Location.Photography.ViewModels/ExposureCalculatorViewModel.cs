@@ -165,7 +165,11 @@ namespace Location.Photography.ViewModels
             }
         }
         #endregion
-
+        public FixedValue SkipCalculation
+        {
+            get => ToCalculate;
+            set => ToCalculate = value;
+        }
         #region Commands
         public IRelayCommand CalculateCommand { get; }
         public IRelayCommand ResetCommand { get; }
@@ -245,54 +249,103 @@ namespace Location.Photography.ViewModels
                 VmIsBusy = true;
                 ShowError = false;
 
-                // Store the old values for comparison
-                //StoreOldValues();
-
-                // Create base exposure triangle
+                // Create base exposure triangle from old values
                 var baseExposure = new ExposureTriangleDto
                 {
                     ShutterSpeed = OldShutterSpeed,
                     Aperture = OldFstop,
                     Iso = OldISO
                 };
-
-                // Perform calculations based on what's fixed
-                Task<Result<ExposureSettingsDto>> resultTask = null;
-
-                switch (ToCalculate)
+                Result<ExposureSettingsDto> isoResult = new Result<ExposureSettingsDto>(true, null, null, null);
+                Result<ExposureSettingsDto> shutterResult = new Result<ExposureSettingsDto>(true, null, null, null);
+                Result<ExposureSettingsDto> apertureResult = new Result<ExposureSettingsDto>(true, null, null, null);
+                // Calculate all values regardless of ToCalculate setting
+                try
                 {
-                    case FixedValue.ShutterSpeeds:
-                        resultTask = _exposureCalculatorService.CalculateShutterSpeedAsync(
-                            baseExposure, FStopSelected, ISOSelected, FullHalfThirds, default, EVValue);
-                        break;
 
-                    case FixedValue.Aperture:
-                        resultTask = _exposureCalculatorService.CalculateApertureAsync(
-                            baseExposure, ShutterSpeedSelected, ISOSelected, FullHalfThirds, default, EVValue);
-                        break;
-
-                    case FixedValue.ISO:
-                        resultTask = _exposureCalculatorService.CalculateIsoAsync(
-                            baseExposure, ShutterSpeedSelected, FStopSelected, FullHalfThirds, default, EVValue);
-                        break;
-                }
-
-                if (resultTask != null)
-                {
-                    var result = resultTask.GetAwaiter().GetResult();
-
-                    if (result.IsSuccess && result.Data != null)
+                    if (SkipCalculation != FixedValue.ShutterSpeeds)
                     {
-                        // Update the results
-                        ShutterSpeedResult = result.Data.ShutterSpeed;
-                        FStopResult = result.Data.Aperture;
-                        ISOResult = result.Data.Iso;
+                        // 1. Calculate shutter speed
+                        shutterResult = _exposureCalculatorService.CalculateShutterSpeedAsync(
+                           baseExposure, FStopSelected, ISOSelected, FullHalfThirds, default, EVValue)
+                           .GetAwaiter().GetResult();
+                        if (shutterResult.IsSuccess && shutterResult.Data != null)
+                        {
+                            ShutterSpeedResult = shutterResult.Data.ShutterSpeed;
+                        }
+                        else
+                        {
+                            ShutterSpeedResult = OldShutterSpeed;
+                        }
                     }
                     else
                     {
-                        // Show error
-                        ErrorMessage = result.ErrorMessage ?? "Calculation failed";
+                        ShutterSpeedResult = ShutterSpeedSelected;
                     }
+                    if (SkipCalculation != FixedValue.Aperture)
+                    {
+                        // 2. Calculate aperture
+                        apertureResult = _exposureCalculatorService.CalculateApertureAsync(
+                           baseExposure, ShutterSpeedSelected, ISOSelected, FullHalfThirds, default, EVValue)
+                           .GetAwaiter().GetResult();
+                        if (apertureResult.IsSuccess && apertureResult.Data != null)
+                        {
+                            FStopResult = apertureResult.Data.Aperture;
+                        }
+                        else
+                        {
+                            FStopResult = OldFstop;
+                        }
+                    }
+                    else
+                    {
+                        FStopResult = FStopSelected;
+                    }
+                    if (SkipCalculation != FixedValue.ISO)
+                    {
+                        // 3. Calculate ISO
+                        isoResult = _exposureCalculatorService.CalculateIsoAsync(
+                                    baseExposure, ShutterSpeedSelected, FStopSelected, FullHalfThirds, default, EVValue)
+                                    .GetAwaiter().GetResult();
+                        if (isoResult.IsSuccess && isoResult.Data != null)
+                        {
+                            ISOResult = isoResult.Data.Iso;
+                        }
+                        else
+                        {
+                            ISOResult = OldISO;
+                        }
+                    }
+                    else
+                    {
+                        ISOResult = ISOSelected;
+                    }
+                    // If any calculation succeeded, update the corresponding result
+
+
+
+
+
+
+                    // Check if any calculation failed
+                    if (!shutterResult.IsSuccess || !apertureResult.IsSuccess || !isoResult.IsSuccess)
+                    {
+                        // Show the first error message we find
+                        ErrorMessage = shutterResult.ErrorMessage ?? apertureResult.ErrorMessage ??
+                                       isoResult.ErrorMessage ?? "Calculation failed";
+                    }
+                    else
+                    {
+                        // Clear any previous error
+                        ErrorMessage = string.Empty;
+                    }
+
+                    // Store the current values for the next calculation
+                    StoreOldValues();
+                }
+                catch (Exception ex)
+                {
+                    HandleError(ex, "Error during exposure calculations");
                 }
             }
             catch (Exception ex)

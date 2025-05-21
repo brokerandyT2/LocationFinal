@@ -36,7 +36,7 @@ namespace Location.Core.Maui.Views
 
             // Set an empty view model for design-time
             BindingContext = new LocationViewModel();
-
+           
             // Configure UI based on mode
             CloseModal.IsVisible = _isEditMode;
         }
@@ -83,7 +83,7 @@ namespace Location.Core.Maui.Views
             {
                 // Create new location ViewModel with services
                 var viewModel = new LocationViewModel(_mediator, _mediaService, _geolocationService, _alertService);
-
+                viewModel.Photo = string.IsNullOrEmpty(viewModel.Photo) ? "landscape.png" : viewModel.Photo;
                 // Subscribe to error events
                 viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
 

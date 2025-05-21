@@ -96,7 +96,7 @@
 
             <!-- Evaluate Scene Button -->
             <Button Text="Evaluate Scene" 
-                       Command="{Binding EvaluateCommand}" 
+                       Command="{Binding EvaluateSceneCommand}" 
                        Grid.Row="4" 
                        Grid.ColumnSpan="4"
                        Padding="5"
@@ -104,7 +104,7 @@
                        MinimumHeightRequest="50"
                        FontSize="14" 
                        Margin="5"
-                       IsEnabled="{Binding IsProcessing, Converter={StaticResource BoolInversionConverter}}"/>
+                       IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertedBoolConverter}}"/>
 
             <!-- Error message display -->
             <Grid IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBoolConverter}}"
@@ -120,7 +120,7 @@
                           Margin="5" />
             </Grid>
 
-            <!-- Processing indicator -->
+            <!-- Processing indicator 
             <ActivityIndicator IsRunning="{Binding IsProcessing}" 
                                   IsVisible="{Binding IsProcessing}" 
                                   VerticalOptions="Center" 
@@ -130,11 +130,11 @@
                                   HeightRequest="50"
                                   WidthRequest="50"
                                   Color="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"
-                                  Margin="5"/>
+                                  Margin="5"/>-->
 
             <!-- Busy indicator overlay -->
             <Grid IsVisible="{Binding IsBusy}" 
-                     BackgroundColor="#80000000"
+                     
                      Grid.RowSpan="6"
                      Grid.ColumnSpan="4"
                      Padding="10"

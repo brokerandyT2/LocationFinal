@@ -1,11 +1,35 @@
-<Project Sdk="MSTest.Sdk/3.6.4">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UseVSTest>true</UseVSTest>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.6.4" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="SpecFlow" Version="4.0.31-beta" />
+    <PackageReference Include="SpecFlow.MsTest" Version="4.0.31-beta" />
+    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="4.0.31-beta" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Location.Core.Application\Location.Core.Application.csproj" />
+    <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
+    <ProjectReference Include="..\Location.Core.Infrastructure\Location.Core.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="specflow.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

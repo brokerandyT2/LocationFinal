@@ -47,12 +47,19 @@ namespace Location.Core.Application.Common.Models
     /// <typeparam name="T">The type of data returned</typeparam>
     public class Result<T> : Result, IResult<T>
     {
+        private object value;
+
         public T? Data { get; }
 
         protected Result(bool isSuccess, T? data, string? errorMessage, IEnumerable<Error>? errors)
             : base(isSuccess, errorMessage, errors)
         {
             Data = data;
+        }
+
+        public Result(bool isSuccess, string? errorMessage, IEnumerable<Error>? errors, object value) : base(isSuccess, errorMessage, errors)
+        {
+            this.value = value;
         }
 
         /// <summary>
