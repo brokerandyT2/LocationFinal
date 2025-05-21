@@ -26,6 +26,7 @@ namespace Location.Photography.Maui
                 this.Children.Add(_serviceProvider.GetRequiredService<Views.Professional.SceneEvaluation>()); // Register this too if it has dependencies
                 // this.Children.Add(new Views.Professional.LightMeter());
                 // this.Children.Add(_serviceProvider.GetRequiredService<core.Settings>());
+                this.MinimumWidthRequest = 1000;
             }
         }
     }

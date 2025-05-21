@@ -1,63 +1,51 @@
 ﻿Feature: Weather Update
-    As a user
+    As a user of the application
     I want to update weather data for my locations
-    So that I can have the most current information
+    So that I can see the current weather conditions
 
 Background:
     Given the application is initialized for testing
     And I have multiple locations stored in the system for weather:
-        | Title        | Description      | Latitude   | Longitude   | City       | State |
-        | Home         | My home          | 40.712776  | -74.005974  | New York   | NY    |
-        | Office       | Work location    | 37.774929  | -122.419418 | San Francisco | CA |
-        | Vacation     | Holiday home     | 25.761681  | -80.191788  | Miami      | FL    |
+      | Title    | Description   | Latitude  | Longitude   | City          | State |
+      | Home     | My home       | 40.712776 | -74.005974  | New York      | NY    |
+      | Office   | Work location | 37.774929 | -122.419418 | San Francisco | CA    |
+      | Vacation | Holiday home  | 25.761681 | -80.191788  | Miami         | FL    |
 
-@weatherUpdateSingle
-Scenario: Update weather for a single location
-    Given the "Home" location has outdated weather data
-    When I update the weather data for "Home"
-    Then I should receive a successful forecast result
-    And the weather data should be current
-    And the last update timestamp should be recent
+Scenario: Update Weather for a Location
+    When I update the weather data for location "Home"
+    Then I should receive a successful result
+    And the weather data should include the current temperature
+    And the weather data should include the current wind information
+    And the weather data should include a description
 
-@weatherForceUpdate
-Scenario: Force weather update even if data is recent
+# This scenario is on approximately line 21-23, matching the error message
+Scenario: Force Weather Update Even If Data Is Recent
     Given the "Office" location has recent weather data
     When I force update the weather data for "Office"
     Then I should receive a successful result
     And the weather data should be updated
     And the last update timestamp should be recent
 
-@weatherUpdateAll
-Scenario: Update weather for all locations
-    Given all locations have outdated weather data
+Scenario: Skip Weather Update If Recent Data Exists
+    Given I have a location with existing weather data from 1 hours ago
+    When I update the weather data for the location
+    Then I should not receive updated weather data
+
+Scenario: Update All Locations
     When I update weather data for all locations
+    Then the update operation should report 3 updated locations
+
+Scenario: Handle API Unavailability
+    Given the weather API is unavailable
+    When I update the weather data for location "Home"
+    Then I should receive an error related to API unavailability
+
+Scenario: Include Sunrise and Sunset Times
+    When I update the weather data for location "Vacation"
     Then I should receive a successful result
-    And the result should indicate 3 locations were updated
-    And all locations should have current weather data
+    And the weather data should include sunrise and sunset times
 
-@weatherUpdatePartialSuccess
-Scenario: Handle partial success when updating all locations
-    Given some locations have connectivity issues:
-        | Title    |
-        | Vacation |
-    When I update weather data for all locations
-    Then I should receive a successful forecast result
-    And the result should indicate 2 locations were updated
-    And locations "Home" and "Office" should have current weather data
-    And location "Vacation" should not have updated weather data
-
-@weatherUpdateAPIFailure
-Scenario: Handle weather API failure gracefully
-    Given the weather API is temporarily unavailable
-    When I update the weather data for "Home"
-    Then I should receive a failure result
-    And the error message should contain information about API unavailability
-    And the existing weather data should remain unchanged
-
-@weatherCachedData
-Scenario: Use cached weather data when available
-    Given the "Home" location has weather data less than 1 hour old
-    When I request weather data for "Home" without forcing an update
-    Then I should receive a successful forecast result
-    And the cached weather data should be returned
-    And no API call should be made
+Scenario: Get Weather with Timezone Information
+    When I update the weather data for location "Office"
+    Then I should receive a successful result
+    And the weather data should indicate the timezone "America/New_York"

@@ -9,6 +9,11 @@ using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
 using MediatR;
 using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -23,37 +28,30 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
         private readonly Mock<ILocationRepository> _locationRepositoryMock;
         private readonly Mock<IWeatherRepository> _weatherRepositoryMock;
         private readonly WeatherDriver _weatherDriver;
-        // Add this to the WeatherUpdateSteps.cs class
-
         private readonly IObjectContainer _objectContainer;
 
         public WeatherUpdateSteps(ApiContext apiContext, IObjectContainer objectContainer)
         {
             _apiContext = apiContext ?? throw new ArgumentNullException(nameof(apiContext));
             _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
-        }
-
-        // This is the TestCleanup method that will safely handle cleanup
-        [AfterScenario(Order = 10000)]
-        public void CleanupAfterScenario()
-        {
-            try { 
-
-            }
-            catch (Exception ex)
-            {
-                // Log but don't throw to avoid masking test failures
-                Console.WriteLine($"Error in WeatherUpdateSteps cleanup: {ex.Message}");
-            }
-        }
-        public WeatherUpdateSteps(ApiContext apiContext)
-        {
-            _apiContext = apiContext ?? throw new ArgumentNullException(nameof(apiContext));
             _mediator = _apiContext.GetService<IMediator>();
             _weatherServiceMock = _apiContext.GetService<Mock<IWeatherService>>();
             _locationRepositoryMock = _apiContext.GetService<Mock<ILocationRepository>>();
             _weatherRepositoryMock = _apiContext.GetService<Mock<IWeatherRepository>>();
-            _weatherDriver = new WeatherDriver(apiContext);
+            _weatherDriver = new WeatherDriver(_apiContext);
+        }
+
+        [AfterScenario(Order = 10000)]
+        public void CleanupAfterScenario()
+        {
+            try
+            {
+                // Safe cleanup logic here
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in WeatherUpdateSteps cleanup: {ex.Message}");
+            }
         }
 
         [Given(@"I have multiple locations stored in the system for weather:")]
@@ -113,6 +111,18 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             _weatherDriver.SetupExistingWeather(location.Id.Value, DateTime.UtcNow.AddHours(-hours));
         }
 
+        [Given(@"the ""(.*)"" location has recent weather data")]
+        public void GivenTheLocationHasRecentWeatherData(string locationTitle)
+        {
+            // Find location by title
+            var locations = _apiContext.GetModel<List<LocationTestModel>>("AllLocations");
+            var location = locations?.FirstOrDefault(l => l.Title == locationTitle);
+            location.Should().NotBeNull($"Location with title '{locationTitle}' should exist");
+
+            // Setup recent weather data (1 hour ago)
+            _weatherDriver.SetupExistingWeather(location.Id.Value, DateTime.UtcNow.AddHours(-1));
+        }
+
         [Given(@"the weather API is unavailable")]
         public void GivenTheWeatherAPIIsUnavailable()
         {
@@ -135,23 +145,34 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
         {
             // Find location by title
             var locations = _apiContext.GetModel<List<LocationTestModel>>("AllLocations");
-            var location = locations.FirstOrDefault(l => l.Title == locationTitle);
+            var location = locations?.FirstOrDefault(l => l.Title == locationTitle);
             location.Should().NotBeNull($"Location with title '{locationTitle}' should exist");
 
             // Update weather for this location
             await _weatherDriver.UpdateWeatherForLocationAsync(location.Id.Value, false);
         }
 
-        [When(@"I force update the weather data for location ""(.*)""")]
-        public async Task WhenIForceUpdateTheWeatherDataForLocation(string locationTitle)
+        [When(@"I force update the weather data for ""(.*)""")]
+        public async Task WhenIForceUpdateTheWeatherDataFor(string locationTitle)
         {
             // Find location by title
             var locations = _apiContext.GetModel<List<LocationTestModel>>("AllLocations");
-            var location = locations.FirstOrDefault(l => l.Title == locationTitle);
+            var location = locations?.FirstOrDefault(l => l.Title == locationTitle);
             location.Should().NotBeNull($"Location with title '{locationTitle}' should exist");
 
             // Force update weather for this location
             await _weatherDriver.UpdateWeatherForLocationAsync(location.Id.Value, true);
+        }
+
+        [When(@"I update the weather data for the location")]
+        public async Task WhenIUpdateTheWeatherDataForTheLocation()
+        {
+            // Get first location
+            var location = _apiContext.GetModel<List<LocationTestModel>>("AllLocations")?.FirstOrDefault();
+            location.Should().NotBeNull("At least one location should be available");
+
+            // Update weather for this location
+            await _weatherDriver.UpdateWeatherForLocationAsync(location.Id.Value, false);
         }
 
         [When(@"I update weather data for all locations")]
@@ -166,6 +187,36 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             var weatherResult = _apiContext.GetLastResult<WeatherDto>();
             weatherResult.Should().NotBeNull("Weather result should be available");
             weatherResult.IsSuccess.Should().BeTrue("Weather update operation should be successful");
+            weatherResult.Data.Should().NotBeNull("Weather data should be available");
+
+            // Check if the last update time is recent (within the last 5 minutes)
+            var now = DateTime.UtcNow;
+            var timeDifference = now - weatherResult.Data.LastUpdate;
+            timeDifference.TotalMinutes.Should().BeLessThan(5, "Weather data should be recently updated");
+        }
+
+        [Then(@"I should receive a successful result")]
+        public void ThenIShouldReceiveASuccessfulResult()
+        {
+            var weatherResult = _apiContext.GetLastResult<WeatherDto>();
+            weatherResult.Should().NotBeNull("Weather result should be available");
+            weatherResult.IsSuccess.Should().BeTrue("Weather update operation should be successful");
+        }
+
+        [Then(@"the weather data should be updated")]
+        public void ThenTheWeatherDataShouldBeUpdated()
+        {
+            var weatherResult = _apiContext.GetLastResult<WeatherDto>();
+            weatherResult.Should().NotBeNull("Weather result should be available");
+            weatherResult.IsSuccess.Should().BeTrue("Weather update operation should be successful");
+            weatherResult.Data.Should().NotBeNull("Weather data should be available");
+        }
+
+        [Then(@"the last update timestamp should be recent")]
+        public void ThenTheLastUpdateTimestampShouldBeRecent()
+        {
+            var weatherResult = _apiContext.GetLastResult<WeatherDto>();
+            weatherResult.Should().NotBeNull("Weather result should be available");
             weatherResult.Data.Should().NotBeNull("Weather data should be available");
 
             // Check if the last update time is recent (within the last 5 minutes)

@@ -2,6 +2,8 @@
 using Location.Core.BDD.Tests.Support;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using TechTalk.SpecFlow;
 
 namespace Location.Core.BDD.Tests.Hooks
@@ -10,95 +12,145 @@ namespace Location.Core.BDD.Tests.Hooks
     public class TestInitialization
     {
         // Global ServiceProvider to ensure services stay alive
-        public static ServiceProvider GlobalServiceProvider { get; private set; }
+        private static ServiceProvider _globalServiceProvider;
 
-        // Container storage to maintain reference for cleanup
-        private static Dictionary<string, ApiContext> _contextStorage = new Dictionary<string, ApiContext>();
+        // Thread-safe container storage to maintain reference for cleanup
+        private static readonly ConcurrentDictionary<string, ApiContext> _contextStorage = new ConcurrentDictionary<string, ApiContext>();
+
+        // Use a static test service provider
+        private static TestServiceProvider _testServiceProvider;
 
         [BeforeTestRun]
         public static void BeforeTestRun(IObjectContainer objectContainer)
         {
-            // Setup global services
-            var services = new ServiceCollection();
-            services.AddLogging();
+            try
+            {
+                Console.WriteLine("Starting test run initialization");
 
-            // Register singleton services that should persist across the test run
-            services.AddSingleton<TestServiceProvider>();
+                // Setup global services
+                var services = new ServiceCollection();
+                services.AddLogging();
 
-            // Build service provider
-            GlobalServiceProvider = services.BuildServiceProvider();
+                // Build service provider
+                _globalServiceProvider = services.BuildServiceProvider();
 
-            // Register the TestServiceProvider in the SpecFlow container
-            var testServiceProvider = GlobalServiceProvider.GetRequiredService<TestServiceProvider>();
-            objectContainer.RegisterInstanceAs(testServiceProvider);
+                // Create a single TestServiceProvider
+                _testServiceProvider = new TestServiceProvider();
 
-            // Create storage for contexts
-            objectContainer.RegisterInstanceAs(_contextStorage);
+                // DON'T register anything in the object container here
+                // This will be done per-scenario
+
+                Console.WriteLine("Test run initialization complete");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in BeforeTestRun: {ex.Message}");
+            }
         }
 
         [AfterTestRun]
         public static void AfterTestRun()
         {
-            // Properly dispose of resources
-            GlobalServiceProvider?.Dispose();
-            GlobalServiceProvider = null;
+            Console.WriteLine("Starting test run cleanup");
 
-            // Clear context storage
-            if (_contextStorage != null)
+            // Clean up all contexts
+            foreach (var context in _contextStorage.Values)
             {
-                foreach (var context in _contextStorage.Values)
+                try
                 {
-                    try { context?.ClearContext(); } catch { }
+                    context?.ClearContext();
                 }
-                _contextStorage.Clear();
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error clearing context: {ex.Message}");
+                }
             }
+            _contextStorage.Clear();
+
+            // Dispose service provider
+            if (_globalServiceProvider != null)
+            {
+                try
+                {
+                    _globalServiceProvider.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error disposing service provider: {ex.Message}");
+                }
+                _globalServiceProvider = null;
+            }
+
+            Console.WriteLine("Test run cleanup complete");
         }
 
-        [BeforeScenario(Order = -1000)]
-        public static void BeforeScenario(IObjectContainer container, ScenarioContext scenarioContext)
+        [BeforeScenario(Order = -10000)]
+        public void BeforeScenario(IObjectContainer container, ScenarioContext scenarioContext)
         {
             try
             {
-                // Use the scenario ID as a key to ensure uniqueness
+                // Create a unique key for this scenario
                 string scenarioKey = $"{scenarioContext.ScenarioInfo.Title}_{Guid.NewGuid()}";
+                Console.WriteLine($"Starting scenario: {scenarioKey}");
 
-                // Create ApiContext and store it both in container and our storage
-                var apiContext = new ApiContext();
-                container.RegisterInstanceAs(apiContext);
+                // Register the test service provider
+                if (!container.IsRegistered<TestServiceProvider>())
+                {
+                    container.RegisterInstanceAs(_testServiceProvider);
+                }
 
-                // Store in our dictionary for global access
+                // Create a new ApiContext for this scenario
+                var apiContext = new ApiContext(_testServiceProvider);
+
+                // Important: Only register if not already registered
+                if (!container.IsRegistered<ApiContext>())
+                {
+                    container.RegisterInstanceAs(apiContext);
+                }
+                else
+                {
+                    Console.WriteLine("WARNING: ApiContext is already registered in the container");
+                }
+
+                // Store in dictionary with unique key
                 _contextStorage[scenarioKey] = apiContext;
 
-                // Store the key in scenario context for later retrieval
+                // Store key in scenario context
                 scenarioContext["ApiContextKey"] = scenarioKey;
+
+                Console.WriteLine($"Scenario initialization complete: {scenarioKey}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in BeforeScenario: {ex.Message}");
+                Console.WriteLine($"Error in BeforeScenario: {ex.Message}\n{ex.StackTrace}");
             }
         }
 
-        [AfterScenario(Order = 1000)]
-        public static void AfterScenario(ScenarioContext scenarioContext)
+        [AfterScenario(Order = 10000)]
+        public void AfterScenario(ScenarioContext scenarioContext)
         {
             try
             {
                 // Get the key from scenario context
-                if (scenarioContext.ContainsKey("ApiContextKey") &&
-                    scenarioContext["ApiContextKey"] is string key &&
-                    _contextStorage.ContainsKey(key))
+                if (scenarioContext != null && scenarioContext.ContainsKey("ApiContextKey"))
                 {
-                    // Get the context and clean it up
-                    var apiContext = _contextStorage[key];
-                    apiContext?.ClearContext();
+                    string key = scenarioContext["ApiContextKey"] as string;
+                    if (!string.IsNullOrEmpty(key) && _contextStorage.ContainsKey(key))
+                    {
+                        Console.WriteLine($"Cleaning up scenario: {key}");
 
-                    // Remove from storage
-                    _contextStorage.Remove(key);
+                        // Safely remove and clean up the context
+                        if (_contextStorage.TryRemove(key, out var apiContext))
+                        {
+                            apiContext?.ClearContext();
+                            Console.WriteLine($"Successfully cleaned up scenario: {key}");
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in AfterScenario cleanup: {ex.Message}");
+                Console.WriteLine($"Error in AfterScenario cleanup: {ex.Message}\n{ex.StackTrace}");
             }
         }
     }

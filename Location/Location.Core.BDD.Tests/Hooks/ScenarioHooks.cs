@@ -1,7 +1,7 @@
 ﻿using BoDi;
 using Location.Core.BDD.Tests.Support;
-using TechTalk.SpecFlow;
 using System;
+using TechTalk.SpecFlow;
 
 namespace Location.Core.BDD.Tests.Hooks
 {
@@ -15,32 +15,20 @@ namespace Location.Core.BDD.Tests.Hooks
             _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
         }
 
-        // REMOVE: BeforeScenario method to avoid duplicate ApiContext registration
-        // We now handle this in TestInitialization.BeforeScenario with Order = -100
+        // Remove the BeforeScenario hook entirely to avoid duplicate ApiContext registration
 
-        // This method is also in TestInitialization, but we'll keep it here for backward compatibility
-        // and make it safe by checking if cleanup has already been done
-        [AfterScenario(Order = 100)] // Run this after other AfterScenario methods
+        [AfterScenario(Order = 100)] // Run this after other AfterScenario methods but before TestInitialization cleanup
         public void CleanupScenario()
         {
             try
             {
-                // Only try to clean up if ApiContext exists and hasn't been cleaned up yet
-                if (_objectContainer.IsRegistered<ApiContext>())
-                {
-                    var apiContext = _objectContainer.Resolve<ApiContext>();
-
-                    // Check if context still has content before clearing
-                    if (apiContext != null)
-                    {
-                        apiContext.ClearContext();
-                    }
-                }
+                // We don't need to do any cleanup here as it will be handled by TestInitialization
+                Console.WriteLine("ScenarioHooks cleanup completed");
             }
             catch (Exception ex)
             {
                 // Log but don't throw
-                Console.WriteLine($"Error in CleanupScenario: {ex.Message}");
+                Console.WriteLine($"Error in ScenarioHooks.CleanupScenario: {ex.Message}");
             }
         }
     }
