@@ -188,7 +188,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             tipModel.Should().NotBeNull("Tip data should be available in context");
 
             // Update the tip with the new details
-            var updatedData = table.CreateDynamicInstance();
+            var updatedData = table.CreateInstance<TipTestModel>();
 
             if (table.Header.Contains("Title"))
                 tipModel.Title = updatedData.Title;

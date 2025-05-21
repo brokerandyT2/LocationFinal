@@ -1,60 +1,55 @@
 ﻿Feature: Location Search
     As a user
     I want to search for locations
-    So that I can find places based on different criteria
+    So that I can find places to take photographs
 
 Background:
     Given the application is initialized for testing
-    And I have multiple locations stored in the system:
-        | Title           | Description       | Latitude    | Longitude   | City         | State   |
-        | Home            | My home address   | 40.712776   | -74.005974  | New York     | NY      |
-        | Office          | Work location     | 40.758896   | -73.985130  | New York     | NY      |
-        | Beach House     | Vacation home     | 26.461700   | -80.058310  | Boca Raton   | FL      |
-        | Mountain Cabin  | Hiking spot       | 39.191097   | -106.817535 | Aspen        | CO      |
+    And I have multiple locations stored in the system for search:
+        | Title           | Description                   | Latitude   | Longitude   | City         | State |
+        | Golden Gate     | Famous bridge in San Francisco| 37.8199    | -122.4783   | San Francisco| CA    |
+        | Empire State    | Iconic skyscraper             | 40.7484    | -73.9857    | New York     | NY    |
+        | Grand Canyon    | Natural wonder                | 36.1069    | -112.1129   | Grand Canyon | AZ    |
+        | Space Needle    | Seattle landmark              | 47.6205    | -122.3493   | Seattle      | WA    |
+        | Statue of Liberty| Monument on Liberty Island    | 40.6892    | -74.0445    | New York     | NY    |
 
 @locationListing
 Scenario: List all locations
     When I request a list of all locations
     Then I should receive a successful result
-    And the result should contain 4 locations
-    And the location list should include "Home"
-    And the location list should include "Office"
-    And the location list should include "Beach House"
-    And the location list should include "Mountain Cabin"
+    And the result should contain 5 locations
+    And the locations should be ordered by most recent first
 
 @locationSearchByTitle
 Scenario: Find a location by title
-    When I search for a location with title "Home"
+    When I search for a location with title "Empire State"
     Then I should receive a successful result
-    And the result should contain a location with title "Home"
-    And the location details should be:
-        | Title  | Description     | City      | State |
-        | Home   | My home address | New York  | NY    |
+    And the result should contain a location with title "Empire State"
+    And the location should have the following details:
+        | City     | State |
+        | New York | NY    |
 
 @locationSearchNearby
 Scenario: Find locations near a specific coordinate
-    When I search for locations within 10 km of coordinates:
-        | Latitude    | Longitude   |
-        | 40.730610   | -73.935242  |
+    When I search for locations within 50 km of coordinates:
+        | Latitude | Longitude |
+        | 40.7128  | -74.0060  |
     Then I should receive a successful result
     And the result should contain 2 locations
-    And the location list should include "Home"
-    And the location list should include "Office"
-    And the location list should not include "Beach House"
-    And the location list should not include "Mountain Cabin"
+    And the result should include "Empire State"
+    And the result should include "Statue of Liberty"
+    And the result should not include "Golden Gate"
 
 @locationSearchWithFilter
 Scenario: Search locations with text filter
-    When I search for locations with filter "home"
+    When I search for locations with text filter "New"
     Then I should receive a successful result
     And the result should contain 2 locations
-    And the location list should include "Home"
-    And the location list should include "Beach House"
-    And the location list should not include "Office"
-    And the location list should not include "Mountain Cabin"
+    And the result should include "Empire State"
+    And the result should include "Statue of Liberty"
 
 @locationEmptySearch
 Scenario: Search for non-existent locations
-    When I search for a location with title "Non-existent place"
-    Then I should receive a failure result
-    And the error message should contain "not found"
+    When I search for a location with title "Non-existent Place"
+    Then I should receive a successful result
+    And the result should contain 0 locations

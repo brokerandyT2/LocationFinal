@@ -259,7 +259,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
             if (!checkResult.IsSuccess || !checkResult.Data)
             {
                 // Camera not available, store this info
-                _context.StoreResult(Result<bool>.Success(false, "Camera not available"));
+                _context.StoreResult(Result<bool>.Success(false));
                 return;
             }
 

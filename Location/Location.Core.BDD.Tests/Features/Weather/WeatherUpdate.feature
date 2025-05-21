@@ -5,7 +5,7 @@
 
 Background:
     Given the application is initialized for testing
-    And I have multiple locations stored in the system:
+    And I have multiple locations stored in the system for weather:
         | Title        | Description      | Latitude   | Longitude   | City       | State |
         | Home         | My home          | 40.712776  | -74.005974  | New York   | NY    |
         | Office       | Work location    | 37.774929  | -122.419418 | San Francisco | CA |

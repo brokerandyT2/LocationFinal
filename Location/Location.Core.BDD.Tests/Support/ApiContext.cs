@@ -18,9 +18,26 @@ namespace Location.Core.BDD.Tests.Support
         /// Initializes a new API context with the provided service provider
         /// </summary>
         /// <param name="useMocks">Whether to use mocked services or real implementations</param>
-        public ApiContext(bool useMocks = true)
+        public ApiContext()
         {
-            _serviceProvider = new TestServiceProvider(useMocks);
+            _serviceProvider = new TestServiceProvider();
+            InitializeDefaults();
+        }
+
+        // Alternative constructor that can be called programmatically
+        internal ApiContext(TestServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            InitializeDefaults();
+        }
+
+        private void InitializeDefaults()
+        {
+            // Initialize default objects to avoid null references
+            StoreModel(new LocationTestModel(), "Location");
+            StoreModel(new WeatherTestModel(), "Weather");
+            StoreModel(new TipTestModel(), "Tip");
+            StoreModel(new SettingTestModel(), "Setting");
         }
 
         /// <summary>

@@ -29,7 +29,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
             _locationRepositoryMock = _context.GetService<Mock<ILocationRepository>>();
         }
 
-        [Given(@"I have multiple locations stored in the system:")]
+        [Given(@"I have multiple locations stored in the system for search:")]
         public void GivenIHaveMultipleLocationsStoredInTheSystem(Table table)
         {
             var locations = table.CreateSet<LocationTestModel>();

@@ -1,18 +1,19 @@
-﻿using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Commands.Tips;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.Tips.DTOs;
 using Location.Core.Application.Tips.Commands.CreateTip;
-using Location.Core.Application.Tips.Commands.UpdateTip;
 using Location.Core.Application.Tips.Commands.DeleteTip;
-using Location.Core.Application.Tips.Queries.GetTipById;
+using Location.Core.Application.Tips.Commands.UpdateTip;
+using Location.Core.Application.Tips.DTOs;
 using Location.Core.Application.Tips.Queries.GetAllTips;
+using Location.Core.Application.Tips.Queries.GetTipById;
 using Location.Core.Application.Tips.Queries.GetTipsByType;
-using Location.Core.Application.Commands.Tips;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
 using MediatR;
 using Moq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -59,18 +60,12 @@ namespace Location.Core.BDD.Tests.Drivers
             };
 
             // Send the command
-            var result = await _mediator.Send(command);
-
-            // Store the result
-            _context.StoreResult(result);
-
-            if (result.IsSuccess && result.Data != null)
+            var listResult = await _mediator.Send(command);
+            if (listResult.IsSuccess && listResult.Data.Any())
             {
-                tipModel.Id = result.Data.Id;
-                _context.StoreTipData(tipModel);
+                return Result<TipDto>.Success(listResult.Data.First());
             }
-
-            return result;
+            return Result<TipDto>.Failure(listResult.ErrorMessage ?? "No tips found");
         }
 
         public async Task<Result<TipDto>> UpdateTipAsync(TipTestModel tipModel)
@@ -110,17 +105,23 @@ namespace Location.Core.BDD.Tests.Drivers
             };
 
             // Send the command
-            var result = await _mediator.Send(command);
-
-            // Store the result
-            _context.StoreResult(result);
-
-            if (result.IsSuccess && result.Data != null)
+            var updateResult = await _mediator.Send(command);
+            if (updateResult.IsSuccess && updateResult.Data != null)
             {
-                _context.StoreTipData(tipModel);
+                var tipDto = new TipDto
+                {
+                    Id = updateResult.Data.Id,
+                    TipTypeId = updateResult.Data.TipTypeId,
+                    Title = updateResult.Data.Title,
+                    Content = updateResult.Data.Content,
+                    Fstop = updateResult.Data.Fstop,
+                    ShutterSpeed = updateResult.Data.ShutterSpeed,
+                    Iso = updateResult.Data.Iso,
+                    I8n = updateResult.Data.I8n
+                };
+                return Result<TipDto>.Success(tipDto);
             }
-
-            return result;
+            return Result<TipDto>.Failure(updateResult.ErrorMessage ?? "Failed to update tip");
         }
 
         public async Task<Result<bool>> DeleteTipAsync(int tipId)

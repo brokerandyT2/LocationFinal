@@ -37,4 +37,4 @@ Scenario: Update weather forecast data
     Given the location has existing weather data from yesterday
     When I update the weather forecast for the location
     Then I should receive a successful result
-    And the forecast data should be
+    And the forecast data should be current

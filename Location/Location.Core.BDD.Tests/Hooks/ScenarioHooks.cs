@@ -1,48 +1,32 @@
-﻿using BoDi;
+﻿// In ScenarioHooks.cs
+using BoDi;
 using Location.Core.BDD.Tests.Support;
 using TechTalk.SpecFlow;
 
-namespace Location.Core.BDD.Tests.Hooks
+[Binding]
+public class ScenarioHooks
 {
-    /// <summary>
-    /// Contains hooks that run before and after each scenario
-    /// </summary>
-    [Binding]
-    public class ScenarioHooks
+    private readonly IObjectContainer _objectContainer;
+    private ApiContext _apiContext;
+
+    public ScenarioHooks(IObjectContainer objectContainer)
     {
-        private readonly IObjectContainer _objectContainer;
-        private ApiContext _apiContext;
+        _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the ScenarioHooks class
-        /// </summary>
-        /// <param name="objectContainer">The SpecFlow object container for dependency injection</param>
-        public ScenarioHooks(IObjectContainer objectContainer)
-        {
-            _objectContainer = objectContainer;
-        }
+    [BeforeScenario(Order = 0)]
+    public void InitializeApiContext()
+    {
+        // Create with parameterless constructor
+        _apiContext = new ApiContext();
 
-        /// <summary>
-        /// Initializes the API context before each scenario
-        /// </summary>
-        [BeforeScenario]
-        public void InitializeApiContext()
-        {
-            // Create a new API context for the scenario with mocked services
-            _apiContext = new ApiContext(useMocks: true);
+        // Register in SpecFlow's container
+        _objectContainer.RegisterInstanceAs(_apiContext);
+    }
 
-            // Register in SpecFlow's container for injection into step definitions
-            _objectContainer.RegisterInstanceAs(_apiContext);
-        }
-
-        /// <summary>
-        /// Cleans up after each scenario
-        /// </summary>
-        [AfterScenario]
-        public void CleanupScenario()
-        {
-            // Clear the API context
-            _apiContext.ClearContext();
-        }
+    [AfterScenario]
+    public void CleanupScenario()
+    {
+        _apiContext?.ClearContext();
     }
 }

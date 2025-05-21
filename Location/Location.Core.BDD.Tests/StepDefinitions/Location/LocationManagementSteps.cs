@@ -26,12 +26,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
             _locationRepositoryMock = _context.GetService<Mock<ILocationRepository>>();
         }
 
-        [Given(@"the application is initialized for testing")]
-        public void GivenTheApplicationIsInitializedForTesting()
-        {
-            // This is handled by the ApiContext initialization in ScenarioHooks
-            // No additional actions required
-        }
+       
 
         [Given(@"I want to create a new location with the following details:")]
         public void GivenIWantToCreateANewLocationWithTheFollowingDetails(Table table)

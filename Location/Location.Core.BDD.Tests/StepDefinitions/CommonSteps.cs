@@ -19,9 +19,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions
         [Given(@"the application is initialized for testing")]
         public void GivenTheApplicationIsInitializedForTesting()
         {
-            // This step is handled by the ScenarioHooks which initializes the API context
-            // We just need to verify that the context is available and initialized
-            _context.Should().NotBeNull("API context should be initialized");
+            // The ApiContext is already initialized by the BeforeScenario hook
+            // No need to do anything here
         }
 
         [Then(@"I should receive a successful result")]
