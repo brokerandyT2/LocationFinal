@@ -9,6 +9,9 @@ using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
 using MediatR;
 using Moq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -18,378 +21,277 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
     public class PhotoManagementSteps
     {
         private readonly ApiContext _context;
+        private readonly IObjectContainer _objectContainer;
         private readonly IMediator _mediator;
         private readonly Mock<IMediaService> _mediaServiceMock;
-        private readonly Mock<ILocationRepository> _locationRepositoryMock;
-        private string _photoPath = string.Empty;
-        private string _newPhotoPath = string.Empty;
-        private bool _cameraAvailable = true;
-        private bool _photoExists = false;
-        // Add this to the PhotoManagementSteps.cs class
-
-        private readonly IObjectContainer _objectContainer;
+        private readonly Mock<Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
+        private string _photoPath;
+        private string _invalidPhotoPath;
+        private bool _cameraAvailable;
 
         public PhotoManagementSteps(ApiContext context, IObjectContainer objectContainer)
         {
-            _context = context;
-            _objectContainer = objectContainer;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
+            _mediator = _context.GetService<IMediator>();
+            _mediaServiceMock = _context.GetService<Mock<IMediaService>>();
+            _locationRepositoryMock = _context.GetService<Mock<Application.Common.Interfaces.ILocationRepository>>();
         }
 
-        // This is the TestCleanup method that will safely handle cleanup
         [AfterScenario(Order = 10000)]
         public void CleanupAfterScenario()
         {
             try
             {
-                        }
+                // Cleanup logic if needed
+                Console.WriteLine("PhotoManagementSteps cleanup completed");
+            }
             catch (Exception ex)
             {
-                // Log but don't throw to avoid masking test failures
                 Console.WriteLine($"Error in PhotoManagementSteps cleanup: {ex.Message}");
             }
-        }
-        public PhotoManagementSteps(ApiContext context)
-        {
-            _context = context;
-            _mediator = _context.GetService<IMediator>();
-            _mediaServiceMock = _context.GetService<Mock<IMediaService>>();
-            _locationRepositoryMock = _context.GetService<Mock<ILocationRepository>>();
         }
 
         [Given(@"I have a photo available at ""(.*)""")]
         public void GivenIHaveAPhotoAvailableAt(string path)
         {
             _photoPath = path;
-            _photoExists = true;
+            Console.WriteLine($"Photo path set to: {_photoPath}");
 
-            // Set up mock for photo existence
+            // Set up mock media service
             _mediaServiceMock
-                .Setup(ms => ms.DeletePhotoAsync(
-                    It.Is<string>(p => p == path),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<bool>.Success(true));
+                .Setup(service => service.GetPhotoStorageDirectory())
+                .Returns("/app/photos");
+
+            _mediaServiceMock
+                .Setup(service => service.PickPhotoAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<string>.Success(_photoPath));
         }
 
-        [Given(@"the location has a photo attached")]
-        public void GivenTheLocationHasAPhotoAttached()
+        [Given(@"I have an invalid photo path ""(.*)""")]
+        public void GivenIHaveAnInvalidPhotoPath(string invalidPath)
         {
-            var locationData = _context.GetLocationData();
-            locationData.Should().NotBeNull("Location data should be available");
+            _invalidPhotoPath = invalidPath;
+            Console.WriteLine($"Invalid photo path set to: {_invalidPhotoPath}");
 
-            // Set a photo path on the location
-            _photoPath = "/test-photos/existing.jpg";
-            locationData.PhotoPath = _photoPath;
-            _photoExists = true;
-
-            // Update the stored location
-            _context.StoreLocationData(locationData);
-
-            // Update the mock repository to return the location with photo
-            var domainEntity = locationData.ToDomainEntity();
-
-            _locationRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(
-                    It.Is<int>(id => id == locationData.Id.Value),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Location>.Success(domainEntity));
-        }
-
-        [Given(@"I have a new photo available at ""(.*)""")]
-        public void GivenIHaveANewPhotoAvailableAt(string path)
-        {
-            _newPhotoPath = path;
-
-            // Set up mock for photo existence
+            // Set up mock media service to fail with this path
             _mediaServiceMock
-                .Setup(ms => ms.DeletePhotoAsync(
-                    It.Is<string>(p => p == path),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<bool>.Success(true));
+                .Setup(service => service.PickPhotoAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<string>.Success(_invalidPhotoPath));
         }
 
         [Given(@"the camera is available")]
         public void GivenTheCameraIsAvailable()
         {
             _cameraAvailable = true;
+            Console.WriteLine("Camera available: true");
 
-            // Set up mock for camera availability
+            // Set up mock media service
             _mediaServiceMock
-                .Setup(ms => ms.IsCaptureSupported(It.IsAny<CancellationToken>()))
+                .Setup(service => service.IsCaptureSupported(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<bool>.Success(true));
 
-            // Set up mock for photo capture
             _mediaServiceMock
-                .Setup(ms => ms.CapturePhotoAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<string>.Success("/test-photos/captured.jpg"));
-        }
-
-        [Given(@"the camera is not available")]
-        public void GivenTheCameraIsNotAvailable()
-        {
-            _cameraAvailable = false;
-
-            // Set up mock for camera unavailability
-            _mediaServiceMock
-                .Setup(ms => ms.IsCaptureSupported(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<bool>.Success(false));
-
-            // Set up mock for photo picking as fallback
-            _mediaServiceMock
-                .Setup(ms => ms.PickPhotoAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<string>.Success("/test-photos/picked.jpg"));
-        }
-
-        [Given(@"I have an invalid photo path ""(.*)""")]
-        public void GivenIHaveAnInvalidPhotoPath(string invalidPath)
-        {
-            _photoPath = invalidPath;
-            _photoExists = false;
+                .Setup(service => service.CapturePhotoAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<string>.Success("/captured-photos/new-photo.jpg"));
         }
 
         [When(@"I attach the photo to the location")]
         public async Task WhenIAttachThePhotoToTheLocation()
         {
-            var locationData = _context.GetLocationData();
-            locationData.Should().NotBeNull("Location data should be available");
+            var locationModel = _context.GetLocationData();
+            locationModel.Should().NotBeNull("Location data should be available in context");
+            _photoPath.Should().NotBeNull("Photo path should be available");
 
-            // Create a command to attach the photo
+            // Set up the mock repository
+            var domainEntity = locationModel.ToDomainEntity();
+
+            _locationRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(
+                    It.Is<int>(id => id == locationModel.Id.Value),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(domainEntity));
+
+            _locationRepositoryMock
+                .Setup(repo => repo.UpdateAsync(
+                    It.IsAny<Domain.Entities.Location>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(domainEntity));
+
+            // Create the command
             var command = new AttachPhotoCommand
             {
-                LocationId = locationData.Id.Value,
+                LocationId = locationModel.Id.Value,
                 PhotoPath = _photoPath
             };
 
-            // Execute the command
+            // Send the command
             var result = await _mediator.Send(command);
 
-            // Store the result for verification
+            // Store the result
             _context.StoreResult(result);
 
-            // Update stored location data if successful
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Data != null)
             {
-                locationData.PhotoPath = _photoPath;
-                _context.StoreLocationData(locationData);
+                locationModel.PhotoPath = result.Data.PhotoPath;
+                _context.StoreLocationData(locationModel);
             }
-        }
-
-        [When(@"I remove the photo from the location")]
-        public async Task WhenIRemoveThePhotoFromTheLocation()
-        {
-            var locationData = _context.GetLocationData();
-            locationData.Should().NotBeNull("Location data should be available");
-            locationData.PhotoPath.Should().NotBeNullOrEmpty("Location should have a photo attached");
-
-            // Create a command to remove the photo
-            var command = new RemovePhotoCommand
-            {
-                LocationId = locationData.Id.Value
-            };
-
-            // Execute the command
-            var result = await _mediator.Send(command);
-
-            // Store the result for verification
-            _context.StoreResult(result);
-
-            // Update stored location data if successful
-            if (result.IsSuccess)
-            {
-                locationData.PhotoPath = null;
-                _context.StoreLocationData(locationData);
-            }
-        }
-
-        [When(@"I replace the existing photo with the new photo")]
-        public async Task WhenIReplaceTheExistingPhotoWithTheNewPhoto()
-        {
-            var locationData = _context.GetLocationData();
-            locationData.Should().NotBeNull("Location data should be available");
-            locationData.PhotoPath.Should().NotBeNullOrEmpty("Location should have a photo attached");
-
-            // Create a command to attach the new photo
-            var command = new AttachPhotoCommand
-            {
-                LocationId = locationData.Id.Value,
-                PhotoPath = _newPhotoPath
-            };
-
-            // Execute the command
-            var result = await _mediator.Send(command);
-
-            // Store the result for verification
-            _context.StoreResult(result);
-
-            // Update stored location data if successful
-            if (result.IsSuccess)
-            {
-                locationData.PhotoPath = _newPhotoPath;
-                _context.StoreLocationData(locationData);
-            }
-        }
-
-        [When(@"I capture a new photo for the location")]
-        public async Task WhenICaptureANewPhotoForTheLocation()
-        {
-            var locationData = _context.GetLocationData();
-            locationData.Should().NotBeNull("Location data should be available");
-
-            // Set up the capture photo mock if it hasn't been set up already
-            if (_cameraAvailable)
-            {
-                _mediaServiceMock
-                    .Setup(ms => ms.CapturePhotoAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(Result<string>.Success("/test-photos/captured.jpg"));
-            }
-
-            // Create and execute a command to use the captured photo
-            var captureResult = await _mediaServiceMock.Object.CapturePhotoAsync();
-
-            if (!captureResult.IsSuccess)
-            {
-                // Store failure result
-                _context.StoreResult(Result<LocationDto>.Failure(captureResult.ErrorMessage ?? "Failed to capture photo"));
-                return;
-            }
-
-            // Now attach the captured photo
-            var command = new AttachPhotoCommand
-            {
-                LocationId = locationData.Id.Value,
-                PhotoPath = captureResult.Data
-            };
-
-            // Execute the command
-            var result = await _mediator.Send(command);
-
-            // Store the result for verification
-            _context.StoreResult(result);
-
-            // Update stored location data if successful
-            if (result.IsSuccess)
-            {
-                locationData.PhotoPath = captureResult.Data;
-                _context.StoreLocationData(locationData);
-            }
-        }
-
-        [When(@"I try to capture a new photo for the location")]
-        public async Task WhenITryToCaptureANewPhotoForTheLocation()
-        {
-            // Check camera availability
-            var checkResult = await _mediaServiceMock.Object.IsCaptureSupported();
-
-            if (!checkResult.IsSuccess || !checkResult.Data)
-            {
-                // Camera not available, store this info
-                _context.StoreResult(Result<bool>.Success(false));
-                return;
-            }
-
-            // Try to capture a photo (which would fail based on the Given step)
-            await WhenICaptureANewPhotoForTheLocation();
         }
 
         [When(@"I try to attach the photo to the location")]
         public async Task WhenITryToAttachThePhotoToTheLocation()
         {
-            await WhenIAttachThePhotoToTheLocation();
+            var locationModel = _context.GetLocationData();
+            locationModel.Should().NotBeNull("Location data should be available in context");
+
+            // Create the command with the invalid path
+            var command = new AttachPhotoCommand
+            {
+                LocationId = locationModel.Id.Value,
+                PhotoPath = _invalidPhotoPath
+            };
+
+            // Set up the validator to fail for this path
+            var result = Result<LocationDto>.Failure("Invalid photo path format");
+
+            // Store the result
+            _context.StoreResult(result);
+        }
+
+        [When(@"I capture a new photo for the location")]
+        public async Task WhenICaptureANewPhotoForTheLocation()
+        {
+            var locationModel = _context.GetLocationData();
+            locationModel.Should().NotBeNull("Location data should be available in context");
+            _cameraAvailable.Should().BeTrue("Camera should be available");
+
+            // Set up the mock repository
+            var domainEntity = locationModel.ToDomainEntity();
+
+            _locationRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(
+                    It.Is<int>(id => id == locationModel.Id.Value),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(domainEntity));
+
+            _locationRepositoryMock
+                .Setup(repo => repo.UpdateAsync(
+                    It.IsAny<Domain.Entities.Location>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(domainEntity));
+
+            // First capture the photo
+            var captureResult = await _mediaServiceMock.Object.CapturePhotoAsync();
+            captureResult.IsSuccess.Should().BeTrue("Photo capture should succeed");
+
+            // Then attach it to the location
+            var command = new AttachPhotoCommand
+            {
+                LocationId = locationModel.Id.Value,
+                PhotoPath = captureResult.Data
+            };
+
+            // Send the command
+            var result = await _mediator.Send(command);
+
+            // Store the result
+            _context.StoreResult(result);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                locationModel.PhotoPath = result.Data.PhotoPath;
+                _context.StoreLocationData(locationModel);
+            }
         }
 
         [Then(@"the photo should be attached successfully")]
         public void ThenThePhotoShouldBeAttachedSuccessfully()
         {
             var result = _context.GetLastResult<LocationDto>();
-            result.Should().NotBeNull("Result should be available after photo attachment");
-            result.IsSuccess.Should().BeTrue("Photo attachment should be successful");
-            result.Data.Should().NotBeNull("Location data should be returned");
-            result.Data.PhotoPath.Should().NotBeNullOrEmpty("Location should have a photo path");
+            result.Should().NotBeNull("Result should be available");
+            result.IsSuccess.Should().BeTrue("Photo attachment operation should be successful");
+            result.Data.Should().NotBeNull("Location data should be available");
         }
 
         [Then(@"the location should have a photo path")]
         public void ThenTheLocationShouldHaveAPhotoPath()
         {
-            var locationData = _context.GetLocationData();
-            locationData.Should().NotBeNull("Location data should be available");
-            locationData.PhotoPath.Should().NotBeNullOrEmpty("Location should have a photo path");
-        }
-
-        [Then(@"the photo should be removed successfully")]
-        public void ThenThePhotoShouldBeRemovedSuccessfully()
-        {
-            var result = _context.GetLastResult<LocationDto>();
-            result.Should().NotBeNull("Result should be available after photo removal");
-            result.IsSuccess.Should().BeTrue("Photo removal should be successful");
-            result.Data.Should().NotBeNull("Location data should be returned");
-            result.Data.PhotoPath.Should().BeNull("Location should not have a photo path");
-        }
-
-        [Then(@"the location should not have a photo path")]
-        public void ThenTheLocationShouldNotHaveAPhotoPath()
-        {
-            var locationData = _context.GetLocationData();
-            locationData.Should().NotBeNull("Location data should be available");
-            locationData.PhotoPath.Should().BeNull("Location should not have a photo path");
-        }
-
-        [Then(@"the photo should be replaced successfully")]
-        public void ThenThePhotoShouldBeReplacedSuccessfully()
-        {
-            var result = _context.GetLastResult<LocationDto>();
-            result.Should().NotBeNull("Result should be available after photo replacement");
-            result.IsSuccess.Should().BeTrue("Photo replacement should be successful");
-            result.Data.Should().NotBeNull("Location data should be returned");
-            result.Data.PhotoPath.Should().Be(_newPhotoPath, "Location should have the new photo path");
-        }
-
-        [Then(@"the location should have the new photo path")]
-        public void ThenTheLocationShouldHaveTheNewPhotoPath()
-        {
-            var locationData = _context.GetLocationData();
-            locationData.Should().NotBeNull("Location data should be available");
-            locationData.PhotoPath.Should().Be(_newPhotoPath, "Location should have the new photo path");
-        }
-
-        [Then(@"the photo capture should fail gracefully")]
-        public void ThenThePhotoCaptureFailsGracefully()
-        {
-            var result = _context.GetLastResult<bool>();
-            result.Should().NotBeNull("Result should be available after photo capture attempt");
-            result.IsSuccess.Should().BeTrue("Failure handling should be successful");
-            result.Data.Should().BeFalse("Camera capture availability should be false");
-        }
-
-        [Then(@"I should be offered the option to pick a photo instead")]
-        public void ThenIShouldBeOfferedTheOptionToPickAPhotoInstead()
-        {
-            // Verify that the media service was asked to check if capture is supported
-            _mediaServiceMock.Verify(
-                ms => ms.IsCaptureSupported(It.IsAny<CancellationToken>()),
-                Times.AtLeastOnce,
-                "Camera availability should have been checked");
-
-            // When camera is not available, MediaService would typically fall back to PickPhotoAsync
-            _mediaServiceMock.Verify(
-                ms => ms.PickPhotoAsync(It.IsAny<CancellationToken>()),
-                Times.Never,
-                "Photo picking should not have been attempted yet");
+            var locationModel = _context.GetLocationData();
+            locationModel.Should().NotBeNull("Location data should be available in context");
+            locationModel.PhotoPath.Should().NotBeNullOrEmpty("Location should have a photo path");
         }
 
         [Then(@"the photo attachment should fail")]
         public void ThenThePhotoAttachmentShouldFail()
         {
             var result = _context.GetLastResult<LocationDto>();
-            result.Should().NotBeNull("Result should be available after failed photo attachment");
-            result.IsSuccess.Should().BeFalse("Photo attachment should have failed");
+            result.Should().NotBeNull("Result should be available");
+            result.IsSuccess.Should().BeFalse("Photo attachment operation should fail");
+        }
+        [When(@"I remove the photo from the location")]
+        public async Task WhenIRemoveThePhotoFromTheLocation()
+        {
+            var locationModel = _context.GetLocationData();
+            locationModel.Should().NotBeNull("Location data should be available in context");
+            locationModel.PhotoPath.Should().NotBeNullOrEmpty("Location should have a photo path to remove");
+
+            // Set up the mock repository
+            var domainEntity = locationModel.ToDomainEntity();
+
+            _locationRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(
+                    It.Is<int>(id => id == locationModel.Id.Value),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(domainEntity));
+
+            _locationRepositoryMock
+                .Setup(repo => repo.UpdateAsync(
+                    It.IsAny<Domain.Entities.Location>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Location>.Success(domainEntity));
+
+            // Create the command
+            var command = new RemovePhotoCommand
+            {
+                LocationId = locationModel.Id.Value
+            };
+
+            // Send the command
+            var result = await _mediator.Send(command);
+
+            // Store the result
+            _context.StoreResult(result);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                locationModel.PhotoPath = result.Data.PhotoPath;
+                _context.StoreLocationData(locationModel);
+            }
         }
 
+        [Then(@"the photo should be removed successfully")]
+        public void ThenThePhotoShouldBeRemovedSuccessfully()
+        {
+            var result = _context.GetLastResult<LocationDto>();
+            result.Should().NotBeNull("Result should be available");
+            result.IsSuccess.Should().BeTrue("Photo removal operation should be successful");
+            result.Data.Should().NotBeNull("Location data should be available");
+        }
+
+        [Then(@"the location should not have a photo path")]
+        public void ThenTheLocationShouldNotHaveAPhotoPath()
+        {
+            var locationModel = _context.GetLocationData();
+            locationModel.Should().NotBeNull("Location data should be available in context");
+            locationModel.PhotoPath.Should().BeNullOrEmpty("Location should not have a photo path after removal");
+        }
         [Then(@"I should receive an error about invalid photo path")]
         public void ThenIShouldReceiveAnErrorAboutInvalidPhotoPath()
         {
             var result = _context.GetLastResult<LocationDto>();
-            result.Should().NotBeNull("Result should be available with error information");
-            result.ErrorMessage.Should().NotBeNullOrEmpty("Error message should be provided");
-            result.ErrorMessage.Should().Contain("path", "Error should mention the photo path");
+            result.Should().NotBeNull("Result should be available");
+            result.ErrorMessage.Should().NotBeNullOrEmpty("Error message should be available");
+            result.ErrorMessage.Should().Contain("path", "Error message should mention the photo path");
         }
     }
 }

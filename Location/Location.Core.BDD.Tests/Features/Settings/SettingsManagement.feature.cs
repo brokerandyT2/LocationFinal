@@ -124,16 +124,16 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table12 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table19 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value",
                             "Description"});
-                table12.AddRow(new string[] {
+                table19.AddRow(new string[] {
                             "DarkModeEnabled",
                             "true",
                             "Enable dark mode for the app"});
 #line 11
-    await testRunner.WhenAsync("I create a new setting with the following details:", ((string)(null)), table12, "When ");
+    await testRunner.WhenAsync("I create a new setting with the following details:", ((string)(null)), table19, "When ");
 #line hidden
 #line 14
     await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
@@ -141,16 +141,16 @@ await this.FeatureBackgroundAsync();
 #line 15
     await testRunner.AndAsync("the setting should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table13 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table20 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value",
                             "Description"});
-                table13.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "DarkModeEnabled",
                             "true",
                             "Enable dark mode for the app"});
 #line 16
-    await testRunner.AndAsync("the setting should have the correct details:", ((string)(null)), table13, "And ");
+    await testRunner.AndAsync("the setting should have the correct details:", ((string)(null)), table20, "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -179,23 +179,23 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table14 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table21 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value",
                             "Description"});
-                table14.AddRow(new string[] {
+                table21.AddRow(new string[] {
                             "MapZoomLevel",
                             "10",
                             "Default zoom level for maps"});
 #line 22
-    await testRunner.GivenAsync("I have a setting with the following details:", ((string)(null)), table14, "Given ");
+    await testRunner.GivenAsync("I have a setting with the following details:", ((string)(null)), table21, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table15 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table22 = new TechTalk.SpecFlow.Table(new string[] {
                             "Value"});
-                table15.AddRow(new string[] {
+                table22.AddRow(new string[] {
                             "12"});
 #line 25
-    await testRunner.WhenAsync("I update the setting with the following value:", ((string)(null)), table15, "When ");
+    await testRunner.WhenAsync("I update the setting with the following value:", ((string)(null)), table22, "When ");
 #line hidden
 #line 28
     await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
@@ -236,16 +236,16 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table16 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table23 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value",
                             "Description"});
-                table16.AddRow(new string[] {
+                table23.AddRow(new string[] {
                             "TemporaryNotification",
                             "5000",
                             "Notification display time"});
 #line 35
-    await testRunner.GivenAsync("I have a setting with the following details:", ((string)(null)), table16, "Given ");
+    await testRunner.GivenAsync("I have a setting with the following details:", ((string)(null)), table23, "Given ");
 #line hidden
 #line 38
     await testRunner.WhenAsync("I delete the setting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -286,16 +286,16 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table17 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table24 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value",
                             "Description"});
-                table17.AddRow(new string[] {
+                table24.AddRow(new string[] {
                             "CacheTimeoutMinutes",
                             "30",
                             "Time to keep cached data"});
 #line 45
-    await testRunner.GivenAsync("I have a setting with the following details:", ((string)(null)), table17, "Given ");
+    await testRunner.GivenAsync("I have a setting with the following details:", ((string)(null)), table24, "Given ");
 #line hidden
 #line 48
     await testRunner.WhenAsync("I retrieve the setting by its key", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -333,28 +333,28 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table18 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table25 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value",
                             "Description"});
-                table18.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "DarkModeEnabled",
                             "true",
                             "Enable dark mode"});
-                table18.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "MapZoomLevel",
                             "10",
                             "Default zoom level"});
-                table18.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "CacheTimeoutMinutes",
                             "30",
                             "Cache timeout in minutes"});
-                table18.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "AutoSync",
                             "false",
                             "Enable automatic sync"});
 #line 54
-    await testRunner.GivenAsync("I have multiple settings in the system:", ((string)(null)), table18, "Given ");
+    await testRunner.GivenAsync("I have multiple settings in the system:", ((string)(null)), table25, "Given ");
 #line hidden
 #line 60
     await testRunner.WhenAsync("I request a list of all settings", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -404,16 +404,16 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table19 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table26 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value",
                             "Description"});
-                table19.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "NewSetting",
                             "42",
                             "New setting value"});
 #line 70
-    await testRunner.WhenAsync("I upsert a setting with the following details:", ((string)(null)), table19, "When ");
+    await testRunner.WhenAsync("I upsert a setting with the following details:", ((string)(null)), table26, "When ");
 #line hidden
 #line 73
     await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
@@ -421,16 +421,16 @@ await this.FeatureBackgroundAsync();
 #line 74
     await testRunner.AndAsync("the setting should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table20 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table27 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value",
                             "Description"});
-                table20.AddRow(new string[] {
+                table27.AddRow(new string[] {
                             "NewSetting",
                             "99",
                             "Updated description"});
 #line 75
-    await testRunner.WhenAsync("I upsert a setting with the following details:", ((string)(null)), table20, "When ");
+    await testRunner.WhenAsync("I upsert a setting with the following details:", ((string)(null)), table27, "When ");
 #line hidden
 #line 78
     await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
@@ -468,20 +468,20 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table21 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table28 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value"});
-                table21.AddRow(new string[] {
+                table28.AddRow(new string[] {
                             "BooleanSetting",
                             "true"});
-                table21.AddRow(new string[] {
+                table28.AddRow(new string[] {
                             "IntegerSetting",
                             "42"});
-                table21.AddRow(new string[] {
+                table28.AddRow(new string[] {
                             "DateTimeSetting",
                             "2023-01-01T12:00:00Z"});
 #line 84
-    await testRunner.GivenAsync("I have settings with different value types:", ((string)(null)), table21, "Given ");
+    await testRunner.GivenAsync("I have settings with different value types:", ((string)(null)), table28, "Given ");
 #line hidden
 #line 89
     await testRunner.WhenAsync("I retrieve the settings and convert their values", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -522,24 +522,24 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table22 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table29 = new TechTalk.SpecFlow.Table(new string[] {
                             "Key",
                             "Value",
                             "Description"});
-                table22.AddRow(new string[] {
+                table29.AddRow(new string[] {
                             "Setting1",
                             "value1",
                             "First setting"});
-                table22.AddRow(new string[] {
+                table29.AddRow(new string[] {
                             "Setting2",
                             "value2",
                             "Second setting"});
-                table22.AddRow(new string[] {
+                table29.AddRow(new string[] {
                             "Setting3",
                             "value3",
                             "Third setting"});
 #line 96
-    await testRunner.GivenAsync("I have multiple settings in the system:", ((string)(null)), table22, "Given ");
+    await testRunner.GivenAsync("I have multiple settings in the system:", ((string)(null)), table29, "Given ");
 #line hidden
 #line 101
     await testRunner.WhenAsync("I request all settings as a dictionary", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");

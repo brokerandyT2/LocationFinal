@@ -48,8 +48,8 @@ namespace Location.Core.BDD.Tests.Features.Location
         public static async System.Threading.Tasks.Task FeatureSetupAsync(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext testContext)
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunnerForAssembly(null, System.Threading.Thread.CurrentThread.ManagedThreadId.ToString());
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Location", "Photo Management", "    As a user\r\n    I want to manage photos for my locations\r\n    So that I can vi" +
-                    "sually identify and remember places", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Location", "PhotoManagement", "  As a user\r\n  I want to manage photos for my locations\r\n  So that I can have vis" +
+                    "ual representations of my locations", ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -64,7 +64,7 @@ namespace Location.Core.BDD.Tests.Features.Location
         public async System.Threading.Tasks.Task TestInitializeAsync()
         {
             if (((testRunner.FeatureContext != null) 
-                        && (testRunner.FeatureContext.FeatureInfo.Title != "Photo Management")))
+                        && (testRunner.FeatureContext.FeatureInfo.Title != "PhotoManagement")))
             {
                 await global::Location.Core.BDD.Tests.Features.Location.PhotoManagementFeature.FeatureSetupAsync(null);
             }
@@ -92,43 +92,15 @@ namespace Location.Core.BDD.Tests.Features.Location
             await testRunner.CollectScenarioErrorsAsync();
         }
         
-        public virtual async System.Threading.Tasks.Task FeatureBackgroundAsync()
-        {
-#line 6
-#line hidden
-#line 7
-    await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-            TechTalk.SpecFlow.Table table11 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Title",
-                        "Description",
-                        "Latitude",
-                        "Longitude",
-                        "City",
-                        "State"});
-            table11.AddRow(new string[] {
-                        "Photo Location",
-                        "For photo testing",
-                        "40.712776",
-                        "-74.005974",
-                        "New York",
-                        "NY"});
-#line 8
-    await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table11, "And ");
-#line hidden
-        }
-        
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
         [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Attach a photo to a location")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Photo Management")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("photoAttachment")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "PhotoManagement")]
         public async System.Threading.Tasks.Task AttachAPhotoToALocation()
         {
-            string[] tagsOfScenario = new string[] {
-                    "photoAttachment"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Attach a photo to a location", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 13
+#line 6
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -138,20 +110,37 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
+#line 7
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table15 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table15.AddRow(new string[] {
+                            "Photo Location",
+                            "For photo testing",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
+#line 8
+  await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table15, "And ");
+#line hidden
+#line 11
+  await testRunner.GivenAsync("I have a photo available at \"/test-photos/sample.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 12
+  await testRunner.WhenAsync("I attach the photo to the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 13
+  await testRunner.ThenAsync("the photo should be attached successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 14
-    await testRunner.GivenAsync("I have a photo available at \"/test-photos/sample.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-#line 15
-    await testRunner.WhenAsync("I attach the photo to the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 16
-    await testRunner.ThenAsync("the photo should be attached successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 17
-    await testRunner.AndAsync("the location should have a photo path", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("the location should have a photo path", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -159,15 +148,13 @@ await this.FeatureBackgroundAsync();
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
         [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Remove a photo from a location")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Photo Management")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("photoRemoval")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "PhotoManagement")]
         public async System.Threading.Tasks.Task RemoveAPhotoFromALocation()
         {
-            string[] tagsOfScenario = new string[] {
-                    "photoRemoval"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Remove a photo from a location", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 20
+#line 16
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -177,62 +164,36 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
+#line 17
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table16 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State",
+                            "PhotoPath"});
+                table16.AddRow(new string[] {
+                            "Photo Location",
+                            "For photo testing",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY",
+                            "/test-photos/exists.jpg"});
+#line 18
+  await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table16, "And ");
 #line hidden
 #line 21
-    await testRunner.GivenAsync("the location has a photo attached", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+  await testRunner.WhenAsync("I remove the photo from the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 22
-    await testRunner.WhenAsync("I remove the photo from the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+  await testRunner.ThenAsync("the photo should be removed successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 23
-    await testRunner.ThenAsync("the photo should be removed successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 24
-    await testRunner.AndAsync("the location should not have a photo path", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Replace a photo on a location")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Photo Management")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("photoReplacement")]
-        public async System.Threading.Tasks.Task ReplaceAPhotoOnALocation()
-        {
-            string[] tagsOfScenario = new string[] {
-                    "photoReplacement"};
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Replace a photo on a location", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 27
-this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
-#line hidden
-#line 28
-    await testRunner.GivenAsync("the location has a photo attached", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-#line 29
-    await testRunner.AndAsync("I have a new photo available at \"/test-photos/replacement.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 30
-    await testRunner.WhenAsync("I replace the existing photo with the new photo", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 31
-    await testRunner.ThenAsync("the photo should be replaced successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 32
-    await testRunner.AndAsync("the location should have the new photo path", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("the location should not have a photo path", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -240,14 +201,66 @@ await this.FeatureBackgroundAsync();
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
         [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Capture a new photo for a location")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Photo Management")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("photoCapture")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "PhotoManagement")]
         public async System.Threading.Tasks.Task CaptureANewPhotoForALocation()
         {
-            string[] tagsOfScenario = new string[] {
-                    "photoCapture"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Capture a new photo for a location", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 25
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 26
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table17 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table17.AddRow(new string[] {
+                            "Photo Location",
+                            "For photo testing",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
+#line 27
+  await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table17, "And ");
+#line hidden
+#line 30
+  await testRunner.GivenAsync("the camera is available", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 31
+  await testRunner.WhenAsync("I capture a new photo for the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 32
+  await testRunner.ThenAsync("the photo should be attached successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 33
+  await testRunner.AndAsync("the location should have a photo path", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Handle invalid photo path")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "PhotoManagement")]
+        public async System.Threading.Tasks.Task HandleInvalidPhotoPath()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Handle invalid photo path", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 35
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -258,98 +271,37 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
-#line hidden
 #line 36
-    await testRunner.GivenAsync("the camera is available", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
+                TechTalk.SpecFlow.Table table18 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table18.AddRow(new string[] {
+                            "Photo Location",
+                            "For photo testing",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
 #line 37
-    await testRunner.WhenAsync("I capture a new photo for the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+  await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table18, "And ");
 #line hidden
-#line 38
-    await testRunner.ThenAsync("the photo should be attached successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 40
+  await testRunner.GivenAsync("I have an invalid photo path \"invalid://photo.path\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 39
-    await testRunner.AndAsync("the location should have a photo path", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 41
+  await testRunner.WhenAsync("I try to attach the photo to the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Handle unavailable camera when capturing photo")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Photo Management")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("photoUnavailableCamera")]
-        public async System.Threading.Tasks.Task HandleUnavailableCameraWhenCapturingPhoto()
-        {
-            string[] tagsOfScenario = new string[] {
-                    "photoUnavailableCamera"};
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Handle unavailable camera when capturing photo", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 42
-this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
+  await testRunner.ThenAsync("the photo attachment should fail", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 43
-    await testRunner.GivenAsync("the camera is not available", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-#line 44
-    await testRunner.WhenAsync("I try to capture a new photo for the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 45
-    await testRunner.ThenAsync("the photo capture should fail gracefully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 46
-    await testRunner.AndAsync("I should be offered the option to pick a photo instead", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Handle invalid photo path")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Photo Management")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("photoInvalidPath")]
-        public async System.Threading.Tasks.Task HandleInvalidPhotoPath()
-        {
-            string[] tagsOfScenario = new string[] {
-                    "photoInvalidPath"};
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Handle invalid photo path", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 49
-this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
-#line hidden
-#line 50
-    await testRunner.GivenAsync("I have an invalid photo path \"invalid://photo.path\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-#line 51
-    await testRunner.WhenAsync("I try to attach the photo to the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 52
-    await testRunner.ThenAsync("the photo attachment should fail", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 53
-    await testRunner.AndAsync("I should receive an error about invalid photo path", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("I should receive an error about invalid photo path", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

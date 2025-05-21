@@ -99,14 +99,14 @@ namespace Location.Core.BDD.Tests.Features.Weather
 #line 7
     await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-            TechTalk.SpecFlow.Table table43 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table50 = new TechTalk.SpecFlow.Table(new string[] {
                         "Title",
                         "Description",
                         "Latitude",
                         "Longitude",
                         "City",
                         "State"});
-            table43.AddRow(new string[] {
+            table50.AddRow(new string[] {
                         "Test Place",
                         "Weather test site",
                         "40.712776",
@@ -114,7 +114,7 @@ namespace Location.Core.BDD.Tests.Features.Weather
                         "New York",
                         "NY"});
 #line 8
-    await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table43, "And ");
+    await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table50, "And ");
 #line hidden
         }
         
@@ -150,7 +150,7 @@ await this.FeatureBackgroundAsync();
 #line 16
     await testRunner.AndAsync("the forecast should contain weather data for the current day", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table44 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table51 = new TechTalk.SpecFlow.Table(new string[] {
                             "Temperature",
                             "Description",
                             "Sunrise",
@@ -158,7 +158,7 @@ await this.FeatureBackgroundAsync();
                             "Wind Speed",
                             "Humidity"});
 #line 17
-    await testRunner.AndAsync("the forecast should include the following information:", ((string)(null)), table44, "And ");
+    await testRunner.AndAsync("the forecast should include the following information:", ((string)(null)), table51, "And ");
 #line hidden
 #line 19
     await testRunner.AndAsync("the forecast should include at least 1 upcoming day", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -196,7 +196,7 @@ await this.FeatureBackgroundAsync();
 #line 24
     await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table45 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table52 = new TechTalk.SpecFlow.Table(new string[] {
                             "Temperature",
                             "Min Temperature",
                             "Max Temperature",
@@ -208,7 +208,7 @@ await this.FeatureBackgroundAsync();
                             "UV Index",
                             "Precipitation"});
 #line 25
-    await testRunner.AndAsync("the forecast details should include:", ((string)(null)), table45, "And ");
+    await testRunner.AndAsync("the forecast details should include:", ((string)(null)), table52, "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -243,13 +243,13 @@ await this.FeatureBackgroundAsync();
 #line 31
     await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table46 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table53 = new TechTalk.SpecFlow.Table(new string[] {
                             "Moon Phase",
                             "Moon Rise",
                             "Moon Set",
                             "Moon Phase Description"});
 #line 32
-    await testRunner.AndAsync("the moon phase information should include:", ((string)(null)), table46, "And ");
+    await testRunner.AndAsync("the moon phase information should include:", ((string)(null)), table53, "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

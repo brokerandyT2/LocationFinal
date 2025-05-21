@@ -48,8 +48,8 @@ namespace Location.Core.BDD.Tests.Features.Location
         public static async System.Threading.Tasks.Task FeatureSetupAsync(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext testContext)
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunnerForAssembly(null, System.Threading.Thread.CurrentThread.ManagedThreadId.ToString());
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Location", "Location Search", "    As a user\r\n    I want to search for locations\r\n    So that I can find places " +
-                    "to take photographs", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Location", "LocationSearch", "  As a user\r\n  I want to search for locations based on different criteria\r\n  So t" +
+                    "hat I can find specific locations quickly", ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -64,7 +64,7 @@ namespace Location.Core.BDD.Tests.Features.Location
         public async System.Threading.Tasks.Task TestInitializeAsync()
         {
             if (((testRunner.FeatureContext != null) 
-                        && (testRunner.FeatureContext.FeatureInfo.Title != "Location Search")))
+                        && (testRunner.FeatureContext.FeatureInfo.Title != "LocationSearch")))
             {
                 await global::Location.Core.BDD.Tests.Features.Location.LocationSearchFeature.FeatureSetupAsync(null);
             }
@@ -92,71 +92,15 @@ namespace Location.Core.BDD.Tests.Features.Location
             await testRunner.CollectScenarioErrorsAsync();
         }
         
-        public virtual async System.Threading.Tasks.Task FeatureBackgroundAsync()
-        {
-#line 6
-#line hidden
-#line 7
-    await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-            TechTalk.SpecFlow.Table table8 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Title",
-                        "Description",
-                        "Latitude",
-                        "Longitude",
-                        "City",
-                        "State"});
-            table8.AddRow(new string[] {
-                        "Golden Gate",
-                        "Famous bridge in San Francisco",
-                        "37.8199",
-                        "-122.4783",
-                        "San Francisco",
-                        "CA"});
-            table8.AddRow(new string[] {
-                        "Empire State",
-                        "Iconic skyscraper",
-                        "40.7484",
-                        "-73.9857",
-                        "New York",
-                        "NY"});
-            table8.AddRow(new string[] {
-                        "Grand Canyon",
-                        "Natural wonder",
-                        "36.1069",
-                        "-112.1129",
-                        "Grand Canyon",
-                        "AZ"});
-            table8.AddRow(new string[] {
-                        "Space Needle",
-                        "Seattle landmark",
-                        "47.6205",
-                        "-122.3493",
-                        "Seattle",
-                        "WA"});
-            table8.AddRow(new string[] {
-                        "Statue of Liberty",
-                        "Monument on Liberty Island",
-                        "40.6892",
-                        "-74.0445",
-                        "New York",
-                        "NY"});
-#line 8
-    await testRunner.AndAsync("I have multiple locations stored in the system for search:", ((string)(null)), table8, "And ");
-#line hidden
-        }
-        
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("List all locations")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Location Search")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("locationListing")]
-        public async System.Threading.Tasks.Task ListAllLocations()
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Search locations by title")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "LocationSearch")]
+        public async System.Threading.Tasks.Task SearchLocationsByTitle()
         {
-            string[] tagsOfScenario = new string[] {
-                    "locationListing"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("List all locations", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 17
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Search locations by title", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 6
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -166,36 +110,79 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
+#line 7
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table8 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table8.AddRow(new string[] {
+                            "Golden Gate",
+                            "Famous bridge in San Francisco",
+                            "37.8199",
+                            "-122.4783",
+                            "San Francisco",
+                            "CA"});
+                table8.AddRow(new string[] {
+                            "Empire State",
+                            "Iconic skyscraper",
+                            "40.7484",
+                            "-73.9857",
+                            "New York",
+                            "NY"});
+                table8.AddRow(new string[] {
+                            "Grand Canyon",
+                            "Natural wonder",
+                            "36.1069",
+                            "-112.1129",
+                            "Grand Canyon",
+                            "AZ"});
+                table8.AddRow(new string[] {
+                            "Space Needle",
+                            "Seattle landmark",
+                            "47.6205",
+                            "-122.3493",
+                            "Seattle",
+                            "WA"});
+                table8.AddRow(new string[] {
+                            "Statue of Liberty",
+                            "Monument on Liberty Island",
+                            "40.6892",
+                            "-74.0445",
+                            "New York",
+                            "NY"});
+#line 8
+  await testRunner.AndAsync("I have multiple locations stored in the system for search:", ((string)(null)), table8, "And ");
+#line hidden
+#line 15
+  await testRunner.WhenAsync("I search for locations with title containing \"State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 16
+  await testRunner.ThenAsync("I should receive a successful location search result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 17
+  await testRunner.AndAsync("the location search result should contain 1 location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 18
-    await testRunner.WhenAsync("I request a list of all locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 19
-    await testRunner.ThenAsync("I should receive a successful location result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 20
-    await testRunner.AndAsync("the result should contain 5 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 21
-    await testRunner.AndAsync("the locations should be ordered by most recent first", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("the location search result should include \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Find a location by title")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Location Search")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("locationSearchByTitle")]
-        public async System.Threading.Tasks.Task FindALocationByTitle()
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Search locations by city")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "LocationSearch")]
+        public async System.Threading.Tasks.Task SearchLocationsByCity()
         {
-            string[] tagsOfScenario = new string[] {
-                    "locationSearchByTitle"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Find a location by title", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 24
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Search locations by city", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 20
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -205,26 +192,68 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
-#line hidden
-#line 25
-    await testRunner.WhenAsync("I search for a location with title \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 26
-    await testRunner.ThenAsync("I should receive a successful location result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 27
-    await testRunner.AndAsync("the result should contain a location with title \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 21
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
                 TechTalk.SpecFlow.Table table9 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
                             "City",
                             "State"});
                 table9.AddRow(new string[] {
+                            "Golden Gate",
+                            "Famous bridge in San Francisco",
+                            "37.8199",
+                            "-122.4783",
+                            "San Francisco",
+                            "CA"});
+                table9.AddRow(new string[] {
+                            "Empire State",
+                            "Iconic skyscraper",
+                            "40.7484",
+                            "-73.9857",
                             "New York",
                             "NY"});
-#line 28
-    await testRunner.AndAsync("the location search result should have the following details:", ((string)(null)), table9, "And ");
+                table9.AddRow(new string[] {
+                            "Grand Canyon",
+                            "Natural wonder",
+                            "36.1069",
+                            "-112.1129",
+                            "Grand Canyon",
+                            "AZ"});
+                table9.AddRow(new string[] {
+                            "Space Needle",
+                            "Seattle landmark",
+                            "47.6205",
+                            "-122.3493",
+                            "Seattle",
+                            "WA"});
+                table9.AddRow(new string[] {
+                            "Statue of Liberty",
+                            "Monument on Liberty Island",
+                            "40.6892",
+                            "-74.0445",
+                            "New York",
+                            "NY"});
+#line 22
+  await testRunner.AndAsync("I have multiple locations stored in the system for search:", ((string)(null)), table9, "And ");
+#line hidden
+#line 29
+  await testRunner.WhenAsync("I search for locations in city \"New York\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 30
+  await testRunner.ThenAsync("I should receive a successful location search result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 31
+  await testRunner.AndAsync("the location search result should contain 2 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 32
+  await testRunner.AndAsync("the location search result should include \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 33
+  await testRunner.AndAsync("the location search result should include \"Statue of Liberty\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -232,15 +261,13 @@ await this.FeatureBackgroundAsync();
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
         [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Find locations near a specific coordinate")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Location Search")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("locationSearchNearby")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "LocationSearch")]
         public async System.Threading.Tasks.Task FindLocationsNearASpecificCoordinate()
         {
-            string[] tagsOfScenario = new string[] {
-                    "locationSearchNearby"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Find locations near a specific coordinate", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 33
+#line 35
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -250,90 +277,91 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
+#line 36
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
                 TechTalk.SpecFlow.Table table10 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table10.AddRow(new string[] {
+                            "Golden Gate",
+                            "Famous bridge in San Francisco",
+                            "37.8199",
+                            "-122.4783",
+                            "San Francisco",
+                            "CA"});
+                table10.AddRow(new string[] {
+                            "Empire State",
+                            "Iconic skyscraper",
+                            "40.7484",
+                            "-73.9857",
+                            "New York",
+                            "NY"});
+                table10.AddRow(new string[] {
+                            "Grand Canyon",
+                            "Natural wonder",
+                            "36.1069",
+                            "-112.1129",
+                            "Grand Canyon",
+                            "AZ"});
+                table10.AddRow(new string[] {
+                            "Space Needle",
+                            "Seattle landmark",
+                            "47.6205",
+                            "-122.3493",
+                            "Seattle",
+                            "WA"});
+                table10.AddRow(new string[] {
+                            "Statue of Liberty",
+                            "Monument on Liberty Island",
+                            "40.6892",
+                            "-74.0445",
+                            "New York",
+                            "NY"});
+#line 37
+  await testRunner.AndAsync("I have multiple locations stored in the system for search:", ((string)(null)), table10, "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table11 = new TechTalk.SpecFlow.Table(new string[] {
                             "Latitude",
                             "Longitude"});
-                table10.AddRow(new string[] {
+                table11.AddRow(new string[] {
                             "40.7128",
                             "-74.0060"});
-#line 34
-    await testRunner.WhenAsync("I search for locations within 50 km of coordinates:", ((string)(null)), table10, "When ");
-#line hidden
-#line 37
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 38
-    await testRunner.AndAsync("the result should contain 2 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 39
-    await testRunner.AndAsync("the result should include \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 40
-    await testRunner.AndAsync("the result should include \"Statue of Liberty\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 41
-    await testRunner.AndAsync("the result should not include \"Golden Gate\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Search locations with text filter")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Location Search")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("locationSearchWithFilter")]
-        public async System.Threading.Tasks.Task SearchLocationsWithTextFilter()
-        {
-            string[] tagsOfScenario = new string[] {
-                    "locationSearchWithFilter"};
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Search locations with text filter", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 44
-this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
-#line hidden
-#line 45
-    await testRunner.WhenAsync("I search for locations with text filter \"New\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 46
-    await testRunner.ThenAsync("I should receive a successful location result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+  await testRunner.WhenAsync("I search for locations within 50 km of coordinates:", ((string)(null)), table11, "When ");
 #line hidden
 #line 47
-    await testRunner.AndAsync("the result should contain 2 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.ThenAsync("I should receive a successful location search result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 48
-    await testRunner.AndAsync("the result should include \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("the location search result should contain 2 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 49
-    await testRunner.AndAsync("the result should include \"Statue of Liberty\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("the location search result should include \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 50
+  await testRunner.AndAsync("the location search result should include \"Statue of Liberty\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 51
+  await testRunner.AndAsync("the location search result should not include \"Golden Gate\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Search for non-existent locations")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Location Search")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("locationEmptySearch")]
-        public async System.Threading.Tasks.Task SearchForNon_ExistentLocations()
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Search locations with multiple filters")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "LocationSearch")]
+        public async System.Threading.Tasks.Task SearchLocationsWithMultipleFilters()
         {
-            string[] tagsOfScenario = new string[] {
-                    "locationEmptySearch"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Search for non-existent locations", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 52
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Search locations with multiple filters", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 53
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -343,17 +371,152 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 6
-await this.FeatureBackgroundAsync();
-#line hidden
-#line 53
-    await testRunner.WhenAsync("I search for a location with title \"Non-existent Place\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
 #line 54
-    await testRunner.ThenAsync("I should receive a successful location result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
+                TechTalk.SpecFlow.Table table12 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table12.AddRow(new string[] {
+                            "Golden Gate",
+                            "Famous bridge in San Francisco",
+                            "37.8199",
+                            "-122.4783",
+                            "San Francisco",
+                            "CA"});
+                table12.AddRow(new string[] {
+                            "Empire State",
+                            "Iconic skyscraper",
+                            "40.7484",
+                            "-73.9857",
+                            "New York",
+                            "NY"});
+                table12.AddRow(new string[] {
+                            "Grand Canyon",
+                            "Natural wonder",
+                            "36.1069",
+                            "-112.1129",
+                            "Grand Canyon",
+                            "AZ"});
+                table12.AddRow(new string[] {
+                            "Space Needle",
+                            "Seattle landmark",
+                            "47.6205",
+                            "-122.3493",
+                            "Seattle",
+                            "WA"});
+                table12.AddRow(new string[] {
+                            "Statue of Liberty",
+                            "Monument on Liberty Island",
+                            "40.6892",
+                            "-74.0445",
+                            "New York",
+                            "NY"});
 #line 55
-    await testRunner.AndAsync("the result should contain 0 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("I have multiple locations stored in the system for search:", ((string)(null)), table12, "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table13 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "City",
+                            "State"});
+                table13.AddRow(new string[] {
+                            "Needle",
+                            "Seattle",
+                            "WA"});
+#line 62
+  await testRunner.WhenAsync("I search for locations with the following criteria:", ((string)(null)), table13, "When ");
+#line hidden
+#line 65
+  await testRunner.ThenAsync("I should receive a successful location search result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 66
+  await testRunner.AndAsync("the location search result should contain 1 location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 67
+  await testRunner.AndAsync("the location search result should include \"Space Needle\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Search locations with no matches")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "LocationSearch")]
+        public async System.Threading.Tasks.Task SearchLocationsWithNoMatches()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Search locations with no matches", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 69
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 70
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table14 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table14.AddRow(new string[] {
+                            "Golden Gate",
+                            "Famous bridge in San Francisco",
+                            "37.8199",
+                            "-122.4783",
+                            "San Francisco",
+                            "CA"});
+                table14.AddRow(new string[] {
+                            "Empire State",
+                            "Iconic skyscraper",
+                            "40.7484",
+                            "-73.9857",
+                            "New York",
+                            "NY"});
+                table14.AddRow(new string[] {
+                            "Grand Canyon",
+                            "Natural wonder",
+                            "36.1069",
+                            "-112.1129",
+                            "Grand Canyon",
+                            "AZ"});
+                table14.AddRow(new string[] {
+                            "Space Needle",
+                            "Seattle landmark",
+                            "47.6205",
+                            "-122.3493",
+                            "Seattle",
+                            "WA"});
+                table14.AddRow(new string[] {
+                            "Statue of Liberty",
+                            "Monument on Liberty Island",
+                            "40.6892",
+                            "-74.0445",
+                            "New York",
+                            "NY"});
+#line 71
+  await testRunner.AndAsync("I have multiple locations stored in the system for search:", ((string)(null)), table14, "And ");
+#line hidden
+#line 78
+  await testRunner.WhenAsync("I search for locations in city \"Chicago\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 79
+  await testRunner.ThenAsync("I should receive a successful location search result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 80
+  await testRunner.AndAsync("the location search result should contain 0 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

@@ -99,20 +99,20 @@ namespace Location.Core.BDD.Tests.Features.Tips
 #line 7
     await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-            TechTalk.SpecFlow.Table table23 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table30 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "I8n"});
-            table23.AddRow(new string[] {
+            table30.AddRow(new string[] {
                         "Landscape",
                         "en-US"});
-            table23.AddRow(new string[] {
+            table30.AddRow(new string[] {
                         "Portrait",
                         "en-US"});
-            table23.AddRow(new string[] {
+            table30.AddRow(new string[] {
                         "Night",
                         "en-US"});
 #line 8
-    await testRunner.AndAsync("I have the following tip types in the system:", ((string)(null)), table23, "And ");
+    await testRunner.AndAsync("I have the following tip types in the system:", ((string)(null)), table30, "And ");
 #line hidden
         }
         
@@ -139,14 +139,14 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table24 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table31 = new TechTalk.SpecFlow.Table(new string[] {
                             "TipTypeId",
                             "Title",
                             "Content",
                             "Fstop",
                             "ShutterSpeed",
                             "Iso"});
-                table24.AddRow(new string[] {
+                table31.AddRow(new string[] {
                             "1",
                             "Golden Hour",
                             "Take advantage of morning and evening light",
@@ -154,7 +154,7 @@ await this.FeatureBackgroundAsync();
                             "1/125s",
                             "100"});
 #line 16
-    await testRunner.WhenAsync("I create a new tip with the following details:", ((string)(null)), table24, "When ");
+    await testRunner.WhenAsync("I create a new tip with the following details:", ((string)(null)), table31, "When ");
 #line hidden
 #line 19
     await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
@@ -162,14 +162,14 @@ await this.FeatureBackgroundAsync();
 #line 20
     await testRunner.AndAsync("the tip should be created successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table25 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table32 = new TechTalk.SpecFlow.Table(new string[] {
                             "TipTypeId",
                             "Title",
                             "Content",
                             "Fstop",
                             "ShutterSpeed",
                             "Iso"});
-                table25.AddRow(new string[] {
+                table32.AddRow(new string[] {
                             "1",
                             "Golden Hour",
                             "Take advantage of morning and evening light",
@@ -177,7 +177,7 @@ await this.FeatureBackgroundAsync();
                             "1/125s",
                             "100"});
 #line 21
-    await testRunner.AndAsync("the tip should have the correct details:", ((string)(null)), table25, "And ");
+    await testRunner.AndAsync("the tip should have the correct details:", ((string)(null)), table32, "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -206,14 +206,14 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table26 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table33 = new TechTalk.SpecFlow.Table(new string[] {
                             "TipTypeId",
                             "Title",
                             "Content",
                             "Fstop",
                             "ShutterSpeed",
                             "Iso"});
-                table26.AddRow(new string[] {
+                table33.AddRow(new string[] {
                             "1",
                             "Original Title",
                             "Initial content",
@@ -221,22 +221,22 @@ await this.FeatureBackgroundAsync();
                             "1/60s",
                             "400"});
 #line 27
-    await testRunner.GivenAsync("I have a photography tip with the following details:", ((string)(null)), table26, "Given ");
+    await testRunner.GivenAsync("I have a photography tip with the following details:", ((string)(null)), table33, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table27 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table34 = new TechTalk.SpecFlow.Table(new string[] {
                             "Title",
                             "Content",
                             "Fstop",
                             "ShutterSpeed",
                             "Iso"});
-                table27.AddRow(new string[] {
+                table34.AddRow(new string[] {
                             "Updated Title",
                             "Updated content for the tip",
                             "f/8",
                             "1/125s",
                             "200"});
 #line 30
-    await testRunner.WhenAsync("I update the tip with the following details:", ((string)(null)), table27, "When ");
+    await testRunner.WhenAsync("I update the tip with the following details:", ((string)(null)), table34, "When ");
 #line hidden
 #line 33
     await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
@@ -244,14 +244,14 @@ await this.FeatureBackgroundAsync();
 #line 34
     await testRunner.AndAsync("the tip should be updated successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table28 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table35 = new TechTalk.SpecFlow.Table(new string[] {
                             "TipTypeId",
                             "Title",
                             "Content",
                             "Fstop",
                             "ShutterSpeed",
                             "Iso"});
-                table28.AddRow(new string[] {
+                table35.AddRow(new string[] {
                             "1",
                             "Updated Title",
                             "Updated content for the tip",
@@ -259,7 +259,7 @@ await this.FeatureBackgroundAsync();
                             "1/125s",
                             "200"});
 #line 35
-    await testRunner.AndAsync("the tip should have the following details:", ((string)(null)), table28, "And ");
+    await testRunner.AndAsync("the tip should have the following details:", ((string)(null)), table35, "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -288,16 +288,16 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table29 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table36 = new TechTalk.SpecFlow.Table(new string[] {
                             "TipTypeId",
                             "Title",
                             "Content"});
-                table29.AddRow(new string[] {
+                table36.AddRow(new string[] {
                             "2",
                             "Tip to Delete",
                             "Will be removed"});
 #line 41
-    await testRunner.GivenAsync("I have a photography tip with the following details:", ((string)(null)), table29, "Given ");
+    await testRunner.GivenAsync("I have a photography tip with the following details:", ((string)(null)), table36, "Given ");
 #line hidden
 #line 44
     await testRunner.WhenAsync("I delete the tip", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -338,16 +338,16 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table30 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table37 = new TechTalk.SpecFlow.Table(new string[] {
                             "TipTypeId",
                             "Title",
                             "Content"});
-                table30.AddRow(new string[] {
+                table37.AddRow(new string[] {
                             "3",
                             "Night Sky",
                             "Astrophotography"});
 #line 51
-    await testRunner.GivenAsync("I have a photography tip with the following details:", ((string)(null)), table30, "Given ");
+    await testRunner.GivenAsync("I have a photography tip with the following details:", ((string)(null)), table37, "Given ");
 #line hidden
 #line 54
     await testRunner.WhenAsync("I retrieve the tip by its ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -385,28 +385,28 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table31 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table38 = new TechTalk.SpecFlow.Table(new string[] {
                             "TipTypeId",
                             "Title",
                             "Content"});
-                table31.AddRow(new string[] {
+                table38.AddRow(new string[] {
                             "1",
                             "Landscape Tip 1",
                             "First landscape tip"});
-                table31.AddRow(new string[] {
+                table38.AddRow(new string[] {
                             "1",
                             "Landscape Tip 2",
                             "Second landscape tip"});
-                table31.AddRow(new string[] {
+                table38.AddRow(new string[] {
                             "2",
                             "Portrait Tip 1",
                             "First portrait tip"});
-                table31.AddRow(new string[] {
+                table38.AddRow(new string[] {
                             "3",
                             "Night Tip 1",
                             "First night photography"});
 #line 60
-    await testRunner.GivenAsync("I have multiple tips for each type:", ((string)(null)), table31, "Given ");
+    await testRunner.GivenAsync("I have multiple tips for each type:", ((string)(null)), table38, "Given ");
 #line hidden
 #line 66
     await testRunner.WhenAsync("I request tips for type \"Landscape\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -456,20 +456,20 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table32 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table39 = new TechTalk.SpecFlow.Table(new string[] {
                             "Title",
                             "Content"});
-                table32.AddRow(new string[] {
+                table39.AddRow(new string[] {
                             "Portrait Tip 1",
                             "First portrait tip"});
-                table32.AddRow(new string[] {
+                table39.AddRow(new string[] {
                             "Portrait Tip 2",
                             "Second portrait tip"});
-                table32.AddRow(new string[] {
+                table39.AddRow(new string[] {
                             "Portrait Tip 3",
                             "Third portrait tip"});
 #line 76
-    await testRunner.GivenAsync("I have multiple tips for the \"Portrait\" type:", ((string)(null)), table32, "Given ");
+    await testRunner.GivenAsync("I have multiple tips for the \"Portrait\" type:", ((string)(null)), table39, "Given ");
 #line hidden
 #line 81
     await testRunner.WhenAsync("I request a random tip for type \"Portrait\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
