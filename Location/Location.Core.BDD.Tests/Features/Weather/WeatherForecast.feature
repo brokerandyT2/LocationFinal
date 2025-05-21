@@ -12,7 +12,7 @@ Background:
 @weatherForecastRetrieval
 Scenario: Retrieve weather forecast for a location
     When I request the weather forecast for the location
-    Then I should receive a successful result
+    Then I should receive a successful forecast result
     And the forecast should contain weather data for the current day
     And the forecast should include the following information:
         | Temperature | Description | Sunrise | Sunset | Wind Speed | Humidity |

@@ -145,7 +145,7 @@ await this.FeatureBackgroundAsync();
     await testRunner.WhenAsync("I request the weather forecast for the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 15
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should receive a successful forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 16
     await testRunner.AndAsync("the forecast should contain weather data for the current day", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -288,7 +288,7 @@ await this.FeatureBackgroundAsync();
     await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 40
-    await testRunner.AndAsync("the forecast data should be", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    await testRunner.AndAsync("the forecast data should be current", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

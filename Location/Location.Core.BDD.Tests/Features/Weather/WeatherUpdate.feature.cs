@@ -99,28 +99,28 @@ namespace Location.Core.BDD.Tests.Features.Weather
 #line 7
     await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-            TechTalk.SpecFlow.Table table43 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table47 = new TechTalk.SpecFlow.Table(new string[] {
                         "Title",
                         "Description",
                         "Latitude",
                         "Longitude",
                         "City",
                         "State"});
-            table43.AddRow(new string[] {
+            table47.AddRow(new string[] {
                         "Home",
                         "My home",
                         "40.712776",
                         "-74.005974",
                         "New York",
                         "NY"});
-            table43.AddRow(new string[] {
+            table47.AddRow(new string[] {
                         "Office",
                         "Work location",
                         "37.774929",
                         "-122.419418",
                         "San Francisco",
                         "CA"});
-            table43.AddRow(new string[] {
+            table47.AddRow(new string[] {
                         "Vacation",
                         "Holiday home",
                         "25.761681",
@@ -128,7 +128,7 @@ namespace Location.Core.BDD.Tests.Features.Weather
                         "Miami",
                         "FL"});
 #line 8
-    await testRunner.AndAsync("I have multiple locations stored in the system for weather:", ((string)(null)), table43, "And ");
+    await testRunner.AndAsync("I have multiple locations stored in the system for weather:", ((string)(null)), table47, "And ");
 #line hidden
         }
         
@@ -162,7 +162,7 @@ await this.FeatureBackgroundAsync();
     await testRunner.WhenAsync("I update the weather data for \"Home\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 18
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should receive a successful forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 19
     await testRunner.AndAsync("the weather data should be current", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -281,18 +281,18 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-                TechTalk.SpecFlow.Table table44 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table48 = new TechTalk.SpecFlow.Table(new string[] {
                             "Title"});
-                table44.AddRow(new string[] {
+                table48.AddRow(new string[] {
                             "Vacation"});
 #line 40
-    await testRunner.GivenAsync("some locations have connectivity issues:", ((string)(null)), table44, "Given ");
+    await testRunner.GivenAsync("some locations have connectivity issues:", ((string)(null)), table48, "Given ");
 #line hidden
 #line 43
     await testRunner.WhenAsync("I update weather data for all locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 44
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should receive a successful forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 45
     await testRunner.AndAsync("the result should indicate 2 locations were updated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -379,7 +379,7 @@ await this.FeatureBackgroundAsync();
     await testRunner.WhenAsync("I request weather data for \"Home\" without forcing an update", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 61
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should receive a successful forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 62
     await testRunner.AndAsync("the cached weather data should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");

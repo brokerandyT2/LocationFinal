@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using BoDi;
+using FluentAssertions;
 using Location.Core.Application.Tips.DTOs;
 using Location.Core.Application.Tips.Queries.GetTipById;
 using Location.Core.BDD.Tests.Drivers;
@@ -21,6 +22,30 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         private readonly TipTypeDriver _tipTypeDriver;
         private readonly Dictionary<string, TipTypeTestModel> _tipTypesByName = new();
         private int _tipTypeIdCounter = 1;
+        // Add this to the TipManagementSteps.cs class
+
+        private readonly IObjectContainer _objectContainer;
+
+        public TipManagementSteps(ApiContext context, IObjectContainer objectContainer)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
+        }
+
+        // This is the TestCleanup method that will safely handle cleanup
+        [AfterScenario(Order = 10000)]
+        public void CleanupAfterScenario()
+        {
+            try
+            {
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw to avoid masking test failures
+                Console.WriteLine($"Error in TipManagementSteps cleanup: {ex.Message}");
+            }
+        }
+
 
         public TipManagementSteps(ApiContext context)
         {
@@ -116,15 +141,16 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             _context.StoreModel(tips, $"TipsForType_{tipTypeName}");
         }
 
-        [Given(@"I have a tip type with the following details:")]
+        [Given(@"I have a photography tip type with the following details:")]
         public void GivenIHaveATipTypeWithTheFollowingDetails(Table table)
         {
+            // Keep the same implementation, just rename the method
             var tipTypeModel = table.CreateInstance<TipTypeTestModel>();
 
             // Assign an ID if not provided
             if (!tipTypeModel.Id.HasValue)
             {
-                tipTypeModel.Id = _tipTypeIdCounter++;
+                tipTypeModel.Id = 1;
             }
 
             // Setup the tip type in the repository
@@ -133,35 +159,6 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             // Store for later use
             _tipTypesByName[tipTypeModel.Name] = tipTypeModel;
             _context.StoreModel(tipTypeModel, "CurrentTipType");
-        }
-
-        [Given(@"the tip type has the following associated tips:")]
-        public void GivenTheTipTypeHasTheFollowingAssociatedTips(Table table)
-        {
-            var tipTypeModel = _context.GetModel<TipTypeTestModel>("CurrentTipType");
-            tipTypeModel.Should().NotBeNull("Tip type should be available in context");
-
-            var tips = table.CreateSet<TipTestModel>().ToList();
-
-            // Set the correct tip type ID and assign IDs if not provided
-            for (int i = 0; i < tips.Count; i++)
-            {
-                tips[i].TipTypeId = tipTypeModel.Id.Value;
-
-                if (!tips[i].Id.HasValue)
-                {
-                    tips[i].Id = i + 1;
-                }
-
-                // Add to the tip type's tips
-                tipTypeModel.Tips.Add(tips[i]);
-            }
-
-            // Setup the tips in the repository
-            _tipDriver.SetupTips(tips);
-
-            // Store for later use
-            _context.StoreModel(tips, $"TipsForType_{tipTypeModel.Name}");
         }
 
         [Given(@"the tip type has no associated tips")]

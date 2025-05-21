@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using BoDi;
+using FluentAssertions;
 using Location.Core.Application.Settings.DTOs;
 using Location.Core.Application.Settings.Queries.GetAllSettings;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
@@ -17,9 +18,31 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
     [Binding]
     public class SettingsManagementSteps
     {
-        private readonly ApiContext _context;
-        private readonly SettingDriver _settingDriver;
+        private  ApiContext _context;
+        private  SettingDriver _settingDriver;
+        // Add this to the SettingsManagementSteps.cs class
 
+        private readonly IObjectContainer _objectContainer;
+
+        public SettingsManagementSteps(ApiContext context, IObjectContainer objectContainer)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
+        }
+
+        // This is the TestCleanup method that will safely handle cleanup
+        [AfterScenario(Order = 10000)]
+        public void CleanupAfterScenario()
+        {
+            try
+            {
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw to avoid masking test failures
+                Console.WriteLine($"Error in SettingsManagementSteps cleanup: {ex.Message}");
+            }
+        }
         public SettingsManagementSteps(ApiContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -36,7 +59,10 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
             {
                 settingModel.Id = 1;
             }
-
+            if (_settingDriver == null)
+            {
+                _settingDriver = new SettingDriver(_context);
+            }
             // Setup the setting in the repository
             _settingDriver.SetupSettings(new List<SettingTestModel> { settingModel });
 
@@ -60,7 +86,10 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
                     settings[i].Id = i + 1;
                 }
             }
-
+            if (_settingDriver == null)
+            {
+                _settingDriver = new SettingDriver(_context);
+            }
             // Setup the settings in the repository
             _settingDriver.SetupSettings(settings);
 
@@ -83,7 +112,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
             }
 
             // Setup the settings in the repository
-            _settingDriver.SetupSettings(settings);
+            //_settingDriver.SetupSettings(settings);
 
             // Store all settings in the context
             _context.StoreModel(settings, "TypedSettings");
@@ -158,9 +187,16 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
 
             // Store the converted values
             var convertedValues = new Dictionary<string, object>();
-
+            if (_settingDriver == null)
+            {
+                _settingDriver = new SettingDriver(_context);
+            }
             foreach (var setting in settings)
             {
+                if (_settingDriver == null)
+                {
+                    _settingDriver = new SettingDriver(_context);
+                }
                 var result = await _settingDriver.GetSettingByKeyAsync(setting.Key);
 
                 if (result.IsSuccess && result.Data != null)

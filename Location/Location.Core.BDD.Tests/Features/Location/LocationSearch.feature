@@ -16,14 +16,14 @@ Background:
 @locationListing
 Scenario: List all locations
     When I request a list of all locations
-    Then I should receive a successful result
+    Then I should receive a successful location result
     And the result should contain 5 locations
     And the locations should be ordered by most recent first
 
 @locationSearchByTitle
 Scenario: Find a location by title
     When I search for a location with title "Empire State"
-    Then I should receive a successful result
+    Then I should receive a successful location result
     And the result should contain a location with title "Empire State"
     And the location should have the following details:
         | City     | State |
@@ -43,7 +43,7 @@ Scenario: Find locations near a specific coordinate
 @locationSearchWithFilter
 Scenario: Search locations with text filter
     When I search for locations with text filter "New"
-    Then I should receive a successful result
+    Then I should receive a successful location result
     And the result should contain 2 locations
     And the result should include "Empire State"
     And the result should include "Statue of Liberty"
@@ -51,5 +51,5 @@ Scenario: Search locations with text filter
 @locationEmptySearch
 Scenario: Search for non-existent locations
     When I search for a location with title "Non-existent Place"
-    Then I should receive a successful result
+    Then I should receive a successful location result
     And the result should contain 0 locations

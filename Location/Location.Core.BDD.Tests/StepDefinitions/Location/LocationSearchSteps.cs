@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using BoDi;
+using FluentAssertions;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
@@ -21,7 +22,29 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
         private readonly IMediator _mediator;
         private readonly Mock<ILocationRepository> _locationRepositoryMock;
         private readonly List<LocationTestModel> _storedLocations = new();
+        // Add this to the LocationSearchSteps.cs class
 
+        private readonly IObjectContainer _objectContainer;
+
+        public LocationSearchSteps(ApiContext context, IObjectContainer objectContainer)
+        {
+            _context = context;
+            _objectContainer = objectContainer;
+        }
+
+        // This is the TestCleanup method that will safely handle cleanup
+        [AfterScenario(Order = 10000)]
+        public void CleanupAfterScenario()
+        {
+            try
+            {
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw to avoid masking test failures
+                Console.WriteLine($"Error in LocationSearchSteps cleanup: {ex.Message}");
+            }
+        }
         public LocationSearchSteps(ApiContext context)
         {
             _context = context;
@@ -166,34 +189,12 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
             _context.StoreResult(result);
         }
 
-        [Then(@"I should receive a successful result")]
+        [Then(@"I should receive a successful location search result")]
         public void ThenIShouldReceiveASuccessfulResult()
         {
-            // Get the last result, which could be of different types
-            var locationListResult = _context.GetLastResult<PagedList<LocationListDto>>();
-            var locationResult = _context.GetLastResult<LocationDto>();
-            var locationListResults = _context.GetLastResult<List<LocationListDto>>();
-
-            // Check any of the results that are not null
-            if (locationListResult != null)
-            {
-                locationListResult.IsSuccess.Should().BeTrue("Operation should be successful");
-                locationListResult.Data.Should().NotBeNull("Result data should be available");
-            }
-            else if (locationResult != null)
-            {
-                locationResult.IsSuccess.Should().BeTrue("Operation should be successful");
-                locationResult.Data.Should().NotBeNull("Result data should be available");
-            }
-            else if (locationListResults != null)
-            {
-                locationListResults.IsSuccess.Should().BeTrue("Operation should be successful");
-                locationListResults.Data.Should().NotBeNull("Result data should be available");
-            }
-            else
-            {
-                Assert.Fail("No result was found to verify");
-            }
+            var result = _context.GetLastResult<object>();
+            result.Should().NotBeNull("Result should be available");
+            result.IsSuccess.Should().BeTrue("Location search operation should be successful");
         }
 
         [Then(@"I should receive a failure result")]

@@ -221,7 +221,7 @@ await this.FeatureBackgroundAsync();
                             "1/60s",
                             "400"});
 #line 27
-    await testRunner.GivenAsync("I have a tip with the following details:", ((string)(null)), table26, "Given ");
+    await testRunner.GivenAsync("I have a photography tip with the following details:", ((string)(null)), table26, "Given ");
 #line hidden
                 TechTalk.SpecFlow.Table table27 = new TechTalk.SpecFlow.Table(new string[] {
                             "Title",
@@ -297,7 +297,7 @@ await this.FeatureBackgroundAsync();
                             "Tip to Delete",
                             "Will be removed"});
 #line 41
-    await testRunner.GivenAsync("I have a tip with the following details:", ((string)(null)), table29, "Given ");
+    await testRunner.GivenAsync("I have a photography tip with the following details:", ((string)(null)), table29, "Given ");
 #line hidden
 #line 44
     await testRunner.WhenAsync("I delete the tip", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -347,7 +347,7 @@ await this.FeatureBackgroundAsync();
                             "Night Sky",
                             "Astrophotography"});
 #line 51
-    await testRunner.GivenAsync("I have a tip with the following details:", ((string)(null)), table30, "Given ");
+    await testRunner.GivenAsync("I have a photography tip with the following details:", ((string)(null)), table30, "Given ");
 #line hidden
 #line 54
     await testRunner.WhenAsync("I retrieve the tip by its ID", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");

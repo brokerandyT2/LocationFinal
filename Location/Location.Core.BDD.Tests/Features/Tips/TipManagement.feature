@@ -24,7 +24,7 @@ Scenario: Create a new photography tip
 
 @tipUpdate
 Scenario: Update an existing tip
-    Given I have a tip with the following details:
+    Given I have a photography tip with the following details:
         | TipTypeId | Title            | Content                                     | Fstop | ShutterSpeed | Iso   |
         | 1         | Original Title   | Initial content                             | f/5.6 | 1/60s       | 400   |
     When I update the tip with the following details:
@@ -38,7 +38,7 @@ Scenario: Update an existing tip
 
 @tipDeletion
 Scenario: Delete a tip
-    Given I have a tip with the following details:
+    Given I have a photography tip with the following details:
         | TipTypeId | Title            | Content           |
         | 2         | Tip to Delete    | Will be removed   |
     When I delete the tip
@@ -48,7 +48,7 @@ Scenario: Delete a tip
 
 @tipRetrieval
 Scenario: Retrieve a tip by ID
-    Given I have a tip with the following details:
+    Given I have a photography tip with the following details:
         | TipTypeId | Title            | Content           |
         | 3         | Night Sky        | Astrophotography  |
     When I retrieve the tip by its ID

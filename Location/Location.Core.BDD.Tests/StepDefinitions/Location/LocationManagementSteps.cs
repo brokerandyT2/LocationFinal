@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using BoDi;
+using FluentAssertions;
 using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
@@ -18,7 +19,28 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
         private readonly ApiContext _context;
         private readonly IMediator _mediator;
         private readonly Mock<ILocationRepository> _locationRepositoryMock;
+        private readonly IObjectContainer _objectContainer;
 
+        public LocationManagementSteps(ApiContext context, IObjectContainer objectContainer)
+        {
+            _context = context;
+            _objectContainer = objectContainer;
+        }
+
+        // This is the TestCleanup method that will safely handle cleanup
+        [BeforeScenario(Order = 10000)]
+        public void CleanupAfterScenario()
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw to avoid masking test failures
+                Console.WriteLine($"Error in LocationManagementSteps cleanup: {ex.Message}");
+            }
+        }
         public LocationManagementSteps(ApiContext context)
         {
             _context = context;

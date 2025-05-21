@@ -6,23 +6,18 @@ using TechTalk.SpecFlow;
 
 namespace Location.Core.BDD.Tests.Hooks
 {
-    /// <summary>
-    /// Contains hooks for test initialization and cleanup at the test run and feature levels
-    /// </summary>
     [Binding]
     public class TestInitialization
     {
         // Global ServiceProvider to ensure services stay alive
         public static ServiceProvider GlobalServiceProvider { get; private set; }
 
-        // Store ObjectContainer reference for cleanup
-        private static IObjectContainer _globalContainer;
+        // Container storage to maintain reference for cleanup
+        private static Dictionary<string, ApiContext> _contextStorage = new Dictionary<string, ApiContext>();
 
         [BeforeTestRun]
         public static void BeforeTestRun(IObjectContainer objectContainer)
         {
-            _globalContainer = objectContainer;
-
             // Setup global services
             var services = new ServiceCollection();
             services.AddLogging();
@@ -36,6 +31,9 @@ namespace Location.Core.BDD.Tests.Hooks
             // Register the TestServiceProvider in the SpecFlow container
             var testServiceProvider = GlobalServiceProvider.GetRequiredService<TestServiceProvider>();
             objectContainer.RegisterInstanceAs(testServiceProvider);
+
+            // Create storage for contexts
+            objectContainer.RegisterInstanceAs(_contextStorage);
         }
 
         [AfterTestRun]
@@ -44,51 +42,64 @@ namespace Location.Core.BDD.Tests.Hooks
             // Properly dispose of resources
             GlobalServiceProvider?.Dispose();
             GlobalServiceProvider = null;
-            _globalContainer = null;
-        }
 
-        [BeforeFeature]
-        public static void BeforeFeature(FeatureContext featureContext)
-        {
-            // You can initialize feature-specific resources here
-            Console.WriteLine($"Starting feature: {featureContext.FeatureInfo.Title}");
-        }
-
-        [AfterFeature]
-        public static void AfterFeature(FeatureContext featureContext)
-        {
-            // Clean up feature-specific resources
-            Console.WriteLine($"Finished feature: {featureContext.FeatureInfo.Title}");
-        }
-
-        [BeforeScenarioBlock]
-        public static void BeforeScenarioBlock(IObjectContainer container, ScenarioContext scenarioContext)
-        {
-            // Ensure ApiContext is available for each scenario block
-            if (!container.IsRegistered<ApiContext>())
+            // Clear context storage
+            if (_contextStorage != null)
             {
-                try
+                foreach (var context in _contextStorage.Values)
                 {
-                    // Get TestServiceProvider from global container
-                    var testServiceProvider = container.Resolve<TestServiceProvider>();
-
-                    // Create and register ApiContext
-                    var apiContext = new ApiContext();
-                    container.RegisterInstanceAs(apiContext);
+                    try { context?.ClearContext(); } catch { }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error in BeforeScenarioBlock: {ex.Message}");
-                    throw;
-                }
+                _contextStorage.Clear();
             }
         }
 
-        [AfterScenario]
+        [BeforeScenario(Order = -1000)]
+        public static void BeforeScenario(IObjectContainer container, ScenarioContext scenarioContext)
+        {
+            try
+            {
+                // Use the scenario ID as a key to ensure uniqueness
+                string scenarioKey = $"{scenarioContext.ScenarioInfo.Title}_{Guid.NewGuid()}";
+
+                // Create ApiContext and store it both in container and our storage
+                var apiContext = new ApiContext();
+                container.RegisterInstanceAs(apiContext);
+
+                // Store in our dictionary for global access
+                _contextStorage[scenarioKey] = apiContext;
+
+                // Store the key in scenario context for later retrieval
+                scenarioContext["ApiContextKey"] = scenarioKey;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in BeforeScenario: {ex.Message}");
+            }
+        }
+
+        [AfterScenario(Order = 1000)]
         public static void AfterScenario(ScenarioContext scenarioContext)
         {
-            // Add any scenario cleanup here if needed
-            Console.WriteLine($"Finished scenario: {scenarioContext.ScenarioInfo.Title}");
+            try
+            {
+                // Get the key from scenario context
+                if (scenarioContext.ContainsKey("ApiContextKey") &&
+                    scenarioContext["ApiContextKey"] is string key &&
+                    _contextStorage.ContainsKey(key))
+                {
+                    // Get the context and clean it up
+                    var apiContext = _contextStorage[key];
+                    apiContext?.ClearContext();
+
+                    // Remove from storage
+                    _contextStorage.Remove(key);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in AfterScenario cleanup: {ex.Message}");
+            }
         }
     }
 }

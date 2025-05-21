@@ -15,7 +15,7 @@ Background:
 Scenario: Update weather for a single location
     Given the "Home" location has outdated weather data
     When I update the weather data for "Home"
-    Then I should receive a successful result
+    Then I should receive a successful forecast result
     And the weather data should be current
     And the last update timestamp should be recent
 
@@ -41,7 +41,7 @@ Scenario: Handle partial success when updating all locations
         | Title    |
         | Vacation |
     When I update weather data for all locations
-    Then I should receive a successful result
+    Then I should receive a successful forecast result
     And the result should indicate 2 locations were updated
     And locations "Home" and "Office" should have current weather data
     And location "Vacation" should not have updated weather data
@@ -58,6 +58,6 @@ Scenario: Handle weather API failure gracefully
 Scenario: Use cached weather data when available
     Given the "Home" location has weather data less than 1 hour old
     When I request weather data for "Home" without forcing an update
-    Then I should receive a successful result
+    Then I should receive a successful forecast result
     And the cached weather data should be returned
     And no API call should be made

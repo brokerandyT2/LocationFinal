@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using BoDi;
+using FluentAssertions;
 using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
@@ -24,7 +25,29 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
         private string _newPhotoPath = string.Empty;
         private bool _cameraAvailable = true;
         private bool _photoExists = false;
+        // Add this to the PhotoManagementSteps.cs class
 
+        private readonly IObjectContainer _objectContainer;
+
+        public PhotoManagementSteps(ApiContext context, IObjectContainer objectContainer)
+        {
+            _context = context;
+            _objectContainer = objectContainer;
+        }
+
+        // This is the TestCleanup method that will safely handle cleanup
+        [AfterScenario(Order = 10000)]
+        public void CleanupAfterScenario()
+        {
+            try
+            {
+                        }
+            catch (Exception ex)
+            {
+                // Log but don't throw to avoid masking test failures
+                Console.WriteLine($"Error in PhotoManagementSteps cleanup: {ex.Message}");
+            }
+        }
         public PhotoManagementSteps(ApiContext context)
         {
             _context = context;

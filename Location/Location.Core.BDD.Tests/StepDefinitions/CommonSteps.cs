@@ -23,8 +23,9 @@ namespace Location.Core.BDD.Tests.StepDefinitions
             // No need to do anything here
         }
 
-        [Then(@"I should receive a successful result")]
-        public void ThenIShouldReceiveASuccessfulResult()
+        // Rename this common step to avoid ambiguity
+        [Then(@"I should receive a generic successful result")]
+        public void ThenIShouldReceiveAGenericSuccessfulResult()
         {
             var lastResult = _context.GetLastResult<object>();
             lastResult.Should().NotBeNull("Result should be available");

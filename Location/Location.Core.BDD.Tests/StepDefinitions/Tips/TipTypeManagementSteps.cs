@@ -1,9 +1,12 @@
-﻿using FluentAssertions;
+﻿using BoDi;
+using FluentAssertions;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tips.DTOs;
 using Location.Core.BDD.Tests.Drivers;
+using Location.Core.BDD.Tests.Features;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,10 +32,36 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             _tipTypeDriver = new TipTypeDriver(context);
             _tipDriver = new TipDriver(context);
         }
+        // Add this to the TipTypeManagementSteps.cs class
 
-        [Given(@"I have a tip type with the following details:")]
+        private readonly IObjectContainer _objectContainer;
+
+        public TipTypeManagementSteps(ApiContext context, IObjectContainer objectContainer)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
+        }
+
+        // This is the TestCleanup method that will safely handle cleanup
+        [AfterScenario(Order = 10000)]
+        public void CleanupAfterScenario()
+        {
+            try
+            {
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw to avoid masking test failures
+                Console.WriteLine($"Error in TipTypeManagementSteps cleanup: {ex.Message}");
+            }
+        }
+
+        // Fix for ambiguous step definition
+
+                [Given(@"I have a tip type category with the following details:")]
         public void GivenIHaveATipTypeWithTheFollowingDetails(Table table)
         {
+            // Keep the same implementation, just rename the method
             var tipTypeModel = table.CreateInstance<TipTypeTestModel>();
 
             // Assign an ID if not provided

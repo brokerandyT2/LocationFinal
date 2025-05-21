@@ -1,32 +1,47 @@
-﻿// In ScenarioHooks.cs
-using BoDi;
+﻿using BoDi;
 using Location.Core.BDD.Tests.Support;
 using TechTalk.SpecFlow;
+using System;
 
-[Binding]
-public class ScenarioHooks
+namespace Location.Core.BDD.Tests.Hooks
 {
-    private readonly IObjectContainer _objectContainer;
-    private ApiContext _apiContext;
-
-    public ScenarioHooks(IObjectContainer objectContainer)
+    [Binding]
+    public class ScenarioHooks
     {
-        _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
-    }
+        private readonly IObjectContainer _objectContainer;
 
-    [BeforeScenario(Order = 0)]
-    public void InitializeApiContext()
-    {
-        // Create with parameterless constructor
-        _apiContext = new ApiContext();
+        public ScenarioHooks(IObjectContainer objectContainer)
+        {
+            _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
+        }
 
-        // Register in SpecFlow's container
-        _objectContainer.RegisterInstanceAs(_apiContext);
-    }
+        // REMOVE: BeforeScenario method to avoid duplicate ApiContext registration
+        // We now handle this in TestInitialization.BeforeScenario with Order = -100
 
-    [AfterScenario]
-    public void CleanupScenario()
-    {
-        _apiContext?.ClearContext();
+        // This method is also in TestInitialization, but we'll keep it here for backward compatibility
+        // and make it safe by checking if cleanup has already been done
+        [AfterScenario(Order = 100)] // Run this after other AfterScenario methods
+        public void CleanupScenario()
+        {
+            try
+            {
+                // Only try to clean up if ApiContext exists and hasn't been cleaned up yet
+                if (_objectContainer.IsRegistered<ApiContext>())
+                {
+                    var apiContext = _objectContainer.Resolve<ApiContext>();
+
+                    // Check if context still has content before clearing
+                    if (apiContext != null)
+                    {
+                        apiContext.ClearContext();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw
+                Console.WriteLine($"Error in CleanupScenario: {ex.Message}");
+            }
+        }
     }
 }

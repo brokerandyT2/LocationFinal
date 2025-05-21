@@ -173,7 +173,7 @@ await this.FeatureBackgroundAsync();
     await testRunner.WhenAsync("I request a list of all locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 19
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should receive a successful location result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 20
     await testRunner.AndAsync("the result should contain 5 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -212,7 +212,7 @@ await this.FeatureBackgroundAsync();
     await testRunner.WhenAsync("I search for a location with title \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 26
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should receive a successful location result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 27
     await testRunner.AndAsync("the result should contain a location with title \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -308,7 +308,7 @@ await this.FeatureBackgroundAsync();
     await testRunner.WhenAsync("I search for locations with text filter \"New\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 46
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should receive a successful location result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 47
     await testRunner.AndAsync("the result should contain 2 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -350,7 +350,7 @@ await this.FeatureBackgroundAsync();
     await testRunner.WhenAsync("I search for a location with title \"Non-existent Place\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 54
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    await testRunner.ThenAsync("I should receive a successful location result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 55
     await testRunner.AndAsync("the result should contain 0 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
