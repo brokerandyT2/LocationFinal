@@ -1,15 +1,47 @@
-<Project Sdk="MSTest.Sdk/3.6.4">
+﻿<Project Sdk="MSTest.Sdk/3.6.4">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <UseVSTest>true</UseVSTest>
-  </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SpecFlow" Version="3.9.74" />
-  </ItemGroup>
+    <PropertyGroup>
+      <TargetFramework>net9.0</TargetFramework>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <Nullable>enable</Nullable>
+      <IsPackable>false</IsPackable>
+      <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
 
-</Project>
+    <ItemGroup>
+      <PackageReference Include="coverlet.collector" Version="6.0.2">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
+      <PackageReference Include="FluentAssertions" Version="6.12.1" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+      <PackageReference Include="MSTest.TestAdapter" Version="3.6.3" />
+      <PackageReference Include="MSTest.TestFramework" Version="3.6.3" />
+      <PackageReference Include="Moq" Version="4.20.72" />
+      <PackageReference Include="SpecFlow" Version="3.9.74" />
+      <PackageReference Include="SpecFlow.MsTest" Version="3.9.74" />
+      <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.9.74" />
+      <PackageReference Include="BoDi" Version="1.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Location.Photography.Application\Location.Photography.Application.csproj" />
+      <ProjectReference Include="..\Location.Photography.Domain\Location.Photography.Domain.csproj" />
+      <ProjectReference Include="..\Location.Photography.Infrastructure\Location.Photography.Infrastructure.csproj" />
+      <ProjectReference Include="..\Location.Photography.ViewModels\Location.Photography.ViewModels.csproj" />
+      <ProjectReference Include="..\Location.Core.Application\Location.Core.Application.csproj" />
+      <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
+      <ProjectReference Include="..\Location.Core.Infrastructure\Location.Core.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\" />
+      <Folder Include="StepDefinitions\" />
+      <Folder Include="Drivers\" />
+      <Folder Include="Models\" />
+      <Folder Include="Support\" />
+      <Folder Include="Hooks\" />
+    </ItemGroup>
+
+  </Project>

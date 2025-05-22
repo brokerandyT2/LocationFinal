@@ -41,8 +41,8 @@ namespace Location.Core.Application.Locations.Queries.GetLocationById
             try
             {
                 var location = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
-
-                if (location == null)
+                var locationResult = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
+                if (!locationResult.IsSuccess)
                 {
                     return Result<LocationDto>.Failure("Location not found");
                 }

@@ -25,7 +25,7 @@ namespace Location.Core.Domain.ValueObjects
         }
         public Coordinate(double latitude, double longitude, bool skipValidation)
         {
-            if (skipValidation)
+            if (!skipValidation)
             {
                 ValidateCoordinates(latitude, longitude);
             }

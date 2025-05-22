@@ -51,14 +51,13 @@ namespace Location.Core.Application.Queries.Locations
         {
             try
             {
-                var location = await _unitOfWork.Locations.GetByTitleAsync(request.Title, cancellationToken);
-
-                if (location == null)
+                var locationResult = await _unitOfWork.Locations.GetByTitleAsync(request.Title, cancellationToken);
+                if (!locationResult.IsSuccess)
                 {
                     return Result<LocationDto>.Failure($"Location with title '{request.Title}' not found");
                 }
 
-                var locationDto = _mapper.Map<LocationDto>(location);
+                var locationDto = _mapper.Map<LocationDto>(locationResult);
                 return Result<LocationDto>.Success(locationDto);
             }
             catch (Exception ex)

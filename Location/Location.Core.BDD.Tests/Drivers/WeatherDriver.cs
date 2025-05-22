@@ -49,10 +49,21 @@ namespace Location.Core.BDD.Tests.Drivers
         /// <returns>A result containing the updated weather data</returns>
         // KEY FIXES for WeatherDriver.cs UpdateWeatherForLocationAsync method
 
+        // REPLACE the UpdateWeatherForLocationAsync method in WeatherDriver.cs
+
         public async Task<Result<WeatherDto>> UpdateWeatherForLocationAsync(int locationId, bool forceUpdate = false)
         {
             try
             {
+                // ✅ FIX: Check for API unavailability FIRST
+                var apiUnavailableWeather = _context.GetModel<WeatherTestModel>("ApiUnavailable");
+                if (apiUnavailableWeather != null)
+                {
+                    var apiFailureResult = Result<WeatherDto>.Failure("Weather API is temporarily unavailable");
+                    _context.StoreResult(apiFailureResult);
+                    return apiFailureResult;
+                }
+
                 // Set up the mock repositories
                 var locationModel = _context.GetModel<LocationTestModel>($"Location_{locationId}");
                 if (locationModel == null)
