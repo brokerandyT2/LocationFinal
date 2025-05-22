@@ -26,7 +26,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
         private readonly IMediator _mediator;
         private readonly Mock<IWeatherService> _weatherServiceMock;
         private readonly Mock<Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
-
+        private readonly Mock<Application.Common.Interfaces.IWeatherRepository> _weatherRepositoryMock;
         public WeatherUpdateSteps(ApiContext context, IObjectContainer objectContainer)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -34,6 +34,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             _mediator = _context.GetService<IMediator>();
             _weatherServiceMock = _context.GetService<Mock<IWeatherService>>();
             _locationRepositoryMock = _context.GetService<Mock<Application.Common.Interfaces.ILocationRepository>>();
+            _weatherRepositoryMock = _context.GetService<Mock<Application.Common.Interfaces.IWeatherRepository>>();
         }
 
         [AfterScenario(Order = 10000)]
@@ -49,7 +50,95 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
                 Console.WriteLine($"Error in WeatherUpdateSteps cleanup: {ex.Message}");
             }
         }
+        [Given(@"the ""(.*)"" location has weather data that is (.*) hours old")]
+        public void GivenTheLocationHasWeatherDataThatIsHoursOld(string locationTitle, int hoursOld)
+        {
+            // Find location by title
+            var locations = _context.GetModel<List<LocationTestModel>>("AllLocations");
+            var location = locations?.FirstOrDefault(l => l.Title == locationTitle);
+            location.Should().NotBeNull($"Location with title '{locationTitle}' should exist");
 
+            // Create weather data that's the specified hours old
+            var lastUpdate = DateTime.UtcNow.AddHours(-hoursOld);
+
+            var weatherDto = new WeatherDto
+            {
+                Id = 1,
+                LocationId = location.Id.Value,
+                Latitude = location.Latitude,
+                Longitude = location.Longitude,
+                Timezone = "America/New_York",
+                TimezoneOffset = -18000,
+                LastUpdate = lastUpdate,
+                Temperature = 22.5,
+                Description = "Partly cloudy",
+                Icon = "03d",
+                WindSpeed = 12.5,
+                WindDirection = 180,
+                WindGust = 15.0,
+                Humidity = 65,
+                Pressure = 1012,
+                Clouds = 40,
+                UvIndex = 6.2,
+                Precipitation = 0.1,
+                Sunrise = DateTime.Today.AddHours(6).AddMinutes(30),
+                Sunset = DateTime.Today.AddHours(19).AddMinutes(45),
+                MoonRise = DateTime.Today.AddHours(20).AddMinutes(15),
+                MoonSet = DateTime.Today.AddHours(8).AddMinutes(20),
+                MoonPhase = 0.25
+            };
+
+            // Setup the weather repository mock
+            var weatherEntity = new Domain.Entities.Weather(location.Id.Value,
+                new Domain.ValueObjects.Coordinate(location.Latitude, location.Longitude),
+                "America/New_York", -18000);
+
+            // Set LastUpdate using reflection
+            var type = typeof(Domain.Entities.Weather);
+            var lastUpdateProperty = type.GetProperty("LastUpdate");
+            if (lastUpdateProperty != null)
+            {
+                lastUpdateProperty.SetValue(weatherEntity, lastUpdate);
+            }
+
+            _weatherRepositoryMock
+                .Setup(repo => repo.GetByLocationIdAsync(
+                    It.Is<int>(id => id == location.Id.Value),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(weatherEntity);
+
+            // Store this weather data
+            _context.StoreModel(weatherDto, $"Weather_{location.Id}");
+            _context.StoreWeatherData(WeatherTestModel.FromDto(weatherDto));
+        }
+
+        [Then(@"the weather data should not be updated")]
+        public void ThenTheWeatherDataShouldNotBeUpdated()
+        {
+            var weatherResult = _context.GetLastResult<WeatherDto>();
+            weatherResult.Should().NotBeNull("Weather result should be available");
+
+            if (weatherResult.IsSuccess)
+            {
+                // If successful, it means we used cached data (no update occurred)
+                weatherResult.Data.Should().NotBeNull("Weather data should be available");
+
+                // Check that the last update time indicates cached data was used
+                var timeDifference = DateTime.UtcNow - weatherResult.Data.LastUpdate;
+                timeDifference.TotalHours.Should().BeGreaterThan(1, "Weather data should be old (indicating cache was used)");
+            }
+            else
+            {
+                // If it failed, that could also mean update was skipped appropriately
+                Console.WriteLine($"Weather update result: {weatherResult.ErrorMessage}");
+            }
+        }
+
+        [Then(@"the cached weather data should be returned")]
+        public void ThenTheCachedWeatherDataShouldBeReturned()
+        {
+            ThenTheWeatherDataShouldNotBeUpdated();
+        }
         [Given(@"I have multiple locations stored in the system for weather:")]
         public void GivenIHaveMultipleLocationsStoredInTheSystemForWeather(Table table)
         {

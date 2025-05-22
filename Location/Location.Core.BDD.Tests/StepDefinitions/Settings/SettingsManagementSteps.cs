@@ -8,7 +8,6 @@ using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Core.BDD.Tests.Drivers;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -201,22 +200,24 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
         [Then(@"the setting should be created successfully")]
         public void ThenTheSettingShouldBeCreatedSuccessfully()
         {
-            var settingModel = _context.GetSettingData();
-            settingModel.Should().NotBeNull("Setting data should be stored in context after creation");
-            settingModel.Id.Should().NotBeNull("Setting should have an ID after creation");
-            settingModel.Id.Should().BeGreaterThan(0, "Setting ID should be positive");
+            var settingResult = _context.GetLastResult<CreateSettingCommandResponse>();
+            settingResult.Should().NotBeNull("Setting result should be available");
+            settingResult.IsSuccess.Should().BeTrue("Setting creation should be successful");
+            settingResult.Data.Should().NotBeNull("Setting data should be available");
+            settingResult.Data.Id.Should().BeGreaterThan(0, "Setting ID should be positive");
         }
 
         [Then(@"the setting should have the correct details:")]
         public void ThenTheSettingShouldHaveTheCorrectDetails(Table table)
         {
             var expectedSetting = table.CreateInstance<SettingTestModel>();
-            var actualSetting = _context.GetSettingData();
+            var settingResult = _context.GetLastResult<CreateSettingCommandResponse>();
 
-            actualSetting.Should().NotBeNull("Setting data should be available in context");
-            actualSetting.Key.Should().Be(expectedSetting.Key, "Setting key should match expected value");
-            actualSetting.Value.Should().Be(expectedSetting.Value, "Setting value should match expected value");
-            actualSetting.Description.Should().Be(expectedSetting.Description, "Setting description should match expected value");
+            settingResult.Should().NotBeNull("Setting result should be available");
+            settingResult.Data.Should().NotBeNull("Setting data should be available");
+            settingResult.Data.Key.Should().Be(expectedSetting.Key, "Setting key should match expected value");
+            settingResult.Data.Value.Should().Be(expectedSetting.Value, "Setting value should match expected value");
+            settingResult.Data.Description.Should().Be(expectedSetting.Description, "Setting description should match expected value");
         }
 
         [Then(@"the setting should be updated successfully")]
@@ -230,19 +231,21 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
         [Then(@"the setting should have the new value ""(.*)""")]
         public void ThenTheSettingShouldHaveTheNewValue(string expectedValue)
         {
-            var settingModel = _context.GetSettingData();
-            settingModel.Should().NotBeNull("Setting data should be available in context");
-            settingModel.Value.Should().Be(expectedValue, "Setting value should be updated to the new value");
+            var updateResult = _context.GetLastResult<UpdateSettingCommandResponse>();
+            updateResult.Should().NotBeNull("Update result should be available");
+            updateResult.Data.Should().NotBeNull("Update data should be available");
+            updateResult.Data.Value.Should().Be(expectedValue, "Setting value should be updated to the new value");
         }
 
         [Then(@"the setting timestamp should be updated")]
         public void ThenTheSettingTimestampShouldBeUpdated()
         {
-            var settingModel = _context.GetSettingData();
-            settingModel.Should().NotBeNull("Setting data should be available in context");
+            var updateResult = _context.GetLastResult<UpdateSettingCommandResponse>();
+            updateResult.Should().NotBeNull("Update result should be available");
+            updateResult.Data.Should().NotBeNull("Update data should be available");
 
             var now = DateTime.UtcNow;
-            var timeDifference = now - settingModel.Timestamp;
+            var timeDifference = now - updateResult.Data.Timestamp;
 
             timeDifference.TotalMinutes.Should().BeLessThan(5, "Setting timestamp should be recent (within 5 minutes)");
         }
@@ -317,9 +320,10 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
         [Then(@"the setting description should be ""(.*)""")]
         public void ThenTheSettingDescriptionShouldBe(string expectedDescription)
         {
-            var settingModel = _context.GetSettingData();
-            settingModel.Should().NotBeNull("Setting data should be available in context");
-            settingModel.Description.Should().Be(expectedDescription, "Setting description should be updated to the expected value");
+            var updateResult = _context.GetLastResult<UpdateSettingCommandResponse>();
+            updateResult.Should().NotBeNull("Update result should be available");
+            updateResult.Data.Should().NotBeNull("Update data should be available");
+            updateResult.Data.Description.Should().Be(expectedDescription, "Setting description should be updated to the expected value");
         }
 
         [Then(@"the ""(.*)"" should be converted to boolean (.*)")]
@@ -367,61 +371,6 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
             lastResult.Data.Count.Should().Be(expectedCount, $"Dictionary should contain {expectedCount} key-value pairs");
         }
 
-        [Then(@"I should receive a successful result")]
-        public void ThenIShouldReceiveASuccessfulResult()
-        {
-            // Try CreateSettingCommandResponse
-            var createResult = _context.GetLastResult<CreateSettingCommandResponse>();
-            if (createResult != null)
-            {
-                createResult.IsSuccess.Should().BeTrue("Create operation should be successful");
-                return;
-            }
-
-            // Try UpdateSettingCommandResponse  
-            var updateResult = _context.GetLastResult<UpdateSettingCommandResponse>();
-            if (updateResult != null)
-            {
-                updateResult.IsSuccess.Should().BeTrue("Update operation should be successful");
-                return;
-            }
-
-            // Try bool (for delete operations)
-            var boolResult = _context.GetLastResult<bool>();
-            if (boolResult != null)
-            {
-                boolResult.IsSuccess.Should().BeTrue("Delete operation should be successful");
-                return;
-            }
-
-            // Try GetSettingByKeyQueryResponse
-            var getByKeyResult = _context.GetLastResult<GetSettingByKeyQueryResponse>();
-            if (getByKeyResult != null)
-            {
-                getByKeyResult.IsSuccess.Should().BeTrue("Get by key operation should be successful");
-                return;
-            }
-
-            // Try List<GetAllSettingsQueryResponse>
-            var getAllResult = _context.GetLastResult<List<GetAllSettingsQueryResponse>>();
-            if (getAllResult != null)
-            {
-                getAllResult.IsSuccess.Should().BeTrue("Get all settings operation should be successful");
-                return;
-            }
-
-            // Try Dictionary<string, string>
-            var dictResult = _context.GetLastResult<Dictionary<string, string>>();
-            if (dictResult != null)
-            {
-                dictResult.IsSuccess.Should().BeTrue("Get settings dictionary operation should be successful");
-                return;
-            }
-
-            // If none found, fail
-            Assert.Fail("No result found in context. Make sure the result is properly stored.");
-        }
-
         [Then(@"the dictionary should have key ""(.*)"" with value ""(.*)""")]
         public void ThenTheDictionaryShouldHaveKeyWithValue(string key, string value)
         {
@@ -432,5 +381,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
             lastResult.Data.Should().ContainKey(key, $"Dictionary should contain key '{key}'");
             lastResult.Data[key].Should().Be(value, $"Dictionary value for key '{key}' should be '{value}'");
         }
+
+        // REMOVED: ThenIShouldReceiveASuccessfulResult() 
+        // This step is already handled by CommonSteps to avoid duplication
     }
 }

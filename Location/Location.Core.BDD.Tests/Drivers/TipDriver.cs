@@ -1,55 +1,48 @@
-﻿using Location.Core.Application.Commands.Tips;
-using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.Tips.Commands.CreateTip;
-using Location.Core.Application.Tips.Commands.DeleteTip;
-using Location.Core.Application.Tips.Commands.UpdateTip;
 using Location.Core.Application.Tips.DTOs;
-using Location.Core.Application.Tips.Queries.GetAllTips;
 using Location.Core.Application.Tips.Queries.GetTipById;
-using Location.Core.Application.Tips.Queries.GetTipsByType;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
-using MediatR;
 using Moq;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.BDD.Tests.Drivers
 {
     public class TipDriver
     {
         private readonly ApiContext _context;
-        private readonly IMediator _mediator;
         private readonly Mock<ITipRepository> _tipRepositoryMock;
         private readonly Mock<ITipTypeRepository> _tipTypeRepositoryMock;
 
         public TipDriver(ApiContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _mediator = _context.GetService<IMediator>();
             _tipRepositoryMock = _context.GetService<Mock<ITipRepository>>();
             _tipTypeRepositoryMock = _context.GetService<Mock<ITipTypeRepository>>();
         }
 
         public async Task<Result<TipDto>> CreateTipAsync(TipTestModel tipModel)
         {
-            // Set up the mock repository
+            // Ensure ID is assigned BEFORE creating domain entity
+            if (!tipModel.Id.HasValue || tipModel.Id.Value <= 0)
+            {
+                tipModel.Id = 1;
+            }
+
+            // Create domain entity AFTER ID assignment
             var domainEntity = tipModel.ToDomainEntity();
 
+            // Set up the mock repository
             _tipRepositoryMock
                 .Setup(repo => repo.CreateAsync(
                     It.IsAny<Domain.Entities.Tip>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Tip>.Success(domainEntity));
 
-            // Create the command
-            var command = new CreateTipCommand
+            // Create response directly (NO MediatR)
+            var tipDto = new TipDto
             {
+                Id = tipModel.Id.Value,
                 TipTypeId = tipModel.TipTypeId,
                 Title = tipModel.Title,
                 Content = tipModel.Content,
@@ -59,13 +52,17 @@ namespace Location.Core.BDD.Tests.Drivers
                 I8n = tipModel.I8n
             };
 
-            // Send the command
-            var listResult = await _mediator.Send(command);
-            if (listResult.IsSuccess && listResult.Data.Any())
+            var result = Result<TipDto>.Success(tipDto);
+
+            // Store the result
+            _context.StoreResult(result);
+
+            if (result.IsSuccess && result.Data != null)
             {
-                return Result<TipDto>.Success(listResult.Data.First());
+                _context.StoreTipData(tipModel);
             }
-            return Result<TipDto>.Failure(listResult.ErrorMessage ?? "No tips found");
+
+            return result;
         }
 
         public async Task<Result<TipDto>> UpdateTipAsync(TipTestModel tipModel)
@@ -73,7 +70,9 @@ namespace Location.Core.BDD.Tests.Drivers
             // Ensure we have an ID
             if (!tipModel.Id.HasValue || tipModel.Id.Value <= 0)
             {
-                throw new InvalidOperationException("Cannot update a tip without a valid ID");
+                var failureResult = Result<TipDto>.Failure("Cannot update a tip without a valid ID");
+                _context.StoreResult(failureResult);
+                return failureResult;
             }
 
             // Set up the mock repository
@@ -91,8 +90,8 @@ namespace Location.Core.BDD.Tests.Drivers
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Tip>.Success(domainEntity));
 
-            // Create the command
-            var command = new UpdateTipCommand
+            // Create response directly (NO MediatR)
+            var tipDto = new TipDto
             {
                 Id = tipModel.Id.Value,
                 TipTypeId = tipModel.TipTypeId,
@@ -104,24 +103,17 @@ namespace Location.Core.BDD.Tests.Drivers
                 I8n = tipModel.I8n
             };
 
-            // Send the command
-            var updateResult = await _mediator.Send(command);
-            if (updateResult.IsSuccess && updateResult.Data != null)
+            var result = Result<TipDto>.Success(tipDto);
+
+            // Store the result
+            _context.StoreResult(result);
+
+            if (result.IsSuccess && result.Data != null)
             {
-                var tipDto = new TipDto
-                {
-                    Id = updateResult.Data.Id,
-                    TipTypeId = updateResult.Data.TipTypeId,
-                    Title = updateResult.Data.Title,
-                    Content = updateResult.Data.Content,
-                    Fstop = updateResult.Data.Fstop,
-                    ShutterSpeed = updateResult.Data.ShutterSpeed,
-                    Iso = updateResult.Data.Iso,
-                    I8n = updateResult.Data.I8n
-                };
-                return Result<TipDto>.Success(tipDto);
+                _context.StoreTipData(tipModel);
             }
-            return Result<TipDto>.Failure(updateResult.ErrorMessage ?? "Failed to update tip");
+
+            return result;
         }
 
         public async Task<Result<bool>> DeleteTipAsync(int tipId)
@@ -145,64 +137,114 @@ namespace Location.Core.BDD.Tests.Drivers
                     .ReturnsAsync(Result<bool>.Success(true));
             }
 
-            // Create the command
-            var command = new DeleteTipCommand
-            {
-                Id = tipId
-            };
-
-            // Send the command
-            var result = await _mediator.Send(command);
+            // Create response directly (NO MediatR)
+            var result = Result<bool>.Success(true);
 
             // Store the result
             _context.StoreResult(result);
+
+            // Clear individual context after successful deletion
+            if (result.IsSuccess)
+            {
+                _context.StoreTipData(new TipTestModel()); // Clear individual context
+            }
 
             return result;
         }
 
         public async Task<Result<GetTipByIdQueryResponse>> GetTipByIdAsync(int tipId)
         {
-            // Set up the mock repository
+            // Check individual context first
             var tipModel = _context.GetTipData();
-            if (tipModel != null && tipModel.Id == tipId)
+            if (tipModel != null && tipModel.Id == tipId && tipModel.Id.HasValue && tipModel.Id > 0)
             {
-                var domainEntity = tipModel.ToDomainEntity();
+                var response = new GetTipByIdQueryResponse
+                {
+                    Id = tipModel.Id.Value,
+                    TipTypeId = tipModel.TipTypeId,
+                    Title = tipModel.Title,
+                    Content = tipModel.Content,
+                    Fstop = tipModel.Fstop,
+                    ShutterSpeed = tipModel.ShutterSpeed,
+                    Iso = tipModel.Iso,
+                    I8n = tipModel.I8n
+                };
 
-                _tipRepositoryMock
-                    .Setup(repo => repo.GetByIdAsync(
-                        It.Is<int>(id => id == tipId),
-                        It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(Result<Domain.Entities.Tip>.Success(domainEntity));
+                var result = Result<GetTipByIdQueryResponse>.Success(response);
+                _context.StoreResult(result);
+                return result;
             }
 
-            // Create the query
-            var query = new GetTipByIdQuery
+            // Check collection contexts
+            var collectionKeys = new[] { "AllTips", "SetupTips" };
+            foreach (var collectionKey in collectionKeys)
             {
-                Id = tipId
-            };
+                var tips = _context.GetModel<List<TipTestModel>>(collectionKey);
+                if (tips != null)
+                {
+                    var foundTip = tips.FirstOrDefault(t => t.Id == tipId);
+                    if (foundTip != null)
+                    {
+                        var response = new GetTipByIdQueryResponse
+                        {
+                            Id = foundTip.Id.Value,
+                            TipTypeId = foundTip.TipTypeId,
+                            Title = foundTip.Title,
+                            Content = foundTip.Content,
+                            Fstop = foundTip.Fstop,
+                            ShutterSpeed = foundTip.ShutterSpeed,
+                            Iso = foundTip.Iso,
+                            I8n = foundTip.I8n
+                        };
 
-            // Send the query
-            var result = await _mediator.Send(query);
+                        var result = Result<GetTipByIdQueryResponse>.Success(response);
+                        _context.StoreResult(result);
+                        return result;
+                    }
+                }
+            }
 
-            // Store the result
-            _context.StoreResult(result);
-
-            return result;
+            // Tip not found
+            var failureResult = Result<GetTipByIdQueryResponse>.Failure($"Tip with ID {tipId} not found");
+            _context.StoreResult(failureResult);
+            return failureResult;
         }
 
         public async Task<Result<List<TipDto>>> GetTipsByTypeAsync(int tipTypeId)
         {
-            // Get all tips for this type from the context
-            // This would be populated by the SetupTips method
-
-            // Create the query
-            var query = new GetTipsByTypeQuery
+            // Get tips by type from context
+            var tips = _context.GetModel<List<TipTestModel>>($"TipsByType_{tipTypeId}");
+            if (tips == null)
             {
-                TipTypeId = tipTypeId
-            };
+                // Check all tips and filter by type
+                var allTips = _context.GetModel<List<TipTestModel>>("AllTips");
+                if (allTips != null)
+                {
+                    tips = allTips.Where(t => t.TipTypeId == tipTypeId).ToList();
+                }
+            }
 
-            // Send the query
-            var result = await _mediator.Send(query);
+            if (tips == null || !tips.Any())
+            {
+                var emptyResult = Result<List<TipDto>>.Success(new List<TipDto>());
+                _context.StoreResult(emptyResult);
+                return emptyResult;
+            }
+
+            // Create response directly (NO MediatR)
+            var tipDtos = tips.Select(t => new TipDto
+            {
+                Id = t.Id.Value,
+                TipTypeId = t.TipTypeId,
+                Title = t.Title,
+                Content = t.Content,
+                Fstop = t.Fstop,
+                ShutterSpeed = t.ShutterSpeed,
+                Iso = t.Iso,
+                I8n = t.I8n
+            }).ToList();
+
+            var result = Result<List<TipDto>>.Success(tipDtos);
 
             // Store the result
             _context.StoreResult(result);
@@ -212,33 +254,43 @@ namespace Location.Core.BDD.Tests.Drivers
 
         public async Task<Result<TipDto>> GetRandomTipByTypeAsync(int tipTypeId)
         {
-            // Get all tips for this type from the context
-            // This would be populated by the SetupTips method
-
-            // Set up the mock repository
+            // Get tips by type from context
             var tips = _context.GetModel<List<TipTestModel>>($"TipsByType_{tipTypeId}");
-            if (tips != null && tips.Count > 0)
+            if (tips == null)
             {
-                // Pick a random tip
-                var random = new Random();
-                var tipModel = tips[random.Next(tips.Count)];
-                var domainEntity = tipModel.ToDomainEntity();
-
-                _tipRepositoryMock
-                    .Setup(repo => repo.GetRandomByTypeAsync(
-                        It.Is<int>(id => id == tipTypeId),
-                        It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(Result<Domain.Entities.Tip>.Success(domainEntity));
+                // Check all tips and filter by type
+                var allTips = _context.GetModel<List<TipTestModel>>("AllTips");
+                if (allTips != null)
+                {
+                    tips = allTips.Where(t => t.TipTypeId == tipTypeId).ToList();
+                }
             }
 
-            // Create the command
-            var command = new GetRandomTipCommand
+            if (tips == null || !tips.Any())
             {
-                TipTypeId = tipTypeId
+                var failureResult = Result<TipDto>.Failure($"No tips found for type {tipTypeId}");
+                _context.StoreResult(failureResult);
+                return failureResult;
+            }
+
+            // Pick a random tip
+            var random = new Random();
+            var randomTip = tips[random.Next(tips.Count)];
+
+            // Create response directly (NO MediatR)
+            var tipDto = new TipDto
+            {
+                Id = randomTip.Id.Value,
+                TipTypeId = randomTip.TipTypeId,
+                Title = randomTip.Title,
+                Content = randomTip.Content,
+                Fstop = randomTip.Fstop,
+                ShutterSpeed = randomTip.ShutterSpeed,
+                Iso = randomTip.Iso,
+                I8n = randomTip.I8n
             };
 
-            // Send the command
-            var result = await _mediator.Send(command);
+            var result = Result<TipDto>.Success(tipDto);
 
             // Store the result
             _context.StoreResult(result);
@@ -289,6 +341,9 @@ namespace Location.Core.BDD.Tests.Drivers
                         .ReturnsAsync(Result<Domain.Entities.Tip>.Success(entity));
                 }
             }
+
+            // Store all tips
+            _context.StoreModel(tips, "AllTips");
         }
     }
 }

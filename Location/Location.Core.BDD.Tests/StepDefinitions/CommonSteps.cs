@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Location.Core.Application.Tips.DTOs;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.BDD.Tests.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -131,7 +132,119 @@ namespace Location.Core.BDD.Tests.StepDefinitions
                 throw;
             }
         }
+        [Then(@"I should receive a successful result")]
+        public void ThenIShouldReceiveASuccessfulResult()
+        {
+            try
+            {
+                Console.WriteLine("Verifying successful result");
 
+                // Try different result types in order of likelihood
+                var resultTypes = new[]
+                {
+                    // Weather types
+                    typeof(WeatherDto),
+                    typeof(WeatherForecastDto),
+                    
+                    // Tip types
+                    typeof(TipDto),
+                    typeof(List<TipDto>),
+                    typeof(TipTypeDto),
+                    typeof(List<TipTypeDto>),
+                    
+                    // Location types
+                    typeof(Application.Locations.DTOs.LocationDto),
+                    typeof(List<Application.Locations.DTOs.LocationListDto>),
+                    
+                    // Setting types
+                    typeof(Application.Settings.Commands.CreateSetting.CreateSettingCommandResponse),
+                    typeof(Application.Settings.Commands.UpdateSetting.UpdateSettingCommandResponse),
+                    typeof(Application.Settings.Queries.GetSettingByKey.GetSettingByKeyQueryResponse),
+                    typeof(List<Application.Settings.Queries.GetAllSettings.GetAllSettingsQueryResponse>),
+                    typeof(Dictionary<string, string>),
+                    
+                    // Common types
+                    typeof(bool),
+                    typeof(int)
+                };
+
+                foreach (var resultType in resultTypes)
+                {
+                    try
+                    {
+                        // Use reflection to call GetLastResult<T>() with the specific type
+                        var method = typeof(ApiContext).GetMethod("GetLastResult");
+                        var genericMethod = method.MakeGenericMethod(resultType);
+                        var result = genericMethod.Invoke(_context, new object[] { "LastResult" });
+
+                        if (result != null)
+                        {
+                            // Check if the result has IsSuccess property
+                            var isSuccessProperty = result.GetType().GetProperty("IsSuccess");
+                            if (isSuccessProperty != null)
+                            {
+                                var isSuccess = (bool)isSuccessProperty.GetValue(result);
+                                if (isSuccess)
+                                {
+                                    Console.WriteLine($"Found successful result of type {resultType.Name}");
+                                    return; // Success!
+                                }
+                                else
+                                {
+                                    // Found a result but it indicates failure
+                                    var errorProperty = result.GetType().GetProperty("ErrorMessage");
+                                    var errorMessage = errorProperty?.GetValue(result)?.ToString();
+                                    Console.WriteLine($"Found failed result of type {resultType.Name}: {errorMessage}");
+
+                                    Assert.Fail($"Operation failed: {errorMessage}");
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Continue to next type
+                        Console.WriteLine($"Error checking type {resultType.Name}: {ex.Message}");
+                    }
+                }
+
+                // If we get here, no result was found
+                Console.WriteLine("No result found in context. Checking all stored keys...");
+
+                // Debug: Try to see what's actually stored in the context
+                try
+                {
+                    var contextType = _context.GetType();
+                    var scenarioContextField = contextType.GetField("_scenarioContext",
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+                    if (scenarioContextField != null)
+                    {
+                        var scenarioContext = scenarioContextField.GetValue(_context) as Dictionary<string, object>;
+                        if (scenarioContext != null)
+                        {
+                            Console.WriteLine($"Context contains {scenarioContext.Count} items:");
+                            foreach (var kvp in scenarioContext)
+                            {
+                                Console.WriteLine($"  Key: {kvp.Key}, Type: {kvp.Value?.GetType().Name ?? "null"}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error inspecting context: {ex.Message}");
+                }
+
+                Assert.Fail("No result found in context. Make sure the result is properly stored.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ThenIShouldReceiveASuccessfulResult: {ex.Message}\n{ex.StackTrace}");
+                throw;
+            }
+        }
         // Helper method for waiting a short time if needed
         protected async Task WaitShortly()
         {

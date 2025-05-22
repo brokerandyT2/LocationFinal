@@ -22,38 +22,27 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         private readonly TipTypeDriver _tipTypeDriver;
         private readonly Dictionary<string, TipTypeTestModel> _tipTypesByName = new();
         private int _tipTypeIdCounter = 1;
-        // Add this to the TipManagementSteps.cs class
-
         private readonly IObjectContainer _objectContainer;
 
-        public TipManagementSteps(ApiContext context, IObjectContainer objectContainer, TipTypeDriver driver, TipDriver tipDriver)
+        public TipManagementSteps(ApiContext context, IObjectContainer objectContainer)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
-            _tipTypeDriver = driver;
-            _tipDriver = tipDriver;
+            _tipDriver = new TipDriver(context);
+            _tipTypeDriver = new TipTypeDriver(context);
         }
 
-        // This is the TestCleanup method that will safely handle cleanup
         [AfterScenario(Order = 10000)]
         public void CleanupAfterScenario()
         {
             try
             {
+                // Cleanup if needed
             }
             catch (Exception ex)
             {
-                // Log but don't throw to avoid masking test failures
                 Console.WriteLine($"Error in TipManagementSteps cleanup: {ex.Message}");
             }
-        }
-
-
-        public TipManagementSteps(ApiContext context)
-        {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _tipDriver = new TipDriver(context);
-            _tipTypeDriver = new TipTypeDriver(context);
         }
 
         [Given(@"I have the following tip types in the system:")]
@@ -144,9 +133,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         }
 
         [Given(@"I have a photography tip type with the following details:")]
-        public void GivenIHaveATipTypeWithTheFollowingDetails(Table table)
+        public void GivenIHaveAPhotographyTipTypeWithTheFollowingDetails(Table table)
         {
-            // Keep the same implementation, just rename the method
             var tipTypeModel = table.CreateInstance<TipTypeTestModel>();
 
             // Assign an ID if not provided
@@ -161,16 +149,6 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             // Store for later use
             _tipTypesByName[tipTypeModel.Name] = tipTypeModel;
             _context.StoreModel(tipTypeModel, "CurrentTipType");
-        }
-
-        [Given(@"the tip type has no associated tips")]
-        public void GivenTheTipTypeHasNoAssociatedTips()
-        {
-            var tipTypeModel = _context.GetModel<TipTypeTestModel>("CurrentTipType");
-            tipTypeModel.Should().NotBeNull("Tip type should be available in context");
-
-            // Ensure the tip type has no tips
-            tipTypeModel.Tips.Clear();
         }
 
         [When(@"I create a new tip with the following details:")]
@@ -252,33 +230,35 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         [Then(@"the tip should be created successfully")]
         public void ThenTheTipShouldBeCreatedSuccessfully()
         {
-            var tipModel = _context.GetTipData();
-            tipModel.Should().NotBeNull("Tip data should be stored in context after creation");
-            tipModel.Id.Should().NotBeNull("Tip should have an ID after creation");
-            tipModel.Id.Should().BeGreaterThan(0, "Tip ID should be positive");
+            var tipResult = _context.GetLastResult<TipDto>();
+            tipResult.Should().NotBeNull("Tip result should be available");
+            tipResult.IsSuccess.Should().BeTrue("Tip creation should be successful");
+            tipResult.Data.Should().NotBeNull("Tip data should be available");
+            tipResult.Data.Id.Should().BeGreaterThan(0, "Tip ID should be positive");
         }
 
         [Then(@"the tip should have the correct details:")]
         public void ThenTheTipShouldHaveTheCorrectDetails(Table table)
         {
             var expectedTip = table.CreateInstance<TipTestModel>();
-            var actualTip = _context.GetTipData();
+            var tipResult = _context.GetLastResult<TipDto>();
 
-            actualTip.Should().NotBeNull("Tip data should be available in context");
-            actualTip.TipTypeId.Should().Be(expectedTip.TipTypeId, "Tip type ID should match expected value");
-            actualTip.Title.Should().Be(expectedTip.Title, "Tip title should match expected value");
-            actualTip.Content.Should().Be(expectedTip.Content, "Tip content should match expected value");
-            actualTip.Fstop.Should().Be(expectedTip.Fstop, "F-stop should match expected value");
-            actualTip.ShutterSpeed.Should().Be(expectedTip.ShutterSpeed, "Shutter speed should match expected value");
-            actualTip.Iso.Should().Be(expectedTip.Iso, "ISO should match expected value");
+            tipResult.Should().NotBeNull("Tip result should be available");
+            tipResult.Data.Should().NotBeNull("Tip data should be available");
+            tipResult.Data.TipTypeId.Should().Be(expectedTip.TipTypeId, "Tip type ID should match expected value");
+            tipResult.Data.Title.Should().Be(expectedTip.Title, "Tip title should match expected value");
+            tipResult.Data.Content.Should().Be(expectedTip.Content, "Tip content should match expected value");
+            tipResult.Data.Fstop.Should().Be(expectedTip.Fstop, "F-stop should match expected value");
+            tipResult.Data.ShutterSpeed.Should().Be(expectedTip.ShutterSpeed, "Shutter speed should match expected value");
+            tipResult.Data.Iso.Should().Be(expectedTip.Iso, "ISO should match expected value");
         }
 
         [Then(@"the tip should be updated successfully")]
         public void ThenTheTipShouldBeUpdatedSuccessfully()
         {
-            var lastResult = _context.GetLastResult<object>();
-            lastResult.Should().NotBeNull("Update result should be available");
-            lastResult.IsSuccess.Should().BeTrue("Tip update should be successful");
+            var tipResult = _context.GetLastResult<TipDto>();
+            tipResult.Should().NotBeNull("Update result should be available");
+            tipResult.IsSuccess.Should().BeTrue("Tip update should be successful");
         }
 
         [Then(@"the tip should have the following details:")]
@@ -301,9 +281,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         {
             var tipModel = _context.GetTipData();
 
-            // Mock that the tip no longer exists
-            var tipDriver = new TipDriver(_context);
-            var task = tipDriver.GetTipByIdAsync(tipModel.Id.Value);
+            // Get the tip by ID should fail after deletion
+            var task = _tipDriver.GetTipByIdAsync(tipModel.Id.Value);
             task.Wait();
 
             var result = task.Result;
@@ -316,60 +295,59 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             var originalTip = _context.GetTipData();
             originalTip.Should().NotBeNull("Original tip data should be available in context");
 
-            var lastResult = _context.GetLastResult<object>();
+            var lastResult = _context.GetLastResult<GetTipByIdQueryResponse>();
             lastResult.Should().NotBeNull("Result should be available after query");
             lastResult.IsSuccess.Should().BeTrue("Tip retrieval should be successful");
 
-            // The response type depends on the query, so we need to handle different types
-            if (lastResult.Data is GetTipByIdQueryResponse response)
+            if (lastResult.Data != null)
             {
-                response.Id.Should().Be(originalTip.Id.Value, "Retrieved tip ID should match original");
-                response.TipTypeId.Should().Be(originalTip.TipTypeId, "Retrieved tip type ID should match original");
-                response.Title.Should().Be(originalTip.Title, "Retrieved tip title should match original");
-                response.Content.Should().Be(originalTip.Content, "Retrieved tip content should match original");
-                response.Fstop.Should().Be(originalTip.Fstop, "Retrieved F-stop should match original");
-                response.ShutterSpeed.Should().Be(originalTip.ShutterSpeed, "Retrieved shutter speed should match original");
-                response.Iso.Should().Be(originalTip.Iso, "Retrieved ISO should match original");
-                response.I8n.Should().Be(originalTip.I8n, "Retrieved localization should match original");
+                lastResult.Data.Id.Should().Be(originalTip.Id.Value, "Retrieved tip ID should match original");
+                lastResult.Data.TipTypeId.Should().Be(originalTip.TipTypeId, "Retrieved tip type ID should match original");
+                lastResult.Data.Title.Should().Be(originalTip.Title, "Retrieved tip title should match original");
+                lastResult.Data.Content.Should().Be(originalTip.Content, "Retrieved tip content should match original");
+                lastResult.Data.Fstop.Should().Be(originalTip.Fstop, "Retrieved F-stop should match original");
+                lastResult.Data.ShutterSpeed.Should().Be(originalTip.ShutterSpeed, "Retrieved shutter speed should match original");
+                lastResult.Data.Iso.Should().Be(originalTip.Iso, "Retrieved ISO should match original");
+                lastResult.Data.I8n.Should().Be(originalTip.I8n, "Retrieved localization should match original");
             }
         }
 
         [Then(@"the result should contain (.*) tips")]
         public void ThenTheResultShouldContainTips(int expectedCount)
         {
-            var lastResult = _context.GetLastResult<object>();
+            var lastResult = _context.GetLastResult<List<TipDto>>();
             lastResult.Should().NotBeNull("Result should be available after query");
             lastResult.IsSuccess.Should().BeTrue("Tip retrieval should be successful");
 
-            if (lastResult.Data is List<TipDto> responses)
+            if (lastResult.Data != null)
             {
-                responses.Count.Should().Be(expectedCount, $"Result should contain {expectedCount} tips");
+                lastResult.Data.Count.Should().Be(expectedCount, $"Result should contain {expectedCount} tips");
             }
         }
 
         [Then(@"the result should include ""(.*)""")]
         public void ThenTheResultShouldInclude(string expectedTitle)
         {
-            var lastResult = _context.GetLastResult<object>();
+            var lastResult = _context.GetLastResult<List<TipDto>>();
             lastResult.Should().NotBeNull("Result should be available after query");
             lastResult.IsSuccess.Should().BeTrue("Tip retrieval should be successful");
 
-            if (lastResult.Data is List<TipDto> responses)
+            if (lastResult.Data != null)
             {
-                responses.Should().Contain(t => t.Title == expectedTitle, $"Result should include tip with title '{expectedTitle}'");
+                lastResult.Data.Should().Contain(t => t.Title == expectedTitle, $"Result should include tip with title '{expectedTitle}'");
             }
         }
 
         [Then(@"the result should not include ""(.*)""")]
         public void ThenTheResultShouldNotInclude(string unexpectedTitle)
         {
-            var lastResult = _context.GetLastResult<object>();
+            var lastResult = _context.GetLastResult<List<TipDto>>();
             lastResult.Should().NotBeNull("Result should be available after query");
             lastResult.IsSuccess.Should().BeTrue("Tip retrieval should be successful");
 
-            if (lastResult.Data is List<TipDto> responses)
+            if (lastResult.Data != null)
             {
-                responses.Should().NotContain(t => t.Title == unexpectedTitle, $"Result should not include tip with title '{unexpectedTitle}'");
+                lastResult.Data.Should().NotContain(t => t.Title == unexpectedTitle, $"Result should not include tip with title '{unexpectedTitle}'");
             }
         }
 

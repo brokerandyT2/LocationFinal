@@ -3,10 +3,8 @@ using FluentAssertions;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tips.DTOs;
 using Location.Core.BDD.Tests.Drivers;
-using Location.Core.BDD.Tests.Features;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,43 +23,32 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         private readonly Dictionary<string, TipTypeTestModel> _tipTypesByName = new();
         private int _tipTypeIdCounter = 1;
         private List<TipTypeTestModel> _createdTipTypes = new();
-
-        public TipTypeManagementSteps(ApiContext context)
-        {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _tipTypeDriver = new TipTypeDriver(context);
-            _tipDriver = new TipDriver(context);
-        }
-        // Add this to the TipTypeManagementSteps.cs class
-
         private readonly IObjectContainer _objectContainer;
 
-        public TipTypeManagementSteps(ApiContext context, IObjectContainer objectContainer):this(context)
+        public TipTypeManagementSteps(ApiContext context, IObjectContainer objectContainer)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
+            _tipTypeDriver = new TipTypeDriver(context);
+            _tipDriver = new TipDriver(context);
         }
 
-        // This is the TestCleanup method that will safely handle cleanup
         [AfterScenario(Order = 10000)]
         public void CleanupAfterScenario()
         {
             try
             {
+                // Cleanup if needed
             }
             catch (Exception ex)
             {
-                // Log but don't throw to avoid masking test failures
                 Console.WriteLine($"Error in TipTypeManagementSteps cleanup: {ex.Message}");
             }
         }
 
-        // Fix for ambiguous step definition
-
-                [Given(@"I have a tip type category with the following details:")]
-        public void GivenIHaveATipTypeWithTheFollowingDetails(Table table)
+        [Given(@"I have a tip type category with the following details:")]
+        public void GivenIHaveATipTypeCategoryWithTheFollowingDetails(Table table)
         {
-            // Keep the same implementation, just rename the method
             var tipTypeModel = table.CreateInstance<TipTypeTestModel>();
 
             // Assign an ID if not provided
@@ -139,10 +126,14 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         }
 
         [When(@"I create a new tip type record with the following details:")]
-        public async Task WhenICreateANewTipTypeWithTheFollowingDetails(Table table)
+        public async Task WhenICreateANewTipTypeRecordWithTheFollowingDetails(Table table)
         {
             var tipTypeModel = table.CreateInstance<TipTypeTestModel>();
-            await _tipTypeDriver.CreateTipTypeAsync(tipTypeModel);
+
+            // Store in created list for tracking
+            _createdTipTypes.Add(tipTypeModel);
+
+            var result = await _tipTypeDriver.CreateTipTypeAsync(tipTypeModel);
 
             // Store for later use
             _tipTypesByName[tipTypeModel.Name] = tipTypeModel;
@@ -160,14 +151,15 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             currentTipType.Name = updatedTipType.Name;
             currentTipType.I8n = updatedTipType.I8n;
 
-            // In a real implementation, we would have an UpdateTipTypeCommand
-            // For our mock, we'll just return a success result with the updated data
-            var result = Result<TipTypeDto>.Success(new TipTypeDto
+            // Create response directly (NO MediatR)
+            var tipTypeDto = new TipTypeDto
             {
                 Id = currentTipType.Id.Value,
                 Name = currentTipType.Name,
                 I8n = currentTipType.I8n
-            });
+            };
+
+            var result = Result<TipTypeDto>.Success(tipTypeDto);
 
             // Store the result
             _context.StoreResult(result);
@@ -198,8 +190,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             var tipTypeModel = _context.GetModel<TipTypeTestModel>("CurrentTipType");
             tipTypeModel.Should().NotBeNull("Tip type should be available in context");
 
-            // In a real implementation, we would have a GetTipTypeWithTipsQuery
-            // For our mock, we'll just return a success result with the tip type and its tips
+            // Create response directly (NO MediatR)
             var tipTypeDto = new TipTypeDto
             {
                 Id = tipTypeModel.Id.Value,
@@ -217,6 +208,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         public async Task WhenICreateTipTypesWithDifferentLocalizations(Table table)
         {
             var tipTypes = table.CreateSet<TipTypeTestModel>().ToList();
+            _createdTipTypes.Clear(); // Clear previous results
 
             foreach (var tipType in tipTypes)
             {
@@ -230,7 +222,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         }
 
         [Then(@"the tip type record should be created successfully")]
-        public void ThenTheTipTypeShouldBeCreatedSuccessfully()
+        public void ThenTheTipTypeRecordShouldBeCreatedSuccessfully()
         {
             var lastResult = _context.GetLastResult<TipTypeDto>();
             lastResult.Should().NotBeNull("Result should be available after creation");
@@ -240,7 +232,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         }
 
         [Then(@"the tip type record should have the correct details:")]
-        public void ThenTheTipTypeShouldHaveTheCorrectDetails(Table table)
+        public void ThenTheTipTypeRecordShouldHaveTheCorrectDetails(Table table)
         {
             var expectedTipType = table.CreateInstance<TipTypeTestModel>();
             var lastResult = _context.GetLastResult<TipTypeDto>();
@@ -265,7 +257,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         [Then(@"the tip type should have the following details:")]
         public void ThenTheTipTypeShouldHaveTheFollowingDetails(Table table)
         {
-            ThenTheTipTypeShouldHaveTheCorrectDetails(table);
+            ThenTheTipTypeRecordShouldHaveTheCorrectDetails(table);
         }
 
         [Then(@"the tip type should be deleted successfully")]
@@ -282,9 +274,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         {
             var tipTypeModel = _context.GetModel<TipTypeTestModel>("CurrentTipType");
 
-            // Mock that the tip type no longer exists
-            var tipTypeDriver = new TipTypeDriver(_context);
-            var task = tipTypeDriver.GetTipTypeByIdAsync(tipTypeModel.Id.Value);
+            // Get tip type by ID should fail after deletion
+            var task = _tipTypeDriver.GetTipTypeByIdAsync(tipTypeModel.Id.Value);
             task.Wait();
 
             var result = task.Result;
@@ -320,6 +311,20 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             var tips = _context.GetModel<List<TipTestModel>>($"TipsForType_{tipTypeModel.Name}");
             tips.Should().NotBeNull("Tips should be available in context");
             tips.Count.Should().Be(expectedCount, $"Tip type should have {expectedCount} associated tips");
+        }
+
+        [Given(@"I have a tip type with the following details:")]
+        public void GivenIHaveATipTypeWithTheFollowingDetails(Table table)
+        {
+            // Same as GivenIHaveATipTypeCategoryWithTheFollowingDetails
+            GivenIHaveATipTypeCategoryWithTheFollowingDetails(table);
+        }
+
+        [When(@"I create a new tip type with the following details:")]
+        public async Task WhenICreateANewTipTypeWithTheFollowingDetails(Table table)
+        {
+            // Same as WhenICreateANewTipTypeRecordWithTheFollowingDetails
+            await WhenICreateANewTipTypeRecordWithTheFollowingDetails(table);
         }
 
         [Then(@"the tips should include ""(.*)""")]
