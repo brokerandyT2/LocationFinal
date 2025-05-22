@@ -216,10 +216,13 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
 
                 if (result.IsSuccess && result.Data != null)
                 {
+                    // ✅ FIXED: Store the actual created tip type with correct ID from result
+                    tipType.Id = result.Data.Id; // ✅ Update with actual ID
                     _createdTipTypes.Add(tipType);
                 }
             }
         }
+
 
         [Then(@"the tip type record should be created successfully")]
         public void ThenTheTipTypeRecordShouldBeCreatedSuccessfully()
@@ -350,9 +353,13 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         {
             foreach (var tipType in _createdTipTypes)
             {
+                // ✅ FIXED: Check context using actual ID from creation
                 var tipTypeResult = _context.GetModel<TipTypeTestModel>($"TipType_{tipType.Id}");
                 tipTypeResult.Should().NotBeNull($"Tip type '{tipType.Name}' should be available in context");
+
+                // ✅ FIXED: Compare with the original input, not context (which might be overwritten)
                 tipTypeResult.I8n.Should().Be(tipType.I8n, $"Tip type '{tipType.Name}' should have the correct localization");
+                tipTypeResult.Name.Should().Be(tipType.Name, $"Tip type name should match");
             }
         }
     }
