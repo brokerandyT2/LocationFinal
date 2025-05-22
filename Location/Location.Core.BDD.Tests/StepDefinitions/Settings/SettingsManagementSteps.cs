@@ -1,11 +1,14 @@
 ﻿using BoDi;
 using FluentAssertions;
-using Location.Core.Application.Settings.DTOs;
+using Location.Core.Application.Settings.Commands.CreateSetting;
+using Location.Core.Application.Settings.Commands.DeleteSetting;
+using Location.Core.Application.Settings.Commands.UpdateSetting;
 using Location.Core.Application.Settings.Queries.GetAllSettings;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Core.BDD.Tests.Drivers;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,31 +21,9 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
     [Binding]
     public class SettingsManagementSteps
     {
-        private  ApiContext _context;
-        private  SettingDriver _settingDriver;
-        // Add this to the SettingsManagementSteps.cs class
+        private readonly ApiContext _context;
+        private readonly SettingDriver _settingDriver;
 
-        private readonly IObjectContainer _objectContainer;
-
-        public SettingsManagementSteps(ApiContext context, IObjectContainer objectContainer)
-        {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
-        }
-
-        // This is the TestCleanup method that will safely handle cleanup
-        [AfterScenario(Order = 10000)]
-        public void CleanupAfterScenario()
-        {
-            try
-            {
-            }
-            catch (Exception ex)
-            {
-                // Log but don't throw to avoid masking test failures
-                Console.WriteLine($"Error in SettingsManagementSteps cleanup: {ex.Message}");
-            }
-        }
         public SettingsManagementSteps(ApiContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -59,10 +40,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
             {
                 settingModel.Id = 1;
             }
-            if (_settingDriver == null)
-            {
-                _settingDriver = new SettingDriver(_context);
-            }
+
             // Setup the setting in the repository
             _settingDriver.SetupSettings(new List<SettingTestModel> { settingModel });
 
@@ -86,10 +64,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
                     settings[i].Id = i + 1;
                 }
             }
-            if (_settingDriver == null)
-            {
-                _settingDriver = new SettingDriver(_context);
-            }
+
             // Setup the settings in the repository
             _settingDriver.SetupSettings(settings);
 
@@ -112,7 +87,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
             }
 
             // Setup the settings in the repository
-            //_settingDriver.SetupSettings(settings);
+            _settingDriver.SetupSettings(settings);
 
             // Store all settings in the context
             _context.StoreModel(settings, "TypedSettings");
@@ -187,16 +162,9 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
 
             // Store the converted values
             var convertedValues = new Dictionary<string, object>();
-            if (_settingDriver == null)
-            {
-                _settingDriver = new SettingDriver(_context);
-            }
+
             foreach (var setting in settings)
             {
-                if (_settingDriver == null)
-                {
-                    _settingDriver = new SettingDriver(_context);
-                }
                 var result = await _settingDriver.GetSettingByKeyAsync(setting.Key);
 
                 if (result.IsSuccess && result.Data != null)
@@ -254,7 +222,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
         [Then(@"the setting should be updated successfully")]
         public void ThenTheSettingShouldBeUpdatedSuccessfully()
         {
-            var lastResult = _context.GetLastResult<object>();
+            var lastResult = _context.GetLastResult<UpdateSettingCommandResponse>();
             lastResult.Should().NotBeNull("Update result should be available");
             lastResult.IsSuccess.Should().BeTrue("Setting update should be successful");
         }
@@ -292,10 +260,10 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
         public void ThenTheSettingShouldNotExistInTheSystem()
         {
             var settingModel = _context.GetSettingData();
+            settingModel.Should().NotBeNull("Setting model should be available in context");
 
-            // Mock that the setting no longer exists
-            var settingDriver = new SettingDriver(_context);
-            var task = settingDriver.GetSettingByKeyAsync(settingModel.Key);
+            // Use the existing _settingDriver instead of creating a new one
+            var task = _settingDriver.GetSettingByKeyAsync(settingModel.Key);
             task.Wait();
 
             var result = task.Result;
@@ -308,42 +276,41 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
             var originalSetting = _context.GetSettingData();
             originalSetting.Should().NotBeNull("Original setting data should be available in context");
 
-            var lastResult = _context.GetLastResult<object>();
+            var lastResult = _context.GetLastResult<GetSettingByKeyQueryResponse>();
             lastResult.Should().NotBeNull("Result should be available after query");
             lastResult.IsSuccess.Should().BeTrue("Setting retrieval should be successful");
 
-            // The response type depends on the query, so we need to handle different types
-            if (lastResult.Data is GetSettingByKeyQueryResponse response)
+            if (lastResult.Data != null)
             {
-                response.Key.Should().Be(originalSetting.Key, "Retrieved setting key should match original");
-                response.Value.Should().Be(originalSetting.Value, "Retrieved setting value should match original");
-                response.Description.Should().Be(originalSetting.Description, "Retrieved setting description should match original");
+                lastResult.Data.Key.Should().Be(originalSetting.Key, "Retrieved setting key should match original");
+                lastResult.Data.Value.Should().Be(originalSetting.Value, "Retrieved setting value should match original");
+                lastResult.Data.Description.Should().Be(originalSetting.Description, "Retrieved setting description should match original");
             }
         }
 
         [Then(@"the result should contain (.*) settings")]
         public void ThenTheResultShouldContainSettings(int expectedCount)
         {
-            var lastResult = _context.GetLastResult<object>();
+            var lastResult = _context.GetLastResult<List<GetAllSettingsQueryResponse>>();
             lastResult.Should().NotBeNull("Result should be available after query");
             lastResult.IsSuccess.Should().BeTrue("Settings retrieval should be successful");
 
-            if (lastResult.Data is List<GetAllSettingsQueryResponse> responses)
+            if (lastResult.Data != null)
             {
-                responses.Count.Should().Be(expectedCount, $"Result should contain {expectedCount} settings");
+                lastResult.Data.Count.Should().Be(expectedCount, $"Result should contain {expectedCount} settings");
             }
         }
 
         [Then(@"the settings list should include ""(.*)""")]
         public void ThenTheSettingsListShouldInclude(string expectedKey)
         {
-            var lastResult = _context.GetLastResult<object>();
+            var lastResult = _context.GetLastResult<List<GetAllSettingsQueryResponse>>();
             lastResult.Should().NotBeNull("Result should be available after query");
             lastResult.IsSuccess.Should().BeTrue("Settings retrieval should be successful");
 
-            if (lastResult.Data is List<GetAllSettingsQueryResponse> responses)
+            if (lastResult.Data != null)
             {
-                responses.Should().Contain(s => s.Key == expectedKey, $"Settings list should include '{expectedKey}'");
+                lastResult.Data.Should().Contain(s => s.Key == expectedKey, $"Settings list should include '{expectedKey}'");
             }
         }
 
@@ -398,6 +365,61 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Settings
             lastResult.IsSuccess.Should().BeTrue("Dictionary retrieval should be successful");
             lastResult.Data.Should().NotBeNull("Dictionary data should be available");
             lastResult.Data.Count.Should().Be(expectedCount, $"Dictionary should contain {expectedCount} key-value pairs");
+        }
+
+        [Then(@"I should receive a successful result")]
+        public void ThenIShouldReceiveASuccessfulResult()
+        {
+            // Try CreateSettingCommandResponse
+            var createResult = _context.GetLastResult<CreateSettingCommandResponse>();
+            if (createResult != null)
+            {
+                createResult.IsSuccess.Should().BeTrue("Create operation should be successful");
+                return;
+            }
+
+            // Try UpdateSettingCommandResponse  
+            var updateResult = _context.GetLastResult<UpdateSettingCommandResponse>();
+            if (updateResult != null)
+            {
+                updateResult.IsSuccess.Should().BeTrue("Update operation should be successful");
+                return;
+            }
+
+            // Try bool (for delete operations)
+            var boolResult = _context.GetLastResult<bool>();
+            if (boolResult != null)
+            {
+                boolResult.IsSuccess.Should().BeTrue("Delete operation should be successful");
+                return;
+            }
+
+            // Try GetSettingByKeyQueryResponse
+            var getByKeyResult = _context.GetLastResult<GetSettingByKeyQueryResponse>();
+            if (getByKeyResult != null)
+            {
+                getByKeyResult.IsSuccess.Should().BeTrue("Get by key operation should be successful");
+                return;
+            }
+
+            // Try List<GetAllSettingsQueryResponse>
+            var getAllResult = _context.GetLastResult<List<GetAllSettingsQueryResponse>>();
+            if (getAllResult != null)
+            {
+                getAllResult.IsSuccess.Should().BeTrue("Get all settings operation should be successful");
+                return;
+            }
+
+            // Try Dictionary<string, string>
+            var dictResult = _context.GetLastResult<Dictionary<string, string>>();
+            if (dictResult != null)
+            {
+                dictResult.IsSuccess.Should().BeTrue("Get settings dictionary operation should be successful");
+                return;
+            }
+
+            // If none found, fail
+            Assert.Fail("No result found in context. Make sure the result is properly stored.");
         }
 
         [Then(@"the dictionary should have key ""(.*)"" with value ""(.*)""")]
