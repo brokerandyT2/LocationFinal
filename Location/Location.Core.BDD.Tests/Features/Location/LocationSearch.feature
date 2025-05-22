@@ -14,7 +14,7 @@ Scenario: Search locations by title
     | Statue of Liberty | Monument on Liberty Island     | 40.6892  | -74.0445  | New York      | NY    |
   When I search for locations with title containing "State"
   Then I should receive a successful location search result
-  And the location search result should contain 1 location
+  And the location search result should contain 1 locations
   And the location search result should include "Empire State"
 
 Scenario: Search locations by city
@@ -63,7 +63,7 @@ Scenario: Search locations with multiple filters
     | Title    | City     | State |
     | Needle   | Seattle  | WA    |
   Then I should receive a successful location search result
-  And the location search result should contain 1 location
+  And the location search result should contain 1 locations
   And the location search result should include "Space Needle"
 
 Scenario: Search locations with no matches

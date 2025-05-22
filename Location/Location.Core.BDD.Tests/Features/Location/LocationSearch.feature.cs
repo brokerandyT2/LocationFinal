@@ -165,7 +165,7 @@ this.ScenarioInitialize(scenarioInfo);
   await testRunner.ThenAsync("I should receive a successful location search result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 17
-  await testRunner.AndAsync("the location search result should contain 1 location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("the location search result should contain 1 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 18
   await testRunner.AndAsync("the location search result should include \"Empire State\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -434,7 +434,7 @@ this.ScenarioInitialize(scenarioInfo);
   await testRunner.ThenAsync("I should receive a successful location search result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 66
-  await testRunner.AndAsync("the location search result should contain 1 location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("the location search result should contain 1 locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 67
   await testRunner.AndAsync("the location search result should include \"Space Needle\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");

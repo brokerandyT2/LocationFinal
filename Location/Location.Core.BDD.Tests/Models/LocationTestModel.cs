@@ -63,7 +63,7 @@ namespace Location.Core.BDD.Tests.Models
         public Domain.Entities.Location ToDomainEntity()
         {
             // Create coordinate and address value objects
-            var coordinate = new Domain.ValueObjects.Coordinate(Latitude, Longitude);
+            var coordinate = new Domain.ValueObjects.Coordinate(Latitude, Longitude, true);
             var address = new Domain.ValueObjects.Address(City, State);
 
             // Create location entity
@@ -93,7 +93,16 @@ namespace Location.Core.BDD.Tests.Models
 
             return location;
         }
-
+        internal class Coordinate
+        {
+            public double Latitude { get; set; }
+            public double Longitude { get; set; }
+            public Coordinate(double latitude, double longitude)
+            {
+                Latitude = Math.Round(latitude, 6);
+                Longitude = Math.Round(longitude, 6);
+            }
+        }
         /// <summary>
         /// Sets a private property on an object using reflection
         /// </summary>

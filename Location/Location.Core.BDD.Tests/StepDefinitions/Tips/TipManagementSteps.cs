@@ -26,10 +26,12 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
 
         private readonly IObjectContainer _objectContainer;
 
-        public TipManagementSteps(ApiContext context, IObjectContainer objectContainer)
+        public TipManagementSteps(ApiContext context, IObjectContainer objectContainer, TipTypeDriver driver, TipDriver tipDriver)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
+            _tipTypeDriver = driver;
+            _tipDriver = tipDriver;
         }
 
         // This is the TestCleanup method that will safely handle cleanup

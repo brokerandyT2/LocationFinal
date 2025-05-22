@@ -48,8 +48,8 @@ namespace Location.Core.BDD.Tests.Features.Weather
         public static async System.Threading.Tasks.Task FeatureSetupAsync(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext testContext)
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunnerForAssembly(null, System.Threading.Thread.CurrentThread.ManagedThreadId.ToString());
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Weather", "Weather Forecast", "    As a user\r\n    I want to view weather forecasts for my locations\r\n    So that" +
-                    " I can plan my photography sessions accordingly", ProgrammingLanguage.CSharp, featureTags);
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Weather", "WeatherForecast", "  As a user of the location app\r\n  I want to view weather forecasts for my saved " +
+                    "locations\r\n  So that I can plan my activities according to the weather", ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -64,7 +64,7 @@ namespace Location.Core.BDD.Tests.Features.Weather
         public async System.Threading.Tasks.Task TestInitializeAsync()
         {
             if (((testRunner.FeatureContext != null) 
-                        && (testRunner.FeatureContext.FeatureInfo.Title != "Weather Forecast")))
+                        && (testRunner.FeatureContext.FeatureInfo.Title != "WeatherForecast")))
             {
                 await global::Location.Core.BDD.Tests.Features.Weather.WeatherForecastFeature.FeatureSetupAsync(null);
             }
@@ -97,38 +97,19 @@ namespace Location.Core.BDD.Tests.Features.Weather
 #line 6
 #line hidden
 #line 7
-    await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-            TechTalk.SpecFlow.Table table50 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Title",
-                        "Description",
-                        "Latitude",
-                        "Longitude",
-                        "City",
-                        "State"});
-            table50.AddRow(new string[] {
-                        "Test Place",
-                        "Weather test site",
-                        "40.712776",
-                        "-74.005974",
-                        "New York",
-                        "NY"});
-#line 8
-    await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table50, "And ");
+  await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
         [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Retrieve weather forecast for a location")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Weather Forecast")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("weatherForecastRetrieval")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "WeatherForecast")]
         public async System.Threading.Tasks.Task RetrieveWeatherForecastForALocation()
         {
-            string[] tagsOfScenario = new string[] {
-                    "weatherForecastRetrieval"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Retrieve weather forecast for a location", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 13
+#line 9
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -141,27 +122,34 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
+                TechTalk.SpecFlow.Table table50 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table50.AddRow(new string[] {
+                            "Test Place",
+                            "Weather test site",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
+#line 10
+  await testRunner.GivenAsync("I have a location with the following details:", ((string)(null)), table50, "Given ");
+#line hidden
+#line 13
+  await testRunner.WhenAsync("I request the weather forecast for the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
 #line 14
-    await testRunner.WhenAsync("I request the weather forecast for the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+  await testRunner.ThenAsync("I should receive a successful weather forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 15
-    await testRunner.ThenAsync("I should receive a successful forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+  await testRunner.AndAsync("the forecast should contain weather data for the current day", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 16
-    await testRunner.AndAsync("the forecast should contain weather data for the current day", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table51 = new TechTalk.SpecFlow.Table(new string[] {
-                            "Temperature",
-                            "Description",
-                            "Sunrise",
-                            "Sunset",
-                            "Wind Speed",
-                            "Humidity"});
-#line 17
-    await testRunner.AndAsync("the forecast should include the following information:", ((string)(null)), table51, "And ");
-#line hidden
-#line 19
-    await testRunner.AndAsync("the forecast should include at least 1 upcoming day", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  await testRunner.AndAsync("the forecast should include at least 1 upcoming day", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -169,15 +157,13 @@ await this.FeatureBackgroundAsync();
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
         [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("View detailed forecast for a specific day")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Weather Forecast")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("weatherDetailedForecast")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "WeatherForecast")]
         public async System.Threading.Tasks.Task ViewDetailedForecastForASpecificDay()
         {
-            string[] tagsOfScenario = new string[] {
-                    "weatherDetailedForecast"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("View detailed forecast for a specific day", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 22
+#line 18
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -190,11 +176,28 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-#line 23
-    await testRunner.WhenAsync("I request the detailed forecast for tomorrow", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                TechTalk.SpecFlow.Table table51 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table51.AddRow(new string[] {
+                            "Test Place",
+                            "Weather test site",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
+#line 19
+  await testRunner.GivenAsync("I have a location with the following details:", ((string)(null)), table51, "Given ");
 #line hidden
-#line 24
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 22
+  await testRunner.WhenAsync("I request the detailed forecast for tomorrow", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 23
+  await testRunner.ThenAsync("I should receive a successful weather forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
                 TechTalk.SpecFlow.Table table52 = new TechTalk.SpecFlow.Table(new string[] {
                             "Temperature",
@@ -207,8 +210,8 @@ await this.FeatureBackgroundAsync();
                             "Pressure",
                             "UV Index",
                             "Precipitation"});
-#line 25
-    await testRunner.AndAsync("the forecast details should include:", ((string)(null)), table52, "And ");
+#line 24
+  await testRunner.AndAsync("the forecast details should include:", ((string)(null)), table52, "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -216,15 +219,13 @@ await this.FeatureBackgroundAsync();
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
         [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("View moon phase information")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Weather Forecast")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("weatherMoonPhase")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "WeatherForecast")]
         public async System.Threading.Tasks.Task ViewMoonPhaseInformation()
         {
-            string[] tagsOfScenario = new string[] {
-                    "weatherMoonPhase"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("View moon phase information", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 29
+#line 27
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -237,19 +238,36 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 await this.FeatureBackgroundAsync();
 #line hidden
-#line 30
-    await testRunner.WhenAsync("I request the moon phase information for the current day", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                TechTalk.SpecFlow.Table table53 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table53.AddRow(new string[] {
+                            "Test Place",
+                            "Weather test site",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
+#line 28
+  await testRunner.GivenAsync("I have a location with the following details:", ((string)(null)), table53, "Given ");
 #line hidden
 #line 31
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+  await testRunner.WhenAsync("I request the moon phase information for the current day", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table53 = new TechTalk.SpecFlow.Table(new string[] {
+#line 32
+  await testRunner.ThenAsync("I should receive a successful weather forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+                TechTalk.SpecFlow.Table table54 = new TechTalk.SpecFlow.Table(new string[] {
                             "Moon Phase",
                             "Moon Rise",
                             "Moon Set",
                             "Moon Phase Description"});
-#line 32
-    await testRunner.AndAsync("the moon phase information should include:", ((string)(null)), table53, "And ");
+#line 33
+  await testRunner.AndAsync("the moon phase information should include:", ((string)(null)), table54, "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -257,12 +275,10 @@ await this.FeatureBackgroundAsync();
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
         [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Update weather forecast data")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Weather Forecast")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestCategoryAttribute("weatherUpdateForecast")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "WeatherForecast")]
         public async System.Threading.Tasks.Task UpdateWeatherForecastData()
         {
-            string[] tagsOfScenario = new string[] {
-                    "weatherUpdateForecast"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update weather forecast data", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 36
@@ -279,16 +295,327 @@ this.ScenarioInitialize(scenarioInfo);
 await this.FeatureBackgroundAsync();
 #line hidden
 #line 37
-    await testRunner.GivenAsync("the location has existing weather data from yesterday", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+    await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
+                TechTalk.SpecFlow.Table table55 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table55.AddRow(new string[] {
+                            "Test Place",
+                            "Weather test site",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
 #line 38
+    await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table55, "And ");
+#line hidden
+#line 41
+    await testRunner.AndAsync("the location has existing weather data from yesterday", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 42
     await testRunner.WhenAsync("I update the weather forecast for the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 39
-    await testRunner.ThenAsync("I should receive a successful result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 43
+    await testRunner.ThenAsync("I should receive a successful weather forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 40
+#line 44
     await testRunner.AndAsync("the forecast data should be current", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Handle invalid coordinates when requesting weather")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "WeatherForecast")]
+        public async System.Threading.Tasks.Task HandleInvalidCoordinatesWhenRequestingWeather()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Handle invalid coordinates when requesting weather", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 46
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 6
+await this.FeatureBackgroundAsync();
+#line hidden
+                TechTalk.SpecFlow.Table table56 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table56.AddRow(new string[] {
+                            "Invalid Place",
+                            "Has invalid location",
+                            "100.0",
+                            "200.0",
+                            "Nowhere",
+                            "XX"});
+#line 47
+  await testRunner.GivenAsync("I have a location with invalid coordinates:", ((string)(null)), table56, "Given ");
+#line hidden
+#line 50
+  await testRunner.WhenAsync("I request the weather forecast for the invalid location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 51
+  await testRunner.ThenAsync("I should receive a failure result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 52
+  await testRunner.AndAsync("the error message should contain information about invalid coordinates", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Update weather with API unavailability")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "WeatherForecast")]
+        public async System.Threading.Tasks.Task UpdateWeatherWithAPIUnavailability()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update weather with API unavailability", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 54
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 6
+await this.FeatureBackgroundAsync();
+#line hidden
+                TechTalk.SpecFlow.Table table57 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table57.AddRow(new string[] {
+                            "Home",
+                            "My home",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
+                table57.AddRow(new string[] {
+                            "Office",
+                            "Work location",
+                            "37.774929",
+                            "-122.419418",
+                            "San Francisco",
+                            "CA"});
+                table57.AddRow(new string[] {
+                            "Vacation",
+                            "Holiday home",
+                            "25.761681",
+                            "-80.191788",
+                            "Miami",
+                            "FL"});
+#line 55
+  await testRunner.GivenAsync("I have multiple locations stored in the system for weather:", ((string)(null)), table57, "Given ");
+#line hidden
+#line 60
+  await testRunner.AndAsync("the weather API is unavailable", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 61
+  await testRunner.WhenAsync("I update the weather data for location \"Home\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 62
+  await testRunner.ThenAsync("I should receive an error related to API unavailability", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Get weather forecast for a new location")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "WeatherForecast")]
+        public async System.Threading.Tasks.Task GetWeatherForecastForANewLocation()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get weather forecast for a new location", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 64
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 6
+await this.FeatureBackgroundAsync();
+#line hidden
+                TechTalk.SpecFlow.Table table58 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table58.AddRow(new string[] {
+                            "New Place",
+                            "Just added location",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
+#line 65
+  await testRunner.GivenAsync("I have a new location with the following details:", ((string)(null)), table58, "Given ");
+#line hidden
+#line 68
+  await testRunner.WhenAsync("I request the weather forecast for the new location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 69
+  await testRunner.ThenAsync("I should receive a successful weather forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+                TechTalk.SpecFlow.Table table59 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Temperature",
+                            "Description",
+                            "Wind Speed",
+                            "Humidity",
+                            "Pressure",
+                            "Sunrise",
+                            "Sunset"});
+#line 70
+  await testRunner.AndAsync("the forecast should include the following information:", ((string)(null)), table59, "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Update all location weather data")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "WeatherForecast")]
+        public async System.Threading.Tasks.Task UpdateAllLocationWeatherData()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Update all location weather data", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 73
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 6
+await this.FeatureBackgroundAsync();
+#line hidden
+                TechTalk.SpecFlow.Table table60 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table60.AddRow(new string[] {
+                            "Home",
+                            "My home",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
+                table60.AddRow(new string[] {
+                            "Office",
+                            "Work location",
+                            "37.774929",
+                            "-122.419418",
+                            "San Francisco",
+                            "CA"});
+                table60.AddRow(new string[] {
+                            "Vacation",
+                            "Holiday home",
+                            "25.761681",
+                            "-80.191788",
+                            "Miami",
+                            "FL"});
+#line 74
+  await testRunner.GivenAsync("I have multiple locations stored in the system for weather:", ((string)(null)), table60, "Given ");
+#line hidden
+#line 79
+  await testRunner.WhenAsync("I update weather data for all locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 80
+  await testRunner.ThenAsync("the update operation should report 3 updated locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Display timezone information in weather data")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "WeatherForecast")]
+        public async System.Threading.Tasks.Task DisplayTimezoneInformationInWeatherData()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Display timezone information in weather data", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 82
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 6
+await this.FeatureBackgroundAsync();
+#line hidden
+#line 83
+    await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table61 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Title",
+                            "Description",
+                            "Latitude",
+                            "Longitude",
+                            "City",
+                            "State"});
+                table61.AddRow(new string[] {
+                            "Test Place",
+                            "Weather test site",
+                            "40.712776",
+                            "-74.005974",
+                            "New York",
+                            "NY"});
+#line 84
+    await testRunner.AndAsync("I have a location with the following details:", ((string)(null)), table61, "And ");
+#line hidden
+#line 87
+    await testRunner.WhenAsync("I request the weather forecast for the location", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 88
+    await testRunner.ThenAsync("I should receive a successful weather forecast result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 89
+    await testRunner.AndAsync("the forecast data should show timezone \"America/New_York\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

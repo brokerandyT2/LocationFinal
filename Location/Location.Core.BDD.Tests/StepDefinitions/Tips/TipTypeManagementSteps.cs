@@ -36,7 +36,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
 
         private readonly IObjectContainer _objectContainer;
 
-        public TipTypeManagementSteps(ApiContext context, IObjectContainer objectContainer)
+        public TipTypeManagementSteps(ApiContext context, IObjectContainer objectContainer):this(context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _objectContainer = objectContainer ?? throw new ArgumentNullException(nameof(objectContainer));
@@ -138,7 +138,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             tipTypeModel.Tips.Clear();
         }
 
-        [When(@"I create a new tip type with the following details:")]
+        [When(@"I create a new tip type record with the following details:")]
         public async Task WhenICreateANewTipTypeWithTheFollowingDetails(Table table)
         {
             var tipTypeModel = table.CreateInstance<TipTypeTestModel>();
@@ -229,7 +229,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             }
         }
 
-        [Then(@"the tip type should be created successfully")]
+        [Then(@"the tip type record should be created successfully")]
         public void ThenTheTipTypeShouldBeCreatedSuccessfully()
         {
             var lastResult = _context.GetLastResult<TipTypeDto>();
@@ -239,7 +239,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             lastResult.Data.Id.Should().BeGreaterThan(0, "Tip type ID should be positive");
         }
 
-        [Then(@"the tip type should have the correct details:")]
+        [Then(@"the tip type record should have the correct details:")]
         public void ThenTheTipTypeShouldHaveTheCorrectDetails(Table table)
         {
             var expectedTipType = table.CreateInstance<TipTypeTestModel>();

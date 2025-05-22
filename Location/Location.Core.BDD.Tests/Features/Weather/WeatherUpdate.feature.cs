@@ -99,28 +99,28 @@ namespace Location.Core.BDD.Tests.Features.Weather
 #line 7
     await testRunner.GivenAsync("the application is initialized for testing", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-            TechTalk.SpecFlow.Table table54 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table62 = new TechTalk.SpecFlow.Table(new string[] {
                         "Title",
                         "Description",
                         "Latitude",
                         "Longitude",
                         "City",
                         "State"});
-            table54.AddRow(new string[] {
+            table62.AddRow(new string[] {
                         "Home",
                         "My home",
                         "40.712776",
                         "-74.005974",
                         "New York",
                         "NY"});
-            table54.AddRow(new string[] {
+            table62.AddRow(new string[] {
                         "Office",
                         "Work location",
                         "37.774929",
                         "-122.419418",
                         "San Francisco",
                         "CA"});
-            table54.AddRow(new string[] {
+            table62.AddRow(new string[] {
                         "Vacation",
                         "Holiday home",
                         "25.761681",
@@ -128,7 +128,7 @@ namespace Location.Core.BDD.Tests.Features.Weather
                         "Miami",
                         "FL"});
 #line 8
-    await testRunner.AndAsync("I have multiple locations stored in the system for weather:", ((string)(null)), table54, "And ");
+    await testRunner.AndAsync("I have multiple locations stored in the system for weather:", ((string)(null)), table62, "And ");
 #line hidden
         }
         

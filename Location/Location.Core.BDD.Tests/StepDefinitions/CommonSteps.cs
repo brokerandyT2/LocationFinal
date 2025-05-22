@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
+using Location.Core.Application.Weather.DTOs;
 using Location.Core.BDD.Tests.Support;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading.Tasks;
 using TechTalk.SpecFlow;
@@ -62,10 +64,48 @@ namespace Location.Core.BDD.Tests.StepDefinitions
             try
             {
                 Console.WriteLine("Verifying failure result");
-                var lastResult = _context.GetLastResult<object>();
-                lastResult.Should().NotBeNull("Result should be available");
-                lastResult.IsSuccess.Should().BeFalse("Operation should have failed");
-                Console.WriteLine("Failure result verified");
+
+                // The issue is here - we need to get the result with the correct type
+                // Instead of trying to cast it as a specific type, let's get the raw result
+
+                // Check if there's a result with WeatherForecastDto type first
+                var forecastResult = _context.GetLastResult<WeatherForecastDto>();
+                if (forecastResult != null)
+                {
+                    forecastResult.IsSuccess.Should().BeFalse("Operation should have failed");
+                    Console.WriteLine("Failure result verified (WeatherForecastDto)");
+                    return;
+                }
+
+                // If not found, try different result types that might be used
+                var weatherDtoResult = _context.GetLastResult<WeatherDto>();
+                if (weatherDtoResult != null)
+                {
+                    weatherDtoResult.IsSuccess.Should().BeFalse("Operation should have failed");
+                    Console.WriteLine("Failure result verified (WeatherDto)");
+                    return;
+                }
+
+                // Try with other possible types
+                var boolResult = _context.GetLastResult<bool>();
+                if (boolResult != null)
+                {
+                    boolResult.IsSuccess.Should().BeFalse("Operation should have failed");
+                    Console.WriteLine("Failure result verified (bool)");
+                    return;
+                }
+
+                // Try with int type
+                var intResult = _context.GetLastResult<int>();
+                if (intResult != null)
+                {
+                    intResult.IsSuccess.Should().BeFalse("Operation should have failed");
+                    Console.WriteLine("Failure result verified (int)");
+                    return;
+                }
+
+                // If we get here, we couldn't find a valid result
+                Assert.Fail("No result found in context. Make sure the result is properly stored.");
             }
             catch (Exception ex)
             {

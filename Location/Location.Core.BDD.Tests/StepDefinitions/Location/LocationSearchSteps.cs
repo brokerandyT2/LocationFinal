@@ -168,17 +168,23 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
             result.IsSuccess.Should().BeTrue("Location search operation should be successful");
             result.Data.Should().NotBeNull("Location search data should be available");
         }
-
-
-        [Then(@"the location search result should contain (.*) locations")]
-        public void ThenTheLocationSearchResultShouldContainLocations(int count)
+        [When(@"I search for locations by city ""(.*)""")]
+        public async Task WhenISearchForLocationsByCity(string city)
         {
-            var result = _context.GetLastResult<List<LocationListDto>>();
-            result.Should().NotBeNull("Result should be available after search query");
-            result.IsSuccess.Should().BeTrue("Location search operation should be successful");
-            result.Data.Should().NotBeNull("Location search data should be available");
-            result.Data.Count.Should().Be(count, $"Result should contain exactly {count} locations");
+            await WhenISearchForLocationsInCity(city);
         }
+        
+
+
+        /* [Then("the location search result should contain {int} locations")]
+         public void ThenTheLocationSearchResultShouldContainLocations(int count)
+         {
+             var result = _context.GetLastResult<List<LocationListDto>>();
+             result.Should().NotBeNull("Result should be available after search query");
+             result.IsSuccess.Should().BeTrue("Location search operation should be successful");
+             result.Data.Should().NotBeNull("Location search data should be available");
+             result.Data.Count.Should().Be(count, $"Result should contain exactly {count} locations");
+         } */
 
         [Then(@"the location search result should include ""(.*)""")]
         public void ThenTheLocationSearchResultShouldInclude(string expectedTitle)
@@ -339,7 +345,24 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
 
             return distance <= maxDistanceKm;
         }
-
+        [Then(@"the location search result should contain (.*) locations")]
+        public void ThenTheLocationSearchResultShouldContainMultipleLocations(int count)
+        {
+            var result = _context.GetLastResult<List<LocationListDto>>();
+            result.Should().NotBeNull("Result should be available after search query");
+            result.IsSuccess.Should().BeTrue("Location search operation should be successful");
+            result.Data.Should().NotBeNull("Location search data should be available");
+            result.Data.Count.Should().Be(count, $"Result should contain exactly {count} locations");
+        }
+        [Then(@"the location search result should be empty")]
+        public void ThenTheLocationSearchResultShouldBeEmpty()
+        {
+            var result = _context.GetLastResult<List<LocationListDto>>();
+            result.Should().NotBeNull("Result should be available after search query");
+            result.IsSuccess.Should().BeTrue("Location search operation should be successful");
+            result.Data.Should().NotBeNull("Location search data should be available");
+            result.Data.Should().BeEmpty("Result should contain no locations");
+        }
         private double DegreesToRadians(double degrees)
         {
             return degrees * Math.PI / 180.0;

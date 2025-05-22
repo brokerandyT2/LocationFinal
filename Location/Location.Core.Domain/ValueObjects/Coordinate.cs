@@ -23,6 +23,15 @@ namespace Location.Core.Domain.ValueObjects
             Latitude = Math.Round(latitude, 6);
             Longitude = Math.Round(longitude, 6);
         }
+        public Coordinate(double latitude, double longitude, bool skipValidation)
+        {
+            if (skipValidation)
+            {
+                ValidateCoordinates(latitude, longitude);
+            }
+            Latitude = Math.Round(latitude, 6);
+            Longitude = Math.Round(longitude, 6);
+        }
         /// <summary>
         /// Validates that the specified latitude and longitude values are within their respective valid ranges.
         /// </summary>
