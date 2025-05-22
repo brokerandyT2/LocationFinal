@@ -151,6 +151,13 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             _context.StoreModel(tipTypeModel, "CurrentTipType");
         }
 
+        [Given(@"I have a photography tip with the following details:")]
+        public async Task GivenIHaveAPhotographyTipWithTheFollowingDetails(Table table)
+        {
+            // This is the same as GivenIHaveATipWithTheFollowingDetails
+            await GivenIHaveATipWithTheFollowingDetails(table);
+        }
+
         [When(@"I create a new tip with the following details:")]
         public async Task WhenICreateANewTipWithTheFollowingDetails(Table table)
         {
@@ -191,6 +198,9 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             var tipModel = _context.GetTipData();
             tipModel.Should().NotBeNull("Tip data should be available in context");
 
+            // Store the tip ID BEFORE deletion for later verification
+            _context.StoreModel((object)tipModel.Id.Value, "DeletedTipId");
+
             await _tipDriver.DeleteTipAsync(tipModel.Id.Value);
         }
 
@@ -217,15 +227,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             await _tipDriver.GetRandomTipByTypeAsync(tipTypeModel.Id.Value);
         }
 
-        [When(@"I create a new tip type with the following details:")]
-        public async Task WhenICreateANewTipTypeWithTheFollowingDetails(Table table)
-        {
-            var tipTypeModel = table.CreateInstance<TipTypeTestModel>();
-            await _tipTypeDriver.CreateTipTypeAsync(tipTypeModel);
-
-            // Store for later use
-            _tipTypesByName[tipTypeModel.Name] = tipTypeModel;
-        }
+        // REMOVED: WhenICreateANewTipTypeWithTheFollowingDetails()
+        // This step is handled by TipTypeManagementSteps to avoid duplication
 
         [Then(@"the tip should be created successfully")]
         public void ThenTheTipShouldBeCreatedSuccessfully()
@@ -279,10 +282,15 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         [Then(@"the tip should not exist in the system")]
         public void ThenTheTipShouldNotExistInTheSystem()
         {
-            var tipModel = _context.GetTipData();
+            // Get the stored tip ID from before deletion
+            var deletedTipIdObject = _context.GetModel<object>("DeletedTipId");
+            deletedTipIdObject.Should().NotBeNull("Deleted tip ID should be available in context");
+
+            var deletedTipId = (int)deletedTipIdObject;
+            deletedTipId.Should().BeGreaterThan(0, "Deleted tip ID should be positive");
 
             // Get the tip by ID should fail after deletion
-            var task = _tipDriver.GetTipByIdAsync(tipModel.Id.Value);
+            var task = _tipDriver.GetTipByIdAsync(deletedTipId);
             task.Wait();
 
             var result = task.Result;
@@ -395,5 +403,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             lastResult.Data.Name.Should().Be(expectedTipType.Name, "Tip type name should match expected value");
             lastResult.Data.I8n.Should().Be(expectedTipType.I8n, "Tip type localization should match expected value");
         }
+
+        // REMOVED: ThenIShouldReceiveASuccessfulResult()
+        // This step is already handled by CommonSteps to avoid duplication
     }
 }

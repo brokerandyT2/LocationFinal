@@ -154,7 +154,7 @@ namespace Location.Core.BDD.Tests.Drivers
 
         public async Task<Result<GetTipByIdQueryResponse>> GetTipByIdAsync(int tipId)
         {
-            // Check individual context first
+            // Check individual context first - if cleared after deletion, should return failure
             var tipModel = _context.GetTipData();
             if (tipModel != null && tipModel.Id == tipId && tipModel.Id.HasValue && tipModel.Id > 0)
             {
@@ -175,7 +175,15 @@ namespace Location.Core.BDD.Tests.Drivers
                 return result;
             }
 
-            // Check collection contexts
+            // If individual context is cleared (empty model), tip was deleted - return failure
+            if (tipModel != null && !tipModel.Id.HasValue)
+            {
+                var deletedFailureResult = Result<GetTipByIdQueryResponse>.Failure($"Tip with ID {tipId} not found");
+                _context.StoreResult(deletedFailureResult);
+                return deletedFailureResult;
+            }
+
+            // Only check collection contexts if individual context doesn't exist at all
             var collectionKeys = new[] { "AllTips", "SetupTips" };
             foreach (var collectionKey in collectionKeys)
             {
@@ -205,9 +213,9 @@ namespace Location.Core.BDD.Tests.Drivers
             }
 
             // Tip not found
-            var failureResult = Result<GetTipByIdQueryResponse>.Failure($"Tip with ID {tipId} not found");
-            _context.StoreResult(failureResult);
-            return failureResult;
+            var notFoundFailureResult = Result<GetTipByIdQueryResponse>.Failure($"Tip with ID {tipId} not found");
+            _context.StoreResult(notFoundFailureResult);
+            return notFoundFailureResult;
         }
 
         public async Task<Result<List<TipDto>>> GetTipsByTypeAsync(int tipTypeId)
