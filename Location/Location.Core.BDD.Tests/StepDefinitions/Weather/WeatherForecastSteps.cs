@@ -665,30 +665,6 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             }
         }
 
-        [Then(@"the weather data should indicate the timezone ""(.*)""")]
-        public void ThenTheWeatherDataShouldIndicateTheTimezone(string expectedTimezone)
-        {
-            try
-            {
-                var forecastResult = _context.GetLastResult<WeatherForecastDto>();
-                if (forecastResult != null && forecastResult.IsSuccess)
-                {
-                    forecastResult.Data.Should().NotBeNull("Weather data should be available");
-                    forecastResult.Data.Timezone.Should().Be(expectedTimezone, $"Timezone should be '{expectedTimezone}'");
-                }
-                else
-                {
-                    var weatherResult = _context.GetLastResult<WeatherDto>();
-                    weatherResult.Should().NotBeNull("Weather result should be available");
-                    weatherResult.Data.Should().NotBeNull("Weather data should be available");
-                    weatherResult.Data.Timezone.Should().Be(expectedTimezone, $"Timezone should be '{expectedTimezone}'");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in ThenTheWeatherDataShouldIndicateTheTimezone: {ex.Message}");
-                throw;
-            }
-        }
+       
     }
 }

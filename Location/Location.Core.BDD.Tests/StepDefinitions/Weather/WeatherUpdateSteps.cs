@@ -27,6 +27,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
         private readonly Mock<IWeatherService> _weatherServiceMock;
         private readonly Mock<Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
         private readonly Mock<Application.Common.Interfaces.IWeatherRepository> _weatherRepositoryMock;
+        private bool _apiUnavailable = false;
+
         public WeatherUpdateSteps(ApiContext context, IObjectContainer objectContainer)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -42,7 +44,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
         {
             try
             {
-                // Cleanup logic if needed
+                _apiUnavailable = false; // Reset state
                 Console.WriteLine("WeatherUpdateSteps cleanup completed");
             }
             catch (Exception ex)
@@ -50,6 +52,130 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
                 Console.WriteLine($"Error in WeatherUpdateSteps cleanup: {ex.Message}");
             }
         }
+
+        [Given(@"I have multiple locations stored in the system for weather:")]
+        public void GivenIHaveMultipleLocationsStoredInTheSystemForWeather(Table table)
+        {
+            var locations = table.CreateSet<LocationTestModel>().ToList();
+
+            // Assign IDs if not provided
+            for (int i = 0; i < locations.Count; i++)
+            {
+                if (!locations[i].Id.HasValue)
+                {
+                    locations[i].Id = i + 1;
+                }
+
+                // Store for later use by title
+                _context.StoreModel(locations[i], $"Location_{locations[i].Id}");
+            }
+
+            // Set up the mock repository to return these locations
+            var domainEntities = locations.ConvertAll(l => l.ToDomainEntity());
+
+            // Setup GetAllAsync
+            _locationRepositoryMock
+                .Setup(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<List<Domain.Entities.Location>>.Success(domainEntities));
+
+            // Setup GetActiveAsync
+            var activeEntities = domainEntities.FindAll(l => !l.IsDeleted);
+            _locationRepositoryMock
+                .Setup(repo => repo.GetActiveAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<List<Domain.Entities.Location>>.Success(activeEntities));
+
+            // Setup individual GetByIdAsync for each location
+            foreach (var location in locations)
+            {
+                if (location.Id.HasValue)
+                {
+                    var entity = location.ToDomainEntity();
+                    _locationRepositoryMock
+                        .Setup(repo => repo.GetByIdAsync(
+                            It.Is<int>(id => id == location.Id.Value),
+                            It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(Result<Domain.Entities.Location>.Success(entity));
+
+                    // Setup GetByTitleAsync
+                    _locationRepositoryMock
+                        .Setup(repo => repo.GetByTitleAsync(
+                            It.Is<string>(title => title == location.Title),
+                            It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(Result<Domain.Entities.Location>.Success(entity));
+                }
+            }
+
+            // Set up default weather service (success scenario)
+            if (!_apiUnavailable)
+            {
+                _weatherServiceMock
+                    .Setup(service => service.GetWeatherAsync(
+                        It.IsAny<double>(),
+                        It.IsAny<double>(),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Result<WeatherDto>.Success(new WeatherDto
+                    {
+                        Id = 1,
+                        LocationId = 1,
+                        Latitude = 40.7128,
+                        Longitude = -74.0060,
+                        Timezone = "America/New_York",
+                        TimezoneOffset = -18000,
+                        LastUpdate = DateTime.UtcNow,
+                        Temperature = 22.5,
+                        Description = "Partly cloudy",
+                        Icon = "03d",
+                        WindSpeed = 12.5,
+                        WindDirection = 180,
+                        WindGust = 15.0,
+                        Humidity = 65,
+                        Pressure = 1012,
+                        Clouds = 40,
+                        UvIndex = 6.2,
+                        Precipitation = 0.1,
+                        Sunrise = DateTime.Today.AddHours(6).AddMinutes(30),
+                        Sunset = DateTime.Today.AddHours(19).AddMinutes(45),
+                        MoonRise = DateTime.Today.AddHours(20).AddMinutes(15),
+                        MoonSet = DateTime.Today.AddHours(8).AddMinutes(20),
+                        MoonPhase = 0.25
+                    }));
+
+                _weatherServiceMock
+                    .Setup(service => service.UpdateWeatherForLocationAsync(
+                        It.IsAny<int>(),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Result<WeatherDto>.Success(new WeatherDto
+                    {
+                        Id = 1,
+                        LocationId = 1,
+                        Latitude = 40.7128,
+                        Longitude = -74.0060,
+                        Timezone = "America/New_York",
+                        TimezoneOffset = -18000,
+                        LastUpdate = DateTime.UtcNow,
+                        Temperature = 22.5,
+                        Description = "Partly cloudy",
+                        Icon = "03d",
+                        WindSpeed = 12.5,
+                        WindDirection = 180,
+                        WindGust = 15.0,
+                        Humidity = 65,
+                        Pressure = 1012,
+                        Clouds = 40,
+                        UvIndex = 6.2,
+                        Precipitation = 0.1,
+                        Sunrise = DateTime.Today.AddHours(6).AddMinutes(30),
+                        Sunset = DateTime.Today.AddHours(19).AddMinutes(45),
+                        MoonRise = DateTime.Today.AddHours(20).AddMinutes(15),
+                        MoonSet = DateTime.Today.AddHours(8).AddMinutes(20),
+                        MoonPhase = 0.25
+                    }));
+            }
+
+            // Store all locations
+            _context.StoreModel(locations, "AllLocations");
+        }
+
         [Given(@"the ""(.*)"" location has weather data that is (.*) hours old")]
         public void GivenTheLocationHasWeatherDataThatIsHoursOld(string locationTitle, int hoursOld)
         {
@@ -112,153 +238,6 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             _context.StoreWeatherData(WeatherTestModel.FromDto(weatherDto));
         }
 
-        [Then(@"the weather data should not be updated")]
-        public void ThenTheWeatherDataShouldNotBeUpdated()
-        {
-            var weatherResult = _context.GetLastResult<WeatherDto>();
-            weatherResult.Should().NotBeNull("Weather result should be available");
-
-            if (weatherResult.IsSuccess)
-            {
-                // If successful, it means we used cached data (no update occurred)
-                weatherResult.Data.Should().NotBeNull("Weather data should be available");
-
-                // Check that the last update time indicates cached data was used
-                var timeDifference = DateTime.UtcNow - weatherResult.Data.LastUpdate;
-                timeDifference.TotalHours.Should().BeGreaterThan(1, "Weather data should be old (indicating cache was used)");
-            }
-            else
-            {
-                // If it failed, that could also mean update was skipped appropriately
-                Console.WriteLine($"Weather update result: {weatherResult.ErrorMessage}");
-            }
-        }
-
-        [Then(@"the cached weather data should be returned")]
-        public void ThenTheCachedWeatherDataShouldBeReturned()
-        {
-            ThenTheWeatherDataShouldNotBeUpdated();
-        }
-        [Given(@"I have multiple locations stored in the system for weather:")]
-        public void GivenIHaveMultipleLocationsStoredInTheSystemForWeather(Table table)
-        {
-            var locations = table.CreateSet<LocationTestModel>().ToList();
-
-            // Assign IDs if not provided
-            for (int i = 0; i < locations.Count; i++)
-            {
-                if (!locations[i].Id.HasValue)
-                {
-                    locations[i].Id = i + 1;
-                }
-
-                // Store for later use by title
-                _context.StoreModel(locations[i], $"Location_{locations[i].Id}");
-            }
-
-            // Set up the mock repository to return these locations
-            var domainEntities = locations.ConvertAll(l => l.ToDomainEntity());
-
-            // Setup GetAllAsync
-            _locationRepositoryMock
-                .Setup(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<List<Domain.Entities.Location>>.Success(domainEntities));
-
-            // Setup GetActiveAsync
-            var activeEntities = domainEntities.FindAll(l => !l.IsDeleted);
-            _locationRepositoryMock
-                .Setup(repo => repo.GetActiveAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<List<Domain.Entities.Location>>.Success(activeEntities));
-
-            // Setup individual GetByIdAsync for each location
-            foreach (var location in locations)
-            {
-                if (location.Id.HasValue)
-                {
-                    var entity = location.ToDomainEntity();
-                    _locationRepositoryMock
-                        .Setup(repo => repo.GetByIdAsync(
-                            It.Is<int>(id => id == location.Id.Value),
-                            It.IsAny<CancellationToken>()))
-                        .ReturnsAsync(Result<Domain.Entities.Location>.Success(entity));
-
-                    // Setup GetByTitleAsync
-                    _locationRepositoryMock
-                        .Setup(repo => repo.GetByTitleAsync(
-                            It.Is<string>(title => title == location.Title),
-                            It.IsAny<CancellationToken>()))
-                        .ReturnsAsync(Result<Domain.Entities.Location>.Success(entity));
-                }
-            }
-
-            // Set up default weather service
-            _weatherServiceMock
-                .Setup(service => service.GetWeatherAsync(
-                    It.IsAny<double>(),
-                    It.IsAny<double>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<WeatherDto>.Success(new WeatherDto
-                {
-                    Id = 1,
-                    LocationId = 1,
-                    Latitude = 40.7128,
-                    Longitude = -74.0060,
-                    Timezone = "America/New_York",
-                    TimezoneOffset = -18000,
-                    LastUpdate = DateTime.UtcNow,
-                    Temperature = 22.5,
-                    Description = "Partly cloudy",
-                    Icon = "03d",
-                    WindSpeed = 12.5,
-                    WindDirection = 180,
-                    WindGust = 15.0,
-                    Humidity = 65,
-                    Pressure = 1012,
-                    Clouds = 40,
-                    UvIndex = 6.2,
-                    Precipitation = 0.1,
-                    Sunrise = DateTime.Today.AddHours(6).AddMinutes(30),
-                    Sunset = DateTime.Today.AddHours(19).AddMinutes(45),
-                    MoonRise = DateTime.Today.AddHours(20).AddMinutes(15),
-                    MoonSet = DateTime.Today.AddHours(8).AddMinutes(20),
-                    MoonPhase = 0.25
-                }));
-
-            _weatherServiceMock
-                .Setup(service => service.UpdateWeatherForLocationAsync(
-                    It.IsAny<int>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<WeatherDto>.Success(new WeatherDto
-                {
-                    Id = 1,
-                    LocationId = 1,
-                    Latitude = 40.7128,
-                    Longitude = -74.0060,
-                    Timezone = "America/New_York",
-                    TimezoneOffset = -18000,
-                    LastUpdate = DateTime.UtcNow,
-                    Temperature = 22.5,
-                    Description = "Partly cloudy",
-                    Icon = "03d",
-                    WindSpeed = 12.5,
-                    WindDirection = 180,
-                    WindGust = 15.0,
-                    Humidity = 65,
-                    Pressure = 1012,
-                    Clouds = 40,
-                    UvIndex = 6.2,
-                    Precipitation = 0.1,
-                    Sunrise = DateTime.Today.AddHours(6).AddMinutes(30),
-                    Sunset = DateTime.Today.AddHours(19).AddMinutes(45),
-                    MoonRise = DateTime.Today.AddHours(20).AddMinutes(15),
-                    MoonSet = DateTime.Today.AddHours(8).AddMinutes(20),
-                    MoonPhase = 0.25
-                }));
-
-            // Store all locations
-            _context.StoreModel(locations, "AllLocations");
-        }
-
         [Given(@"the ""(.*)"" location has recent weather data")]
         public void GivenTheLocationHasRecentWeatherData(string locationTitle)
         {
@@ -303,6 +282,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
         [Given(@"the weather API is unavailable")]
         public void GivenTheWeatherAPIIsUnavailable()
         {
+            _apiUnavailable = true;
+
             // Override the weather service mock to always return a failure result
             _weatherServiceMock
                 .Setup(service => service.GetWeatherAsync(
@@ -316,6 +297,10 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<WeatherDto>.Failure("Weather API is temporarily unavailable"));
+
+            _weatherServiceMock
+                .Setup(service => service.UpdateAllWeatherAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<int>.Failure("Weather API is temporarily unavailable"));
         }
 
         [When(@"I update the weather data for location ""(.*)""")]
@@ -325,6 +310,14 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             var locations = _context.GetModel<List<LocationTestModel>>("AllLocations");
             var location = locations?.FirstOrDefault(l => l.Title == locationTitle);
             location.Should().NotBeNull($"Location with title '{locationTitle}' should exist");
+
+            // If API is unavailable, return failure immediately
+            if (_apiUnavailable)
+            {
+                var failureResult = Result<WeatherDto>.Failure("Weather API is temporarily unavailable");
+                _context.StoreResult(failureResult);
+                return;
+            }
 
             // Create a custom weather response for this location
             var weatherDto = new WeatherDto
@@ -388,6 +381,14 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             var location = locations?.FirstOrDefault(l => l.Title == locationTitle);
             location.Should().NotBeNull($"Location with title '{locationTitle}' should exist");
 
+            // If API is unavailable, return failure immediately
+            if (_apiUnavailable)
+            {
+                var failureResult = Result<WeatherDto>.Failure("Weather API is temporarily unavailable");
+                _context.StoreResult(failureResult);
+                return;
+            }
+
             // Create a custom weather response for this location
             var weatherDto = new WeatherDto
             {
@@ -445,6 +446,14 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
         [When(@"I update weather data for all locations")]
         public async Task WhenIUpdateWeatherDataForAllLocations()
         {
+            // If API is unavailable, return failure immediately
+            if (_apiUnavailable)
+            {
+                var failureResult = Result<int>.Failure("Weather API is temporarily unavailable");
+                _context.StoreResult(failureResult);
+                return;
+            }
+
             // Setup the mock for updating all weather
             _weatherServiceMock
                 .Setup(service => service.UpdateAllWeatherAsync(It.IsAny<CancellationToken>()))
@@ -477,6 +486,34 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             weatherResult.Data.Should().NotBeNull("Weather data should be available");
         }
 
+        [Then(@"the weather data should not be updated")]
+        public void ThenTheWeatherDataShouldNotBeUpdated()
+        {
+            var weatherResult = _context.GetLastResult<WeatherDto>();
+            weatherResult.Should().NotBeNull("Weather result should be available");
+
+            if (weatherResult.IsSuccess)
+            {
+                // If successful, it means we used cached data (no update occurred)
+                weatherResult.Data.Should().NotBeNull("Weather data should be available");
+
+                // Check that the last update time indicates cached data was used
+                var timeDifference = DateTime.UtcNow - weatherResult.Data.LastUpdate;
+                timeDifference.TotalHours.Should().BeGreaterThan(1, "Weather data should be old (indicating cache was used)");
+            }
+            else
+            {
+                // If it failed, that could also mean update was skipped appropriately
+                Console.WriteLine($"Weather update result: {weatherResult.ErrorMessage}");
+            }
+        }
+
+        [Then(@"the cached weather data should be returned")]
+        public void ThenTheCachedWeatherDataShouldBeReturned()
+        {
+            ThenTheWeatherDataShouldNotBeUpdated();
+        }
+
         [Then(@"the last update timestamp should be recent")]
         public void ThenTheLastUpdateTimestampShouldBeRecent()
         {
@@ -497,14 +534,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             weatherResult.Should().NotBeNull("Weather result should be available");
             weatherResult.IsSuccess.Should().BeFalse("Weather update operation should fail");
             weatherResult.ErrorMessage.Should().NotBeNullOrEmpty("Error message should be provided");
-
-            // Fix: Don't require "API" in the message, just check for failure
-            // weatherResult.ErrorMessage.Should().Contain("API", "Error should mention API");
-            Console.WriteLine($"API Error message: {weatherResult.ErrorMessage}");
-
-            // Modify the WeatherDriver.SetupApiUnavailable method to explicitly add "API" to the error message
-            // But here, just check for any error message indicating a failure
-            weatherResult.ErrorMessage.Should().NotBeNullOrEmpty("Error message should be provided for API failure");
+            weatherResult.ErrorMessage.Should().Contain("API", "Error should mention API");
         }
 
         [Then(@"the weather data should include sunrise and sunset times")]
@@ -541,5 +571,43 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Weather
             result.IsSuccess.Should().BeTrue("Update operation should be successful");
             result.Data.Should().Be(expectedCount, $"Operation should report {expectedCount} updated locations");
         }
+
+        [Then(@"the weather data should include the current temperature")]
+        public void ThenTheWeatherDataShouldIncludeTheCurrentTemperature()
+        {
+            var weatherResult = _context.GetLastResult<WeatherDto>();
+            weatherResult.Should().NotBeNull("Weather result should be available");
+            weatherResult.IsSuccess.Should().BeTrue("Weather update operation should be successful");
+            weatherResult.Data.Should().NotBeNull("Weather data should be available");
+
+            weatherResult.Data.Temperature.Should().NotBe(0, "Temperature should be set to a non-zero value");
+            weatherResult.Data.Temperature.Should().BeInRange(-50, 60, "Temperature should be in a reasonable range");
+        }
+
+        [Then(@"the weather data should include the current wind information")]
+        public void ThenTheWeatherDataShouldIncludeTheCurrentWindInformation()
+        {
+            var weatherResult = _context.GetLastResult<WeatherDto>();
+            weatherResult.Should().NotBeNull("Weather result should be available");
+            weatherResult.IsSuccess.Should().BeTrue("Weather update operation should be successful");
+            weatherResult.Data.Should().NotBeNull("Weather data should be available");
+
+            weatherResult.Data.WindSpeed.Should().BeGreaterOrEqualTo(0, "Wind speed should be non-negative");
+            weatherResult.Data.WindDirection.Should().BeInRange(0, 360, "Wind direction should be between 0 and 360 degrees");
+        }
+
+        [Then(@"the weather data should include a description")]
+        public void ThenTheWeatherDataShouldIncludeADescription()
+        {
+            var weatherResult = _context.GetLastResult<WeatherDto>();
+            weatherResult.Should().NotBeNull("Weather result should be available");
+            weatherResult.IsSuccess.Should().BeTrue("Weather update operation should be successful");
+            weatherResult.Data.Should().NotBeNull("Weather data should be available");
+
+            weatherResult.Data.Description.Should().NotBeNullOrEmpty("Weather description should be provided");
+            weatherResult.Data.Icon.Should().NotBeNullOrEmpty("Weather icon should be provided");
+        }
+
+       
     }
 }

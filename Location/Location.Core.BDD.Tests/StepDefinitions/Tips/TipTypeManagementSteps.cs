@@ -175,6 +175,9 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             var tipTypeModel = _context.GetModel<TipTypeTestModel>("CurrentTipType");
             tipTypeModel.Should().NotBeNull("Tip type should be available in context");
 
+            // Store the tip type ID BEFORE deletion for later verification
+            _context.StoreModel((object)tipTypeModel.Id.Value, "DeletedTipTypeId");
+
             await _tipTypeDriver.DeleteTipTypeAsync(tipTypeModel.Id.Value);
         }
 
@@ -275,10 +278,15 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
         [Then(@"the tip type should not exist in the system")]
         public void ThenTheTipTypeShouldNotExistInTheSystem()
         {
-            var tipTypeModel = _context.GetModel<TipTypeTestModel>("CurrentTipType");
+            // Get the stored tip type ID from before deletion
+            var deletedTipTypeIdObject = _context.GetModel<object>("DeletedTipTypeId");
+            deletedTipTypeIdObject.Should().NotBeNull("Deleted tip type ID should be available in context");
+
+            var deletedTipTypeId = (int)deletedTipTypeIdObject;
+            deletedTipTypeId.Should().BeGreaterThan(0, "Deleted tip type ID should be positive");
 
             // Get tip type by ID should fail after deletion
-            var task = _tipTypeDriver.GetTipTypeByIdAsync(tipTypeModel.Id.Value);
+            var task = _tipTypeDriver.GetTipTypeByIdAsync(deletedTipTypeId);
             task.Wait();
 
             var result = task.Result;
