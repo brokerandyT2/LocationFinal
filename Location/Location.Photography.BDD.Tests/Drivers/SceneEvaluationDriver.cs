@@ -53,6 +53,17 @@ namespace Location.Photography.BDD.Tests.Drivers
                 {
                     evaluation.CalculateTintValue();
                 }
+
+                // Generate histogram paths if not set
+                var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+                if (string.IsNullOrEmpty(evaluation.RedHistogramPath))
+                    evaluation.RedHistogramPath = $"/temp/red_histogram_{evaluation.Id}_{timestamp}.png";
+                if (string.IsNullOrEmpty(evaluation.GreenHistogramPath))
+                    evaluation.GreenHistogramPath = $"/temp/green_histogram_{evaluation.Id}_{timestamp}.png";
+                if (string.IsNullOrEmpty(evaluation.BlueHistogramPath))
+                    evaluation.BlueHistogramPath = $"/temp/blue_histogram_{evaluation.Id}_{timestamp}.png";
+                if (string.IsNullOrEmpty(evaluation.ContrastHistogramPath))
+                    evaluation.ContrastHistogramPath = $"/temp/contrast_histogram_{evaluation.Id}_{timestamp}.png";
             }
 
             // Store for later retrieval
@@ -82,6 +93,17 @@ namespace Location.Photography.BDD.Tests.Drivers
 
             // Update model with captured path
             model.ImagePath = capturedPhotoPath;
+
+            // Generate histogram paths if not set
+            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            if (string.IsNullOrEmpty(model.RedHistogramPath))
+                model.RedHistogramPath = $"/temp/red_histogram_{timestamp}.png";
+            if (string.IsNullOrEmpty(model.GreenHistogramPath))
+                model.GreenHistogramPath = $"/temp/green_histogram_{timestamp}.png";
+            if (string.IsNullOrEmpty(model.BlueHistogramPath))
+                model.BlueHistogramPath = $"/temp/blue_histogram_{timestamp}.png";
+            if (string.IsNullOrEmpty(model.ContrastHistogramPath))
+                model.ContrastHistogramPath = $"/temp/contrast_histogram_{timestamp}.png";
 
             // Create expected result
             var expectedResult = model.ToSceneEvaluationResultDto();
@@ -127,6 +149,17 @@ namespace Location.Photography.BDD.Tests.Drivers
                 _context.StoreResult(errorResult);
                 return errorResult;
             }
+
+            // Generate histogram paths if not set
+            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            if (string.IsNullOrEmpty(model.RedHistogramPath))
+                model.RedHistogramPath = $"/temp/red_histogram_{timestamp}.png";
+            if (string.IsNullOrEmpty(model.GreenHistogramPath))
+                model.GreenHistogramPath = $"/temp/green_histogram_{timestamp}.png";
+            if (string.IsNullOrEmpty(model.BlueHistogramPath))
+                model.BlueHistogramPath = $"/temp/blue_histogram_{timestamp}.png";
+            if (string.IsNullOrEmpty(model.ContrastHistogramPath))
+                model.ContrastHistogramPath = $"/temp/contrast_histogram_{timestamp}.png";
 
             // Create expected result
             var expectedResult = model.ToSceneEvaluationResultDto();

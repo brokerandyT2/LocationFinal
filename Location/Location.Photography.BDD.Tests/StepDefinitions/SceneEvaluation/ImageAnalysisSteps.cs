@@ -286,7 +286,6 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SceneEvaluation
             dominantColor.Should().Be(expectedColor, $"Dominant color should be {expectedColor}");
         }
 
-
         [Then(@"the brightness level should be (.*)")]
         public void ThenTheBrightnessLevelShouldBe(string expectedBrightness)
         {
@@ -318,15 +317,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SceneEvaluation
             result.Data.Should().ContainKey("TintValue", "Should have tint value");
         }
 
-        [Then(@"the color temperature should be approximately (.*) Kelvin")]
-        public void ThenTheColorTemperatureShouldBeApproximatelyKelvin(double expectedTemperature)
-        {
-            var result = _context.GetLastResult<Dictionary<string, double>>();
-            result.Should().NotBeNull("Color analysis result should be available");
-            result.Data.Should().ContainKey("ColorTemperature", "Should have color temperature");
-            result.Data["ColorTemperature"].Should().BeApproximately(expectedTemperature, 500,
-                $"Color temperature should be approximately {expectedTemperature}K");
-        }
+        // REMOVED: Duplicate color temperature step - handled by ColorTemperatureSteps
 
         [Then(@"all images should be analyzed successfully")]
         public void ThenAllImagesShouldBeAnalyzedSuccessfully()
@@ -340,6 +331,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SceneEvaluation
                 analysis.HasError.Should().BeFalse($"Image {analysis.Id} should not have errors");
             }
         }
+
         [Then(@"the exposure should be (.*)")]
         public void ThenTheExposureShouldBe(string expectedExposure)
         {
@@ -445,11 +437,13 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SceneEvaluation
                     model.StdDevRed = 100.0;
                     model.StdDevGreen = 100.0;
                     model.StdDevBlue = 100.0;
+                    model.StdDevContrast = 100.0;
                     break;
                 case "low contrast":
                     model.StdDevRed = 20.0;
                     model.StdDevGreen = 20.0;
                     model.StdDevBlue = 20.0;
+                    model.StdDevContrast = 20.0;
                     break;
                 case "warm colors":
                     model.MeanRed = 180.0;
