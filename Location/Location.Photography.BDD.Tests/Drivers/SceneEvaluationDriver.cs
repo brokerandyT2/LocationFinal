@@ -55,15 +55,15 @@ namespace Location.Photography.BDD.Tests.Drivers
                 }
 
                 // Generate histogram paths if not set
-                var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+                var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + evaluation.Id;
                 if (string.IsNullOrEmpty(evaluation.RedHistogramPath))
-                    evaluation.RedHistogramPath = $"/temp/red_histogram_{evaluation.Id}_{timestamp}.png";
+                    evaluation.RedHistogramPath = $"/temp/red_histogram_{timestamp}.png";
                 if (string.IsNullOrEmpty(evaluation.GreenHistogramPath))
-                    evaluation.GreenHistogramPath = $"/temp/green_histogram_{evaluation.Id}_{timestamp}.png";
+                    evaluation.GreenHistogramPath = $"/temp/green_histogram_{timestamp}.png";
                 if (string.IsNullOrEmpty(evaluation.BlueHistogramPath))
-                    evaluation.BlueHistogramPath = $"/temp/blue_histogram_{evaluation.Id}_{timestamp}.png";
+                    evaluation.BlueHistogramPath = $"/temp/blue_histogram_{timestamp}.png";
                 if (string.IsNullOrEmpty(evaluation.ContrastHistogramPath))
-                    evaluation.ContrastHistogramPath = $"/temp/contrast_histogram_{evaluation.Id}_{timestamp}.png";
+                    evaluation.ContrastHistogramPath = $"/temp/contrast_histogram_{timestamp}.png";
             }
 
             // Store for later retrieval
@@ -95,7 +95,7 @@ namespace Location.Photography.BDD.Tests.Drivers
             model.ImagePath = capturedPhotoPath;
 
             // Generate histogram paths if not set
-            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + model.Id;
             if (string.IsNullOrEmpty(model.RedHistogramPath))
                 model.RedHistogramPath = $"/temp/red_histogram_{timestamp}.png";
             if (string.IsNullOrEmpty(model.GreenHistogramPath))
@@ -151,7 +151,7 @@ namespace Location.Photography.BDD.Tests.Drivers
             }
 
             // Generate histogram paths if not set
-            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + model.Id;
             if (string.IsNullOrEmpty(model.RedHistogramPath))
                 model.RedHistogramPath = $"/temp/red_histogram_{timestamp}.png";
             if (string.IsNullOrEmpty(model.GreenHistogramPath))
@@ -311,7 +311,7 @@ namespace Location.Photography.BDD.Tests.Drivers
         }
 
         /// <summary>
-        /// Generates histograms for testing
+        /// Generates histograms for testing - FIXED to properly set histogram paths
         /// </summary>
         public async Task<Result<Dictionary<string, string>>> GenerateHistogramsAsync(SceneEvaluationTestModel model)
         {
@@ -320,21 +320,27 @@ namespace Location.Photography.BDD.Tests.Drivers
                 model.Id = 1;
             }
 
-            // Generate histogram paths
-            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            // Generate histogram paths - FIXED: Ensure unique timestamps and update model FIRST
+            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + model.Id;
+
+            // FIXED: Update model FIRST, then create dictionary from model
+            if (string.IsNullOrEmpty(model.RedHistogramPath))
+                model.RedHistogramPath = $"/temp/red_histogram_{timestamp}.png";
+            if (string.IsNullOrEmpty(model.GreenHistogramPath))
+                model.GreenHistogramPath = $"/temp/green_histogram_{timestamp}.png";
+            if (string.IsNullOrEmpty(model.BlueHistogramPath))
+                model.BlueHistogramPath = $"/temp/blue_histogram_{timestamp}.png";
+            if (string.IsNullOrEmpty(model.ContrastHistogramPath))
+                model.ContrastHistogramPath = $"/temp/contrast_histogram_{timestamp}.png";
+
+            // FIXED: Create dictionary from updated model paths
             var histograms = new Dictionary<string, string>
             {
-                ["Red"] = model.RedHistogramPath ?? $"/temp/red_histogram_{timestamp}.png",
-                ["Green"] = model.GreenHistogramPath ?? $"/temp/green_histogram_{timestamp}.png",
-                ["Blue"] = model.BlueHistogramPath ?? $"/temp/blue_histogram_{timestamp}.png",
-                ["Contrast"] = model.ContrastHistogramPath ?? $"/temp/contrast_histogram_{timestamp}.png"
+                ["Red"] = model.RedHistogramPath,
+                ["Green"] = model.GreenHistogramPath,
+                ["Blue"] = model.BlueHistogramPath,
+                ["Contrast"] = model.ContrastHistogramPath
             };
-
-            // Update model
-            model.RedHistogramPath = histograms["Red"];
-            model.GreenHistogramPath = histograms["Green"];
-            model.BlueHistogramPath = histograms["Blue"];
-            model.ContrastHistogramPath = histograms["Contrast"];
 
             var result = string.IsNullOrEmpty(model.ErrorMessage)
                 ? Result<Dictionary<string, string>>.Success(histograms)

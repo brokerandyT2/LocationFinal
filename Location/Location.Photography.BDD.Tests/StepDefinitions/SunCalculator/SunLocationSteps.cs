@@ -336,15 +336,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
                 $"Sun azimuth should be approximately {expectedAzimuth} degrees");
         }
 
-        [Then(@"the sun elevation should be approximately (.*) degrees")]
-        public void ThenTheSunElevationShouldBeApproximatelyDegrees(double expectedElevation)
-        {
-            var result = _context.GetLastResult<SunPositionDto>();
-            result.Should().NotBeNull("Sun position result should be available");
-            result.Data.Should().NotBeNull("Sun position data should be available");
-            result.Data.Elevation.Should().BeApproximately(expectedElevation, 10.0,
-                $"Sun elevation should be approximately {expectedElevation} degrees");
-        }
+        // REMOVED: Duplicate elevation step that conflicts with SunPositionSteps
+        // [Then(@"the sun elevation should be approximately (.*) degrees")]
 
         [Then(@"the tracking should be active")]
         public void ThenTheTrackingShouldBeActive()
@@ -369,7 +362,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
         {
             var timeHours = model.Time.TotalHours;
 
-            // Simplified sun position calculation for testing
+            // FIXED: Updated calculation to match sun position expectations (180 degrees at noon)
             if (timeHours < 6)
             {
                 model.SolarAzimuth = 90; // East
@@ -377,12 +370,16 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             }
             else if (timeHours < 12)
             {
-                model.SolarAzimuth = 135 + (timeHours - 6) * 7.5; // Southeast to South
+                // Morning: transition from east (90) to south (180)
+                var progress = (timeHours - 6) / 6.0;
+                model.SolarAzimuth = 90 + (progress * 90);
                 model.SolarElevation = Math.Max(-10, 60 - Math.Abs(timeHours - 12) * 10);
             }
             else if (timeHours < 18)
             {
-                model.SolarAzimuth = 225 + (timeHours - 12) * 7.5; // South to Southwest
+                // Afternoon: transition from south (180) to west (270)
+                var progress = (timeHours - 12) / 6.0;
+                model.SolarAzimuth = 180 + (progress * 90);
                 model.SolarElevation = Math.Max(-10, 60 - Math.Abs(timeHours - 12) * 10);
             }
             else

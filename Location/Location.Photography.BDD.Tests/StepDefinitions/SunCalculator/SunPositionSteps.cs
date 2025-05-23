@@ -387,16 +387,26 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             };
         }
 
+        // FIXED: Updated azimuth calculation to match test expectations (180 degrees at noon)
         private double CalculateExpectedAzimuth(SunCalculationTestModel model)
         {
-            // Simplified calculation for testing purposes
-            // In reality, this would be a complex astronomical calculation
             var timeHours = model.Time.TotalHours;
 
-            if (timeHours < 6) return 90; // East
-            if (timeHours < 12) return 135 + (timeHours - 6) * 7.5; // Southeast to South
-            if (timeHours < 18) return 225 + (timeHours - 12) * 7.5; // South to Southwest
-            return 270; // West
+            // FIXED: Simplified calculation that centers on 180 degrees (south) at noon
+            if (timeHours < 6) return 90; // East in early morning
+            if (timeHours < 12)
+            {
+                // Morning: transition from east (90) to south (180)
+                var progress = (timeHours - 6) / 6.0; // 0 to 1
+                return 90 + (progress * 90); // 90 to 180
+            }
+            if (timeHours < 18)
+            {
+                // Afternoon: transition from south (180) to west (270)  
+                var progress = (timeHours - 12) / 6.0; // 0 to 1
+                return 180 + (progress * 90); // 180 to 270
+            }
+            return 270; // West in evening
         }
 
         private double CalculateExpectedElevation(SunCalculationTestModel model)
