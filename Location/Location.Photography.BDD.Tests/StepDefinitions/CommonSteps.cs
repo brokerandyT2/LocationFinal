@@ -50,7 +50,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions
             {
                 Console.WriteLine("Verifying successful photography result");
 
-                // Try different result types in order of likelihood for photography scenarios
+                // FIXED: Added missing result types that ColorTemperature tests use
                 var resultTypes = new[]
                 {
                     // Exposure calculator types
@@ -65,7 +65,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions
                     // Scene evaluation types
                     typeof(SceneEvaluationResultDto),
                     typeof(Dictionary<string, string>), // Histogram paths
-                    typeof(Dictionary<string, double>), // Color analysis
+                    typeof(Dictionary<string, double>), // Color analysis - FIXED: This was missing for ColorTemperature
+                    typeof(Dictionary<string, object>), // ADDED: Color cast detection, color comparison
                     
                     // Test model types
                     typeof(Models.ExposureTestModel),
@@ -172,6 +173,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions
                     typeof(SunTimesDto),
                     typeof(SunPositionDto),
                     typeof(SceneEvaluationResultDto),
+                    typeof(Dictionary<string, double>), // ADDED: Color analysis
+                    typeof(Dictionary<string, object>), // ADDED: Color cast, comparison
                     typeof(Models.ExposureTestModel),
                     typeof(Models.SunCalculationTestModel),
                     typeof(Models.SceneEvaluationTestModel),
@@ -231,6 +234,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions
                     typeof(SunTimesDto),
                     typeof(SunPositionDto),
                     typeof(SceneEvaluationResultDto),
+                    typeof(Dictionary<string, double>), // ADDED: Color analysis
+                    typeof(Dictionary<string, object>), // ADDED: Color cast, comparison
                     typeof(Models.ExposureTestModel),
                     typeof(Models.SunCalculationTestModel),
                     typeof(Models.SceneEvaluationTestModel),
@@ -291,6 +296,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions
                     typeof(SunTimesDto),
                     typeof(SunPositionDto),
                     typeof(SceneEvaluationResultDto),
+                    typeof(Dictionary<string, double>), // ADDED: Color analysis
+                    typeof(Dictionary<string, object>), // ADDED: Color cast, comparison
                     typeof(Models.ExposureTestModel),
                     typeof(Models.SunCalculationTestModel),
                     typeof(Models.SceneEvaluationTestModel)

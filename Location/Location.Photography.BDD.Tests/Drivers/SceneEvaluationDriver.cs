@@ -351,7 +351,7 @@ namespace Location.Photography.BDD.Tests.Drivers
         }
 
         /// <summary>
-        /// Calculates color analysis for the scene
+        /// FIXED: Calculates color analysis for the scene - follows ExposureCalculator pattern
         /// </summary>
         public async Task<Result<Dictionary<string, double>>> CalculateColorAnalysisAsync(SceneEvaluationTestModel model)
         {
@@ -371,7 +371,8 @@ namespace Location.Photography.BDD.Tests.Drivers
                 model.CalculateTintValue();
             }
 
-            var colorAnalysis = new Dictionary<string, double>
+            // Create expected result - MATCHES ExposureCalculator pattern
+            var expectedResult = new Dictionary<string, double>
             {
                 ["ColorTemperature"] = model.ColorTemperature,
                 ["TintValue"] = model.TintValue,
@@ -381,10 +382,177 @@ namespace Location.Photography.BDD.Tests.Drivers
                 ["MeanContrast"] = model.MeanContrast
             };
 
+            // Setup mock to return expected result - MATCHES ExposureCalculator pattern
+            _sceneEvaluationServiceMock
+                .Setup(s => s.AnalyzeImageAsync(
+                    It.Is<string>(path => path == model.ImagePath),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(string.IsNullOrEmpty(model.ErrorMessage)
+                    ? Result<SceneEvaluationResultDto>.Success(model.ToSceneEvaluationResultDto())
+                    : Result<SceneEvaluationResultDto>.Failure(model.ErrorMessage));
+
+            // NO MediatR - Direct response - MATCHES ExposureCalculator pattern
             var result = string.IsNullOrEmpty(model.ErrorMessage)
-                ? Result<Dictionary<string, double>>.Success(colorAnalysis)
+                ? Result<Dictionary<string, double>>.Success(expectedResult)
                 : Result<Dictionary<string, double>>.Failure(model.ErrorMessage);
 
+            // Store result and update context - MATCHES ExposureCalculator pattern
+            _context.StoreResult(result);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                _context.StoreSceneEvaluationData(model);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// ADDED: Calculates color correction values - follows ExposureCalculator pattern
+        /// </summary>
+        public async Task<Result<Dictionary<string, double>>> CalculateColorCorrectionAsync(SceneEvaluationTestModel model)
+        {
+            if (!model.Id.HasValue || model.Id.Value <= 0)
+            {
+                model.Id = 1;
+            }
+
+            // Get reference white point or use default
+            var whitePoint = _context.GetModel<Dictionary<string, double>>("ReferenceWhitePoint");
+            if (whitePoint == null)
+            {
+                whitePoint = new Dictionary<string, double>
+                {
+                    ["ColorTemperature"] = 6500.0,
+                    ["Tint"] = 0.0
+                };
+            }
+
+            // Calculate corrections needed
+            var tempCorrection = whitePoint["ColorTemperature"] - model.ColorTemperature;
+            var tintCorrection = (whitePoint.ContainsKey("Tint") ? whitePoint["Tint"] : 0.0) - model.TintValue;
+
+            // Create expected result - MATCHES ExposureCalculator pattern
+            var expectedResult = new Dictionary<string, double>
+            {
+                ["TemperatureCorrection"] = tempCorrection,
+                ["TintCorrection"] = tintCorrection,
+                ["CorrectedTemperature"] = model.ColorTemperature + tempCorrection,
+                ["CorrectedTint"] = model.TintValue + tintCorrection,
+                ["OriginalTemperature"] = model.ColorTemperature,
+                ["OriginalTint"] = model.TintValue
+            };
+
+            // NO MediatR - Direct response - MATCHES ExposureCalculator pattern  
+            var result = string.IsNullOrEmpty(model.ErrorMessage)
+                ? Result<Dictionary<string, double>>.Success(expectedResult)
+                : Result<Dictionary<string, double>>.Failure(model.ErrorMessage);
+
+            // Store result and update context - MATCHES ExposureCalculator pattern
+            _context.StoreResult(result);
+
+            if (result.IsSuccess)
+            {
+                _context.StoreSceneEvaluationData(model);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// ADDED: Compares color temperatures between images - follows ExposureCalculator pattern
+        /// </summary>
+        public async Task<Result<Dictionary<string, object>>> CompareColorTemperaturesAsync(List<SceneEvaluationTestModel> images)
+        {
+            if (images == null || !images.Any())
+            {
+                var errorResult = Result<Dictionary<string, object>>.Failure("No images provided for comparison");
+                _context.StoreResult(errorResult);
+                return errorResult;
+            }
+
+            // Ensure all images have color analysis
+            foreach (var image in images)
+            {
+                if (image.ColorTemperature == 0)
+                {
+                    image.CalculateColorTemperature();
+                }
+                if (image.TintValue == 0)
+                {
+                    image.CalculateTintValue();
+                }
+            }
+
+            // Create comparison result - MATCHES ExposureCalculator pattern
+            var comparison = new Dictionary<string, object>();
+
+            for (int i = 0; i < images.Count; i++)
+            {
+                comparison[$"Image{i + 1}ColorTemp"] = images[i].ColorTemperature;
+                comparison[$"Image{i + 1}Tint"] = images[i].TintValue;
+                comparison[$"Image{i + 1}Description"] = images[i].GetColorTemperatureDescription();
+            }
+
+            // Calculate temperature differences
+            if (images.Count >= 2)
+            {
+                var tempDiff = Math.Abs(images[0].ColorTemperature - images[1].ColorTemperature);
+                comparison["TemperatureDifference"] = tempDiff;
+                comparison["SimilarTemperature"] = tempDiff < 500; // Within 500K considered similar
+
+                var tintDiff = Math.Abs(images[0].TintValue - images[1].TintValue);
+                comparison["TintDifference"] = tintDiff;
+                comparison["SimilarTint"] = tintDiff < 0.2;
+            }
+
+            // Add overall similarity assessment
+            if (images.Count >= 2)
+            {
+                var tempSimilar = (bool)comparison["SimilarTemperature"];
+                var tintSimilar = (bool)comparison["SimilarTint"];
+                comparison["OverallSimilarity"] = tempSimilar && tintSimilar ? "Similar" : "Different";
+            }
+
+            // NO MediatR - Direct response - MATCHES ExposureCalculator pattern
+            var result = Result<Dictionary<string, object>>.Success(comparison);
+
+            // Store result - MATCHES ExposureCalculator pattern
+            _context.StoreResult(result);
+
+            return result;
+        }
+
+        /// <summary>
+        /// ADDED: Detects dominant color cast - follows ExposureCalculator pattern
+        /// </summary>
+        public async Task<Result<Dictionary<string, object>>> DetectColorCastAsync(SceneEvaluationTestModel model)
+        {
+            if (!model.Id.HasValue || model.Id.Value <= 0)
+            {
+                model.Id = 1;
+            }
+
+            // Calculate color cast using the same logic as the helper method
+            var colorCast = DetermineColorCast(model);
+
+            // Create expected result - MATCHES ExposureCalculator pattern
+            var expectedResult = new Dictionary<string, object>
+            {
+                ["DominantCast"] = colorCast.CastType,
+                ["Intensity"] = colorCast.Intensity,
+                ["Recommendation"] = colorCast.Recommendation,
+                ["MeanRed"] = model.MeanRed,
+                ["MeanGreen"] = model.MeanGreen,
+                ["MeanBlue"] = model.MeanBlue
+            };
+
+            // NO MediatR - Direct response - MATCHES ExposureCalculator pattern
+            var result = string.IsNullOrEmpty(model.ErrorMessage)
+                ? Result<Dictionary<string, object>>.Success(expectedResult)
+                : Result<Dictionary<string, object>>.Failure(model.ErrorMessage);
+
+            // Store result and update context - MATCHES ExposureCalculator pattern
             _context.StoreResult(result);
 
             if (result.IsSuccess)
@@ -461,6 +629,43 @@ namespace Location.Photography.BDD.Tests.Drivers
             _context.StoreResult(result);
 
             return result;
+        }
+
+        // ADDED: Helper method for color cast detection - matches ColorTemperatureSteps logic
+        private (string CastType, double Intensity, string Recommendation) DetermineColorCast(SceneEvaluationTestModel model)
+        {
+            var redDominance = model.MeanRed - (model.MeanGreen + model.MeanBlue) / 2.0;
+            var greenDominance = model.MeanGreen - (model.MeanRed + model.MeanBlue) / 2.0;
+            var blueDominance = model.MeanBlue - (model.MeanRed + model.MeanGreen) / 2.0;
+
+            var maxDominance = Math.Max(Math.Max(Math.Abs(redDominance), Math.Abs(greenDominance)), Math.Abs(blueDominance));
+
+            if (maxDominance < 10)
+            {
+                return ("Neutral", 0.1, "No correction needed");
+            }
+
+            string castType;
+            string recommendation;
+
+            if (Math.Abs(redDominance) == maxDominance)
+            {
+                castType = redDominance > 0 ? "Red" : "Cyan";
+                recommendation = redDominance > 0 ? "Reduce red or add cyan" : "Reduce cyan or add red";
+            }
+            else if (Math.Abs(greenDominance) == maxDominance)
+            {
+                castType = greenDominance > 0 ? "Green" : "Magenta";
+                recommendation = greenDominance > 0 ? "Reduce green or add magenta" : "Reduce magenta or add green";
+            }
+            else
+            {
+                castType = blueDominance > 0 ? "Blue" : "Yellow";
+                recommendation = blueDominance > 0 ? "Reduce blue or add yellow" : "Reduce yellow or add blue";
+            }
+
+            var intensity = maxDominance / 255.0;
+            return (castType, intensity, recommendation);
         }
     }
 }
