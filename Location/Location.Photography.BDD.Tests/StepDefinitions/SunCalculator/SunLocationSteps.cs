@@ -300,7 +300,6 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
 
             result.Should().NotBeNull("Alignment result should be available");
             result.IsSuccess.Should().BeTrue("Alignment check should be successful");
-           // result.Data.Should().BeTrue("Device should be aligned with the sun");
         }
 
         [Then(@"the device should not be aligned with the sun")]
@@ -318,7 +317,6 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
 
             result.Should().NotBeNull("Alignment result should be available");
             result.IsSuccess.Should().BeTrue("Alignment check should be successful");
-            //result.Data.Should().BeFalse("Device should not be aligned with the sun");
         }
 
         [Then(@"the sun location should update based on my new position")]
@@ -379,8 +377,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
                 $"Sun azimuth should be approximately {expectedAzimuth} degrees");
         }
 
-        // REMOVED: Duplicate elevation step that conflicts with SunPositionSteps
-        // The step "Then the sun elevation should be approximately (.*) degrees" is handled by SunPositionSteps
+        // REMOVED: Duplicate elevation step - handled by SunPositionSteps
 
         [Then(@"the tracking should be active")]
         public void ThenTheTrackingShouldBeActive()

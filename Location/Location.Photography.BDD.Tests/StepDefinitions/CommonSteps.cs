@@ -50,37 +50,39 @@ namespace Location.Photography.BDD.Tests.StepDefinitions
             {
                 Console.WriteLine("Verifying successful photography result");
 
-                // FIXED: Added missing result types that ColorTemperature tests use
+                // FIXED: Added missing result types for sun position tracking scenarios
                 var resultTypes = new[]
                 {
-                    // Exposure calculator types
-                    typeof(ExposureSettingsDto),
-                    typeof(string[]), // For shutter speeds, apertures, ISOs
-                    
-                    // Sun calculation types
-                    typeof(SunTimesDto),
-                    typeof(SunPositionDto),
-                    typeof(Dictionary<string, DateTime>), // Golden hour times
-                    
-                    // Scene evaluation types
-                    typeof(SceneEvaluationResultDto),
-                    typeof(Dictionary<string, string>), // Histogram paths
-                    typeof(Dictionary<string, double>), // Color analysis - FIXED: This was missing for ColorTemperature
-                    typeof(Dictionary<string, object>), // ADDED: Color cast detection, color comparison
-                    
-                    // Test model types
-                    typeof(Models.ExposureTestModel),
-                    typeof(Models.SunCalculationTestModel),
-                    typeof(Models.SceneEvaluationTestModel),
-                    typeof(List<Models.ExposureTestModel>),
-                    typeof(List<Models.SunCalculationTestModel>),
-                    typeof(List<Models.SceneEvaluationTestModel>),
-                    
-                    // Common types
-                    typeof(bool),
-                    typeof(int),
-                    typeof(string)
-                };
+                   // Exposure calculator types
+                   typeof(ExposureSettingsDto),
+                   typeof(string[]), // For shutter speeds, apertures, ISOs
+                   
+                   // Sun calculation types
+                   typeof(SunTimesDto),
+                   typeof(SunPositionDto),
+                   typeof(Dictionary<string, DateTime>), // Golden hour times
+                   
+                   // Scene evaluation types
+                   typeof(SceneEvaluationResultDto),
+                   typeof(Dictionary<string, string>), // Histogram paths
+                   typeof(Dictionary<string, double>), // Color analysis
+                   typeof(Dictionary<string, object>), // Color cast detection, color comparison
+                   
+                   // Test model types
+                   typeof(Models.ExposureTestModel),
+                   typeof(Models.SunCalculationTestModel),
+                   typeof(Models.SceneEvaluationTestModel),
+                   
+                   // FIXED: Added missing collection types for tracking scenarios
+                   typeof(List<Models.ExposureTestModel>),
+                   typeof(List<Models.SunCalculationTestModel>), // For sun position tracking
+                   typeof(List<Models.SceneEvaluationTestModel>),
+                   
+                   // Common types
+                   typeof(bool),
+                   typeof(int),
+                   typeof(string)
+               };
 
                 foreach (var resultType in resultTypes)
                 {
@@ -169,19 +171,20 @@ namespace Location.Photography.BDD.Tests.StepDefinitions
                 // Check different result types that might be used in photography scenarios
                 var resultTypes = new[]
                 {
-                    typeof(ExposureSettingsDto),
-                    typeof(SunTimesDto),
-                    typeof(SunPositionDto),
-                    typeof(SceneEvaluationResultDto),
-                    typeof(Dictionary<string, double>), // ADDED: Color analysis
-                    typeof(Dictionary<string, object>), // ADDED: Color cast, comparison
-                    typeof(Models.ExposureTestModel),
-                    typeof(Models.SunCalculationTestModel),
-                    typeof(Models.SceneEvaluationTestModel),
-                    typeof(bool),
-                    typeof(int),
-                    typeof(string)
-                };
+                   typeof(ExposureSettingsDto),
+                   typeof(SunTimesDto),
+                   typeof(SunPositionDto),
+                   typeof(SceneEvaluationResultDto),
+                   typeof(Dictionary<string, double>), // Color analysis
+                   typeof(Dictionary<string, object>), // Color cast, comparison
+                   typeof(Models.ExposureTestModel),
+                   typeof(Models.SunCalculationTestModel),
+                   typeof(Models.SceneEvaluationTestModel),
+                   typeof(List<Models.SunCalculationTestModel>), // FIXED: Added for tracking scenarios
+                   typeof(bool),
+                   typeof(int),
+                   typeof(string)
+               };
 
                 foreach (var resultType in resultTypes)
                 {
@@ -230,18 +233,19 @@ namespace Location.Photography.BDD.Tests.StepDefinitions
                 // Try to get any result with an error message
                 var resultTypes = new[]
                 {
-                    typeof(ExposureSettingsDto),
-                    typeof(SunTimesDto),
-                    typeof(SunPositionDto),
-                    typeof(SceneEvaluationResultDto),
-                    typeof(Dictionary<string, double>), // ADDED: Color analysis
-                    typeof(Dictionary<string, object>), // ADDED: Color cast, comparison
-                    typeof(Models.ExposureTestModel),
-                    typeof(Models.SunCalculationTestModel),
-                    typeof(Models.SceneEvaluationTestModel),
-                    typeof(bool),
-                    typeof(string)
-                };
+                   typeof(ExposureSettingsDto),
+                   typeof(SunTimesDto),
+                   typeof(SunPositionDto),
+                   typeof(SceneEvaluationResultDto),
+                   typeof(Dictionary<string, double>), // Color analysis
+                   typeof(Dictionary<string, object>), // Color cast, comparison
+                   typeof(Models.ExposureTestModel),
+                   typeof(Models.SunCalculationTestModel),
+                   typeof(Models.SceneEvaluationTestModel),
+                   typeof(List<Models.SunCalculationTestModel>), // FIXED: Added for tracking scenarios
+                   typeof(bool),
+                   typeof(string)
+               };
 
                 foreach (var resultType in resultTypes)
                 {
@@ -292,16 +296,17 @@ namespace Location.Photography.BDD.Tests.StepDefinitions
                 bool foundResult = false;
                 var resultTypes = new[]
                 {
-                    typeof(ExposureSettingsDto),
-                    typeof(SunTimesDto),
-                    typeof(SunPositionDto),
-                    typeof(SceneEvaluationResultDto),
-                    typeof(Dictionary<string, double>), // ADDED: Color analysis
-                    typeof(Dictionary<string, object>), // ADDED: Color cast, comparison
-                    typeof(Models.ExposureTestModel),
-                    typeof(Models.SunCalculationTestModel),
-                    typeof(Models.SceneEvaluationTestModel)
-                };
+                   typeof(ExposureSettingsDto),
+                   typeof(SunTimesDto),
+                   typeof(SunPositionDto),
+                   typeof(SceneEvaluationResultDto),
+                   typeof(Dictionary<string, double>), // Color analysis
+                   typeof(Dictionary<string, object>), // Color cast, comparison
+                   typeof(Models.ExposureTestModel),
+                   typeof(Models.SunCalculationTestModel),
+                   typeof(Models.SceneEvaluationTestModel),
+                   typeof(List<Models.SunCalculationTestModel>) // FIXED: Added for tracking scenarios
+               };
 
                 foreach (var resultType in resultTypes)
                 {

@@ -148,10 +148,6 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             var sunCalculationModel = _context.GetSunCalculationData();
             sunCalculationModel.Should().NotBeNull("Sun calculation data should be available in context");
 
-            // Set expected sun position values for testing
-            sunCalculationModel.SolarAzimuth = CalculateExpectedAzimuth(sunCalculationModel);
-            sunCalculationModel.SolarElevation = CalculateExpectedElevation(sunCalculationModel);
-
             await _sunCalculatorDriver.GetSunPositionAsync(sunCalculationModel);
         }
 
@@ -191,10 +187,6 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
 
             foreach (var sunPosition in allSunPositions)
             {
-                // Set expected values for each location
-                sunPosition.SolarAzimuth = CalculateExpectedAzimuth(sunPosition);
-                sunPosition.SolarElevation = CalculateExpectedElevation(sunPosition);
-
                 await _sunCalculatorDriver.GetSunPositionAsync(sunPosition);
             }
         }
@@ -208,12 +200,12 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             // Create multiple time points throughout the day
             var timePoints = new[]
             {
-                TimeSpan.FromHours(6),   // Dawn
-                TimeSpan.FromHours(9),   // Morning
-                TimeSpan.FromHours(12),  // Noon
-                TimeSpan.FromHours(15),  // Afternoon
-                TimeSpan.FromHours(18)   // Evening
-            };
+               TimeSpan.FromHours(6),   // Dawn
+               TimeSpan.FromHours(9),   // Morning
+               TimeSpan.FromHours(12),  // Noon
+               TimeSpan.FromHours(15),  // Afternoon
+               TimeSpan.FromHours(18)   // Evening
+           };
 
             var sunPositions = new List<SunCalculationTestModel>();
 
@@ -222,8 +214,6 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
                 var positionModel = sunCalculationModel.Clone();
                 positionModel.Time = timePoint;
                 positionModel.DateTime = positionModel.Date.Add(timePoint);
-                positionModel.SolarAzimuth = CalculateExpectedAzimuth(positionModel);
-                positionModel.SolarElevation = CalculateExpectedElevation(positionModel);
 
                 sunPositions.Add(positionModel);
                 await _sunCalculatorDriver.GetSunPositionAsync(positionModel);
@@ -317,8 +307,20 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             result.Data.Should().NotBeNull("Sun position data should be available");
 
             var expectedAzimuthRange = GetAzimuthRangeForDirection(direction);
-            result.Data.Azimuth.Should().BeInRange(expectedAzimuthRange.min, expectedAzimuthRange.max,
-                $"Sun should be roughly in the {direction} direction");
+
+            // FIXED: Handle north direction wraparound (315-360 and 0-45)
+            if (direction.ToLowerInvariant() == "north")
+            {
+                var azimuth = result.Data.Azimuth;
+                var inRange = (azimuth >= expectedAzimuthRange.min && azimuth <= 360) ||
+                             (azimuth >= 0 && azimuth <= expectedAzimuthRange.max);
+                inRange.Should().BeTrue($"Sun should be roughly in the {direction} direction (azimuth: {azimuth})");
+            }
+            else
+            {
+                result.Data.Azimuth.Should().BeInRange(expectedAzimuthRange.min, expectedAzimuthRange.max,
+                    $"Sun should be roughly in the {direction} direction");
+            }
         }
 
         [Then(@"all sun positions should be calculated successfully")]
@@ -385,40 +387,6 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
                 "paris" => (48.8566, 2.3522),
                 _ => (40.7128, -74.0060) // Default to New York
             };
-        }
-
-        // FIXED: Updated azimuth calculation to match test expectations (180 degrees at noon)
-        private double CalculateExpectedAzimuth(SunCalculationTestModel model)
-        {
-            var timeHours = model.Time.TotalHours;
-
-            // FIXED: Simplified calculation that centers on 180 degrees (south) at noon
-            if (timeHours < 6) return 90; // East in early morning
-            if (timeHours < 12)
-            {
-                // Morning: transition from east (90) to south (180)
-                var progress = (timeHours - 6) / 6.0; // 0 to 1
-                return 90 + (progress * 90); // 90 to 180
-            }
-            if (timeHours < 18)
-            {
-                // Afternoon: transition from south (180) to west (270)  
-                var progress = (timeHours - 12) / 6.0; // 0 to 1
-                return 180 + (progress * 90); // 180 to 270
-            }
-            return 270; // West in evening
-        }
-
-        private double CalculateExpectedElevation(SunCalculationTestModel model)
-        {
-            // Simplified calculation for testing purposes
-            var timeHours = model.Time.TotalHours;
-
-            if (timeHours < 6 || timeHours > 18) return -15; // Below horizon
-
-            // Create a sine curve with peak at noon
-            var noonOffset = Math.Abs(timeHours - 12);
-            return Math.Max(-10, 60 - (noonOffset * 10));
         }
 
         private (double min, double max) GetAzimuthRangeForDirection(string direction)
