@@ -55,7 +55,7 @@
                 <Switch x:Name="swClock"  Grid.Row="5" Grid.Column="2"/>
 
             </Grid>
-
+ 
             <!-- Busy indicator overlay -->
             <Grid Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsBusy}" BackgroundColor="#80000000" Padding="10" Margin="5">
                 <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
