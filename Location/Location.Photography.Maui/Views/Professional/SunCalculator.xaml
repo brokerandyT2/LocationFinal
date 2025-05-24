@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
-             x:Class="Location.Photography.Maui.Views.Premium.SunCalculator"
+             x:Class="Location.Photography.Maui.Views.Professional.SunCalculator"
              Title="Sun Calculator">
 
     <Grid Padding="10" Margin="5">

@@ -7,7 +7,7 @@ using System;
 using System.Threading.Tasks;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 
-namespace Location.Photography.Maui.Views.Premium
+namespace Location.Photography.Maui.Views.Professional
 {
     public partial class SunCalculator : ContentPage
     {

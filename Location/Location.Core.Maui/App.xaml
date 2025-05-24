@@ -26,7 +26,7 @@
             <toolkit:IsNotNullConverter x:Key="IsNotNullConverter"/>
             <toolkit:IsNullConverter x:Key="IsNullConverter"/>
             <toolkit:DoubleToIntConverter x:Key="DoubleToIntConverter"/>
-
+            
             <!-- Custom Converters -->
             <!-- Add your custom converters here -->
             <converters:StringToBoolConverter x:Key="CustomStringToBoolConverter"/>

@@ -148,7 +148,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             var sunCalculationModel = _context.GetSunCalculationData();
             sunCalculationModel.Should().NotBeNull("Sun calculation data should be available in context");
 
-            await _sunCalculatorDriver.GetSunPositionAsync(sunCalculationModel);
+            // Use realistic calculation for accurate sun position
+            await _sunCalculatorDriver.GetRealisticSunPositionAsync(sunCalculationModel);
         }
 
         [When(@"I calculate the sun position at (.*)")]
@@ -187,7 +188,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
 
             foreach (var sunPosition in allSunPositions)
             {
-                await _sunCalculatorDriver.GetSunPositionAsync(sunPosition);
+                // Use realistic calculation for all positions
+                await _sunCalculatorDriver.GetRealisticSunPositionAsync(sunPosition);
             }
         }
 
@@ -216,7 +218,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
                 positionModel.DateTime = positionModel.Date.Add(timePoint);
 
                 sunPositions.Add(positionModel);
-                await _sunCalculatorDriver.GetSunPositionAsync(positionModel);
+                // Use realistic calculation for tracking
+                await _sunCalculatorDriver.GetRealisticSunPositionAsync(positionModel);
             }
 
             _context.StoreModel(sunPositions, "SunPositionTracking");
@@ -308,7 +311,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
 
             var expectedAzimuthRange = GetAzimuthRangeForDirection(direction);
 
-            // FIXED: Handle north direction wraparound (315-360 and 0-45)
+            // Handle north direction wraparound (315-360 and 0-45)
             if (direction.ToLowerInvariant() == "north")
             {
                 var azimuth = result.Data.Azimuth;

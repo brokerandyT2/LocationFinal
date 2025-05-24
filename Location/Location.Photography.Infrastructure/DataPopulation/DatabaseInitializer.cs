@@ -217,7 +217,9 @@ namespace Location.Photography.Infrastructure
                 (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last weather display ad view"),
                 (MagicStrings.SubscriptionType, MagicStrings.Premium, "Subscription type (Free/Premium)"),
                 (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(100).ToString(), "Subscription expiration date"),
-                (MagicStrings.AdGivesHours, "24", "Hours of premium access granted per ad view")
+                (MagicStrings.AdGivesHours, "24", "Hours of premium access granted per ad view"),
+                (MagicStrings.SunLocationViewed, MagicStrings.True_string, "Whether the SunLocation Page has been viewed." ),
+                (MagicStrings.LastUploadTimeStamp, DateTime.Now.ToString(), "Last Time that data was backed up to cloud")
             };
             settings.AddRange(debugSettings);
 #else
@@ -242,7 +244,9 @@ namespace Location.Photography.Infrastructure
                 (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last weather display ad view"),
                 (MagicStrings.SubscriptionType, MagicStrings.Free, "Subscription type (Free/Premium)"),
                 (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(-1).ToString(), "Subscription expiration date"),
-                (MagicStrings.AdGivesHours, "12", "Hours of premium access granted per ad view")
+                (MagicStrings.AdGivesHours, "12", "Hours of premium access granted per ad view"),
+                                (MagicStrings.SunLocationViewed, MagicStrings.False_string, "Whether the SunLocation Page has been viewed." ),
+                (MagicStrings.LastUploadTimeStamp, DateTime.Now.AddDays(-1).ToString(), "Last Time that data was backed up to cloud")
             };
             settings.AddRange(releaseSettings);
 #endif

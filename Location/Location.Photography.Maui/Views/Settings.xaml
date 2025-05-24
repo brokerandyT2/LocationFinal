@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Location.Photography.Maui.Views.Settings"
+             xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
+               xmlns:strings="clr-namespace:Location.Photography.Maui.Resources"
+                xmlns:system="clr-namespace:System;assembly=netstandard"
+             xmlns:convert="clr-namespace:Location.Core.Converters;assembly=Location.Core.Converters"
+             Title="Settings">
+    <ScrollView Grid.Row="0" Grid.ColumnSpan="3">
+        <Grid Padding="10" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Main Content -->
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Text="{Static strings:AppResources.SubscriptionType}" Grid.Row="0" HorizontalOptions="Start" Grid.Column="0" />
+                <Label Text="{Static strings:AppResources.SubscriptionExpiration}" Grid.Row="0" Grid.Column="3" HorizontalOptions="End"/>
+                
+                <Label Text="{Binding Subscription.Value}" Grid.Row="1" HorizontalOptions="Start" Grid.Column="0"  />
+                <Label Text="{Binding SubscriptionExpiration.Value}" Grid.Row="1" Grid.Column="2"/>
+
+                <Label Text="{Static system:Environment.NewLine}" Grid.Row="2" Grid.ColumnSpan="3"/>
+                
+                <Label Text="{Static strings:AppResources.SwitchHemisphere}" Grid.Row="3" Grid.Column="0"></Label>
+                <Label x:Name="hemiValue" Text="" Grid.Row="3" Grid.Column="1" />
+                <Switch x:Name="swHemisphere" Grid.Row="3" Grid.Column="2"/>
+
+                <Label Text="{Static system:Environment.NewLine}" Grid.Row="4" Grid.ColumnSpan="3"/>
+
+                <Label Text="{Static strings:AppResources.SwitchClockType}" Grid.Row="5" Grid.Column="0"></Label>
+                <Label x:Name="clockValue" Text="" Grid.Row="5" Grid.Column="1" />
+                <Switch x:Name="swClock"  Grid.Row="5" Grid.Column="2"/>
+
+            </Grid>
+
+            <!-- Busy indicator overlay -->
+            <Grid Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsBusy}" BackgroundColor="#80000000" Padding="10" Margin="5">
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" HeightRequest="50" WidthRequest="50" Color="Blue" />
+                    <Label Text="Calculating, please wait..."  FontSize="14" Margin="5"/>
+                </VerticalStackLayout>
+
+
+                <!-- Error message display -->
+                <Grid Grid.Row="1" 
+          IsVisible="{Binding IsError}"
+          BackgroundColor="#80FF0000"
+          Padding="10"
+          Margin="5">
+                    <Label Text="{Binding ErrorMessage}"
+               TextColor="Red"
+               FontSize="14"
+               Margin="5" />
+                </Grid>
+
+            </Grid>
+        </Grid>
+    </ScrollView>
+</ContentPage>

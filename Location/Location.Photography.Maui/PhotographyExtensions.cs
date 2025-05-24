@@ -26,7 +26,7 @@ namespace Location.Photography.Maui
             builder.Services.AddTransient<SunCalculationsViewModel>();
 
             // Register pages - assuming you have these view classes
-            builder.Services.AddTransient<Views.Premium.SunCalculator>();
+            builder.Services.AddTransient<Views.Premium.ExposureCalculator>();
             builder.Services.AddTransient<Views.Premium.SunLocation>();
 
             return builder;

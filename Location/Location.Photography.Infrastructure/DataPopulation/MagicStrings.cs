@@ -92,5 +92,7 @@ namespace Location.Photography.Infrastructure
 
         // Feature names
         public static readonly string ExposureCalculator = "ExposureCalculator";
+
+        public static string LastUploadTimeStamp = "lastuploadtimestamp";
     }
 }

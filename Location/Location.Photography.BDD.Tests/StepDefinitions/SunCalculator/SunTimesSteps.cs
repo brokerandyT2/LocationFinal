@@ -81,7 +81,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
         {
             var sunCalculations = table.CreateSet<SunCalculationTestModel>().ToList();
 
-            // Assign IDs and set expected sun times
+            // Assign IDs and set expected sun times - use simple calculation for table data
             for (int i = 0; i < sunCalculations.Count; i++)
             {
                 if (!sunCalculations[i].Id.HasValue)
@@ -90,6 +90,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
                 }
 
                 sunCalculations[i].SynchronizeDateTime();
+                // Keep existing simple calculation for predefined table data
                 SetExpectedSunTimes(sunCalculations[i]);
             }
 
@@ -143,10 +144,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             var sunCalculationModel = _context.GetSunCalculationData();
             sunCalculationModel.Should().NotBeNull("Sun calculation data should be available in context");
 
-            // Set expected sun times for testing
-            SetExpectedSunTimes(sunCalculationModel);
-
-            await _sunCalculatorDriver.GetSunTimesAsync(sunCalculationModel);
+            // Use realistic calculation for accurate sun times
+            await _sunCalculatorDriver.GetRealisticSunTimesAsync(sunCalculationModel);
         }
 
         [When(@"I request the sunrise time")]
@@ -175,7 +174,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
 
             foreach (var sunTime in allSunTimes)
             {
-                SetExpectedSunTimes(sunTime);
+                // Use simple calculation for pre-defined test data to maintain existing behavior
                 await _sunCalculatorDriver.GetSunTimesAsync(sunTime);
             }
         }
@@ -186,7 +185,10 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             var sunCalculationModel = _context.GetSunCalculationData();
             sunCalculationModel.Should().NotBeNull("Sun calculation data should be available in context");
 
-            SetExpectedSunTimes(sunCalculationModel);
+            // Use realistic calculation first to get accurate sun times
+            await _sunCalculatorDriver.GetRealisticSunTimesAsync(sunCalculationModel);
+
+            // Then get golden hour times based on realistic sun times
             await _sunCalculatorDriver.GetGoldenHourTimesAsync(sunCalculationModel);
         }
 
@@ -202,8 +204,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             sunCalculationModel.DateTime = summerSolstice.AddHours(12);
             sunCalculationModel.SynchronizeDateTime();
 
-            SetExpectedSunTimes(sunCalculationModel);
-            await _sunCalculatorDriver.GetSunTimesAsync(sunCalculationModel);
+            // Use realistic calculation for solstice
+            await _sunCalculatorDriver.GetRealisticSunTimesAsync(sunCalculationModel);
         }
 
         [When(@"I calculate sun times for the winter solstice")]
@@ -218,8 +220,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             sunCalculationModel.DateTime = winterSolstice.AddHours(12);
             sunCalculationModel.SynchronizeDateTime();
 
-            SetExpectedSunTimes(sunCalculationModel);
-            await _sunCalculatorDriver.GetSunTimesAsync(sunCalculationModel);
+            // Use realistic calculation for solstice
+            await _sunCalculatorDriver.GetRealisticSunTimesAsync(sunCalculationModel);
         }
 
         [Then(@"I should receive the sunrise time")]
@@ -443,6 +445,7 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             };
         }
 
+        // Keep existing simple calculation method for backward compatibility with table-driven tests
         private void SetExpectedSunTimes(SunCalculationTestModel model)
         {
             var date = model.Date;
@@ -459,8 +462,8 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
 
             var cosHourAngle = -Math.Tan(latRad) * Math.Tan(declRad);
 
-            // Longitude correction: 4 minutes per degree
-            var longitudeTimeOffset = longitude / 15.0;
+            // Longitude correction: 4 minutes per degree - FIXED direction
+            var longitudeTimeOffset = -longitude / 15.0; // FIXED: Negative for proper correction
 
             // Handle polar day/night
             if (cosHourAngle > 1)
@@ -481,9 +484,9 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             {
                 var hourAngle = Math.Acos(cosHourAngle) * 180 / Math.PI;
 
-                var sunriseHour = 12 - (hourAngle / 15) + longitudeTimeOffset; // FIXED: Add longitude offset
-                var sunsetHour = 12 + (hourAngle / 15) + longitudeTimeOffset;  // FIXED: Add longitude offset
-                model.SolarNoon = date.AddHours(12 + longitudeTimeOffset);      // FIXED: Add longitude offset
+                var sunriseHour = 12 - (hourAngle / 15) + longitudeTimeOffset;
+                var sunsetHour = 12 + (hourAngle / 15) + longitudeTimeOffset;
+                model.SolarNoon = date.AddHours(12 + longitudeTimeOffset);
 
                 model.Sunrise = date.AddHours(sunriseHour);
                 model.Sunset = date.AddHours(sunsetHour);
@@ -511,25 +514,10 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
             var cosHourAngle = (Math.Sin(elevRad) - Math.Sin(latRad) * Math.Sin(declRad)) /
                                (Math.Cos(latRad) * Math.Cos(declRad));
 
-            if (cosHourAngle > 1 || cosHourAngle < -1)
+            if (cosHourAngle > 1.0 || cosHourAngle < -1.0)
                 return 0; // No twilight
 
             return Math.Acos(cosHourAngle) * 180 / Math.PI;
-        }
-
-        private double GetSeasonFactor(DateTime date)
-        {
-            // Calculate how far into the year we are (0-1)
-            var dayOfYear = date.DayOfYear;
-            var totalDays = DateTime.IsLeapYear(date.Year) ? 366 : 365;
-            var yearProgress = (double)dayOfYear / totalDays;
-
-            // Create a sine wave with peak at summer solstice (around day 172)
-            var solsticeDay = 172.0 / totalDays;
-            var radians = (yearProgress - solsticeDay) * 2 * Math.PI;
-
-            // Return value between -1 (winter) and 1 (summer)
-            return Math.Sin(radians);
         }
     }
 }
