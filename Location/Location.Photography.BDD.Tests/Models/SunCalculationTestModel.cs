@@ -145,20 +145,38 @@ namespace Location.Photography.BDD.Tests.Models
         }
 
         /// <summary>
-        /// Calculates golden hour times based on sunrise/sunset
+        /// Calculates golden hour times based on sunrise/sunset - FIXED for accuracy
         /// </summary>
         public void CalculateGoldenHours()
         {
-            if (Sunrise != default)
+            if (Sunrise != default && Sunset != default)
             {
-                GoldenHourMorningStart = Sunrise;
-                GoldenHourMorningEnd = Sunrise.AddHours(1);
-            }
+                // Golden hour is typically within 1 hour of sunrise/sunset
+                // Morning golden hour: starts 1 hour before sunrise, ends at sunrise
+                GoldenHourMorningStart = Sunrise.AddMinutes(-60);
+                GoldenHourMorningEnd = Sunrise; // Ends exactly at sunrise
 
-            if (Sunset != default)
+                // Evening golden hour: starts at sunset, ends 1 hour after sunset
+                GoldenHourEveningStart = Sunset; // Starts exactly at sunset
+                GoldenHourEveningEnd = Sunset.AddMinutes(60);
+            }
+            else
             {
-                GoldenHourEveningStart = Sunset.AddHours(-1);
-                GoldenHourEveningEnd = Sunset;
+                // Fallback calculation if sunrise/sunset not available
+                var baseDate = DateTime != default ? DateTime.Date : Date.Date;
+
+                // Estimate sunrise/sunset based on time of year and latitude
+                var dayOfYear = baseDate.DayOfYear;
+                var seasonalOffset = Math.Sin((dayOfYear - 81) * 2 * Math.PI / 365) * 2; // +/- 2 hours seasonal variation
+                var latitudeOffset = Math.Abs(Latitude) / 90 * 3; // Up to 3 hours latitude effect
+
+                var estimatedSunrise = baseDate.AddHours(6 - seasonalOffset - latitudeOffset);
+                var estimatedSunset = baseDate.AddHours(18 + seasonalOffset + latitudeOffset);
+
+                GoldenHourMorningStart = estimatedSunrise.AddMinutes(-60);
+                GoldenHourMorningEnd = estimatedSunrise;
+                GoldenHourEveningStart = estimatedSunset;
+                GoldenHourEveningEnd = estimatedSunset.AddMinutes(60);
             }
         }
 

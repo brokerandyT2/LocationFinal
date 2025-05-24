@@ -445,36 +445,76 @@ namespace Location.Photography.BDD.Tests.StepDefinitions.SunCalculator
 
         private void SetExpectedSunTimes(SunCalculationTestModel model)
         {
-            // Set reasonable sun times based on location and date
-            // These are simplified calculations for testing purposes
-            var baseDate = model.Date.Date;
+            var date = model.Date;
+            var latitude = model.Latitude;
+            var longitude = model.Longitude;
 
-            // Adjust times based on latitude (higher latitudes have more extreme variations)
-            var latitudeFactor = Math.Abs(model.Latitude) / 90.0;
-            var seasonFactor = GetSeasonFactor(model.Date);
+            // Calculate solar declination
+            var dayOfYear = date.DayOfYear;
+            var declination = 23.45 * Math.Sin(2 * Math.PI * (284 + dayOfYear) / 365.25);
 
-            // Base times (approximate for mid-latitudes)
-            var baseSunrise = TimeSpan.FromHours(6);
-            var baseSunset = TimeSpan.FromHours(18);
+            // Calculate sunrise/sunset hour angle
+            var latRad = latitude * Math.PI / 180;
+            var declRad = declination * Math.PI / 180;
 
-            // Adjust for season and latitude
-            var sunriseAdjustment = seasonFactor * latitudeFactor * 2; // Up to 2 hours adjustment
-            var sunsetAdjustment = -seasonFactor * latitudeFactor * 2;
+            var cosHourAngle = -Math.Tan(latRad) * Math.Tan(declRad);
 
-            model.Sunrise = baseDate.Add(baseSunrise).AddHours(sunriseAdjustment);
-            model.Sunset = baseDate.Add(baseSunset).AddHours(sunsetAdjustment);
-            model.SolarNoon = baseDate.Add(TimeSpan.FromHours(12));
+            // Longitude correction: 4 minutes per degree
+            var longitudeTimeOffset = longitude / 15.0;
 
-            // Set twilight times
-            model.CivilDawn = model.Sunrise.AddMinutes(-30);
-            model.CivilDusk = model.Sunset.AddMinutes(30);
-            model.NauticalDawn = model.Sunrise.AddMinutes(-60);
-            model.NauticalDusk = model.Sunset.AddMinutes(60);
-            model.AstronomicalDawn = model.Sunrise.AddMinutes(-90);
-            model.AstronomicalDusk = model.Sunset.AddMinutes(90);
+            // Handle polar day/night
+            if (cosHourAngle > 1)
+            {
+                // Polar night - sun never rises
+                model.Sunrise = date.AddHours(12);
+                model.Sunset = date.AddHours(12);
+                model.SolarNoon = date.AddHours(12);
+            }
+            else if (cosHourAngle < -1)
+            {
+                // Polar day - sun never sets
+                model.Sunrise = date.AddHours(0);
+                model.Sunset = date.AddHours(24);
+                model.SolarNoon = date.AddHours(12);
+            }
+            else
+            {
+                var hourAngle = Math.Acos(cosHourAngle) * 180 / Math.PI;
+
+                var sunriseHour = 12 - (hourAngle / 15) + longitudeTimeOffset; // FIXED: Add longitude offset
+                var sunsetHour = 12 + (hourAngle / 15) + longitudeTimeOffset;  // FIXED: Add longitude offset
+                model.SolarNoon = date.AddHours(12 + longitudeTimeOffset);      // FIXED: Add longitude offset
+
+                model.Sunrise = date.AddHours(sunriseHour);
+                model.Sunset = date.AddHours(sunsetHour);
+            }
+
+            // Calculate twilight times
+            var civilHourAngle = CalculateTwilightHourAngle(latRad, declRad, -6);
+            var nauticalHourAngle = CalculateTwilightHourAngle(latRad, declRad, -12);
+            var astronomicalHourAngle = CalculateTwilightHourAngle(latRad, declRad, -18);
+
+            model.CivilDawn = date.AddHours(12 - civilHourAngle / 15 + longitudeTimeOffset);
+            model.CivilDusk = date.AddHours(12 + civilHourAngle / 15 + longitudeTimeOffset);
+            model.NauticalDawn = date.AddHours(12 - nauticalHourAngle / 15 + longitudeTimeOffset);
+            model.NauticalDusk = date.AddHours(12 + nauticalHourAngle / 15 + longitudeTimeOffset);
+            model.AstronomicalDawn = date.AddHours(12 - astronomicalHourAngle / 15 + longitudeTimeOffset);
+            model.AstronomicalDusk = date.AddHours(12 + astronomicalHourAngle / 15 + longitudeTimeOffset);
 
             // Calculate golden hours
             model.CalculateGoldenHours();
+        }
+
+        private double CalculateTwilightHourAngle(double latRad, double declRad, double elevationDegrees)
+        {
+            var elevRad = elevationDegrees * Math.PI / 180;
+            var cosHourAngle = (Math.Sin(elevRad) - Math.Sin(latRad) * Math.Sin(declRad)) /
+                               (Math.Cos(latRad) * Math.Cos(declRad));
+
+            if (cosHourAngle > 1 || cosHourAngle < -1)
+                return 0; // No twilight
+
+            return Math.Acos(cosHourAngle) * 180 / Math.PI;
         }
 
         private double GetSeasonFactor(DateTime date)
