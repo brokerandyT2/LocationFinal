@@ -190,7 +190,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
 
             // Act
             setting.UpdateValue("updated_value");
-            _repository.Update(setting);
+            _repository.UpdateAsync(setting);
 
             // Assert
             var retrieved = await _repository.GetByIdAsync(setting.Id);
@@ -207,7 +207,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             await _repository.AddAsync(setting);
 
             // Act
-            _repository.Delete(setting);
+            _repository.DeleteAsync(setting);
 
             // Assert
             var retrieved = await _repository.GetByIdAsync(setting.Id);

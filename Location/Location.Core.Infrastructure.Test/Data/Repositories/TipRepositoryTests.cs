@@ -148,7 +148,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Act
             tip.UpdateContent("Updated Title", "Updated Content");
             tip.UpdatePhotographySettings("f/4", "1/1000", "ISO 400");
-            _repository.Update(tip);
+            _repository.UpdateAsync(tip);
 
             // Assert
             var retrieved = _repository.GetByIdAsync(tip.Id).Result;
@@ -168,7 +168,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             _repository.AddAsync(tip).Wait();
 
             // Act
-            _repository.Delete(tip);
+            _repository.DeleteAsync(tip);
 
             // Assert
             var retrieved = _repository.GetByIdAsync(tip.Id).Result;
@@ -288,7 +288,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
 
             // Act
             tip.SetLocalization("es-ES");
-            _repository.Update(tip);
+            await _repository.UpdateAsync(tip);
 
             // Assert
             var retrieved = await _repository.GetByIdAsync(tip.Id);

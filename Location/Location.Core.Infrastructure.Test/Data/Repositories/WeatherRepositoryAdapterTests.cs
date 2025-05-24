@@ -80,14 +80,16 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             var weather = TestDataBuilder.CreateValidWeather();
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<Weather>()))
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Weather>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
             _adapter.Update(weather);
 
             // Assert
-            _mockInnerRepository.Verify(x => x.Update(weather), Times.Once);
+            _mockInnerRepository.Verify(x => x.UpdateAsync(weather, It.IsAny<CancellationToken>()), Times.Once);
+
         }
 
         [Test]
@@ -95,14 +97,15 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             var weather = TestDataBuilder.CreateValidWeather();
-            _mockInnerRepository.Setup(x => x.Delete(It.IsAny<Weather>()))
+            _mockInnerRepository.Setup(x => x.DeleteAsync(It.IsAny<Weather>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
             _adapter.Delete(weather);
 
             // Assert
-            _mockInnerRepository.Verify(x => x.Delete(weather), Times.Once);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(weather, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]

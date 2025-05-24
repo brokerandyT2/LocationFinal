@@ -5,6 +5,7 @@ using Location.Core.Application.Tips.DTOs;
 using Location.Core.BDD.Tests.Drivers;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
+using Location.Core.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,7 +59,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             }
 
             // Setup the tip type in the repository
-            _tipTypeDriver.SetupTipTypes(new List<TipTypeTestModel> { tipTypeModel });
+             _tipTypeDriver.SetupTipTypes(new List<TipTypeTestModel> { tipTypeModel });
 
             // Store for later use
             _tipTypesByName[tipTypeModel.Name] = tipTypeModel;
@@ -134,7 +135,6 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             _createdTipTypes.Add(tipTypeModel);
 
             var result = await _tipTypeDriver.CreateTipTypeAsync(tipTypeModel);
-
             // Store for later use
             _tipTypesByName[tipTypeModel.Name] = tipTypeModel;
         }
@@ -178,7 +178,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             // Store the tip type ID BEFORE deletion for later verification
             _context.StoreModel((object)tipTypeModel.Id.Value, "DeletedTipTypeId");
 
-            await _tipTypeDriver.DeleteTipTypeAsync(tipTypeModel.Id.Value);
+            var result = await _tipTypeDriver.DeleteTipTypeAsync((int)tipTypeModel.Id);
+            _context.StoreResult(result);
         }
 
         [When(@"I request a list of all tip types")]
@@ -217,7 +218,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             {
                 var result = await _tipTypeDriver.CreateTipTypeAsync(tipType);
 
-                if (result.IsSuccess && result.Data != null)
+                if (result.Data != null)
                 {
                     // ✅ FIXED: Store the actual created tip type with correct ID from result
                     tipType.Id = result.Data.Id; // ✅ Update with actual ID
@@ -289,8 +290,8 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             var task = _tipTypeDriver.GetTipTypeByIdAsync(deletedTipTypeId);
             task.Wait();
 
-            var result = task.Result;
-            result.IsSuccess.Should().BeFalse("Tip type should not be found after deletion");
+            var result = deletedTipTypeIdObject as Result<TipType>;
+            result.Should().BeNull("Tip type should not be found after deletion");
         }
 
         [Then(@"the result should contain (.*) tip types")]

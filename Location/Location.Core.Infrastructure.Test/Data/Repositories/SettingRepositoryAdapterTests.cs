@@ -152,7 +152,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             var setting = TestDataBuilder.CreateValidSetting();
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<Setting>()))
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Setting>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
@@ -161,7 +162,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeSameAs(setting);
-            _mockInnerRepository.Verify(x => x.Update(setting), Times.Once);
+            _mockInnerRepository.Verify(x => x.UpdateAsync(setting, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -170,8 +171,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Arrange
             var setting = TestDataBuilder.CreateValidSetting();
             var exception = new Exception("Database error");
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<Setting>()))
-                .Throws(exception);
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Setting>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(exception);
 
             // Act
             var result = await _adapter.UpdateAsync(setting);
@@ -188,7 +189,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             var setting = TestDataBuilder.CreateValidSetting(key: "test_key");
             _mockInnerRepository.Setup(x => x.GetByKeyAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(setting);
-            _mockInnerRepository.Setup(x => x.Delete(It.IsAny<Setting>()))
+            _mockInnerRepository.Setup(x => x.DeleteAsync(It.IsAny<Setting>(), It.IsAny<CancellationToken>()))
                 .Verifiable();
 
             // Act
@@ -197,7 +198,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeTrue();
-            _mockInnerRepository.Verify(x => x.Delete(setting), Times.Once);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(setting, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -213,7 +214,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Be("Setting with key 'non_existent_key' not found");
-            _mockInnerRepository.Verify(x => x.Delete(It.IsAny<Setting>()), Times.Never);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(It.IsAny<Setting>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]

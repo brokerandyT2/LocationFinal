@@ -165,7 +165,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
 
             // Act
             location.UpdateDetails("Updated Title", "Updated Description");
-            _repository.Update(location);
+            _repository.UpdateAsync(location);
 
             // Assert
             var retrieved = await _repository.GetByIdAsync(location.Id);
@@ -182,7 +182,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             await _repository.AddAsync(location);
 
             // Act
-            _repository.Delete(location);
+            await _repository.DeleteAsync(location);
 
             // Assert - Fixed to avoid Sequence contains no elements
             var allLocations = await _repository.GetAllAsync();
@@ -267,7 +267,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             await _repository.AddAsync(deletedLocation);
 
             deletedLocation.Delete();
-            _repository.Update(deletedLocation);
+            _repository.UpdateAsync(deletedLocation);
 
             // Act
             var results = await _repository.GetNearbyAsync(centerLat, centerLon, 10);

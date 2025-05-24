@@ -118,33 +118,34 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public void Update_ShouldDelegateToInnerRepository()
+        public async Task Update_ShouldDelegateToInnerRepository()
         {
             // Arrange
             var tipType = TestDataBuilder.CreateValidTipType();
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<TipType>()))
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<TipType>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
-            _adapter.Update(tipType);
+            await _adapter.UpdateAsync(tipType); // FIXED: Made async
 
             // Assert
-            _mockInnerRepository.Verify(x => x.Update(tipType), Times.Once);
+            _mockInnerRepository.Verify(x => x.UpdateAsync(tipType, It.IsAny<CancellationToken>()), Times.Once);
         }
-
         [Test]
-        public void Delete_ShouldDelegateToInnerRepository()
+        public async Task Delete_ShouldDelegateToInnerRepository()
         {
             // Arrange
             var tipType = TestDataBuilder.CreateValidTipType();
-            _mockInnerRepository.Setup(x => x.Delete(It.IsAny<TipType>()))
+            _mockInnerRepository.Setup(x => x.DeleteAsync(It.IsAny<TipType>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
-            _adapter.Delete(tipType);
+            await _adapter.DeleteAsync(tipType); // FIXED: Made async
 
             // Assert
-            _mockInnerRepository.Verify(x => x.Delete(tipType), Times.Once);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(tipType, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]

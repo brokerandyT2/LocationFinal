@@ -190,7 +190,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             var tip = TestDataBuilder.CreateValidTip();
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<Tip>()))
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Tip>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
@@ -199,7 +200,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeSameAs(tip);
-            _mockInnerRepository.Verify(x => x.Update(tip), Times.Once);
+            _mockInnerRepository.Verify(x => x.UpdateAsync(tip, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -208,8 +209,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Arrange
             var tip = TestDataBuilder.CreateValidTip();
             var exception = new Exception("Database error");
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<Tip>()))
-                .Throws(exception);
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Tip>(), It.IsAny<CancellationToken>()))
+    .ThrowsAsync(exception);
 
             // Act
             var result = await _adapter.UpdateAsync(tip);
@@ -226,7 +227,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             var tip = TestDataBuilder.CreateValidTip();
             _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tip);
-            _mockInnerRepository.Setup(x => x.Delete(It.IsAny<Tip>()))
+            _mockInnerRepository.Setup(x => x.DeleteAsync(It.IsAny<Tip>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
@@ -235,7 +237,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeTrue();
-            _mockInnerRepository.Verify(x => x.Delete(tip), Times.Once);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(tip, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -251,7 +253,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Be("Tip with ID 999 not found");
-            _mockInnerRepository.Verify(x => x.Delete(It.IsAny<Tip>()), Times.Never);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(It.IsAny<Tip>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
