@@ -1,4 +1,5 @@
 ﻿using Location.Core.Application.Common.Interfaces.Persistence;
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.Data.Entities;
@@ -117,29 +118,30 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Update(Weather weather)
+        // FIXED: Changed from void Update() to async Task UpdateAsync()
+        public async Task UpdateAsync(Weather weather, CancellationToken cancellationToken = default)
         {
             try
             {
                 // Update weather entity
                 var weatherEntity = MapToEntity(weather);
-                _context.UpdateAsync(weatherEntity).GetAwaiter().GetResult();
+                await _context.UpdateAsync(weatherEntity);
 
                 // Delete existing forecasts
-                var existingForecasts = _context.Table<WeatherForecastEntity>()
+                var existingForecasts = await _context.Table<WeatherForecastEntity>()
                     .Where(f => f.WeatherId == weather.Id)
-                    .ToListAsync().GetAwaiter().GetResult();
+                    .ToListAsync();
 
                 foreach (var forecast in existingForecasts)
                 {
-                    _context.DeleteAsync(forecast).GetAwaiter().GetResult();
+                    await _context.DeleteAsync(forecast);
                 }
 
                 // Create new forecasts
                 foreach (var forecast in weather.Forecasts)
                 {
                     var forecastEntity = MapForecastToEntity(forecast, weather.Id);
-                    _context.InsertAsync(forecastEntity).GetAwaiter().GetResult();
+                    await _context.InsertAsync(forecastEntity);
                     SetPrivateProperty(forecast, "Id", forecastEntity.Id);
                 }
 
@@ -152,23 +154,24 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Delete(Weather weather)
+        // FIXED: Changed from void Delete() to async Task DeleteAsync()
+        public async Task DeleteAsync(Weather weather, CancellationToken cancellationToken = default)
         {
             try
             {
                 // Delete forecasts first
-                var forecasts = _context.Table<WeatherForecastEntity>()
+                var forecasts = await _context.Table<WeatherForecastEntity>()
                     .Where(f => f.WeatherId == weather.Id)
-                    .ToListAsync().GetAwaiter().GetResult();
+                    .ToListAsync();
 
                 foreach (var forecast in forecasts)
                 {
-                    _context.DeleteAsync(forecast).GetAwaiter().GetResult();
+                    await _context.DeleteAsync(forecast);
                 }
 
                 // Delete weather
                 var weatherEntity = MapToEntity(weather);
-                _context.DeleteAsync(weatherEntity).GetAwaiter().GetResult();
+                await _context.DeleteAsync(weatherEntity);
 
                 _logger.LogInformation("Deleted weather with ID {WeatherId}", weather.Id);
             }
@@ -348,6 +351,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
             };
         }
 
+
         private Weather CreateWeatherViaReflection(int locationId, Coordinate coordinate, string timezone, int timezoneOffset)
         {
             var type = typeof(Weather);
@@ -416,7 +420,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 property.SetValue(obj, value);
             }
         }
-
         #endregion
     }
 }

@@ -69,22 +69,23 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Update(TipType tipType)
+        // FIXED: Implement async UpdateAsync method to match Persistence interface
+        public async Task UpdateAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
             try
             {
                 var entity = MapToEntity(tipType);
-                _context.UpdateAsync(entity).GetAwaiter().GetResult();
+                await _context.UpdateAsync(entity);
 
                 // After updating the TipType, we need to handle the Tips collection
                 // Delete existing tips for this type and re-add them
-                var existingTips = _context.Table<TipEntity>()
+                var existingTips = await _context.Table<TipEntity>()
                     .Where(t => t.TipTypeId == tipType.Id)
-                    .ToListAsync().GetAwaiter().GetResult();
+                    .ToListAsync();
 
                 foreach (var existingTip in existingTips)
                 {
-                    _context.DeleteAsync(existingTip).GetAwaiter().GetResult();
+                    await _context.DeleteAsync(existingTip);
                 }
 
                 // Add the current tips
@@ -92,7 +93,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 {
                     var tipEntity = MapTipToEntity(tip);
                     tipEntity.TipTypeId = tipType.Id; // Ensure the TipTypeId is set
-                    _context.InsertAsync(tipEntity).GetAwaiter().GetResult();
+                    await _context.InsertAsync(tipEntity);
                 }
 
                 _logger.LogInformation("Updated tip type with ID {TipTypeId}", tipType.Id);
@@ -104,12 +105,13 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Delete(TipType tipType)
+        // FIXED: Implement async DeleteAsync method to match Persistence interface
+        public async Task DeleteAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
             try
             {
                 var entity = MapToEntity(tipType);
-                _context.DeleteAsync(entity).GetAwaiter().GetResult();
+                await _context.DeleteAsync(entity);
                 _logger.LogInformation("Deleted tip type with ID {TipTypeId}", tipType.Id);
             }
             catch (Exception ex)

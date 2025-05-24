@@ -1,12 +1,9 @@
-﻿using Location.Core.Application.Common.Interfaces.Persistence;
+﻿// Updated TipTypeRepository to implement async interface methods
+
+using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Entities;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
@@ -69,12 +66,33 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
+        // FIXED: Changed from void Update() to async Task UpdateAsync()
         public async Task UpdateAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
             try
             {
                 var entity = MapToEntity(tipType);
                 await _context.UpdateAsync(entity);
+
+                // After updating the TipType, we need to handle the Tips collection
+                // Delete existing tips for this type and re-add them
+                var existingTips = await _context.Table<TipEntity>()
+                    .Where(t => t.TipTypeId == tipType.Id)
+                    .ToListAsync();
+
+                foreach (var existingTip in existingTips)
+                {
+                    await _context.DeleteAsync(existingTip);
+                }
+
+                // Add the current tips
+                foreach (var tip in tipType.Tips)
+                {
+                    var tipEntity = MapTipToEntity(tip);
+                    tipEntity.TipTypeId = tipType.Id; // Ensure the TipTypeId is set
+                    await _context.InsertAsync(tipEntity);
+                }
+
                 _logger.LogInformation("Updated tip type with ID {TipTypeId}", tipType.Id);
             }
             catch (Exception ex)
@@ -84,6 +102,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
+        // FIXED: Changed from void Delete() to async Task DeleteAsync()
         public async Task DeleteAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
             try
@@ -169,6 +188,21 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 Id = tipType.Id,
                 Name = tipType.Name,
                 I8n = tipType.I8n
+            };
+        }
+
+        private TipEntity MapTipToEntity(Tip tip)
+        {
+            return new TipEntity
+            {
+                Id = tip.Id,
+                TipTypeId = tip.TipTypeId,
+                Title = tip.Title,
+                Content = tip.Content,
+                Fstop = tip.Fstop,
+                ShutterSpeed = tip.ShutterSpeed,
+                Iso = tip.Iso,
+                I8n = tip.I8n
             };
         }
 

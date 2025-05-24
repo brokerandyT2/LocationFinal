@@ -175,7 +175,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             var location = TestDataBuilder.CreateValidLocation();
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<Domain.Entities.Location>()))
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
@@ -184,7 +185,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeSameAs(location);
-            _mockInnerRepository.Verify(x => x.Update(location), Times.Once);
+            _mockInnerRepository.Verify(x => x.UpdateAsync(location, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -193,8 +194,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Arrange
             var location = TestDataBuilder.CreateValidLocation();
             var exception = new Exception("Database error");
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<Domain.Entities.Location>()))
-                .Throws(exception);
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+      .ThrowsAsync(exception);
 
             // Act
             var result = await _adapter.UpdateAsync(location);
@@ -211,7 +212,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             var location = TestDataBuilder.CreateValidLocation();
             _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(location);
-            _mockInnerRepository.Setup(x => x.Delete(It.IsAny<Domain.Entities.Location>()))
+            _mockInnerRepository.Setup(x => x.DeleteAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
@@ -220,7 +222,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeTrue();
-            _mockInnerRepository.Verify(x => x.Delete(location), Times.Once);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(location, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -236,7 +238,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Be("Location with ID 999 not found");
-            _mockInnerRepository.Verify(x => x.Delete(It.IsAny<Domain.Entities.Location>()), Times.Never);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
@@ -246,7 +248,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             var location = TestDataBuilder.CreateValidLocation();
             _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(location);
-            _mockInnerRepository.Setup(x => x.Update(It.IsAny<Domain.Entities.Location>()))
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
             // Act
@@ -256,7 +259,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeTrue();
             location.IsDeleted.Should().BeTrue();
-            _mockInnerRepository.Verify(x => x.Update(location), Times.Once);
+            _mockInnerRepository.Verify(x => x.UpdateAsync(location, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]

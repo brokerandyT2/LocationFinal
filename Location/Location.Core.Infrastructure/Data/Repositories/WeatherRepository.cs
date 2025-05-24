@@ -26,10 +26,13 @@ namespace Location.Core.Infrastructure.Data.Repositories
         {
             try
             {
+                _logger.LogInformation("Retrieving weather with ID {WeatherId}", id);
+
                 var weatherEntity = await _context.GetAsync<WeatherEntity>(id);
 
                 if (weatherEntity == null)
                 {
+                    _logger.LogInformation("Weather with ID {WeatherId} not found", id);
                     return null;
                 }
 
@@ -39,6 +42,8 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     .ToListAsync();
 
                 var weather = MapToDomain(weatherEntity, forecastEntities);
+
+                _logger.LogInformation("Successfully retrieved weather with ID {WeatherId}", id);
                 return weather;
             }
             catch (Exception ex)
@@ -52,15 +57,18 @@ namespace Location.Core.Infrastructure.Data.Repositories
         {
             try
             {
-                var weatherEntity = await _context.Table<WeatherEntity>()
+                var weatherEntities = await _context.Table<WeatherEntity>()
                     .Where(w => w.LocationId == locationId)
-                    .OrderByDescending(w => w.LastUpdate)
-                    .FirstOrDefaultAsync();
+                    .ToListAsync();
 
-                if (weatherEntity == null)
+                if (!weatherEntities.Any())
                 {
                     return null;
                 }
+
+                var weatherEntity = weatherEntities
+                    .OrderByDescending(w => w.LastUpdate)
+                    .First();
 
                 var forecastEntities = await _context.Table<WeatherForecastEntity>()
                     .Where(f => f.WeatherId == weatherEntity.Id)
@@ -81,14 +89,11 @@ namespace Location.Core.Infrastructure.Data.Repositories
         {
             try
             {
-                // Create weather entity
                 var weatherEntity = MapToEntity(weather);
                 await _context.InsertAsync(weatherEntity);
 
-                // Update domain object with generated ID
                 SetPrivateProperty(weather, "Id", weatherEntity.Id);
 
-                // Create forecast entities
                 foreach (var forecast in weather.Forecasts)
                 {
                     var forecastEntity = MapForecastToEntity(forecast, weatherEntity.Id);
@@ -108,15 +113,14 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
+        // FIXED: Use async UpdateAsync method to match Persistence interface
         public async Task UpdateAsync(Weather weather, CancellationToken cancellationToken = default)
         {
             try
             {
-                // Update weather entity
                 var weatherEntity = MapToEntity(weather);
                 await _context.UpdateAsync(weatherEntity);
 
-                // Delete existing forecasts
                 var existingForecasts = await _context.Table<WeatherForecastEntity>()
                     .Where(f => f.WeatherId == weather.Id)
                     .ToListAsync();
@@ -126,7 +130,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     await _context.DeleteAsync(forecast);
                 }
 
-                // Create new forecasts
                 foreach (var forecast in weather.Forecasts)
                 {
                     var forecastEntity = MapForecastToEntity(forecast, weather.Id);
@@ -143,11 +146,11 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
+        // FIXED: Use async DeleteAsync method to match Persistence interface
         public async Task DeleteAsync(Weather weather, CancellationToken cancellationToken = default)
         {
             try
             {
-                // Delete forecasts first
                 var forecasts = await _context.Table<WeatherForecastEntity>()
                     .Where(f => f.WeatherId == weather.Id)
                     .ToListAsync();
@@ -157,7 +160,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     await _context.DeleteAsync(forecast);
                 }
 
-                // Delete weather
                 var weatherEntity = MapToEntity(weather);
                 await _context.DeleteAsync(weatherEntity);
 
@@ -174,10 +176,13 @@ namespace Location.Core.Infrastructure.Data.Repositories
         {
             try
             {
-                var weatherEntities = await _context.Table<WeatherEntity>()
+                var allWeatherEntities = await _context.Table<WeatherEntity>()
+                    .ToListAsync();
+
+                var weatherEntities = allWeatherEntities
                     .OrderByDescending(w => w.LastUpdate)
                     .Take(count)
-                    .ToListAsync();
+                    .ToList();
 
                 var weatherList = new List<Weather>();
 
@@ -238,19 +243,11 @@ namespace Location.Core.Infrastructure.Data.Repositories
         private Weather MapToDomain(WeatherEntity entity, List<WeatherForecastEntity> forecastEntities)
         {
             var coordinate = new Coordinate(entity.Latitude, entity.Longitude);
+            var weather = CreateWeatherViaReflection(entity.LocationId, coordinate, entity.Timezone, entity.TimezoneOffset);
 
-            // Create weather using reflection
-            var weather = CreateWeatherViaReflection(
-                entity.LocationId,
-                coordinate,
-                entity.Timezone,
-                entity.TimezoneOffset);
-
-            // Set properties
             SetPrivateProperty(weather, "Id", entity.Id);
             SetPrivateProperty(weather, "_lastUpdate", entity.LastUpdate);
 
-            // Map forecasts
             var forecasts = forecastEntities.Select(f => MapForecastToDomain(f)).ToList();
             weather.UpdateForecasts(forecasts);
 
@@ -265,22 +262,10 @@ namespace Location.Core.Infrastructure.Data.Repositories
             var wind = new WindInfo(entity.WindSpeed, entity.WindDirection, entity.WindGust);
 
             var forecast = CreateWeatherForecastViaReflection(
-                entity.WeatherId,
-                entity.Date,
-                entity.Sunrise,
-                entity.Sunset,
-                temperature,
-                minTemperature,
-                maxTemperature,
-                entity.Description,
-                entity.Icon,
-                wind,
-                entity.Humidity,
-                entity.Pressure,
-                entity.Clouds,
-                entity.UvIndex);
+                entity.WeatherId, entity.Date, entity.Sunrise, entity.Sunset,
+                temperature, minTemperature, maxTemperature, entity.Description, entity.Icon,
+                wind, entity.Humidity, entity.Pressure, entity.Clouds, entity.UvIndex);
 
-            // Set additional properties
             SetPrivateProperty(forecast, "Id", entity.Id);
             if (entity.Precipitation.HasValue)
             {
@@ -336,33 +321,15 @@ namespace Location.Core.Infrastructure.Data.Repositories
         private Weather CreateWeatherViaReflection(int locationId, Coordinate coordinate, string timezone, int timezoneOffset)
         {
             var type = typeof(Weather);
-            var constructor = type.GetConstructor(
-                new[] { typeof(int), typeof(Coordinate), typeof(string), typeof(int) });
-
+            var constructor = type.GetConstructor(new[] { typeof(int), typeof(Coordinate), typeof(string), typeof(int) });
             if (constructor == null)
-            {
                 throw new InvalidOperationException("Cannot find Weather constructor");
-            }
-
-            return (Weather)constructor.Invoke(
-                new object[] { locationId, coordinate, timezone, timezoneOffset });
+            return (Weather)constructor.Invoke(new object[] { locationId, coordinate, timezone, timezoneOffset });
         }
 
-        private WeatherForecast CreateWeatherForecastViaReflection(
-            int weatherId,
-            DateTime date,
-            DateTime sunrise,
-            DateTime sunset,
-            Temperature temperature,
-            Temperature minTemperature,
-            Temperature maxTemperature,
-            string description,
-            string icon,
-            WindInfo wind,
-            int humidity,
-            int pressure,
-            int clouds,
-            double uvIndex)
+        private WeatherForecast CreateWeatherForecastViaReflection(int weatherId, DateTime date, DateTime sunrise, DateTime sunset,
+            Temperature temperature, Temperature minTemperature, Temperature maxTemperature, string description, string icon,
+            WindInfo wind, int humidity, int pressure, int clouds, double uvIndex)
         {
             var type = typeof(WeatherForecast);
             var constructor = type.GetConstructor(new[]
@@ -372,18 +339,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 typeof(string), typeof(string), typeof(WindInfo),
                 typeof(int), typeof(int), typeof(int), typeof(double)
             });
-
             if (constructor == null)
-            {
                 throw new InvalidOperationException("Cannot find WeatherForecast constructor");
-            }
-
             return (WeatherForecast)constructor.Invoke(new object[]
             {
-                weatherId, date, sunrise, sunset,
-                temperature, minTemperature, maxTemperature,
-                description, icon, wind,
-                humidity, pressure, clouds, uvIndex
+                weatherId, date, sunrise, sunset, temperature, minTemperature, maxTemperature,
+                description, icon, wind, humidity, pressure, clouds, uvIndex
             });
         }
 
