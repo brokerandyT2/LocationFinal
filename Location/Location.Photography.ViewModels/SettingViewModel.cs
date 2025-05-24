@@ -66,7 +66,13 @@ namespace Location.Photography.ViewModels
         private bool _dateFormatToggle = true;
         private bool _windDirectionBoolean = true;
         private bool _temperatureFormatToggle = true;
+        private bool _adSupportboolean;
 
+        public bool AdSupportboolean
+        {
+            get => _adSupportboolean;
+            set => SetProperty(ref _adSupportboolean, value);
+        }
         public SettingViewModel Subscription
         {
             get => _subscription;

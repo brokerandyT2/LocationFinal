@@ -42,7 +42,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
             {
                 var entity = await _context.Table<SettingEntity>()
                     .Where(s => s.Key == key)
-                    .FirstOrDefaultAsync().ConfigureAwait(false); 
+                    .FirstOrDefaultAsync().ConfigureAwait(false);
 
                 return entity != null ? MapToDomain(entity) : null;
             }
@@ -120,14 +120,14 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Update(Setting setting)
+        public async Task UpdateAsync(Setting setting, CancellationToken cancellationToken = default)
         {
             try
             {
                 var entity = MapToEntity(setting);
                 entity.Timestamp = DateTime.UtcNow;
 
-                _context.UpdateAsync(entity).GetAwaiter().GetResult();
+                await _context.UpdateAsync(entity);
 
                 _logger.LogInformation("Updated setting with key {Key}", setting.Key);
             }
@@ -138,12 +138,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Delete(Setting setting)
+        public async Task DeleteAsync(Setting setting, CancellationToken cancellationToken = default)
         {
             try
             {
                 var entity = MapToEntity(setting);
-                _context.DeleteAsync(entity).GetAwaiter().GetResult();
+                await _context.DeleteAsync(entity);
 
                 _logger.LogInformation("Deleted setting with key {Key}", setting.Key);
             }

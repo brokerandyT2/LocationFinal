@@ -69,12 +69,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Update(TipType tipType)
+        public async Task UpdateAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
             try
             {
                 var entity = MapToEntity(tipType);
-                _context.UpdateAsync(entity).GetAwaiter().GetResult();
+                await _context.UpdateAsync(entity);
                 _logger.LogInformation("Updated tip type with ID {TipTypeId}", tipType.Id);
             }
             catch (Exception ex)
@@ -84,12 +84,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Delete(TipType tipType)
+        public async Task DeleteAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
             try
             {
                 var entity = MapToEntity(tipType);
-                _context.DeleteAsync(entity).GetAwaiter().GetResult();
+                await _context.DeleteAsync(entity);
                 _logger.LogInformation("Deleted tip type with ID {TipTypeId}", tipType.Id);
             }
             catch (Exception ex)

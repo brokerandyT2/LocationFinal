@@ -3,21 +3,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Location.Photography.Maui.Views.Settings"
              xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
-               xmlns:strings="clr-namespace:Location.Photography.Maui.Resources"
-                xmlns:system="clr-namespace:System;assembly=netstandard"
-             xmlns:convert="clr-namespace:Location.Core.Converters;assembly=Location.Core.Converters"
-             Title="Settings">
-    <ScrollView Grid.Row="0" Grid.ColumnSpan="3">
-        <Grid Padding="10" Margin="5">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+             xmlns:strings="clr-namespace:Location.Photography.Maui.Resources"
+             xmlns:system="clr-namespace:System;assembly=netstandard"
+             xmlns:converters="clr-namespace:Location.Core.Converters;assembly=Location.Core.Converters"
+             x:DataType="viewmodels:SettingsViewModel"
+             IconImageSource="cogbox.png">
 
-            <!-- Main Content -->
+    <Grid Padding="10" Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <Grid>
+        <!-- Main Content ScrollView -->
+        <ScrollView Grid.Row="0">
+            <Grid Padding="10" Margin="5">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -32,51 +41,259 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Label Text="{Static strings:AppResources.SubscriptionType}" Grid.Row="0" HorizontalOptions="Start" Grid.Column="0" />
-                <Label Text="{Static strings:AppResources.SubscriptionExpiration}" Grid.Row="0" Grid.Column="3" HorizontalOptions="End"/>
-                
-                <Label Text="{Binding Subscription.Value}" Grid.Row="1" HorizontalOptions="Start" Grid.Column="0"  />
-                <Label Text="{Binding SubscriptionExpiration.Value}" Grid.Row="1" Grid.Column="2"/>
 
-                <Label Text="{Static system:Environment.NewLine}" Grid.Row="2" Grid.ColumnSpan="3"/>
-                
-                <Label Text="{Static strings:AppResources.SwitchHemisphere}" Grid.Row="3" Grid.Column="0"></Label>
-                <Label x:Name="hemiValue" Text="" Grid.Row="3" Grid.Column="1" />
-                <Switch x:Name="swHemisphere" Grid.Row="3" Grid.Column="2"/>
+                <!-- Hemisphere Setting -->
+                <Label Text="{x:Static strings:AppResources.SwitchHemisphere}" 
+                      Grid.Row="0" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Label Text="{Binding Hemisphere.Value}" 
+                      Grid.Row="0" 
+                      Grid.Column="1"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch x:Name="HemisphereSwitch" 
+                       IsToggled="{Binding HemisphereNorth}" 
+                       Grid.Row="0" 
+                       Grid.Column="2" 
+                       Margin="5"/>
 
-                <Label Text="{Static system:Environment.NewLine}" Grid.Row="4" Grid.ColumnSpan="3"/>
+                <!-- Time Format Setting -->
+                <Label Text="{x:Static strings:AppResources.SwitchClockType}" 
+                      Grid.Row="1" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Label Text="{Binding TimeFormat.Value}" 
+                      Grid.Row="1" 
+                      Grid.Column="1"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch x:Name="TimeSwitch" 
+                       IsToggled="{Binding TimeFormatToggle}" 
+                       Grid.Row="1" 
+                       Grid.Column="2" 
+                       Margin="5"/>
 
-                <Label Text="{Static strings:AppResources.SwitchClockType}" Grid.Row="5" Grid.Column="0"></Label>
-                <Label x:Name="clockValue" Text="" Grid.Row="5" Grid.Column="1" />
-                <Switch x:Name="swClock"  Grid.Row="5" Grid.Column="2"/>
+                <!-- Date Format Setting -->
+                <Label Text="{x:Static strings:AppResources.SwitchDateFormat}" 
+                      Grid.Row="2" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Label Text="{Binding DateFormat.Value}" 
+                      Grid.Row="2" 
+                      Grid.Column="1"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch x:Name="DateFormat" 
+                       IsToggled="{Binding DateFormatToggle}" 
+                       Grid.Row="2" 
+                       Grid.Column="2" 
+                       Margin="5"/>
+
+                <!-- Wind Direction Setting -->
+                <Label Text="{x:Static strings:AppResources.WindDirection}" 
+                      Grid.Row="3" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Label x:Name="WindDirection" 
+                      Text="" 
+                      Grid.Row="3" 
+                      Grid.Column="1"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch x:Name="WindDirectionSwitch" 
+                       IsToggled="{Binding WindDirectionBoolean}" 
+                       Grid.Row="3" 
+                       Grid.Column="2" 
+                       Margin="5"/>
+
+                <!-- Temperature Format Setting -->
+                <Label Text="{x:Static strings:AppResources.TemperatureFormat}" 
+                      Grid.Row="4" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Label Text="{Binding TemperatureFormat.Value}" 
+                      Grid.Row="4" 
+                      Grid.Column="1"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch x:Name="TempFormatSwitch" 
+                       IsToggled="{Binding TemperatureFormatToggle}" 
+                       Grid.Row="4" 
+                       Grid.Column="2" 
+                       Margin="5"/>
+
+                <!-- Ad Support Setting -->
+                <Label Text="{x:Static strings:AppResources.AccessIsFreeByWatchingAds}" 
+                      Grid.Row="5" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch x:Name="adsupport" 
+                       IsToggled="{Binding AdSupportboolean}" 
+                       Grid.Row="5" 
+                       Grid.Column="2" 
+                       Margin="5"/>
+
+                <!-- Subscription Type -->
+                <Label Text="{x:Static strings:AppResources.SubscriptionType}" 
+                      Grid.Row="6" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Label Text="{Binding Subscription.Value}" 
+                      Grid.Row="6" 
+                      Grid.Column="2"
+                      FontSize="14"
+                      Margin="5"/>
+
+                <!-- Subscription Expiration -->
+                <Label Text="{x:Static strings:AppResources.SubscriptionExpiration}" 
+                      Grid.Row="7" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Label Text="{Binding SubscriptionExpiration.Value}" 
+                      Grid.Row="7" 
+                      Grid.Column="2"
+                      FontSize="14"
+                      Margin="5"/>
+
+                <!-- Page Views Section -->
+                <!-- Free Features -->
+                <Label Text="{x:Static strings:AppResources.AddLocationTutorial}" 
+                      Grid.Row="8" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch IsEnabled="False" 
+                       IsToggled="{Binding AddLocationViewed.Value, Converter={StaticResource CustomStringToBoolConverter}}" 
+                       Grid.Row="8" 
+                       Grid.Column="2"
+                       Margin="5"/>
+
+                <Label Text="{x:Static strings:AppResources.ListLocationsTutorial}" 
+                      Grid.Row="9" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch IsEnabled="False" 
+                       IsToggled="{Binding ListLocationsViewed.Value, Converter={StaticResource CustomStringToBoolConverter}}" 
+                       Grid.Row="9" 
+                       Grid.Column="2"
+                       Margin="5"/>
+
+                <Label Text="{x:Static strings:AppResources.TipViewed}" 
+                      Grid.Row="10" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch IsEnabled="False" 
+                       IsToggled="{Binding SettingsViewed.Value, Converter={StaticResource CustomStringToBoolConverter}}" 
+                       Grid.Row="10" 
+                       Grid.Column="2"
+                       Margin="5"/>
+
+                <!-- Pro Features -->
+                <Label Text="{x:Static strings:AppResources.SunCalculationsTutorial}" 
+                      Grid.Row="11" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch IsEnabled="False" 
+                       IsToggled="{Binding SunCalculationViewed.Value, Converter={StaticResource CustomStringToBoolConverter}}" 
+                       Grid.Row="11" 
+                       Grid.Column="2"
+                       Margin="5"/>
+
+                <Label Text="{x:Static strings:AppResources.SceneEvaluationTutorial}" 
+                      Grid.Row="12" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch IsEnabled="False" 
+                       IsToggled="{Binding SceneEvaluationViewed.Value, Converter={StaticResource CustomStringToBoolConverter}}" 
+                       Grid.Row="12" 
+                       Grid.Column="2"
+                       Margin="5"/>
+
+                <!-- Premium Features -->
+                <Label Text="{x:Static strings:AppResources.LightMeterTutorial}" 
+                      Grid.Row="13" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch IsEnabled="False" 
+                       IsToggled="{Binding WeatherViewed.Value, Converter={StaticResource CustomStringToBoolConverter}}" 
+                       Grid.Row="13" 
+                       Grid.Column="2"
+                       Margin="5"/>
+
+                <Label Text="{x:Static strings:AppResources.SunLocationTutorial}" 
+                      Grid.Row="14" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch IsEnabled="False" 
+                       IsToggled="{Binding SunLocationViewed.Value, Converter={StaticResource CustomStringToBoolConverter}}" 
+                       Grid.Row="14" 
+                       Grid.Column="2"
+                       Margin="5"/>
+
+                <Label Text="{x:Static strings:AppResources.ExposureCalculatorTutorial}" 
+                      Grid.Row="15" 
+                      Grid.Column="0"
+                      FontSize="14"
+                      Margin="5"/>
+                <Switch IsEnabled="False" 
+                       IsToggled="{Binding ExposureCalculationViewed.Value, Converter={StaticResource CustomStringToBoolConverter}}" 
+                       Grid.Row="15" 
+                       Grid.Column="2"
+                       Margin="5"/>
 
             </Grid>
- 
-            <!-- Busy indicator overlay -->
-            <Grid Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding IsBusy}" BackgroundColor="#80000000" Padding="10" Margin="5">
-                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                    <ActivityIndicator IsRunning="{Binding IsBusy}" HeightRequest="50" WidthRequest="50" Color="Blue" />
-                    <Label Text="Calculating, please wait..."  FontSize="14" Margin="5"/>
-                </VerticalStackLayout>
+        </ScrollView>
 
-
-                <!-- Error message display -->
-                <Grid Grid.Row="1" 
-          IsVisible="{Binding IsError}"
-          BackgroundColor="#80FF0000"
-          Padding="10"
-          Margin="5">
-                    <Label Text="{Binding ErrorMessage}"
-               TextColor="Red"
-               FontSize="14"
-               Margin="5" />
-                </Grid>
-
-            </Grid>
+        <!-- Busy indicator overlay -->
+        <Grid Grid.Row="0" 
+              IsVisible="{Binding IsBusy}" 
+              BackgroundColor="#80000000" 
+              Padding="10" 
+              Margin="5">
+            <VerticalStackLayout VerticalOptions="Center" 
+                                 HorizontalOptions="Center" 
+                                 Spacing="10">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                                   HeightRequest="50" 
+                                   WidthRequest="50" 
+                                   Color="Blue" />
+                <Label Text="Loading settings, please wait..." 
+                       TextColor="White" 
+                       FontSize="14" 
+                       Margin="5"/>
+            </VerticalStackLayout>
         </Grid>
-    </ScrollView>
+
+        <!-- Error message display -->
+        <Grid Grid.Row="0" 
+              IsVisible="{Binding IsError}"
+              BackgroundColor="#80FF0000"
+              VerticalOptions="End"
+              Padding="10"
+              Margin="5">
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   FontSize="14"
+                   Margin="5" />
+        </Grid>
+    </Grid>
 </ContentPage>

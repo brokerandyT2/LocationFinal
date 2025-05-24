@@ -15,8 +15,9 @@ namespace Location.Core.Application.Common.Interfaces.Persistence
         Task<IEnumerable<Domain.Entities.Setting>> GetAllAsync(CancellationToken cancellationToken = default);
         Task<IEnumerable<Domain.Entities.Setting>> GetByKeysAsync(IEnumerable<string> keys, CancellationToken cancellationToken = default);
         Task<Domain.Entities.Setting> AddAsync(Domain.Entities.Setting setting, CancellationToken cancellationToken = default);
-        void Update(Domain.Entities.Setting setting);
-        void Delete(Domain.Entities.Setting setting);
+        Task UpdateAsync(Domain.Entities.Setting setting, CancellationToken cancellationToken = default);
+        Task DeleteAsync(Domain.Entities.Setting setting, CancellationToken cancellationToken = default);
+
         Task<Domain.Entities.Setting> UpsertAsync(string key, string value, string? description = null, CancellationToken cancellationToken = default);
     }
 }

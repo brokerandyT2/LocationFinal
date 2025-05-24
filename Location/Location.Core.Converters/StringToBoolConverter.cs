@@ -40,7 +40,11 @@ namespace Location.Core.Converters
         /// <exception cref="NotImplementedException">This method is not implemented and will always throw this exception.</exception>
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (value is bool boolValue)
+            {
+                return boolValue ? "true" : "false";
+            }
+            return "false";
         }
     }
 

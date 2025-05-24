@@ -74,7 +74,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
         {
             try
             {
-                _innerRepository.Update(tip);
+                await _innerRepository.UpdateAsync(tip, cancellationToken);
                 return Result<Tip>.Success(tip);
             }
             catch (Exception ex)
@@ -93,7 +93,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     return Result<bool>.Failure($"Tip with ID {id} not found");
                 }
 
-                _innerRepository.Delete(tip);
+                await _innerRepository.DeleteAsync(tip, cancellationToken);
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)

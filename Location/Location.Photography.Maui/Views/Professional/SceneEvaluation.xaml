@@ -5,7 +5,7 @@
              xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
              x:Class="Location.Photography.Maui.Views.Professional.SceneEvaluation"
              x:DataType="viewmodels:SceneEvaluationViewModel"
-             Title="Scene Evaluation">
+             IconImageSource="mountain.png">
 
     <ContentPage.Resources>
         <ResourceDictionary>

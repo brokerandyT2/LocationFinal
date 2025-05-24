@@ -120,7 +120,7 @@ namespace Location.Core.Infrastructure.UnitOfWork
                 {
                     try
                     {
-                        RollbackAsync().Wait(TimeSpan.FromSeconds(5));
+                        RollbackAsync().GetAwaiter().GetResult();
                     }
                     catch (Exception ex)
                     {

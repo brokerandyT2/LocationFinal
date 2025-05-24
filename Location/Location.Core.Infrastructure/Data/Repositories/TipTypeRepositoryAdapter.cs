@@ -31,11 +31,11 @@ namespace Location.Core.Infrastructure.Data.Repositories
         public Task<TipType> AddAsync(TipType tipType, CancellationToken cancellationToken = default)
             => _innerRepository.AddAsync(tipType, cancellationToken);
 
-        public void Update(TipType tipType)
-            => _innerRepository.Update(tipType);
+        public async Task UpdateAsync(TipType tipType, CancellationToken cancellationToken = default)
+            => await _innerRepository.UpdateAsync(tipType, cancellationToken);
 
-        public void Delete(TipType tipType)
-            => _innerRepository.Delete(tipType);
+        public async Task DeleteAsync(TipType tipType, CancellationToken cancellationToken = default)
+            => await _innerRepository.DeleteAsync(tipType, cancellationToken);
         public async Task<Result<TipType>> CreateEntityAsync(TipType entity, CancellationToken cancellationToken = default)
         {
             try

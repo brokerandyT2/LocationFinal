@@ -77,8 +77,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
         {
             try
             {
-                _innerRepository.Update(location);
-                // Since Update is void, we assume success
+                await _innerRepository.UpdateAsync(location, cancellationToken);
                 return Result<Domain.Entities.Location>.Success(location);
             }
             catch (Exception ex)
@@ -97,7 +96,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     return Result<bool>.Failure($"Location with ID {id} not found");
                 }
 
-                _innerRepository.Delete(location);
+                _innerRepository.DeleteAsync(location);
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -147,7 +146,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
                 // Mark as deleted using domain method
                 location.Delete();
-                _innerRepository.Update(location);
+                await _innerRepository.UpdateAsync(location, cancellationToken);
 
                 return Result<bool>.Success(true);
             }

@@ -61,7 +61,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
         {
             try
             {
-                _innerRepository.Update(setting);
+                await _innerRepository.UpdateAsync(setting, cancellationToken);
                 return Result<Setting>.Success(setting);
             }
             catch (Exception ex)
@@ -80,7 +80,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     return Result<bool>.Failure($"Setting with key '{key}' not found");
                 }
 
-                _innerRepository.Delete(setting);
+                _innerRepository.DeleteAsync(setting);
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)

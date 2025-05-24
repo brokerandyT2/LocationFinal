@@ -26,10 +26,10 @@ namespace Location.Core.Infrastructure.Data.Repositories
             => _innerRepository.AddAsync(weather, cancellationToken);
 
         public void Update(Weather weather)
-            => _innerRepository.Update(weather);
+            => _innerRepository.UpdateAsync(weather);
 
         public void Delete(Weather weather)
-            => _innerRepository.Delete(weather);
+            => _innerRepository.DeleteAsync(weather);
 
         public Task<IEnumerable<Weather>> GetRecentAsync(int count = 10, CancellationToken cancellationToken = default)
             => _innerRepository.GetRecentAsync(count, cancellationToken);

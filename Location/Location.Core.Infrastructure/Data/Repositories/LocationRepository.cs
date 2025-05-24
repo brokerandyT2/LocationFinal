@@ -110,7 +110,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Update(Domain.Entities.Location location)
+        public async Task UpdateAsync(Domain.Entities.Location location, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -121,7 +121,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 }
 
                 var entity = MapToEntity(location);
-                _context.UpdateAsync(entity).GetAwaiter().GetResult();
+                await _context.UpdateAsync(entity);
 
                 _logger.LogInformation("Updated location with ID {LocationId}", location.Id);
             }
@@ -132,12 +132,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
             }
         }
 
-        public void Delete(Domain.Entities.Location location)
+        public async Task DeleteAsync(Domain.Entities.Location location, CancellationToken cancellationToken = default)
         {
             try
             {
                 var entity = MapToEntity(location);
-                _context.DeleteAsync(entity).GetAwaiter().GetResult();
+                await _context.DeleteAsync(entity);
 
                 _logger.LogInformation("Deleted location with ID {LocationId}", location.Id);
             }
