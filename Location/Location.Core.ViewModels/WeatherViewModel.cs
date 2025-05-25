@@ -242,5 +242,3 @@ namespace Location.Core.ViewModels
         public bool IsToday { get; set; }
     }
 }
-    }
-}

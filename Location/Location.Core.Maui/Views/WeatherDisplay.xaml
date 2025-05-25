@@ -31,7 +31,7 @@
                             <StackLayout Margin="0,5,0,5">
 
                                 <!-- Today's Weather - Always Visible -->
-                                <Grid IsVisible="{Binding IsToday}">>
+                                <Grid IsVisible="{Binding IsToday}">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
