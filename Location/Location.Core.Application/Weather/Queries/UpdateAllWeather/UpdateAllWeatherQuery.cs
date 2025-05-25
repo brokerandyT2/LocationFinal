@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
+using Location.Core.Application.Events.Errors;
 using MediatR;
 using System;
 using System.Threading;
@@ -25,15 +26,18 @@ namespace Location.Core.Application.Weather.Queries.UpdateAllWeather
     public class UpdateAllWeatherQueryHandler : IRequestHandler<UpdateAllWeatherQuery, Result<int>>
     {
         private readonly IWeatherService _weatherService;
+        private readonly IMediator _mediator;
         /// <summary>
         /// Initializes a new instance of the <see cref="UpdateAllWeatherQueryHandler"/> class.
         /// </summary>
         /// <param name="weatherService">The weather service used to retrieve and update weather data.  This parameter cannot be <see
         /// langword="null"/>.</param>
+        /// <param name="mediator">The mediator used to publish domain events.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="weatherService"/> is <see langword="null"/>.</exception>
-        public UpdateAllWeatherQueryHandler(IWeatherService weatherService)
+        public UpdateAllWeatherQueryHandler(IWeatherService weatherService, IMediator mediator)
         {
             _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
+            _mediator = mediator;
         }
 
 
@@ -49,10 +53,27 @@ namespace Location.Core.Application.Weather.Queries.UpdateAllWeather
             try
             {
                 var result = await _weatherService.UpdateAllWeatherAsync(cancellationToken);
+
+                if (!result.IsSuccess)
+                {
+                    await _mediator.Publish(new WeatherUpdateErrorEvent(0, WeatherErrorType.ApiUnavailable, result.ErrorMessage), cancellationToken);
+                }
+
                 return result;
+            }
+            catch (TimeoutException ex)
+            {
+                await _mediator.Publish(new WeatherUpdateErrorEvent(0, WeatherErrorType.NetworkTimeout, ex.Message), cancellationToken);
+                return Result<int>.Failure($"Weather service timeout: {ex.Message}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                await _mediator.Publish(new WeatherUpdateErrorEvent(0, WeatherErrorType.InvalidApiKey, ex.Message), cancellationToken);
+                return Result<int>.Failure("Weather service authentication failed");
             }
             catch (Exception ex)
             {
+                await _mediator.Publish(new WeatherUpdateErrorEvent(0, WeatherErrorType.ApiUnavailable, ex.Message), cancellationToken);
                 return Result<int>.Failure($"Failed to update all weather data: {ex.Message}");
             }
         }

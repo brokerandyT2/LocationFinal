@@ -53,9 +53,6 @@ namespace Location.Core.ViewModels
         [ObservableProperty]
         private bool _isLocationTracking;
 
-        // Event to notify about errors
-        public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
-
         // Default constructor for design-time
         public LocationViewModel() : base(null)
         {
@@ -66,8 +63,9 @@ namespace Location.Core.ViewModels
             IMediator mediator,
             IMediaService mediaService,
             IGeolocationService geolocationService,
-            IAlertService alertingService) 
-            : base(alertingService)
+            IAlertService alertingService,
+            IErrorDisplayService errorDisplayService)
+            : base(alertingService, null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _mediaService = mediaService ?? throw new ArgumentNullException(nameof(mediaService));
@@ -106,33 +104,24 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    // Handle error - this will automatically publish the error
+                    // Error events will be handled automatically by ErrorDisplayService
+                    // Just update local state for immediate feedback
                     ErrorMessage = result.ErrorMessage ?? "Failed to save location";
                     IsError = true;
-                    OnErrorOccurred(ErrorMessage);
                 }
             }
             catch (Exception ex)
             {
-                // Handle error - this will automatically publish the error
+                // Error events will be handled automatically by ErrorDisplayService
+                // Just update local state for immediate feedback
                 ErrorMessage = $"Error saving location: {ex.Message}";
                 IsError = true;
-                OnErrorOccurred(ErrorMessage);
             }
             finally
             {
                 IsBusy = false;
             }
         }
-
-        // Other methods remain the same...
-        
-        // Helper method to raise error event
-        protected virtual void OnErrorOccurred(string message)
-        {
-            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(message));
-        }
-        // Addition to LocationViewModel.cs - implement LoadLocationAsync method
 
         [RelayCommand]
         private async Task LoadLocationAsync(int id, CancellationToken cancellationToken = default)
@@ -165,18 +154,16 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    // Handle error
+                    // Error events will be handled automatically by ErrorDisplayService
                     ErrorMessage = result.ErrorMessage ?? $"Failed to load location with ID {id}";
                     IsError = true;
-                    OnErrorOccurred(ErrorMessage);
                 }
             }
             catch (Exception ex)
             {
-                // Handle error
+                // Error events will be handled automatically by ErrorDisplayService
                 ErrorMessage = $"Error loading location: {ex.Message}";
                 IsError = true;
-                OnErrorOccurred(ErrorMessage);
             }
             finally
             {
@@ -207,7 +194,6 @@ namespace Location.Core.ViewModels
                     {
                         ErrorMessage = pickResult.ErrorMessage ?? "Failed to pick photo";
                         IsError = true;
-                        OnErrorOccurred(ErrorMessage);
                     }
                     return;
                 }
@@ -222,14 +208,12 @@ namespace Location.Core.ViewModels
                 {
                     ErrorMessage = result.ErrorMessage ?? "Failed to capture photo";
                     IsError = true;
-                    OnErrorOccurred(ErrorMessage);
                 }
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Error taking photo: {ex.Message}";
                 IsError = true;
-                OnErrorOccurred(ErrorMessage);
             }
             finally
             {
@@ -303,6 +287,4 @@ namespace Location.Core.ViewModels
             }
         }
     }
-
-
 }

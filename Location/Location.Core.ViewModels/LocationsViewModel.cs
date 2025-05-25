@@ -16,9 +16,6 @@ namespace Location.Core.ViewModels
     {
         private readonly IMediator _mediator;
 
-        // Add the event
-        public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
-
         public ObservableCollection<LocationListItemViewModel> Locations { get; } = new();
 
         public LocationsViewModel(IMediator mediator) : base(null)
@@ -26,7 +23,8 @@ namespace Location.Core.ViewModels
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        public LocationsViewModel(IMediator mediator, IAlertService alertingService) : base(alertingService)
+        public LocationsViewModel(IMediator mediator, IAlertService alertingService, IErrorDisplayService errorDisplayService)
+            : base(alertingService, null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
@@ -71,29 +69,22 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    // Handle error
+                    // Error events will be handled automatically by ErrorDisplayService
+                    // Just update local state for immediate feedback
                     ErrorMessage = result.ErrorMessage ?? "Failed to load locations";
                     IsError = true;
-                    OnErrorOccurred(ErrorMessage);
                 }
             }
             catch (Exception ex)
             {
-                // Handle unexpected errors
+                // Error events will be handled automatically by ErrorDisplayService
                 ErrorMessage = $"Error loading locations: {ex.Message}";
                 IsError = true;
-                OnErrorOccurred(ErrorMessage);
             }
             finally
             {
                 IsBusy = false;
             }
-        }
-
-        // Add this method to raise the event
-        protected virtual void OnErrorOccurred(string message)
-        {
-            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(message));
         }
     }
 

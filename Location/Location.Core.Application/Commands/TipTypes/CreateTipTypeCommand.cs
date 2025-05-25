@@ -1,7 +1,9 @@
 ﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tips.DTOs;
+using Location.Core.Application.Events.Errors;
 using MediatR;
+
 namespace Location.Core.Application.Commands.TipTypes
 {
     /// <summary>
@@ -24,14 +26,17 @@ namespace Location.Core.Application.Commands.TipTypes
     public class CreateTipTypeCommandHandler : IRequestHandler<CreateTipTypeCommand, Result<TipTypeDto>>
     {
         private readonly ITipTypeRepository _tipTypeRepository;
+        private readonly IMediator _mediator;
         /// <summary>
         /// Handles the creation of new tip types by processing the associated command.
         /// </summary>
         /// <param name="tipTypeRepository">The repository used to persist and manage tip type data. This parameter cannot be <see langword="null"/>.</param>
+        /// <param name="mediator">The mediator used to publish domain events.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="tipTypeRepository"/> is <see langword="null"/>.</exception>
-        public CreateTipTypeCommandHandler(ITipTypeRepository tipTypeRepository)
+        public CreateTipTypeCommandHandler(ITipTypeRepository tipTypeRepository, IMediator mediator)
         {
             _tipTypeRepository = tipTypeRepository ?? throw new ArgumentNullException(nameof(tipTypeRepository));
+            _mediator = mediator;
         }
         /// <summary>
         /// Handles the creation of a new tip type and returns the result.
@@ -61,8 +66,19 @@ namespace Location.Core.Application.Commands.TipTypes
 
                 return Result<TipTypeDto>.Success(tipTypeDto);
             }
+            catch (Domain.Exceptions.TipTypeDomainException ex) when (ex.Code == "DUPLICATE_NAME")
+            {
+                await _mediator.Publish(new TipTypeErrorEvent(request.Name, null, TipTypeErrorType.DuplicateName), cancellationToken);
+                return Result<TipTypeDto>.Failure($"Tip type with name '{request.Name}' already exists");
+            }
+            catch (Domain.Exceptions.TipTypeDomainException ex) when (ex.Code == "INVALID_NAME")
+            {
+                await _mediator.Publish(new TipTypeErrorEvent(request.Name, null, TipTypeErrorType.InvalidName, ex.Message), cancellationToken);
+                return Result<TipTypeDto>.Failure("Invalid tip type name provided");
+            }
             catch (Exception ex)
             {
+                await _mediator.Publish(new TipTypeErrorEvent(request.Name, null, TipTypeErrorType.DatabaseError, ex.Message), cancellationToken);
                 return Result<TipTypeDto>.Failure($"Failed to create tip type: {ex.Message}");
             }
         }

@@ -1,4 +1,5 @@
 ﻿using Location.Core.Application.Common.Behaviors;
+using Location.Core.Application.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -24,7 +25,7 @@ namespace Location.Core.Application
         /// <item><description>Registers MediatR with handlers and services from the executing
         /// assembly.</description></item> <item><description>Registers all validators from the executing assembly using
         /// FluentValidation.</description></item> <item><description>Adds pipeline behaviors for validation and logging
-        /// to MediatR.</description></item> </list></remarks>
+        /// to MediatR.</description></item> <item><description>Registers the error display service for UI error handling.</description></item> </list></remarks>
         /// <param name="services">The <see cref="IServiceCollection"/> to which the application services will be added.</param>
         /// <returns>The same <see cref="IServiceCollection"/> instance, allowing for method chaining.</returns>
         public static IServiceCollection AddApplication(this IServiceCollection services)
@@ -46,6 +47,9 @@ namespace Location.Core.Application
 
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
+            // Register error display service
+            services.AddSingleton<IErrorDisplayService, ErrorDisplayService>();
 
             return services;
         }

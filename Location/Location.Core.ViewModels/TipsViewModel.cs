@@ -19,8 +19,6 @@ namespace Location.Core.ViewModels
         private readonly IMediator _mediator;
         private readonly ITipTypeRepository _tiptyperepo;
         private readonly ITipRepository _tiprepo;
-        // Add the event
-        public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
 
         [ObservableProperty]
         private int _selectedTipTypeId;
@@ -36,7 +34,8 @@ namespace Location.Core.ViewModels
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        public TipsViewModel(IMediator mediator, IAlertService alertingService, ITipTypeRepository tipTypeRepository, ITipRepository tiprepo) : base(alertingService)
+        public TipsViewModel(IMediator mediator, IAlertService alertingService, ITipTypeRepository tipTypeRepository, ITipRepository tiprepo, IErrorDisplayService errorDisplayService)
+            : base(alertingService, null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _tiptyperepo = tipTypeRepository;
@@ -81,15 +80,16 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    IsError = true;
+                    // Error events will be handled automatically by ErrorDisplayService
                     ErrorMessage = result.ErrorMessage ?? "Failed to load tip types";
+                    IsError = true;
                 }
             }
             catch (Exception ex)
             {
-                IsError = true;
+                // Error events will be handled automatically by ErrorDisplayService
                 ErrorMessage = $"Error loading tip types: {ex.Message}";
-                OnErrorOccurred(ex.Message);
+                IsError = true;
             }
             finally
             {
@@ -135,22 +135,22 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    IsError = true;
+                    // Error events will be handled automatically by ErrorDisplayService
                     ErrorMessage = result.ErrorMessage ?? "Failed to load tips";
+                    IsError = true;
                 }
             }
             catch (Exception ex)
             {
-                IsError = true;
+                // Error events will be handled automatically by ErrorDisplayService
                 ErrorMessage = $"Error loading tips: {ex.Message}";
-                OnErrorOccurred(ex.Message);
+                IsError = true;
             }
             finally
             {
                 IsBusy = false;
             }
         }
-        
 
         partial void OnSelectedTipTypeChanged(TipTypeItemViewModel? value)
         {
@@ -159,12 +159,6 @@ namespace Location.Core.ViewModels
                 SelectedTipTypeId = value.Id;
                 LoadTipsByTypeCommand.Execute(value.Id);
             }
-        }
-
-        // Add this method to raise the event
-        protected virtual void OnErrorOccurred(string message)
-        {
-            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(message));
         }
     }
 

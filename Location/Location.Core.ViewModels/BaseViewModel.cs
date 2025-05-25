@@ -6,17 +6,18 @@ using System;
 using System.Threading.Tasks;
 using Location.Core.Application.Common.Interfaces;
 
-
 namespace Location.Core.ViewModels
 {
     public abstract class BaseViewModel : ObservableObject, IDisposable
     {
         private readonly IAlertService? _alertService;
         private readonly IEventBus? _eventBus;
+        private readonly IErrorDisplayService? _errorDisplayService;
 
         private bool _isBusy;
         private bool _isError;
         private string _errorMessage = string.Empty;
+        private bool _hasActiveErrors;
 
         // Add the ErrorOccurred event to BaseViewModel
         public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
@@ -49,10 +50,23 @@ namespace Location.Core.ViewModels
             set => SetProperty(ref _errorMessage, value);
         }
 
-        protected BaseViewModel(IAlertService? alertService = null, IEventBus? eventBus = null)
+        public bool HasActiveErrors
+        {
+            get => _hasActiveErrors;
+            set => SetProperty(ref _hasActiveErrors, value);
+        }
+
+        protected BaseViewModel(IAlertService? alertService = null, IEventBus? eventBus = null, IErrorDisplayService? errorDisplayService = null)
         {
             _alertService = alertService;
             _eventBus = eventBus;
+            _errorDisplayService = errorDisplayService;
+
+            // Subscribe to error display service if available
+            if (_errorDisplayService != null)
+            {
+                _errorDisplayService.ErrorsReady += OnErrorsReady;
+            }
         }
 
         protected virtual async Task PublishErrorAsync(string message)
@@ -76,9 +90,37 @@ namespace Location.Core.ViewModels
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(message));
         }
 
+        private async void OnErrorsReady(object? sender, ErrorDisplayEventArgs e)
+        {
+            HasActiveErrors = true;
+
+            try
+            {
+                // Display the aggregated error message
+                if (_alertService != null)
+                {
+                    await _alertService.ShowErrorAlertAsync(e.DisplayMessage, "Error");
+                }
+
+                // Update ViewModel error state
+                ErrorMessage = e.DisplayMessage;
+                IsError = true;
+                OnErrorOccurred(e.DisplayMessage);
+            }
+            finally
+            {
+                HasActiveErrors = false;
+            }
+        }
+
         public virtual void Dispose()
         {
-            // Base implementation is empty, derived classes can override
+            // Unsubscribe from error display service
+            if (_errorDisplayService != null)
+            {
+                _errorDisplayService.ErrorsReady -= OnErrorsReady;
+            }
+
             GC.SuppressFinalize(this);
         }
     }
