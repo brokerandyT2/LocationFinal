@@ -1,8 +1,7 @@
-﻿// Updated TipTypeRepository to implement async interface methods
-
-using Location.Core.Application.Common.Interfaces.Persistence;
+﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Entities;
+using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Location.Core.Infrastructure.Data.Repositories
@@ -11,160 +10,160 @@ namespace Location.Core.Infrastructure.Data.Repositories
     {
         private readonly IDatabaseContext _context;
         private readonly ILogger<TipTypeRepository> _logger;
+        private readonly IInfrastructureExceptionMappingService _exceptionMapper;
 
-        public TipTypeRepository(IDatabaseContext context, ILogger<TipTypeRepository> logger)
+        public TipTypeRepository(IDatabaseContext context, ILogger<TipTypeRepository> logger, IInfrastructureExceptionMappingService exceptionMapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _exceptionMapper = exceptionMapper ?? throw new ArgumentNullException(nameof(exceptionMapper));
         }
 
         public async Task<TipType?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = await _context.GetAsync<TipTypeEntity>(id);
-                return entity != null ? MapToDomain(entity) : null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving tip type with ID {TipTypeId}", id);
-                throw;
-            }
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = await _context.GetAsync<TipTypeEntity>(id);
+                    return entity != null ? MapToDomain(entity) : null;
+                },
+                _exceptionMapper,
+                "GetById",
+                "tiptype",
+                _logger);
         }
 
         public async Task<IEnumerable<TipType>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entities = await _context.Table<TipTypeEntity>().ToListAsync();
-                return entities.Select(MapToDomain);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving all tip types");
-                throw;
-            }
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entities = await _context.Table<TipTypeEntity>().ToListAsync();
+                    return entities.Select(MapToDomain);
+                },
+                _exceptionMapper,
+                "GetAll",
+                "tiptype",
+                _logger);
         }
 
         public async Task<TipType> AddAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = MapToEntity(tipType);
-                await _context.InsertAsync(entity);
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = MapToEntity(tipType);
+                    await _context.InsertAsync(entity);
 
-                // Update domain object with generated ID
-                SetPrivateProperty(tipType, "Id", entity.Id);
+                    // Update domain object with generated ID
+                    SetPrivateProperty(tipType, "Id", entity.Id);
 
-                _logger.LogInformation("Created tip type with ID {TipTypeId}", entity.Id);
-                return tipType;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating tip type");
-                throw;
-            }
+                    _logger.LogInformation("Created tip type with ID {TipTypeId}", entity.Id);
+                    return tipType;
+                },
+                _exceptionMapper,
+                "Add",
+                "tiptype",
+                _logger);
         }
 
-        // FIXED: Changed from void Update() to async Task UpdateAsync()
         public async Task UpdateAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = MapToEntity(tipType);
-                await _context.UpdateAsync(entity);
-
-                // After updating the TipType, we need to handle the Tips collection
-                // Delete existing tips for this type and re-add them
-                var existingTips = await _context.Table<TipEntity>()
-                    .Where(t => t.TipTypeId == tipType.Id)
-                    .ToListAsync();
-
-                foreach (var existingTip in existingTips)
+            await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    await _context.DeleteAsync(existingTip);
-                }
+                    var entity = MapToEntity(tipType);
+                    await _context.UpdateAsync(entity);
 
-                // Add the current tips
-                foreach (var tip in tipType.Tips)
-                {
-                    var tipEntity = MapTipToEntity(tip);
-                    tipEntity.TipTypeId = tipType.Id; // Ensure the TipTypeId is set
-                    await _context.InsertAsync(tipEntity);
-                }
+                    // After updating the TipType, we need to handle the Tips collection
+                    // Delete existing tips for this type and re-add them
+                    var existingTips = await _context.Table<TipEntity>()
+                        .Where(t => t.TipTypeId == tipType.Id)
+                        .ToListAsync();
 
-                _logger.LogInformation("Updated tip type with ID {TipTypeId}", tipType.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating tip type with ID {TipTypeId}", tipType.Id);
-                throw;
-            }
+                    foreach (var existingTip in existingTips)
+                    {
+                        await _context.DeleteAsync(existingTip);
+                    }
+
+                    // Add the current tips
+                    foreach (var tip in tipType.Tips)
+                    {
+                        var tipEntity = MapTipToEntity(tip);
+                        tipEntity.TipTypeId = tipType.Id; // Ensure the TipTypeId is set
+                        await _context.InsertAsync(tipEntity);
+                    }
+
+                    _logger.LogInformation("Updated tip type with ID {TipTypeId}", tipType.Id);
+                },
+                _exceptionMapper,
+                "Update",
+                "tiptype",
+                _logger);
         }
 
-        // FIXED: Changed from void Delete() to async Task DeleteAsync()
         public async Task DeleteAsync(TipType tipType, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = MapToEntity(tipType);
-                await _context.DeleteAsync(entity);
-                _logger.LogInformation("Deleted tip type with ID {TipTypeId}", tipType.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting tip type with ID {TipTypeId}", tipType.Id);
-                throw;
-            }
+            await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = MapToEntity(tipType);
+                    await _context.DeleteAsync(entity);
+                    _logger.LogInformation("Deleted tip type with ID {TipTypeId}", tipType.Id);
+                },
+                _exceptionMapper,
+                "Delete",
+                "tiptype",
+                _logger);
         }
 
         public async Task<TipType?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = await _context.Table<TipTypeEntity>()
-                    .Where(t => t.Name == name)
-                    .FirstOrDefaultAsync();
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = await _context.Table<TipTypeEntity>()
+                        .Where(t => t.Name == name)
+                        .FirstOrDefaultAsync();
 
-                return entity != null ? MapToDomain(entity) : null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving tip type by name {Name}", name);
-                throw;
-            }
+                    return entity != null ? MapToDomain(entity) : null;
+                },
+                _exceptionMapper,
+                "GetByName",
+                "tiptype",
+                _logger);
         }
 
         public async Task<TipType?> GetWithTipsAsync(int id, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var tipTypeEntity = await _context.GetAsync<TipTypeEntity>(id);
-                if (tipTypeEntity == null)
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    return null;
-                }
+                    var tipTypeEntity = await _context.GetAsync<TipTypeEntity>(id);
+                    if (tipTypeEntity == null)
+                    {
+                        return null;
+                    }
 
-                var tipType = MapToDomain(tipTypeEntity);
+                    var tipType = MapToDomain(tipTypeEntity);
 
-                // Load related tips
-                var tipEntities = await _context.Table<TipEntity>()
-                    .Where(t => t.TipTypeId == id)
-                    .ToListAsync();
+                    // Load related tips
+                    var tipEntities = await _context.Table<TipEntity>()
+                        .Where(t => t.TipTypeId == id)
+                        .ToListAsync();
 
-                foreach (var tipEntity in tipEntities)
-                {
-                    var tip = CreateTipFromEntity(tipEntity);
-                    tipType.AddTip(tip);
-                }
+                    foreach (var tipEntity in tipEntities)
+                    {
+                        var tip = CreateTipFromEntity(tipEntity);
+                        tipType.AddTip(tip);
+                    }
 
-                return tipType;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving tip type with tips for ID {TipTypeId}", id);
-                throw;
-            }
+                    return tipType;
+                },
+                _exceptionMapper,
+                "GetWithTips",
+                "tiptype",
+                _logger);
         }
 
         #region Mapping Methods

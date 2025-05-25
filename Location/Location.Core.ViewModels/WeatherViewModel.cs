@@ -5,7 +5,6 @@ using Location.Core.Application.Queries.Weather;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.Application.Weather.Queries.GetWeatherForecast;
-using Location.Core.Domain.Entities;
 using MediatR;
 using System;
 using System.Threading;
@@ -83,9 +82,6 @@ namespace Location.Core.ViewModels
         [ObservableProperty]
         private WeatherForecastDto _weatherForecast;
 
-        // Event to notify about errors
-        public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
-
         // Default constructor for design-time
         public WeatherViewModel() : base(null)
         {
@@ -94,8 +90,9 @@ namespace Location.Core.ViewModels
         // Main constructor with dependencies
         public WeatherViewModel(
             IMediator mediator,
-            IAlertService alertingService)
-            : base(alertingService)
+            IAlertService alertingService,
+            IErrorDisplayService errorDisplayService)
+            : base(alertingService, null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
@@ -122,9 +119,9 @@ namespace Location.Core.ViewModels
 
                     if (!result.IsSuccess || result.Data == null)
                     {
+                        // Error events will be handled automatically by ErrorDisplayService
                         ErrorMessage = result.ErrorMessage ?? "Failed to load weather data";
                         IsError = true;
-                        OnErrorOccurred(ErrorMessage);
                         return;
                     }
                 }
@@ -141,9 +138,9 @@ namespace Location.Core.ViewModels
 
                 if (!forecastResult.IsSuccess || forecastResult.Data == null)
                 {
+                    // Error events will be handled automatically by ErrorDisplayService
                     ErrorMessage = forecastResult.ErrorMessage ?? "Failed to load forecast data";
                     IsError = true;
-                    OnErrorOccurred(ErrorMessage);
                     return;
                 }
 
@@ -155,9 +152,9 @@ namespace Location.Core.ViewModels
             }
             catch (Exception ex)
             {
+                // Error events will be handled automatically by ErrorDisplayService
                 ErrorMessage = $"Error loading weather data: {ex.Message}";
                 IsError = true;
-                OnErrorOccurred(ErrorMessage);
             }
             finally
             {
@@ -204,7 +201,6 @@ namespace Location.Core.ViewModels
             {
                 ErrorMessage = $"Error processing forecast data: {ex.Message}";
                 IsError = true;
-                OnErrorOccurred(ErrorMessage);
             }
         }
 
@@ -218,12 +214,6 @@ namespace Location.Core.ViewModels
             // Map icon code to local image or return URL for web images
             // This is a simplified implementation - you may need to adjust it
             return $"weather_{iconCode}.png";
-        }
-
-        // Helper method to raise error event
-        protected virtual void OnErrorOccurred(string message)
-        {
-            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(message));
         }
     }
 }

@@ -4,6 +4,7 @@ using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.External.Models;
+using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Extensions.Http;
@@ -22,6 +23,7 @@ namespace Location.Core.Infrastructure.External
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<WeatherService> _logger;
+        private readonly IInfrastructureExceptionMappingService _exceptionMapper;
         private readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy;
 
         private const string API_KEY_SETTING = "WeatherApiKey";
@@ -31,11 +33,13 @@ namespace Location.Core.Infrastructure.External
         public WeatherService(
             IHttpClientFactory httpClientFactory,
             IUnitOfWork unitOfWork,
-            ILogger<WeatherService> logger)
+            ILogger<WeatherService> logger,
+            IInfrastructureExceptionMappingService exceptionMapper)
         {
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _exceptionMapper = exceptionMapper ?? throw new ArgumentNullException(nameof(exceptionMapper));
 
             _retryPolicy = HttpPolicyExtensions
                 .HandleTransientHttpError()
@@ -86,20 +90,10 @@ namespace Location.Core.Infrastructure.External
                 var weatherDto = MapToDto(weatherData);
                 return Result<WeatherDto>.Success(weatherDto);
             }
-            catch (TaskCanceledException)
-            {
-                _logger.LogWarning("Weather API request cancelled");
-                return Result<WeatherDto>.Failure("Request cancelled");
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "Network error while fetching weather data");
-                return Result<WeatherDto>.Failure($"Network error: {ex.Message}");
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching weather data");
-                return Result<WeatherDto>.Failure($"Failed to fetch weather: {ex.Message}");
+                var domainException = _exceptionMapper.MapToWeatherDomainException(ex, "GetWeather");
+                throw domainException;
             }
         }
 
@@ -147,8 +141,8 @@ namespace Location.Core.Infrastructure.External
                     weatherResult.Data.Sunrise,
                     weatherResult.Data.Sunset,
                     Temperature.FromCelsius(weatherResult.Data.Temperature),
-                    Temperature.FromCelsius(weatherResult.Data.Temperature - 5), // Approximate min
-                    Temperature.FromCelsius(weatherResult.Data.Temperature + 5), // Approximate max
+                    Temperature.FromCelsius(weatherResult.Data.MinimumTemp), // Approximate min
+                    Temperature.FromCelsius(weatherResult.Data.MaximumTemp), // Approximate max
                     weatherResult.Data.Description,
                     weatherResult.Data.Icon,
                     new WindInfo(weatherResult.Data.WindSpeed, weatherResult.Data.WindDirection, weatherResult.Data.WindGust),
@@ -178,8 +172,8 @@ namespace Location.Core.Infrastructure.External
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating weather for location {LocationId}", locationId);
-                return Result<WeatherDto>.Failure($"Failed to update weather: {ex.Message}");
+                var domainException = _exceptionMapper.MapToWeatherDomainException(ex, "UpdateWeatherForLocation");
+                throw domainException;
             }
         }
 
@@ -223,8 +217,8 @@ namespace Location.Core.Infrastructure.External
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching weather forecast");
-                return Result<WeatherForecastDto>.Failure($"Failed to fetch forecast: {ex.Message}");
+                var domainException = _exceptionMapper.MapToWeatherDomainException(ex, "GetForecast");
+                throw domainException;
             }
         }
 
@@ -262,8 +256,8 @@ namespace Location.Core.Infrastructure.External
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating all weather data");
-                return Result<int>.Failure($"Failed to update all weather: {ex.Message}");
+                var domainException = _exceptionMapper.MapToWeatherDomainException(ex, "UpdateAllWeather");
+                throw domainException;
             }
         }
 
@@ -286,6 +280,8 @@ namespace Location.Core.Infrastructure.External
             return new WeatherDto
             {
                 Temperature = current.Temp,
+                MinimumTemp = response.Daily.FirstOrDefault().Temp.Min,
+                MaximumTemp = response.Daily.FirstOrDefault().Temp.Max,
                 Description = current.Weather.FirstOrDefault()?.Description ?? string.Empty,
                 Icon = current.Weather.FirstOrDefault()?.Icon ?? string.Empty,
                 WindSpeed = current.WindSpeed,

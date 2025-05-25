@@ -36,5 +36,7 @@ namespace Location.Core.Application.Weather.DTOs
         public DateTime? MoonRise { get; set; }
         public DateTime? MoonSet { get; set; }
         public double MoonPhase { get; set; }
+        public double MinimumTemp { get; set; }
+        public double MaximumTemp { get; set; }
     }
 }

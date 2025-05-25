@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Entities;
+using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,184 +16,186 @@ namespace Location.Core.Infrastructure.Data.Repositories
     {
         private readonly IDatabaseContext _context;
         private readonly ILogger<SettingRepository> _logger;
+        private readonly IInfrastructureExceptionMappingService _exceptionMapper;
 
-        public SettingRepository(IDatabaseContext context, ILogger<SettingRepository> logger)
+        public SettingRepository(IDatabaseContext context, ILogger<SettingRepository> logger, IInfrastructureExceptionMappingService exceptionMapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _exceptionMapper = exceptionMapper ?? throw new ArgumentNullException(nameof(exceptionMapper));
         }
 
         public async Task<Setting?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = await _context.GetAsync<SettingEntity>(id);
-                return entity != null ? MapToDomain(entity) : null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving setting with ID {SettingId}", id);
-                throw;
-            }
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = await _context.GetAsync<SettingEntity>(id);
+                    return entity != null ? MapToDomain(entity) : null;
+                },
+                _exceptionMapper,
+                "GetById",
+                "setting",
+                _logger);
         }
 
         public async Task<Setting?> GetByKeyAsync(string key, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = await _context.Table<SettingEntity>()
-                    .Where(s => s.Key == key)
-                    .FirstOrDefaultAsync().ConfigureAwait(false);
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = await _context.Table<SettingEntity>()
+                        .Where(s => s.Key == key)
+                        .FirstOrDefaultAsync().ConfigureAwait(false);
 
-                return entity != null ? MapToDomain(entity) : null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving setting with key {Key}", key);
-                throw;
-            }
+                    return entity != null ? MapToDomain(entity) : null;
+                },
+                _exceptionMapper,
+                "GetByKey",
+                "setting",
+                _logger);
         }
 
         public async Task<IEnumerable<Setting>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entities = await _context.Table<SettingEntity>()
-                    .OrderBy(s => s.Key)
-                    .ToListAsync();
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entities = await _context.Table<SettingEntity>()
+                        .OrderBy(s => s.Key)
+                        .ToListAsync();
 
-                return entities.Select(MapToDomain);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving all settings");
-                throw;
-            }
+                    return entities.Select(MapToDomain);
+                },
+                _exceptionMapper,
+                "GetAll",
+                "setting",
+                _logger);
         }
 
         public async Task<IEnumerable<Setting>> GetByKeysAsync(IEnumerable<string> keys, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var keysList = keys.ToList();
-                var entities = await _context.Table<SettingEntity>()
-                    .Where(s => keysList.Contains(s.Key))
-                    .ToListAsync();
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var keysList = keys.ToList();
+                    var entities = await _context.Table<SettingEntity>()
+                        .Where(s => keysList.Contains(s.Key))
+                        .ToListAsync();
 
-                return entities.Select(MapToDomain);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving settings by keys");
-                throw;
-            }
+                    return entities.Select(MapToDomain);
+                },
+                _exceptionMapper,
+                "GetByKeys",
+                "setting",
+                _logger);
         }
 
         public async Task<Setting> AddAsync(Setting setting, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                // Check if key already exists
-                var existing = await _context.Table<SettingEntity>()
-                    .Where(s => s.Key == setting.Key)
-                    .FirstOrDefaultAsync();
-
-                if (existing != null)
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    throw new InvalidOperationException($"Setting with key '{setting.Key}' already exists");
-                }
+                    // Check if key already exists
+                    var existing = await _context.Table<SettingEntity>()
+                        .Where(s => s.Key == setting.Key)
+                        .FirstOrDefaultAsync();
 
-                var entity = MapToEntity(setting);
-                entity.Timestamp = DateTime.UtcNow;
+                    if (existing != null)
+                    {
+                        throw new InvalidOperationException($"Setting with key '{setting.Key}' already exists");
+                    }
 
-                await _context.InsertAsync(entity);
+                    var entity = MapToEntity(setting);
+                    entity.Timestamp = DateTime.UtcNow;
 
-                // Update domain object with generated ID
-                SetPrivateProperty(setting, "Id", entity.Id);
+                    await _context.InsertAsync(entity);
 
-                _logger.LogInformation("Created setting with key {Key}", setting.Key);
-                return setting;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating setting");
-                throw;
-            }
+                    // Update domain object with generated ID
+                    SetPrivateProperty(setting, "Id", entity.Id);
+
+                    _logger.LogInformation("Created setting with key {Key}", setting.Key);
+                    return setting;
+                },
+                _exceptionMapper,
+                "Add",
+                "setting",
+                _logger);
         }
 
         public async Task UpdateAsync(Setting setting, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = MapToEntity(setting);
-                entity.Timestamp = DateTime.UtcNow;
+            await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = MapToEntity(setting);
+                    entity.Timestamp = DateTime.UtcNow;
 
-                await _context.UpdateAsync(entity);
+                    await _context.UpdateAsync(entity);
 
-                _logger.LogInformation("Updated setting with key {Key}", setting.Key);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating setting with key {Key}", setting.Key);
-                throw;
-            }
+                    _logger.LogInformation("Updated setting with key {Key}", setting.Key);
+                },
+                _exceptionMapper,
+                "Update",
+                "setting",
+                _logger);
         }
 
         public async Task DeleteAsync(Setting setting, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = MapToEntity(setting);
-                await _context.DeleteAsync(entity);
+            await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = MapToEntity(setting);
+                    await _context.DeleteAsync(entity);
 
-                _logger.LogInformation("Deleted setting with key {Key}", setting.Key);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting setting with key {Key}", setting.Key);
-                throw;
-            }
+                    _logger.LogInformation("Deleted setting with key {Key}", setting.Key);
+                },
+                _exceptionMapper,
+                "Delete",
+                "setting",
+                _logger);
         }
 
         public async Task<Setting> UpsertAsync(string key, string value, string? description = null, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var existingEntity = await _context.Table<SettingEntity>()
-                    .Where(s => s.Key == key)
-                    .FirstOrDefaultAsync();
-
-                Setting setting;
-                SettingEntity entity;
-
-                if (existingEntity != null)
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    // Update existing
-                    setting = MapToDomain(existingEntity);
-                    setting.UpdateValue(value);
-                    entity = MapToEntity(setting);
-                    entity.Timestamp = DateTime.UtcNow;
-                    await _context.UpdateAsync(entity);
-                    _logger.LogInformation("Updated setting with key {Key} via upsert", key);
-                }
-                else
-                {
-                    // Create new
-                    setting = new Setting(key, value, description ?? string.Empty);
-                    entity = MapToEntity(setting);
-                    entity.Timestamp = DateTime.UtcNow;
-                    await _context.InsertAsync(entity);
-                    SetPrivateProperty(setting, "Id", entity.Id);
-                    _logger.LogInformation("Created setting with key {Key} via upsert", key);
-                }
+                    var existingEntity = await _context.Table<SettingEntity>()
+                        .Where(s => s.Key == key)
+                        .FirstOrDefaultAsync();
 
-                return setting;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error upserting setting with key {Key}", key);
-                throw;
-            }
+                    Setting setting;
+                    SettingEntity entity;
+
+                    if (existingEntity != null)
+                    {
+                        // Update existing
+                        setting = MapToDomain(existingEntity);
+                        setting.UpdateValue(value);
+                        entity = MapToEntity(setting);
+                        entity.Timestamp = DateTime.UtcNow;
+                        await _context.UpdateAsync(entity);
+                        _logger.LogInformation("Updated setting with key {Key} via upsert", key);
+                    }
+                    else
+                    {
+                        // Create new
+                        setting = new Setting(key, value, description ?? string.Empty);
+                        entity = MapToEntity(setting);
+                        entity.Timestamp = DateTime.UtcNow;
+                        await _context.InsertAsync(entity);
+                        SetPrivateProperty(setting, "Id", entity.Id);
+                        _logger.LogInformation("Created setting with key {Key} via upsert", key);
+                    }
+
+                    return setting;
+                },
+                _exceptionMapper,
+                "Upsert",
+                "setting",
+                _logger);
         }
 
         #region Mapping Methods

@@ -3,6 +3,7 @@ using Location.Core.Application.Common.Models;
 using Location.Core.Domain.Rules;
 using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.Data.Entities;
+using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,152 +18,154 @@ namespace Location.Core.Infrastructure.Data.Repositories
     {
         private readonly IDatabaseContext _context;
         private readonly ILogger<LocationRepository> _logger;
+        private readonly IInfrastructureExceptionMappingService _exceptionMapper;
 
-        public LocationRepository(IDatabaseContext context, ILogger<LocationRepository> logger)
+        public LocationRepository(IDatabaseContext context, ILogger<LocationRepository> logger, IInfrastructureExceptionMappingService exceptionMapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _exceptionMapper = exceptionMapper ?? throw new ArgumentNullException(nameof(exceptionMapper));
         }
 
         public async Task<Domain.Entities.Location?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = await _context.GetAsync<LocationEntity>(id);
-
-                if (entity == null)
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    return null;
-                }
+                    var entity = await _context.GetAsync<LocationEntity>(id);
 
-                var domainLocation = MapToDomain(entity);
-                return domainLocation;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving location with ID {LocationId}", id);
-                throw;
-            }
+                    if (entity == null)
+                    {
+                        return null;
+                    }
+
+                    var domainLocation = MapToDomain(entity);
+                    return domainLocation;
+                },
+                _exceptionMapper,
+                "GetById",
+                "location",
+                _logger);
         }
 
         public async Task<IEnumerable<Domain.Entities.Location>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entities = await _context.Table<LocationEntity>()
-                    .OrderByDescending(l => l.Timestamp)
-                    .ToListAsync();
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entities = await _context.Table<LocationEntity>()
+                        .OrderByDescending(l => l.Timestamp)
+                        .ToListAsync();
 
-                var domainLocations = entities.Select(MapToDomain);
-                return domainLocations;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving all locations");
-                throw;
-            }
+                    var domainLocations = entities.Select(MapToDomain);
+                    return domainLocations;
+                },
+                _exceptionMapper,
+                "GetAll",
+                "location",
+                _logger);
         }
 
         public async Task<IEnumerable<Domain.Entities.Location>> GetActiveAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entities = await _context.Table<LocationEntity>()
-                    .Where(l => !l.IsDeleted)
-                    .OrderByDescending(l => l.Timestamp)
-                    .ToListAsync();
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entities = await _context.Table<LocationEntity>()
+                        .Where(l => !l.IsDeleted)
+                        .OrderByDescending(l => l.Timestamp)
+                        .ToListAsync();
 
-                var domainLocations = entities.Select(MapToDomain);
-                return domainLocations;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving active locations");
-                throw;
-            }
+                    var domainLocations = entities.Select(MapToDomain);
+                    return domainLocations;
+                },
+                _exceptionMapper,
+                "GetActive",
+                "location",
+                _logger);
         }
 
         public async Task<Domain.Entities.Location> AddAsync(Domain.Entities.Location location, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                // Validate the location
-                if (!LocationValidationRules.IsValid(location, out var errors))
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    throw new InvalidOperationException(string.Join("; ", errors));
-                }
+                    // Validate the location
+                    if (!LocationValidationRules.IsValid(location, out var errors))
+                    {
+                        throw new InvalidOperationException(string.Join("; ", errors));
+                    }
 
-                var entity = MapToEntity(location);
-                entity.Timestamp = DateTime.UtcNow;
+                    var entity = MapToEntity(location);
+                    entity.Timestamp = DateTime.UtcNow;
 
-                await _context.InsertAsync(entity);
+                    await _context.InsertAsync(entity);
 
-                // Update the domain object with the generated ID
-                SetPrivateProperty(location, "Id", entity.Id);
+                    // Update the domain object with the generated ID
+                    SetPrivateProperty(location, "Id", entity.Id);
 
-                _logger.LogInformation("Created location with ID {LocationId}", entity.Id);
-                return location;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating location");
-                throw;
-            }
+                    _logger.LogInformation("Created location with ID {LocationId}", entity.Id);
+                    return location;
+                },
+                _exceptionMapper,
+                "Add",
+                "location",
+                _logger);
         }
 
         public async Task UpdateAsync(Domain.Entities.Location location, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                // Validate the location
-                if (!LocationValidationRules.IsValid(location, out var errors))
+            await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    throw new InvalidOperationException(string.Join("; ", errors));
-                }
+                    // Validate the location
+                    if (!LocationValidationRules.IsValid(location, out var errors))
+                    {
+                        throw new InvalidOperationException(string.Join("; ", errors));
+                    }
 
-                var entity = MapToEntity(location);
-                await _context.UpdateAsync(entity);
+                    var entity = MapToEntity(location);
+                    await _context.UpdateAsync(entity);
 
-                _logger.LogInformation("Updated location with ID {LocationId}", location.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating location with ID {LocationId}", location.Id);
-                throw;
-            }
+                    _logger.LogInformation("Updated location with ID {LocationId}", location.Id);
+                },
+                _exceptionMapper,
+                "Update",
+                "location",
+                _logger);
         }
 
         public async Task DeleteAsync(Domain.Entities.Location location, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = MapToEntity(location);
-                await _context.DeleteAsync(entity);
+            await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = MapToEntity(location);
+                    await _context.DeleteAsync(entity);
 
-                _logger.LogInformation("Deleted location with ID {LocationId}", location.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting location with ID {LocationId}", location.Id);
-                throw;
-            }
+                    _logger.LogInformation("Deleted location with ID {LocationId}", location.Id);
+                },
+                _exceptionMapper,
+                "Delete",
+                "location",
+                _logger);
         }
 
         public async Task<Domain.Entities.Location?> GetByTitleAsync(string title, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var entity = await _context.Table<LocationEntity>()
-                    .Where(l => l.Title == title)
-                    .FirstOrDefaultAsync();
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var entity = await _context.Table<LocationEntity>()
+                        .Where(l => l.Title == title)
+                        .FirstOrDefaultAsync();
 
-                return entity != null ? MapToDomain(entity) : null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving location by title {Title}", title);
-                throw;
-            }
+                    return entity != null ? MapToDomain(entity) : null;
+                },
+                _exceptionMapper,
+                "GetByTitle",
+                "location",
+                _logger);
         }
 
         public async Task<IEnumerable<Domain.Entities.Location>> GetNearbyAsync(
@@ -171,33 +174,33 @@ namespace Location.Core.Infrastructure.Data.Repositories
             double distanceKm,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                // Get all locations and filter by distance in memory
-                // For a production system, consider using spatial queries
-                var entities = await _context.Table<LocationEntity>()
-                    .Where(l => !l.IsDeleted)
-                    .ToListAsync();
-
-                var centerCoordinate = new Coordinate(latitude, longitude);
-                var nearbyLocations = new List<Domain.Entities.Location>();
-
-                foreach (var entity in entities)
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    var location = MapToDomain(entity);
-                    if (location.Coordinate.DistanceTo(centerCoordinate) <= distanceKm)
-                    {
-                        nearbyLocations.Add(location);
-                    }
-                }
+                    // Get all locations and filter by distance in memory
+                    // For a production system, consider using spatial queries
+                    var entities = await _context.Table<LocationEntity>()
+                        .Where(l => !l.IsDeleted)
+                        .ToListAsync();
 
-                return nearbyLocations;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving locations by coordinates");
-                throw;
-            }
+                    var centerCoordinate = new Coordinate(latitude, longitude);
+                    var nearbyLocations = new List<Domain.Entities.Location>();
+
+                    foreach (var entity in entities)
+                    {
+                        var location = MapToDomain(entity);
+                        if (location.Coordinate.DistanceTo(centerCoordinate) <= distanceKm)
+                        {
+                            nearbyLocations.Add(location);
+                        }
+                    }
+
+                    return nearbyLocations;
+                },
+                _exceptionMapper,
+                "GetNearby",
+                "location",
+                _logger);
         }
 
         #region Mapping Methods

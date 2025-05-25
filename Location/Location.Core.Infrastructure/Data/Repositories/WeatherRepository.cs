@@ -2,6 +2,7 @@
 using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.Data.Entities;
+using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,227 +16,227 @@ namespace Location.Core.Infrastructure.Data.Repositories
     {
         private readonly IDatabaseContext _context;
         private readonly ILogger<WeatherRepository> _logger;
+        private readonly IInfrastructureExceptionMappingService _exceptionMapper;
 
-        public WeatherRepository(IDatabaseContext context, ILogger<WeatherRepository> logger)
+        public WeatherRepository(IDatabaseContext context, ILogger<WeatherRepository> logger, IInfrastructureExceptionMappingService exceptionMapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _exceptionMapper = exceptionMapper ?? throw new ArgumentNullException(nameof(exceptionMapper));
         }
 
         public async Task<Weather?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation("Retrieving weather with ID {WeatherId}", id);
-
-                var weatherEntity = await _context.GetAsync<WeatherEntity>(id);
-
-                if (weatherEntity == null)
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    _logger.LogInformation("Weather with ID {WeatherId} not found", id);
-                    return null;
-                }
+                    _logger.LogInformation("Retrieving weather with ID {WeatherId}", id);
 
-                var forecastEntities = await _context.Table<WeatherForecastEntity>()
-                    .Where(f => f.WeatherId == id)
-                    .OrderBy(f => f.Date)
-                    .ToListAsync();
+                    var weatherEntity = await _context.GetAsync<WeatherEntity>(id);
 
-                var weather = MapToDomain(weatherEntity, forecastEntities);
+                    if (weatherEntity == null)
+                    {
+                        _logger.LogInformation("Weather with ID {WeatherId} not found", id);
+                        return null;
+                    }
 
-                _logger.LogInformation("Successfully retrieved weather with ID {WeatherId}", id);
-                return weather;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving weather with ID {WeatherId}", id);
-                throw;
-            }
+                    var forecastEntities = await _context.Table<WeatherForecastEntity>()
+                        .Where(f => f.WeatherId == id)
+                        .OrderBy(f => f.Date)
+                        .ToListAsync();
+
+                    var weather = MapToDomain(weatherEntity, forecastEntities);
+
+                    _logger.LogInformation("Successfully retrieved weather with ID {WeatherId}", id);
+                    return weather;
+                },
+                _exceptionMapper,
+                "GetById",
+                "weather",
+                _logger);
         }
 
         public async Task<Weather?> GetByLocationIdAsync(int locationId, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var weatherEntities = await _context.Table<WeatherEntity>()
-                    .Where(w => w.LocationId == locationId)
-                    .ToListAsync();
-
-                if (!weatherEntities.Any())
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    return null;
-                }
+                    var weatherEntities = await _context.Table<WeatherEntity>()
+                        .Where(w => w.LocationId == locationId)
+                        .ToListAsync();
 
-                var weatherEntity = weatherEntities
-                    .OrderByDescending(w => w.LastUpdate)
-                    .First();
+                    if (!weatherEntities.Any())
+                    {
+                        return null;
+                    }
 
-                var forecastEntities = await _context.Table<WeatherForecastEntity>()
-                    .Where(f => f.WeatherId == weatherEntity.Id)
-                    .OrderBy(f => f.Date)
-                    .ToListAsync();
+                    var weatherEntity = weatherEntities
+                        .OrderByDescending(w => w.LastUpdate)
+                        .First();
 
-                var weather = MapToDomain(weatherEntity, forecastEntities);
-                return weather;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving weather for location ID {LocationId}", locationId);
-                throw;
-            }
+                    var forecastEntities = await _context.Table<WeatherForecastEntity>()
+                        .Where(f => f.WeatherId == weatherEntity.Id)
+                        .OrderBy(f => f.Date)
+                        .ToListAsync();
+
+                    var weather = MapToDomain(weatherEntity, forecastEntities);
+                    return weather;
+                },
+                _exceptionMapper,
+                "GetByLocationId",
+                "weather",
+                _logger);
         }
 
         public async Task<Weather> AddAsync(Weather weather, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var weatherEntity = MapToEntity(weather);
-                await _context.InsertAsync(weatherEntity);
-
-                SetPrivateProperty(weather, "Id", weatherEntity.Id);
-
-                foreach (var forecast in weather.Forecasts)
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    var forecastEntity = MapForecastToEntity(forecast, weatherEntity.Id);
-                    await _context.InsertAsync(forecastEntity);
-                    SetPrivateProperty(forecast, "Id", forecastEntity.Id);
-                }
+                    var weatherEntity = MapToEntity(weather);
+                    await _context.InsertAsync(weatherEntity);
 
-                _logger.LogInformation("Created weather with ID {WeatherId} for location {LocationId}",
-                    weatherEntity.Id, weather.LocationId);
+                    SetPrivateProperty(weather, "Id", weatherEntity.Id);
 
-                return weather;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating weather");
-                throw;
-            }
+                    foreach (var forecast in weather.Forecasts)
+                    {
+                        var forecastEntity = MapForecastToEntity(forecast, weatherEntity.Id);
+                        await _context.InsertAsync(forecastEntity);
+                        SetPrivateProperty(forecast, "Id", forecastEntity.Id);
+                    }
+
+                    _logger.LogInformation("Created weather with ID {WeatherId} for location {LocationId}",
+                        weatherEntity.Id, weather.LocationId);
+
+                    return weather;
+                },
+                _exceptionMapper,
+                "Add",
+                "weather",
+                _logger);
         }
 
-        // FIXED: Use async UpdateAsync method to match Persistence interface
         public async Task UpdateAsync(Weather weather, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var weatherEntity = MapToEntity(weather);
-                await _context.UpdateAsync(weatherEntity);
-
-                var existingForecasts = await _context.Table<WeatherForecastEntity>()
-                    .Where(f => f.WeatherId == weather.Id)
-                    .ToListAsync();
-
-                foreach (var forecast in existingForecasts)
+            await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    await _context.DeleteAsync(forecast);
-                }
+                    var weatherEntity = MapToEntity(weather);
+                    await _context.UpdateAsync(weatherEntity);
 
-                foreach (var forecast in weather.Forecasts)
-                {
-                    var forecastEntity = MapForecastToEntity(forecast, weather.Id);
-                    await _context.InsertAsync(forecastEntity);
-                    SetPrivateProperty(forecast, "Id", forecastEntity.Id);
-                }
+                    var existingForecasts = await _context.Table<WeatherForecastEntity>()
+                        .Where(f => f.WeatherId == weather.Id)
+                        .ToListAsync();
 
-                _logger.LogInformation("Updated weather with ID {WeatherId}", weather.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating weather with ID {WeatherId}", weather.Id);
-                throw;
-            }
+                    foreach (var forecast in existingForecasts)
+                    {
+                        await _context.DeleteAsync(forecast);
+                    }
+
+                    foreach (var forecast in weather.Forecasts)
+                    {
+                        var forecastEntity = MapForecastToEntity(forecast, weather.Id);
+                        await _context.InsertAsync(forecastEntity);
+                        SetPrivateProperty(forecast, "Id", forecastEntity.Id);
+                    }
+
+                    _logger.LogInformation("Updated weather with ID {WeatherId}", weather.Id);
+                },
+                _exceptionMapper,
+                "Update",
+                "weather",
+                _logger);
         }
 
-        // FIXED: Use async DeleteAsync method to match Persistence interface
         public async Task DeleteAsync(Weather weather, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var forecasts = await _context.Table<WeatherForecastEntity>()
-                    .Where(f => f.WeatherId == weather.Id)
-                    .ToListAsync();
-
-                foreach (var forecast in forecasts)
+            await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    await _context.DeleteAsync(forecast);
-                }
+                    var forecasts = await _context.Table<WeatherForecastEntity>()
+                        .Where(f => f.WeatherId == weather.Id)
+                        .ToListAsync();
 
-                var weatherEntity = MapToEntity(weather);
-                await _context.DeleteAsync(weatherEntity);
+                    foreach (var forecast in forecasts)
+                    {
+                        await _context.DeleteAsync(forecast);
+                    }
 
-                _logger.LogInformation("Deleted weather with ID {WeatherId}", weather.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting weather with ID {WeatherId}", weather.Id);
-                throw;
-            }
+                    var weatherEntity = MapToEntity(weather);
+                    await _context.DeleteAsync(weatherEntity);
+
+                    _logger.LogInformation("Deleted weather with ID {WeatherId}", weather.Id);
+                },
+                _exceptionMapper,
+                "Delete",
+                "weather",
+                _logger);
         }
 
         public async Task<IEnumerable<Weather>> GetRecentAsync(int count = 10, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var allWeatherEntities = await _context.Table<WeatherEntity>()
-                    .ToListAsync();
-
-                var weatherEntities = allWeatherEntities
-                    .OrderByDescending(w => w.LastUpdate)
-                    .Take(count)
-                    .ToList();
-
-                var weatherList = new List<Weather>();
-
-                foreach (var weatherEntity in weatherEntities)
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    var forecastEntities = await _context.Table<WeatherForecastEntity>()
-                        .Where(f => f.WeatherId == weatherEntity.Id)
-                        .OrderBy(f => f.Date)
+                    var allWeatherEntities = await _context.Table<WeatherEntity>()
                         .ToListAsync();
 
-                    var weather = MapToDomain(weatherEntity, forecastEntities);
-                    weatherList.Add(weather);
-                }
+                    var weatherEntities = allWeatherEntities
+                        .OrderByDescending(w => w.LastUpdate)
+                        .Take(count)
+                        .ToList();
 
-                return weatherList;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving recent weather data");
-                throw;
-            }
+                    var weatherList = new List<Weather>();
+
+                    foreach (var weatherEntity in weatherEntities)
+                    {
+                        var forecastEntities = await _context.Table<WeatherForecastEntity>()
+                            .Where(f => f.WeatherId == weatherEntity.Id)
+                            .OrderBy(f => f.Date)
+                            .ToListAsync();
+
+                        var weather = MapToDomain(weatherEntity, forecastEntities);
+                        weatherList.Add(weather);
+                    }
+
+                    return weatherList;
+                },
+                _exceptionMapper,
+                "GetRecent",
+                "weather",
+                _logger);
         }
 
         public async Task<IEnumerable<Weather>> GetExpiredAsync(TimeSpan maxAge, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var cutoffDate = DateTime.UtcNow - maxAge;
-
-                var weatherEntities = await _context.Table<WeatherEntity>()
-                    .Where(w => w.LastUpdate < cutoffDate)
-                    .ToListAsync();
-
-                var weatherList = new List<Weather>();
-
-                foreach (var weatherEntity in weatherEntities)
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
                 {
-                    var forecastEntities = await _context.Table<WeatherForecastEntity>()
-                        .Where(f => f.WeatherId == weatherEntity.Id)
-                        .OrderBy(f => f.Date)
+                    var cutoffDate = DateTime.UtcNow - maxAge;
+
+                    var weatherEntities = await _context.Table<WeatherEntity>()
+                        .Where(w => w.LastUpdate < cutoffDate)
                         .ToListAsync();
 
-                    var weather = MapToDomain(weatherEntity, forecastEntities);
-                    weatherList.Add(weather);
-                }
+                    var weatherList = new List<Weather>();
 
-                return weatherList;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving expired weather data");
-                throw;
-            }
+                    foreach (var weatherEntity in weatherEntities)
+                    {
+                        var forecastEntities = await _context.Table<WeatherForecastEntity>()
+                            .Where(f => f.WeatherId == weatherEntity.Id)
+                            .OrderBy(f => f.Date)
+                            .ToListAsync();
+
+                        var weather = MapToDomain(weatherEntity, forecastEntities);
+                        weatherList.Add(weather);
+                    }
+
+                    return weatherList;
+                },
+                _exceptionMapper,
+                "GetExpired",
+                "weather",
+                _logger);
         }
 
         #region Mapping Methods

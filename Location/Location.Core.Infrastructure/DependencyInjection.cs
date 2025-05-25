@@ -65,6 +65,9 @@ namespace Location.Core.Infrastructure
             services.AddScoped<IWeatherService, WeatherService>();
             services.AddScoped<ILoggingService, LoggingService>();
 
+            // Exception mapping service
+            services.AddScoped<IInfrastructureExceptionMappingService, InfrastructureExceptionMappingService>();
+
             // Event Bus
             services.AddSingleton<IEventBus, InMemoryEventBus>();
 
