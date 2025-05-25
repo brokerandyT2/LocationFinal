@@ -7,12 +7,12 @@ using Location.Photography.ViewModels.Events;
 using System;
 using System.Threading.Tasks;
 
-namespace Location.Photography.ViewModels.Base
+namespace Location.Photography.ViewModels
 {
     public abstract partial class SubscriptionAwareViewModelBase : ViewModelBase
     {
         protected readonly ISubscriptionFeatureGuard _featureGuard;
-        protected readonly IAlertService _alertService;
+        private readonly IErrorDisplayService _errorDisplayService;
 
         [ObservableProperty]
         private bool _hasSubscriptionError;
@@ -24,10 +24,11 @@ namespace Location.Photography.ViewModels.Base
 
         protected SubscriptionAwareViewModelBase(
             ISubscriptionFeatureGuard featureGuard,
-            IAlertService alertService)
+            IErrorDisplayService errorDisplayService)
+            : base(null, errorDisplayService)
         {
             _featureGuard = featureGuard ?? throw new ArgumentNullException(nameof(featureGuard));
-            _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
         }
 
         /// <summary>
@@ -62,7 +63,7 @@ namespace Location.Photography.ViewModels.Base
             {
                 HasSubscriptionError = true;
                 SubscriptionErrorMessage = "Error checking subscription status";
-                await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                OnSystemError($"There was an error processing your request, please try again: {ex.Message}");
                 return false;
             }
         }
@@ -99,7 +100,7 @@ namespace Location.Photography.ViewModels.Base
             {
                 HasSubscriptionError = true;
                 SubscriptionErrorMessage = "Error checking subscription status";
-                await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                OnSystemError($"There was an error processing your request, please try again: {ex.Message}");
                 return false;
             }
         }
@@ -136,7 +137,7 @@ namespace Location.Photography.ViewModels.Base
             {
                 HasSubscriptionError = true;
                 SubscriptionErrorMessage = "Error checking subscription status";
-                await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                OnSystemError($"There was an error processing your request, please try again: {ex.Message}");
                 return false;
             }
         }
@@ -156,9 +157,10 @@ namespace Location.Photography.ViewModels.Base
                 case FeatureAccessAction.ShowError:
                     HasSubscriptionError = true;
                     SubscriptionErrorMessage = accessResult.Message;
-                    await _alertService.ShowErrorAlertAsync(accessResult.Message, "Subscription Required");
+                    SetValidationError(accessResult.Message);
                     break;
             }
+            await Task.CompletedTask;
         }
 
         protected virtual void OnSubscriptionUpgradeRequested(SubscriptionUpgradeRequestedEventArgs e)
@@ -174,6 +176,7 @@ namespace Location.Photography.ViewModels.Base
                 RequiredSubscription = "Premium",
                 Message = "Upgrade to Premium to access this feature"
             });
+            await Task.CompletedTask;
         }
     }
 }

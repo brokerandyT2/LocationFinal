@@ -1,13 +1,12 @@
 ﻿// Location.Photography.ViewModels/SunCalculationsViewModel.cs
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.ViewModels;
+using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Services;
 using Location.Photography.Domain.Services;
 using Location.Photography.ViewModels.Events;
 using Location.Photography.ViewModels.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
@@ -18,6 +17,8 @@ namespace Location.Photography.ViewModels
     {
         #region Fields
         private readonly ISunCalculatorService _sunCalculatorService;
+        private readonly IErrorDisplayService _errorDisplayService;
+
         private List<LocationViewModel> _locations = new List<LocationViewModel>();
         private LocationViewModel _selectedLocation = new LocationViewModel();
         private double _latitude;
@@ -283,9 +284,11 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region Constructor
-        public SunCalculationsViewModel(ISunCalculatorService sunCalculatorService)
+        public SunCalculationsViewModel(ISunCalculatorService sunCalculatorService, IErrorDisplayService errorDisplayService)
+            : base(null, errorDisplayService)
         {
             _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
 
             LoadLocationsCommand = new AsyncRelayCommand(LoadLocationsAsync);
             CalculateSunTimesCommand = new RelayCommand(CalculateSun);
@@ -298,7 +301,7 @@ namespace Location.Photography.ViewModels
             try
             {
                 IsBusy = true;
-                ErrorMessage = string.Empty;
+                ClearErrors();
 
                 if (Latitude == 0 && Longitude == 0)
                 {
@@ -318,11 +321,7 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error calculating sun times: {ex.Message}";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    OperationErrorSource.Unknown,
-                    ErrorMessage,
-                    ex));
+                OnSystemError($"Error calculating sun times: {ex.Message}");
             }
             finally
             {
@@ -335,7 +334,7 @@ namespace Location.Photography.ViewModels
             try
             {
                 IsBusy = true;
-                ErrorMessage = string.Empty;
+                ClearErrors();
 
                 // Note: In a real implementation, this would call a service to get locations
                 // For now, we'll assume this method would be implemented to load data
@@ -343,11 +342,7 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error loading locations: {ex.Message}";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    OperationErrorSource.Unknown,
-                    ErrorMessage,
-                    ex));
+                OnSystemError($"Error loading locations: {ex.Message}");
             }
             finally
             {
@@ -355,9 +350,9 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        protected virtual void OnErrorOccurred(OperationErrorEventArgs e)
+        protected override void OnErrorOccurred(string message)
         {
-            ErrorOccurred?.Invoke(this, e);
+            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
         }
         #endregion
     }

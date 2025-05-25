@@ -1,17 +1,21 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
 using Location.Photography.ViewModels.Events;
 using MediatR;
+using System;
+using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {
-    public class ExposureCalculatorViewModel : ObservableObject
+    public class ExposureCalculatorViewModel : ViewModelBase
     {
         #region Fields
         private readonly IMediator _mediator;
         private readonly IExposureCalculatorService _exposureCalculatorService;
+        private readonly IErrorDisplayService _errorDisplayService;
 
         private string _shutterSpeedSelected;
         private string _fStopSelected;
@@ -28,13 +32,11 @@ namespace Location.Photography.ViewModels
         private ExposureIncrements _fullHalfThirds;
         private FixedValue _toCalculate;
         private double _evValue;
-        private bool _vmIsBusy;
         private bool _showError;
-        private string _errorMessage;
         #endregion
 
         #region Events
-        public event EventHandler<OperationErrorEventArgs> ErrorOccurred;
+        public new event EventHandler<OperationErrorEventArgs> ErrorOccurred;
         #endregion
 
         #region Properties
@@ -135,48 +137,26 @@ namespace Location.Photography.ViewModels
             set => SetProperty(ref _evValue, value);
         }
 
-        public bool VmIsBusy
-        {
-            get => _vmIsBusy;
-            set => SetProperty(ref _vmIsBusy, value);
-        }
-
         public bool ShowError
         {
             get => _showError;
             set => SetProperty(ref _showError, value);
         }
 
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set
-            {
-                if (SetProperty(ref _errorMessage, value))
-                {
-                    ShowError = !string.IsNullOrEmpty(value);
-                    if (ShowError)
-                    {
-                        OnErrorOccurred(new OperationErrorEventArgs(
-                            OperationErrorSource.Unknown,
-                            value));
-                    }
-                }
-            }
-        }
-        #endregion
         public FixedValue SkipCalculation
         {
             get => ToCalculate;
             set => ToCalculate = value;
         }
+        #endregion
+
         #region Commands
         public IRelayCommand CalculateCommand { get; }
         public IRelayCommand ResetCommand { get; }
         #endregion
 
         #region Constructors
-        public ExposureCalculatorViewModel()
+        public ExposureCalculatorViewModel() : base(null, null)
         {
             // Design-time constructor
             _shutterSpeedsForPicker = ShutterSpeeds.Full;
@@ -187,10 +167,12 @@ namespace Location.Photography.ViewModels
             ResetCommand = new RelayCommand(Reset);
         }
 
-        public ExposureCalculatorViewModel(IMediator mediator, IExposureCalculatorService exposureCalculatorService)
+        public ExposureCalculatorViewModel(IMediator mediator, IExposureCalculatorService exposureCalculatorService, IErrorDisplayService errorDisplayService)
+            : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
 
             // Initialize commands
             CalculateCommand = new RelayCommand(Calculate);
@@ -211,7 +193,7 @@ namespace Location.Photography.ViewModels
         {
             try
             {
-                VmIsBusy = true;
+                IsBusy = true;
                 ShowError = false;
 
                 string incrementString = GetIncrementString();
@@ -223,11 +205,11 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error loading exposure values");
+                OnSystemError($"Error loading exposure values: {ex.Message}");
             }
             finally
             {
-                VmIsBusy = false;
+                IsBusy = false;
             }
         }
 
@@ -246,8 +228,8 @@ namespace Location.Photography.ViewModels
         {
             try
             {
-                VmIsBusy = true;
-                ShowError = false;
+                IsBusy = true;
+                ClearErrors();
 
                 // Create base exposure triangle from old values
                 var baseExposure = new ExposureTriangleDto
@@ -256,105 +238,90 @@ namespace Location.Photography.ViewModels
                     Aperture = OldFstop,
                     Iso = OldISO
                 };
+
                 Result<ExposureSettingsDto> isoResult = new Result<ExposureSettingsDto>(true, null, null, null);
                 Result<ExposureSettingsDto> shutterResult = new Result<ExposureSettingsDto>(true, null, null, null);
                 Result<ExposureSettingsDto> apertureResult = new Result<ExposureSettingsDto>(true, null, null, null);
-                // Calculate all values regardless of ToCalculate setting
-                try
+
+                if (SkipCalculation != FixedValue.ShutterSpeeds)
                 {
-
-                    if (SkipCalculation != FixedValue.ShutterSpeeds)
+                    // 1. Calculate shutter speed
+                    shutterResult = _exposureCalculatorService.CalculateShutterSpeedAsync(
+                       baseExposure, FStopSelected, ISOSelected, FullHalfThirds, default, EVValue)
+                       .GetAwaiter().GetResult();
+                    if (shutterResult.IsSuccess && shutterResult.Data != null)
                     {
-                        // 1. Calculate shutter speed
-                        shutterResult = _exposureCalculatorService.CalculateShutterSpeedAsync(
-                           baseExposure, FStopSelected, ISOSelected, FullHalfThirds, default, EVValue)
-                           .GetAwaiter().GetResult();
-                        if (shutterResult.IsSuccess && shutterResult.Data != null)
-                        {
-                            ShutterSpeedResult = shutterResult.Data.ShutterSpeed;
-                        }
-                        else
-                        {
-                            ShutterSpeedResult = OldShutterSpeed;
-                        }
+                        ShutterSpeedResult = shutterResult.Data.ShutterSpeed;
                     }
                     else
                     {
-                        ShutterSpeedResult = ShutterSpeedSelected;
+                        ShutterSpeedResult = OldShutterSpeed;
                     }
-                    if (SkipCalculation != FixedValue.Aperture)
-                    {
-                        // 2. Calculate aperture
-                        apertureResult = _exposureCalculatorService.CalculateApertureAsync(
-                           baseExposure, ShutterSpeedSelected, ISOSelected, FullHalfThirds, default, EVValue)
-                           .GetAwaiter().GetResult();
-                        if (apertureResult.IsSuccess && apertureResult.Data != null)
-                        {
-                            FStopResult = apertureResult.Data.Aperture;
-                        }
-                        else
-                        {
-                            FStopResult = OldFstop;
-                        }
-                    }
-                    else
-                    {
-                        FStopResult = FStopSelected;
-                    }
-                    if (SkipCalculation != FixedValue.ISO)
-                    {
-                        // 3. Calculate ISO
-                        isoResult = _exposureCalculatorService.CalculateIsoAsync(
-                                    baseExposure, ShutterSpeedSelected, FStopSelected, FullHalfThirds, default, EVValue)
-                                    .GetAwaiter().GetResult();
-                        if (isoResult.IsSuccess && isoResult.Data != null)
-                        {
-                            ISOResult = isoResult.Data.Iso;
-                        }
-                        else
-                        {
-                            ISOResult = OldISO;
-                        }
-                    }
-                    else
-                    {
-                        ISOResult = ISOSelected;
-                    }
-                    // If any calculation succeeded, update the corresponding result
-
-
-
-
-
-
-                    // Check if any calculation failed
-                    if (!shutterResult.IsSuccess || !apertureResult.IsSuccess || !isoResult.IsSuccess)
-                    {
-                        // Show the first error message we find
-                        ErrorMessage = shutterResult.ErrorMessage ?? apertureResult.ErrorMessage ??
-                                       isoResult.ErrorMessage ?? "Calculation failed";
-                    }
-                    else
-                    {
-                        // Clear any previous error
-                        ErrorMessage = string.Empty;
-                    }
-
-                    // Store the current values for the next calculation
-                    StoreOldValues();
                 }
-                catch (Exception ex)
+                else
                 {
-                    HandleError(ex, "Error during exposure calculations");
+                    ShutterSpeedResult = ShutterSpeedSelected;
                 }
+
+                if (SkipCalculation != FixedValue.Aperture)
+                {
+                    // 2. Calculate aperture
+                    apertureResult = _exposureCalculatorService.CalculateApertureAsync(
+                       baseExposure, ShutterSpeedSelected, ISOSelected, FullHalfThirds, default, EVValue)
+                       .GetAwaiter().GetResult();
+                    if (apertureResult.IsSuccess && apertureResult.Data != null)
+                    {
+                        FStopResult = apertureResult.Data.Aperture;
+                    }
+                    else
+                    {
+                        FStopResult = OldFstop;
+                    }
+                }
+                else
+                {
+                    FStopResult = FStopSelected;
+                }
+
+                if (SkipCalculation != FixedValue.ISO)
+                {
+                    // 3. Calculate ISO
+                    isoResult = _exposureCalculatorService.CalculateIsoAsync(
+                                baseExposure, ShutterSpeedSelected, FStopSelected, FullHalfThirds, default, EVValue)
+                                .GetAwaiter().GetResult();
+                    if (isoResult.IsSuccess && isoResult.Data != null)
+                    {
+                        ISOResult = isoResult.Data.Iso;
+                    }
+                    else
+                    {
+                        ISOResult = OldISO;
+                    }
+                }
+                else
+                {
+                    ISOResult = ISOSelected;
+                }
+
+                // Check if any calculation failed
+                if (!shutterResult.IsSuccess || !apertureResult.IsSuccess || !isoResult.IsSuccess)
+                {
+                    // Show the first error message we find
+                    var errorMessage = shutterResult.ErrorMessage ?? apertureResult.ErrorMessage ??
+                                   isoResult.ErrorMessage ?? "Calculation failed";
+                    SetValidationError(errorMessage);
+                }
+
+                // Store the current values for the next calculation
+                StoreOldValues();
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error calculating exposure");
+                OnSystemError($"Error calculating exposure: {ex.Message}");
             }
             finally
             {
-                VmIsBusy = false;
+                IsBusy = false;
             }
         }
 
@@ -390,23 +357,17 @@ namespace Location.Photography.ViewModels
 
                 // Clear error message
                 ShowError = false;
-                ErrorMessage = string.Empty;
+                ClearErrors();
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error resetting exposure calculator");
+                OnSystemError($"Error resetting exposure calculator: {ex.Message}");
             }
         }
 
-        protected virtual void OnErrorOccurred(OperationErrorEventArgs e)
+        protected override void OnErrorOccurred(string message)
         {
-            ErrorOccurred?.Invoke(this, e);
-        }
-
-        private void HandleError(Exception ex, string message)
-        {
-            ErrorMessage = $"{message}: {ex.Message}";
-            OnErrorOccurred(new OperationErrorEventArgs(OperationErrorSource.Unknown, ErrorMessage, ex));
+            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
         }
         #endregion
     }

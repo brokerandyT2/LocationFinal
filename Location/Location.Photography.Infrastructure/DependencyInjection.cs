@@ -4,6 +4,7 @@ using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure.Repositories;
 using Location.Photography.Infrastructure.Services;
+using Location.Photography.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -31,7 +32,18 @@ namespace Location.Photography.Infrastructure
 
             // Register other photography services
             services.AddScoped<ISceneEvaluationService, SceneEvaluationService>();
+            // Register ViewModels as Transient (new instance each time)
+            services.AddTransient<SunCalculationsViewModel>();
+            services.AddTransient<SunCalculatorViewModel>();
+            services.AddTransient<SunLocationViewModel>();
+            services.AddTransient<ExposureCalculatorViewModel>();
+            services.AddTransient<SceneEvaluationViewModel>();
+            services.AddTransient<SubscriptionSignUpViewModel>();
+            services.AddTransient<SettingsViewModel>();
+            services.AddTransient<SettingViewModel>();
 
+            // Register subscription-aware base ViewModels
+            services.AddTransient<SubscriptionAwareViewModelBase>();
             return services;
         }
     }

@@ -1,9 +1,10 @@
 ﻿// Location.Photography.ViewModels/SettingsViewModel.cs
-using Location.Core.ViewModels;
+using Location.Core.Application.Services;
+using System;
 
 namespace Location.Photography.ViewModels
 {
-    public class SettingViewModel : BaseViewModel
+    public class SettingViewModel : ViewModelBase
     {
         private int _id;
         private string _key;
@@ -40,9 +41,17 @@ namespace Location.Photography.ViewModels
             get => _timestamp;
             set => SetProperty(ref _timestamp, value);
         }
+
+        public SettingViewModel() : base(null, null)
+        {
+        }
+
+        public SettingViewModel(IErrorDisplayService errorDisplayService) : base(null, errorDisplayService)
+        {
+        }
     }
 
-    public class SettingsViewModel : BaseViewModel
+    public class SettingsViewModel : ViewModelBase
     {
         private SettingViewModel _hemisphere;
         private SettingViewModel _timeFormat;
@@ -73,57 +82,67 @@ namespace Location.Photography.ViewModels
             get => _adSupportboolean;
             set => SetProperty(ref _adSupportboolean, value);
         }
+
         public SettingViewModel Subscription
         {
             get => _subscription;
             set => SetProperty(ref _subscription, value);
         }
+
         public SettingViewModel AddLocationViewed
         {
             get => _addLocationViewed;
             set => SetProperty(ref _addLocationViewed, value);
         }
+
         public SettingViewModel ListLocationsViewed
         {
             get => _listLocationsViewed;
             set => SetProperty(ref _listLocationsViewed, value);
         }
+
         public SettingViewModel EditLocationViewed
         {
             get => _editLocationViewed;
             set => SetProperty(ref _editLocationViewed, value);
         }
+
         public SettingViewModel WeatherViewed
         {
             get => _weatherViewed;
             set => SetProperty(ref _weatherViewed, value);
         }
+
         public SettingViewModel SettingsViewed
         {
             get => _settingsViewed;
             set => SetProperty(ref _settingsViewed, value);
         }
+
         public SettingViewModel SunLocationViewed
         {
             get => _sunLocationViewed;
             set => SetProperty(ref _sunLocationViewed, value);
         }
+
         public SettingViewModel SunCalculationViewed
         {
             get => _sunCalculationViewed;
             set => SetProperty(ref _sunCalculationViewed, value);
         }
+
         public SettingViewModel ExposureCalculationViewed
         {
             get => _exposureCalculationViewed;
             set => SetProperty(ref _exposureCalculationViewed, value);
         }
+
         public SettingViewModel SceneEvaluationViewed
         {
             get => _sceneEvaluationViewed;
             set => SetProperty(ref _sceneEvaluationViewed, value);
         }
-        
+
         public SettingViewModel Hemisphere
         {
             get => _hemisphere;
@@ -189,6 +208,15 @@ namespace Location.Photography.ViewModels
             get => _temperatureFormatToggle;
             set => SetProperty(ref _temperatureFormatToggle, value);
         }
+
         public SettingViewModel SubscriptionExpiration { get; set; }
+
+        public SettingsViewModel() : base(null, null)
+        {
+        }
+
+        public SettingsViewModel(IErrorDisplayService errorDisplayService) : base(null, errorDisplayService)
+        {
+        }
     }
 }

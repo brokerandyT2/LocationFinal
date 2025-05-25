@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Location.Core.Application.Services;
 using Location.Photography.ViewModels.Events;
 using SkiaSharp;
 using System;
@@ -13,6 +14,7 @@ namespace Location.Photography.ViewModels
     public partial class SceneEvaluationViewModel : ViewModelBase
     {
         #region Fields
+        private readonly IErrorDisplayService _errorDisplayService;
         private bool _isRedHistogramVisible = true;
         private bool _isGreenHistogramVisible = false;
         private bool _isBlueHistogramVisible = false;
@@ -38,12 +40,6 @@ namespace Location.Photography.ViewModels
 
         [ObservableProperty]
         private bool _isProcessing;
-
-        [ObservableProperty]
-        private string _errorMessage = string.Empty;
-
-        [ObservableProperty]
-        private bool _isBusy;
 
         [ObservableProperty]
         private double _colorTemperature = 5500;  // Default 5500K (neutral)
@@ -106,8 +102,13 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region Constructor
-        public SceneEvaluationViewModel()
+        public SceneEvaluationViewModel() : base(null, null)
         {
+        }
+
+        public SceneEvaluationViewModel(IErrorDisplayService errorDisplayService) : base(null, errorDisplayService)
+        {
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
         }
         #endregion
 
@@ -115,27 +116,26 @@ namespace Location.Photography.ViewModels
         [RelayCommand]
         private async Task EvaluateSceneAsync()
         {
-            try
+            var command = new AsyncRelayCommand(async () =>
             {
-                IsBusy = true;
-                IsProcessing = true;
-                ErrorMessage = string.Empty;
+                try
+                {
+                    IsProcessing = true;
+                    ClearErrors();
 
-                await GetImageAsync();
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = $"Error evaluating scene: {ex.Message}";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    OperationErrorSource.Unknown,
-                    ErrorMessage,
-                    ex));
-            }
-            finally
-            {
-                IsBusy = false;
-                IsProcessing = false;
-            }
+                    await GetImageAsync();
+                }
+                catch (Exception ex)
+                {
+                    OnSystemError($"Error evaluating scene: {ex.Message}");
+                }
+                finally
+                {
+                    IsProcessing = false;
+                }
+            });
+
+            await ExecuteAndTrackAsync(command);
         }
 
         private async Task GetImageAsync()
@@ -153,19 +153,12 @@ namespace Location.Photography.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    ErrorMessage = $"Error capturing photo: {ex.Message}";
-                    OnErrorOccurred(new OperationErrorEventArgs(
-                        OperationErrorSource.MediaService,
-                        ErrorMessage,
-                        ex));
+                    SetValidationError($"Error capturing photo: {ex.Message}");
                 }
             }
             else
             {
-                ErrorMessage = "Camera capture is not supported on this device.";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    OperationErrorSource.MediaService,
-                    ErrorMessage));
+                SetValidationError("Camera capture is not supported on this device.");
             }
         }
 
@@ -209,7 +202,7 @@ namespace Location.Photography.ViewModels
                 {
                     totalPixels = bitmap.Width * bitmap.Height;
 
-                    for (int y =0; y < bitmap.Height; y++)
+                    for (int y = 0; y < bitmap.Height; y++)
                     {
                         for (int x = 0; x < bitmap.Width; x++)
                         {
@@ -261,11 +254,7 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error processing image: {ex.Message}";
-                OnErrorOccurred(new OperationErrorEventArgs(
-                    OperationErrorSource.Unknown,
-                    ErrorMessage,
-                    ex));
+                OnSystemError($"Error processing image: {ex.Message}");
             }
         }
 
@@ -368,10 +357,9 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        protected void OnErrorOccurred(OperationErrorEventArgs e)
+        protected override void OnErrorOccurred(string message)
         {
-            ErrorOccurred?.Invoke(this, e);
-            base.OnErrorOccurred(e.Message);
+            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
         }
         #endregion
     }

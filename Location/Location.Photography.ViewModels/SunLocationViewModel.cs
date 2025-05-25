@@ -1,7 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Photography.Domain.Interfaces;
+using Location.Core.Application.Services;
 using Location.Photography.Domain.Services;
+using Location.Photography.ViewModels.Interfaces;
 using MediatR;
 using System.Collections.ObjectModel;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
@@ -9,11 +10,12 @@ using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErr
 
 namespace Location.Photography.ViewModels
 {
-    public class SunLocationViewModel : ObservableObject, ISunLocation
+    public class SunLocationViewModel : ViewModelBase, Location.Photography.ViewModels.Interfaces.ISunLocation
     {
         #region Fields
         private readonly IMediator _mediator;
         private readonly ISunCalculatorService _sunCalculatorService;
+        private readonly IErrorDisplayService _errorDisplayService;
 
         private ObservableCollection<LocationViewModel> _locations;
         private DateTime _selectedDate;
@@ -27,7 +29,6 @@ namespace Location.Photography.ViewModels
         private double _deviceTilt;
         private bool _elevationMatched;
         private bool _beginMonitoring;
-        private bool _isBusy;
         private string _errorMessage;
         #endregion
 
@@ -146,23 +147,17 @@ namespace Location.Photography.ViewModels
                 {
                     if (value)
                     {
-                        StartMonitoring();
+                        StartSensors();
                     }
                     else
                     {
-                        StopMonitoring();
+                        StopSensors();
                     }
                 }
             }
         }
 
-        public bool IsBusy
-        {
-            get => _isBusy;
-            set => SetProperty(ref _isBusy, value);
-        }
-
-        public string ErrorMessage
+        public new string ErrorMessage
         {
             get => _errorMessage;
             set => SetProperty(ref _errorMessage, value);
@@ -170,7 +165,7 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region Events
-        public event EventHandler<OperationErrorEventArgs> ErrorOccurred;
+        public new event EventHandler<OperationErrorEventArgs> ErrorOccurred;
         #endregion
 
         #region Commands
@@ -178,7 +173,7 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region Constructors
-        public SunLocationViewModel()
+        public SunLocationViewModel() : base(null, null)
         {
             // Design-time constructor
             _selectedDate = DateTime.Today;
@@ -188,10 +183,12 @@ namespace Location.Photography.ViewModels
             UpdateSunPositionCommand = new RelayCommand(UpdateSunPosition);
         }
 
-        public SunLocationViewModel(IMediator mediator, ISunCalculatorService sunCalculatorService)
+        public SunLocationViewModel(IMediator mediator, ISunCalculatorService sunCalculatorService, IErrorDisplayService errorDisplayService)
+            : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
 
             // Initialize commands
             UpdateSunPositionCommand = new RelayCommand(UpdateSunPosition);
@@ -233,11 +230,11 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error updating sun position");
+                OnSystemError($"Error updating sun position: {ex.Message}");
             }
         }
 
-        private void StartMonitoring()
+        public void StartSensors()
         {
             try
             {
@@ -260,11 +257,11 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error starting sensors");
+                OnSystemError($"Error starting sensors: {ex.Message}");
             }
         }
 
-        private void StopMonitoring()
+        public void StopSensors()
         {
             try
             {
@@ -284,7 +281,7 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error stopping sensors");
+                OnSystemError($"Error stopping sensors: {ex.Message}");
             }
         }
 
@@ -297,7 +294,7 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error reading compass");
+                OnSystemError($"Error reading compass: {ex.Message}");
             }
         }
 
@@ -325,7 +322,7 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error reading orientation sensor");
+                OnSystemError($"Error reading orientation sensor: {ex.Message}");
             }
         }
 
@@ -340,19 +337,13 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error updating elevation match");
+                OnSystemError($"Error updating elevation match: {ex.Message}");
             }
         }
 
-        protected virtual void OnErrorOccurred(OperationErrorEventArgs e)
+        protected override void OnErrorOccurred(string message)
         {
-            ErrorOccurred?.Invoke(this, e);
-        }
-
-        private void HandleError(Exception ex, string message)
-        {
-            ErrorMessage = $"{message}: {ex.Message}";
-            OnErrorOccurred(new OperationErrorEventArgs(OperationErrorSource.Unknown, message, ex));
+            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
         }
         #endregion
     }

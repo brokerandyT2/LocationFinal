@@ -7,7 +7,6 @@ using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using Location.Core.ViewModels;
-using Location.Photography.Application.Commands.SunLocation;
 using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
@@ -19,21 +18,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 
-namespace Location.Photography.ViewModels.Premium
+namespace Location.Photography.ViewModels
 {
-    public partial class SunCalculatorViewModel : BaseViewModel
+    public partial class SunCalculatorViewModel : ViewModelBase
     {
         private readonly IMediator _mediator;
-        private readonly IAlertService _alertService;
-
-        [ObservableProperty]
-        private bool _isBusy;
-
-        [ObservableProperty]
-        private string _errorMessage;
+        private readonly IErrorDisplayService _errorDisplayService;
 
         [ObservableProperty]
         private ObservableCollection<LocationListItemViewModel> _locations = new();
@@ -42,7 +36,7 @@ namespace Location.Photography.ViewModels.Premium
         private LocationListItemViewModel _selectedLocation;
 
         [ObservableProperty]
-        private DateTime _date = DateTime.Today;
+        private DateTime _dates = DateTime.Today;
 
         [ObservableProperty]
         private string _locationPhoto = string.Empty;
@@ -94,71 +88,72 @@ namespace Location.Photography.ViewModels.Premium
         public string CivilDawnFormatted => CivilDawn.ToString(TimeFormat);
         public string CivilDuskFormatted => CivilDusk.ToString(TimeFormat);
 
-        public event EventHandler<OperationErrorEventArgs> ErrorOccurred;
+        public new event EventHandler<OperationErrorEventArgs> ErrorOccurred;
 
-        public SunCalculatorViewModel(IMediator mediator, IAlertService alertService)
+        public SunCalculatorViewModel(IMediator mediator, IErrorDisplayService errorDisplayService)
+            : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
         }
 
         [RelayCommand]
         public async Task LoadLocationsAsync()
         {
-            try
+            var command = new AsyncRelayCommand(async () =>
             {
-                IsBusy = true;
-                ErrorMessage = string.Empty;
-
-                // Create query to get locations
-                var query = new GetLocationsQuery
+                try
                 {
-                    PageNumber = 1,
-                    PageSize = 100, // Get all locations
-                    IncludeDeleted = false
-                };
+                    ClearErrors();
 
-                // Send the query through MediatR
-                var result = await _mediator.Send(query, CancellationToken.None);
-
-                if (result.IsSuccess && result.Data != null)
-                {
-                    // Clear current collection
-                    Locations.Clear();
-
-                    // Add locations to collection
-                    foreach (var locationDto in result.Data.Items)
+                    // Create query to get locations
+                    var query = new GetLocationsQuery
                     {
-                        Locations.Add(new LocationListItemViewModel
+                        PageNumber = 1,
+                        PageSize = 100, // Get all locations
+                        IncludeDeleted = false
+                    };
+
+                    // Send the query through MediatR
+                    var result = await _mediator.Send(query, CancellationToken.None);
+
+                    if (result.IsSuccess && result.Data != null)
+                    {
+                        // Clear current collection
+                        Locations.Clear();
+
+                        // Add locations to collection
+                        foreach (var locationDto in result.Data.Items)
                         {
-                            Id = locationDto.Id,
-                            Title = locationDto.Title,
-                            Latitude = locationDto.Latitude,
-                            Longitude = locationDto.Longitude,
-                            Photo = locationDto.PhotoPath,
-                            IsDeleted = locationDto.IsDeleted
-                        });
-                    }
+                            Locations.Add(new LocationListItemViewModel
+                            {
+                                Id = locationDto.Id,
+                                Title = locationDto.Title,
+                                Latitude = locationDto.Latitude,
+                                Longitude = locationDto.Longitude,
+                                Photo = locationDto.PhotoPath,
+                                IsDeleted = locationDto.IsDeleted
+                            });
+                        }
 
-                    // Select the first location by default
-                    if (Locations.Count > 0)
+                        // Select the first location by default
+                        if (Locations.Count > 0)
+                        {
+                            SelectedLocation = Locations[0];
+                        }
+                    }
+                    else
                     {
-                        SelectedLocation = Locations[0];
+                        OnSystemError(result.ErrorMessage ?? "Failed to load locations");
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    HandleError(new Exception(result.ErrorMessage ?? "No locations found"), "Failed to load locations");
+                    OnSystemError($"Error loading locations: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error loading locations");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            });
+
+            await ExecuteAndTrackAsync(command);
         }
 
         partial void OnSelectedLocationChanged(LocationListItemViewModel value)
@@ -170,7 +165,7 @@ namespace Location.Photography.ViewModels.Premium
             }
         }
 
-        partial void OnDateChanged(DateTime value)
+        public void OnDateChanged(DateTime value)
         {
             CalculateSun();
         }
@@ -193,7 +188,12 @@ namespace Location.Photography.ViewModels.Premium
         [RelayCommand]
         public async Task CalculateSunAsync()
         {
-            CalculateSun();
+            var command = new AsyncRelayCommand(async () =>
+            {
+                await Task.Run(() => CalculateSun());
+            });
+
+            await ExecuteAndTrackAsync(command);
         }
 
         public void CalculateSun()
@@ -204,14 +204,14 @@ namespace Location.Photography.ViewModels.Premium
             try
             {
                 IsBusy = true;
-                ErrorMessage = string.Empty;
+                ClearErrors();
 
                 // Use MediatR to get sun times
                 var query = new GetSunTimesQuery
                 {
                     Latitude = SelectedLocation.Latitude,
                     Longitude = SelectedLocation.Longitude,
-                    Date = Date
+                    Date = Dates
                 };
 
                 var result = _mediator.Send(query).GetAwaiter().GetResult();
@@ -246,12 +246,12 @@ namespace Location.Photography.ViewModels.Premium
                 }
                 else
                 {
-                    HandleError(new Exception(result.ErrorMessage ?? "Failed to calculate sun times"), "Sun calculation error");
+                    OnSystemError(result.ErrorMessage ?? "Failed to calculate sun times");
                 }
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error calculating sun times");
+                OnSystemError($"Error calculating sun times: {ex.Message}");
             }
             finally
             {
@@ -259,16 +259,9 @@ namespace Location.Photography.ViewModels.Premium
             }
         }
 
-        private void HandleError(Exception ex, string message)
+        protected override void OnErrorOccurred(string message)
         {
-            ErrorMessage = $"{message}: {ex.Message}";
-            Debug.WriteLine($"{message}: {ex}");
-            OnErrorOccurred(new OperationErrorEventArgs(OperationErrorSource.Unknown, ErrorMessage, ex));
-        }
-
-        protected virtual void OnErrorOccurred(OperationErrorEventArgs e)
-        {
-            ErrorOccurred?.Invoke(this, e);
+            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
         }
     }
 }

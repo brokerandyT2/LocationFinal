@@ -1,7 +1,6 @@
 ﻿// Location.Photography.Application/DependencyInjection.cs - updated version
 using FluentValidation;
 using Location.Core.Application.Common.Behaviors;
-using Location.Photography.Application.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
