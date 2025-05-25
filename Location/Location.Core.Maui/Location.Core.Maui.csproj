@@ -80,6 +80,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+    <PackageReference Include="Plugin.InAppBilling" Version="8.0.5" />
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
   </ItemGroup>
 

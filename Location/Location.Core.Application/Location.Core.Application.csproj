@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
+    <ProjectReference Include="..\Location.Photography.Domain\Location.Photography.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +29,7 @@
     <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+    <PackageReference Include="Plugin.InAppBilling" Version="8.0.5" />
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
   </ItemGroup>
 

@@ -34,7 +34,7 @@ namespace Location.Core.Application.Common.Interfaces
         /// Repository for Setting entities
         /// </summary>
         ISettingRepository Settings { get; }
-
+        ISubscriptionRepository Subscriptions { get; }
         /// <summary>
         /// Commits all changes made in this unit of work
         /// </summary>

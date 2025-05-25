@@ -196,7 +196,7 @@ namespace Location.Photography.Infrastructure
 
             // Add additional settings based on the build configuration
 #if DEBUG
-            // Debug mode settings - features already viewed and additional functionality
+            // Debug mode settings - features already viewed and premium subscription
             var debugSettings = new List<(string Key, string Value, string Description)>
             {
                 (MagicStrings.SettingsViewed, MagicStrings.True_string, "Whether the settings page has been viewed"),
@@ -216,14 +216,17 @@ namespace Location.Photography.Infrastructure
                 (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun location ad view"),
                 (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last weather display ad view"),
                 (MagicStrings.SubscriptionType, MagicStrings.Premium, "Subscription type (Free/Premium)"),
-                (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(100).ToString(), "Subscription expiration date"),
+                (MagicStrings.SubscriptionExpiration, DateTime.Now.AddYears(1).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
+                (MagicStrings.SubscriptionProductId, "premium_yearly_subscription", "Subscription product ID"),
+                (MagicStrings.SubscriptionPurchaseDate, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "Subscription purchase date"),
+                (MagicStrings.SubscriptionTransactionId, $"debug_transaction_{Guid.NewGuid():N}", "Subscription transaction ID"),
                 (MagicStrings.AdGivesHours, "24", "Hours of premium access granted per ad view"),
                 (MagicStrings.SunLocationViewed, MagicStrings.True_string, "Whether the SunLocation Page has been viewed." ),
                 (MagicStrings.LastUploadTimeStamp, DateTime.Now.ToString(), "Last Time that data was backed up to cloud")
             };
             settings.AddRange(debugSettings);
 #else
-            // Release mode settings - features not viewed and basic functionality
+            // Release mode settings - features not viewed and expired subscription
             var releaseSettings = new List<(string Key, string Value, string Description)>
             {
                 (MagicStrings.SettingsViewed, MagicStrings.False_string, "Whether the settings page has been viewed"),
@@ -243,9 +246,12 @@ namespace Location.Photography.Infrastructure
                 (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun location ad view"),
                 (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last weather display ad view"),
                 (MagicStrings.SubscriptionType, MagicStrings.Free, "Subscription type (Free/Premium)"),
-                (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(-1).ToString(), "Subscription expiration date"),
+                (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(-3).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
+                ("SubscriptionProductId", "", "Subscription product ID"),
+                ("SubscriptionPurchaseDate", "", "Subscription purchase date"),
+                ("SubscriptionTransactionId", "", "Subscription transaction ID"),
                 (MagicStrings.AdGivesHours, "12", "Hours of premium access granted per ad view"),
-                                (MagicStrings.SunLocationViewed, MagicStrings.False_string, "Whether the SunLocation Page has been viewed." ),
+                (MagicStrings.SunLocationViewed, MagicStrings.False_string, "Whether the SunLocation Page has been viewed." ),
                 (MagicStrings.LastUploadTimeStamp, DateTime.Now.AddDays(-1).ToString(), "Last Time that data was backed up to cloud")
             };
             settings.AddRange(releaseSettings);

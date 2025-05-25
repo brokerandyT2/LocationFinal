@@ -1,6 +1,7 @@
 ﻿using Location.Core.Domain.Common;
 using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Entities;
+using Location.Photography.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using SQLite;
 using System;
@@ -87,6 +88,7 @@ namespace Location.Core.Infrastructure.Data
                 await _connection.CreateTableAsync<TipEntity>();
                 await _connection.CreateTableAsync<SettingEntity>();
                 await _connection.CreateTableAsync<Log>();
+                await _connection.CreateTableAsync<Subscription>();
 
                 // Create indexes for better performance
                 await CreateIndexesAsync();
@@ -134,7 +136,11 @@ namespace Location.Core.Infrastructure.Data
                 // Index for logs by timestamp
                 await _connection.ExecuteAsync(
                     "CREATE INDEX IF NOT EXISTS idx_log_timestamp ON Log (Timestamp)");
-
+              
+                // Index for subscription lookup by user
+                await _connection.ExecuteAsync(
+                    "CREATE INDEX IF NOT EXISTS idx_subscription_user ON Subscription (UserId, Status, ExpirationDate)");
+               
                 _logger.LogDebug("Database indexes created");
             }
             catch (Exception ex)

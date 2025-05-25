@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
+    <PackageReference Include="Plugin.InAppBilling" Version="8.0.5" />
     <PackageReference Include="Polly" Version="8.5.2" />
     <PackageReference Include="Polly.Extensions" Version="8.5.2" />
     <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
@@ -28,6 +29,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Location.Core.Application\Location.Core.Application.csproj" />
     <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
+    <ProjectReference Include="..\Location.Photography.Application\Location.Photography.Application.csproj" />
+    <ProjectReference Include="..\Location.Photography.Domain\Location.Photography.Domain.csproj" />
   </ItemGroup>
 
 </Project>

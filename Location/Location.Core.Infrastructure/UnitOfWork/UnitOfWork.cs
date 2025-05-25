@@ -1,6 +1,5 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Infrastructure.Data;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Location.Core.Infrastructure.UnitOfWork
@@ -29,6 +28,9 @@ namespace Location.Core.Infrastructure.UnitOfWork
         public Location.Core.Application.Common.Interfaces.ILocationRepository Locations =>
             _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.ILocationRepository>();
 
+        public Application.Common.Interfaces.ISubscriptionRepository Subscriptions =>
+            _serviceProvider.GetRequiredService<Application.Common.Interfaces.ISubscriptionRepository>();
+
         public Location.Core.Application.Common.Interfaces.IWeatherRepository Weather =>
             _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.IWeatherRepository>();
 
@@ -40,6 +42,8 @@ namespace Location.Core.Infrastructure.UnitOfWork
 
         public Location.Core.Application.Common.Interfaces.ISettingRepository Settings =>
             _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.ISettingRepository>();
+
+
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

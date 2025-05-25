@@ -3,11 +3,137 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Location.Photography.Maui.SubscriptionSignUpPage"
              xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
-             Title="SubscriptionSignUpPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             Title="Premium Subscription">
+
+    <ContentPage.BindingContext>
+        <viewmodels:SubscriptionSignUpViewModel />
+    </ContentPage.BindingContext>
+
+    <Grid Padding="10" Margin="5">
+        <VerticalStackLayout 
+            Padding="5"
+            Spacing="20"
+            VerticalOptions="Center">
+
+            <Label 
+                Text="Unlock Premium Features"
+                FontSize="24"
+                FontAttributes="Bold"
+                HorizontalOptions="Center" />
+
+            <Label 
+                Text="Get unlimited access to all photography tools and features"
+                FontSize="16"
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center" />
+
+            <!-- Subscription Options -->
+            <CollectionView ItemsSource="{Binding SubscriptionProducts}"
+                           SelectionMode="None"
+                           VerticalOptions="Center">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10" Margin="5">
+                            <Border StrokeThickness="2"
+                                   BackgroundColor="{StaticResource LightGray}"
+                                   Stroke="{Binding IsSelected, Converter={StaticResource BoolToColorConverter}}"
+                                   Padding="15"
+                                   VerticalOptions="Center">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="10"/>
+                                </Border.StrokeShape>
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:SubscriptionSignUpViewModel}}, Path=SelectProductCommand}"
+                                        CommandParameter="{Binding}" />
+                                </Border.GestureRecognizers>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <VerticalStackLayout Grid.Column="0" Spacing="5">
+                                        <Label Text="{Binding Title}" 
+                                               FontSize="18" 
+                                               FontAttributes="Bold"/>
+                                        <Label Text="{Binding PeriodText}" 
+                                               FontSize="14" 
+                                               TextColor="{StaticResource Primary}"/>
+                                        <Label Text="{Binding Description}" 
+                                               FontSize="12" 
+                                               TextColor="{StaticResource Gray600}"/>
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Column="1" 
+                                                        VerticalOptions="Center"
+                                                        Spacing="5">
+                                        <Label Text="{Binding Price}" 
+                                               FontSize="20" 
+                                               FontAttributes="Bold"
+                                               HorizontalOptions="End"/>
+                                        <RadioButton IsChecked="{Binding IsSelected}" 
+                                                    HorizontalOptions="End"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Action Buttons -->
+            <VerticalStackLayout Spacing="10" Margin="0,20,0,0">
+                <Button Text="Subscribe Now"
+                        Command="{Binding PurchaseSubscriptionCommand}"
+                        IsEnabled="{Binding SelectedProduct, Converter={StaticResource IsNotNullConverter}}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        FontSize="16"
+                        Padding="15"
+                        CornerRadius="10"
+                        MinimumHeightRequest="50"/>
+
+                <Button Text="Not Now"
+                        Command="{Binding NotNowCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Gray600}"
+                        FontSize="14"
+                        Padding="10"
+                        MinimumHeightRequest="40"/>
+            </VerticalStackLayout>
+
+            <!-- Error Message -->
+            <Label Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding HasError}"
+                   TextColor="{StaticResource ErrorRed}"
+                   FontSize="14"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,10,0,0"/>
+
+        </VerticalStackLayout>
+
+        <!-- Processing overlay -->
+        <Grid x:Name="processingOverlay" 
+              IsVisible="{Binding IsBusy}"
+              BackgroundColor="{StaticResource TransparentOverlayBrush}"
+              Padding="10"
+              Margin="5">
+            <VerticalStackLayout VerticalOptions="Center" 
+                                 HorizontalOptions="Center"
+                                 Spacing="10">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                                  Color="Blue" 
+                                  HeightRequest="50" 
+                                  WidthRequest="50"/>
+                <Label Text="Processing subscription, please wait..." 
+                       TextColor="Blue" 
+                       FontSize="14"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
 </ContentPage>

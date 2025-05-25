@@ -67,7 +67,9 @@ namespace Location.Photography.Infrastructure
         public static readonly string Premium = "Premium";
         public static readonly string FreePremiumAdSupported = "FreePremiumAdSupported";
         public static readonly string AdGivesHours = "AdGivesHours";
-
+        public static readonly string SubscriptionProductId = "SubscriptionProductId";
+        //public static readonly string SubscriptionPurchaseDate = "SubscriptionExpiration";
+        public static readonly string SubscriptionTransactionId = "SubscriptionTransactionId";
         // Feature view tracking
         public static readonly string HomePageViewed = "HomePageViewed";
         public static readonly string SettingsViewed = "SettingsViewed";
@@ -94,5 +96,7 @@ namespace Location.Photography.Infrastructure
         public static readonly string ExposureCalculator = "ExposureCalculator";
 
         public static string LastUploadTimeStamp = "lastuploadtimestamp";
+
+        public static string SubscriptionPurchaseDate = "SubscriptionPurchaseDate";
     }
 }
