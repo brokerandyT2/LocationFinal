@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Locations.DTOs;
 using MediatR;
 using System;
@@ -13,6 +14,7 @@ namespace Location.Core.Application.Commands.Locations
     {
         public int LocationId { get; set; }
     }
+
     /// <summary>
     /// Handles the restoration of a location by its identifier.
     /// </summary>
@@ -24,14 +26,18 @@ namespace Location.Core.Application.Commands.Locations
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
         public RestoreLocationCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper)
+            IMapper mapper,
+            IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _mediator = mediator;
         }
+
         /// <summary>
         /// Handles the restoration of a location by its identifier.
         /// </summary>
@@ -51,6 +57,7 @@ namespace Location.Core.Application.Commands.Locations
 
                 if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
+                    await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.LocationId}", LocationErrorType.DatabaseError, "Location not found"), cancellationToken);
                     return Result<LocationDto>.Failure("Location not found");
                 }
 
@@ -60,6 +67,7 @@ namespace Location.Core.Application.Commands.Locations
                 var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
                 if (!updateResult.IsSuccess)
                 {
+                    await _mediator.Publish(new LocationSaveErrorEvent(location.Title, LocationErrorType.DatabaseError, updateResult.ErrorMessage), cancellationToken);
                     return Result<LocationDto>.Failure("Failed to update location");
                 }
 
@@ -70,6 +78,7 @@ namespace Location.Core.Application.Commands.Locations
             }
             catch (Exception ex)
             {
+                await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.LocationId}", LocationErrorType.NetworkError, ex.Message), cancellationToken);
                 return Result<LocationDto>.Failure($"Failed to restore location: {ex.Message}");
             }
         }

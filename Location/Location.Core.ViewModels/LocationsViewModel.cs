@@ -18,13 +18,13 @@ namespace Location.Core.ViewModels
 
         public ObservableCollection<LocationListItemViewModel> Locations { get; } = new();
 
-        public LocationsViewModel(IMediator mediator) : base(null)
+        public LocationsViewModel(IMediator mediator) : base(null, null)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        public LocationsViewModel(IMediator mediator, IAlertService alertingService, IErrorDisplayService errorDisplayService)
-            : base(alertingService, null, errorDisplayService)
+        public LocationsViewModel(IMediator mediator, IErrorDisplayService errorDisplayService)
+            : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
@@ -35,8 +35,7 @@ namespace Location.Core.ViewModels
             try
             {
                 IsBusy = true;
-                IsError = false;
-                ErrorMessage = string.Empty;
+                ClearErrors();
 
                 // Create query for active locations (not deleted)
                 var query = new GetLocationsQuery
@@ -69,17 +68,14 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    // Error events will be handled automatically by ErrorDisplayService
-                    // Just update local state for immediate feedback
-                    ErrorMessage = result.ErrorMessage ?? "Failed to load locations";
-                    IsError = true;
+                    // System error from MediatR
+                    OnSystemError(result.ErrorMessage ?? "Failed to load locations");
                 }
             }
             catch (Exception ex)
             {
-                // Error events will be handled automatically by ErrorDisplayService
-                ErrorMessage = $"Error loading locations: {ex.Message}";
-                IsError = true;
+                // System error
+                OnSystemError($"Error loading locations: {ex.Message}");
             }
             finally
             {

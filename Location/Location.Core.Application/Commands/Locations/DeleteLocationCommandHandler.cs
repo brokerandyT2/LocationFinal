@@ -1,5 +1,6 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Events.Errors;
 using MediatR;
 
 namespace Location.Core.Application.Commands.Locations
@@ -7,11 +8,14 @@ namespace Location.Core.Application.Commands.Locations
     public class DeleteLocationCommandHandler : IRequestHandler<DeleteLocationCommand, Result<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMediator _mediator;
 
-        public DeleteLocationCommandHandler(IUnitOfWork unitOfWork)
+        public DeleteLocationCommandHandler(IUnitOfWork unitOfWork, IMediator mediator)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mediator = mediator;
         }
+
         /// <summary>
         /// Handles the deletion of a location by its identifier.
         /// </summary>
@@ -29,6 +33,7 @@ namespace Location.Core.Application.Commands.Locations
 
                 if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
+                    await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.Id}", LocationErrorType.DatabaseError, "Location not found"), cancellationToken);
                     return Result<bool>.Failure("Location not found");
                 }
 
@@ -38,6 +43,7 @@ namespace Location.Core.Application.Commands.Locations
                 var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
                 if (!updateResult.IsSuccess)
                 {
+                    await _mediator.Publish(new LocationSaveErrorEvent(location.Title, LocationErrorType.DatabaseError, updateResult.ErrorMessage), cancellationToken);
                     return Result<bool>.Failure("Failed to update location");
                 }
 
@@ -45,8 +51,14 @@ namespace Location.Core.Application.Commands.Locations
 
                 return Result<bool>.Success(true);
             }
+            catch (Domain.Exceptions.LocationDomainException ex) when (ex.Code == "LOCATION_IN_USE")
+            {
+                await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.Id}", LocationErrorType.ValidationError, ex.Message), cancellationToken);
+                return Result<bool>.Failure("Cannot delete location that is currently in use");
+            }
             catch (Exception ex)
             {
+                await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.Id}", LocationErrorType.DatabaseError, ex.Message), cancellationToken);
                 return Result<bool>.Failure($"Failed to delete location: {ex.Message}");
             }
         }

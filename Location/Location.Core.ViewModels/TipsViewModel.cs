@@ -29,13 +29,13 @@ namespace Location.Core.ViewModels
         public ObservableCollection<TipItemViewModel> Tips { get; } = new();
         public ObservableCollection<TipTypeItemViewModel> TipTypes { get; } = new();
 
-        public TipsViewModel(IMediator mediator) : base(null)
+        public TipsViewModel(IMediator mediator) : base(null, null)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
-        public TipsViewModel(IMediator mediator, IAlertService alertingService, ITipTypeRepository tipTypeRepository, ITipRepository tiprepo, IErrorDisplayService errorDisplayService)
-            : base(alertingService, null, errorDisplayService)
+        public TipsViewModel(IMediator mediator, IErrorDisplayService errorDisplayService, ITipTypeRepository tipTypeRepository, ITipRepository tiprepo)
+            : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _tiptyperepo = tipTypeRepository;
@@ -48,8 +48,7 @@ namespace Location.Core.ViewModels
             try
             {
                 IsBusy = true;
-                IsError = false;
-                ErrorMessage = string.Empty;
+                ClearErrors();
 
                 // Clear existing items
                 TipTypes.Clear();
@@ -80,16 +79,14 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    // Error events will be handled automatically by ErrorDisplayService
-                    ErrorMessage = result.ErrorMessage ?? "Failed to load tip types";
-                    IsError = true;
+                    // System error from MediatR
+                    OnSystemError(result.ErrorMessage ?? "Failed to load tip types");
                 }
             }
             catch (Exception ex)
             {
-                // Error events will be handled automatically by ErrorDisplayService
-                ErrorMessage = $"Error loading tip types: {ex.Message}";
-                IsError = true;
+                // System error
+                OnSystemError($"Error loading tip types: {ex.Message}");
             }
             finally
             {
@@ -103,11 +100,14 @@ namespace Location.Core.ViewModels
             try
             {
                 if (tipTypeId <= 0)
+                {
+                    // Validation error - show in UI
+                    SetValidationError("Please select a valid tip type");
                     return;
+                }
 
                 IsBusy = true;
-                IsError = false;
-                ErrorMessage = string.Empty;
+                ClearErrors();
 
                 // Clear existing items
                 Tips.Clear();
@@ -135,16 +135,14 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    // Error events will be handled automatically by ErrorDisplayService
-                    ErrorMessage = result.ErrorMessage ?? "Failed to load tips";
-                    IsError = true;
+                    // System error from MediatR
+                    OnSystemError(result.ErrorMessage ?? "Failed to load tips");
                 }
             }
             catch (Exception ex)
             {
-                // Error events will be handled automatically by ErrorDisplayService
-                ErrorMessage = $"Error loading tips: {ex.Message}";
-                IsError = true;
+                // System error
+                OnSystemError($"Error loading tips: {ex.Message}");
             }
             finally
             {

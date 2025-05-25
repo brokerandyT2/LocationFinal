@@ -1,5 +1,6 @@
 using Location.Core.Application.Services;
 using Location.Core.Maui.Services;
+using Location.Core.Maui.Resources;
 using Location.Core.ViewModels;
 using MediatR;
 using System;
@@ -12,43 +13,45 @@ namespace Location.Core.Maui.Views
     public partial class LocationsPage : ContentPage
     {
         private readonly IMediator _mediator;
-        private readonly IAlertService _alertService;
         private readonly INavigationService _navigationService;
         private readonly IMediaService _mediaService;
         private readonly IGeolocationService _geolocationService;
+        private readonly IErrorDisplayService _errorDisplayService;
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
         public LocationsPage(
             IMediator mediator,
-            IAlertService alertService,
             INavigationService navigationService,
             IMediaService mediaService,
-            IGeolocationService geolocationService)
+            IGeolocationService geolocationService,
+            IErrorDisplayService errorDisplayService)
         {
             InitializeComponent();
 
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _mediaService = mediaService ?? throw new ArgumentNullException(nameof(mediaService));
             _geolocationService = geolocationService ?? throw new ArgumentNullException(nameof(geolocationService));
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
 
             // Initialize the view model
-            var viewModel = new LocationsViewModel(_mediator, _alertService);
-            viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+            var viewModel = new LocationsViewModel(_mediator, _errorDisplayService);
+            viewModel.ErrorOccurred += OnSystemError;
             BindingContext = viewModel;
         }
-        // Parameterless constructor marked as obsolete to prevent usage
-        
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
 
-            // Refresh locations whenever the page appears
+            // Re-subscribe to ViewModel events in case the binding context changed
             if (BindingContext is LocationsViewModel viewModel)
             {
-                await viewModel.LoadLocationsCommand.ExecuteAsync(_cts.Token);
+                viewModel.ErrorOccurred -= OnSystemError;
+                viewModel.ErrorOccurred += OnSystemError;
+
+                // Refresh locations whenever the page appears
+                await viewModel.ExecuteAndTrackAsync(viewModel.LoadLocationsCommand, _cts.Token);
             }
         }
 
@@ -59,7 +62,7 @@ namespace Location.Core.Maui.Views
             // Unsubscribe from ViewModel events
             if (BindingContext is LocationsViewModel viewModel)
             {
-                viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
+                viewModel.ErrorOccurred -= OnSystemError;
             }
 
             // Cancel any pending operations
@@ -77,7 +80,7 @@ namespace Location.Core.Maui.Views
                 _mediator,
                 _mediaService,
                 _geolocationService,
-                _alertService);
+                _errorDisplayService);
 
             await _navigationService.NavigateToModalAsync(page);
         }
@@ -94,7 +97,7 @@ namespace Location.Core.Maui.Views
                     _mediator,
                     _mediaService,
                     _geolocationService,
-                    _alertService,
+                    _errorDisplayService,
                     selectedItem.Id,
                     true);
 
@@ -102,19 +105,23 @@ namespace Location.Core.Maui.Views
             }
         }
 
-        private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
+        private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
-            // Display error to user if it's not already displayed in the UI
-            MainThread.BeginInvokeOnMainThread(async () =>
+            var retry = await DisplayAlert(
+                AppResources.Error,
+                $"{e.Message}. Click OK to try again.",
+                AppResources.OK,
+                AppResources.Cancel);
+
+            if (retry && sender is LocationsViewModel viewModel)
             {
-                await _alertService.ShowErrorAlertAsync(e.Message, "Error");
-            });
+                await viewModel.RetryLastCommandAsync();
+            }
         }
 
         private void ImageButton_Pressed(object sender, EventArgs e)
         {
-            var LocationID = ((LocationViewModel)sender).Id;
-            
+            // Handle map button press if needed
         }
     }
 }

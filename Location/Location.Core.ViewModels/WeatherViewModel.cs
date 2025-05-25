@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// Location.Core.ViewModels/WeatherViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Queries.Weather;
@@ -7,7 +8,9 @@ using Location.Core.Application.Weather.DTOs;
 using Location.Core.Application.Weather.Queries.GetWeatherForecast;
 using MediatR;
 using System;
+using System.Collections.ObjectModel;
 using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Location.Core.ViewModels
@@ -19,80 +22,21 @@ namespace Location.Core.ViewModels
         [ObservableProperty]
         private int _locationId;
 
-        [ObservableProperty]
-        private string _dayOne = string.Empty;
-
-        [ObservableProperty]
-        private string _dayTwo = string.Empty;
-
-        [ObservableProperty]
-        private string _forecast_Day_One = string.Empty;
-
-        [ObservableProperty]
-        private string _forecast_Day_Two = string.Empty;
-
-        [ObservableProperty]
-        private string _temperature_Day_One_Min = string.Empty;
-
-        [ObservableProperty]
-        private string _temperature_Day_One_Max = string.Empty;
-
-        [ObservableProperty]
-        private string _temperature_Day_Two_Min = string.Empty;
-
-        [ObservableProperty]
-        private string _temperature_Day_Two_Max = string.Empty;
-
-        [ObservableProperty]
-        private string _weather_Day_One_Icon = string.Empty;
-
-        [ObservableProperty]
-        private string _weather_Day_Two_Icon = string.Empty;
-
-        [ObservableProperty]
-        private string _sunrise_Day_One_String = string.Empty;
-
-        [ObservableProperty]
-        private string _sunset_Day_One_String = string.Empty;
-
-        [ObservableProperty]
-        private string _sunrise_Day_Two_String = string.Empty;
-
-        [ObservableProperty]
-        private string _sunset_Day_Two_String = string.Empty;
-
-        [ObservableProperty]
-        private double _windDirectionDay_One;
-
-        [ObservableProperty]
-        private double _windDirectionDay_Two;
-
-        [ObservableProperty]
-        private string _windSpeedDay_One = string.Empty;
-
-        [ObservableProperty]
-        private string _windSpeedDay_Two = string.Empty;
-
-        [ObservableProperty]
-        private string _windGustDay_One = string.Empty;
-
-        [ObservableProperty]
-        private string _windGustDay_Two = string.Empty;
+        public ObservableCollection<DailyWeatherViewModel> DailyForecasts { get; } = new();
 
         [ObservableProperty]
         private WeatherForecastDto _weatherForecast;
 
         // Default constructor for design-time
-        public WeatherViewModel() : base(null)
+        public WeatherViewModel() : base(null, null)
         {
         }
 
         // Main constructor with dependencies
         public WeatherViewModel(
             IMediator mediator,
-            IAlertService alertingService,
             IErrorDisplayService errorDisplayService)
-            : base(alertingService, null, errorDisplayService)
+            : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
@@ -103,8 +47,7 @@ namespace Location.Core.ViewModels
             try
             {
                 IsBusy = true;
-                IsError = false;
-                ErrorMessage = string.Empty;
+                ClearErrors();
                 LocationId = locationId;
 
                 // First, get the weather data for the location
@@ -119,9 +62,8 @@ namespace Location.Core.ViewModels
 
                     if (!result.IsSuccess || result.Data == null)
                     {
-                        // Error events will be handled automatically by ErrorDisplayService
-                        ErrorMessage = result.ErrorMessage ?? "Failed to load weather data";
-                        IsError = true;
+                        // System error from MediatR
+                        OnSystemError(result.ErrorMessage ?? "Failed to load weather data");
                         return;
                     }
                 }
@@ -138,9 +80,8 @@ namespace Location.Core.ViewModels
 
                 if (!forecastResult.IsSuccess || forecastResult.Data == null)
                 {
-                    // Error events will be handled automatically by ErrorDisplayService
-                    ErrorMessage = forecastResult.ErrorMessage ?? "Failed to load forecast data";
-                    IsError = true;
+                    // System error from MediatR
+                    OnSystemError(forecastResult.ErrorMessage ?? "Failed to load forecast data");
                     return;
                 }
 
@@ -152,9 +93,8 @@ namespace Location.Core.ViewModels
             }
             catch (Exception ex)
             {
-                // Error events will be handled automatically by ErrorDisplayService
-                ErrorMessage = $"Error loading weather data: {ex.Message}";
-                IsError = true;
+                // System error
+                OnSystemError($"Error loading weather data: {ex.Message}");
             }
             finally
             {
@@ -166,41 +106,43 @@ namespace Location.Core.ViewModels
         {
             try
             {
-                if (forecast?.DailyForecasts == null || forecast.DailyForecasts.Count < 2)
+                if (forecast?.DailyForecasts == null || forecast.DailyForecasts.Count == 0)
                 {
+                    // Validation error - show in UI
+                    SetValidationError("No forecast data available");
                     return;
                 }
 
-                // Process day one
-                var dayOne = forecast.DailyForecasts[0];
-                DayOne = dayOne.Date.ToString("dddd, MMMM d");
-                Forecast_Day_One = dayOne.Description;
-                Temperature_Day_One_Min = $"{dayOne.MinTemperature:F1}°";
-                Temperature_Day_One_Max = $"{dayOne.MaxTemperature:F1}°";
-                Weather_Day_One_Icon = GetWeatherIconUrl(dayOne.Icon);
-                Sunrise_Day_One_String = dayOne.Sunrise.ToString("t");
-                Sunset_Day_One_String = dayOne.Sunset.ToString("t");
-                WindDirectionDay_One = dayOne.WindDirection;
-                WindSpeedDay_One = $"{dayOne.WindSpeed:F1} mph";
-                WindGustDay_One = dayOne.WindGust.HasValue ? $"{dayOne.WindGust.Value:F1} mph" : "N/A";
+                // Clear existing forecasts
+                DailyForecasts.Clear();
 
-                // Process day two
-                var dayTwo = forecast.DailyForecasts[1];
-                DayTwo = dayTwo.Date.ToString("dddd, MMMM d");
-                Forecast_Day_Two = dayTwo.Description;
-                Temperature_Day_Two_Min = $"{dayTwo.MinTemperature:F1}°";
-                Temperature_Day_Two_Max = $"{dayTwo.MaxTemperature:F1}°";
-                Weather_Day_Two_Icon = GetWeatherIconUrl(dayTwo.Icon);
-                Sunrise_Day_Two_String = dayTwo.Sunrise.ToString("t");
-                Sunset_Day_Two_String = dayTwo.Sunset.ToString("t");
-                WindDirectionDay_Two = dayTwo.WindDirection;
-                WindSpeedDay_Two = $"{dayTwo.WindSpeed:F1} mph";
-                WindGustDay_Two = dayTwo.WindGust.HasValue ? $"{dayTwo.WindGust.Value:F1} mph" : "N/A";
+                // Process all available days (up to 7)
+                var today = DateTime.Today;
+                foreach (var dailyForecast in forecast.DailyForecasts.Take(7))
+                {
+                    var isToday = dailyForecast.Date.Date == today;
+
+                    DailyForecasts.Add(new DailyWeatherViewModel
+                    {
+                        Date = dailyForecast.Date,
+                        DayName = dailyForecast.Date.ToString("dddd, MMMM d"),
+                        Description = dailyForecast.Description,
+                        MinTemperature = $"{dailyForecast.MinTemperature:F1}°",
+                        MaxTemperature = $"{dailyForecast.MaxTemperature:F1}°",
+                        WeatherIcon = GetWeatherIconUrl(dailyForecast.Icon),
+                        SunriseTime = dailyForecast.Sunrise.ToString("t"),
+                        SunsetTime = dailyForecast.Sunset.ToString("t"),
+                        WindDirection = dailyForecast.WindDirection,
+                        WindSpeed = $"{dailyForecast.WindSpeed:F1} mph",
+                        WindGust = dailyForecast.WindGust.HasValue ? $"{dailyForecast.WindGust.Value:F1} mph" : "N/A",
+                        IsToday = isToday
+                    });
+                }
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error processing forecast data: {ex.Message}";
-                IsError = true;
+                // System error
+                OnSystemError($"Error processing forecast data: {ex.Message}");
             }
         }
 
@@ -215,5 +157,90 @@ namespace Location.Core.ViewModels
             // This is a simplified implementation - you may need to adjust it
             return $"weather_{iconCode}.png";
         }
+    }
+
+    public class DailyWeatherViewModel : ObservableObject
+    {
+        private DateTime _date;
+        private string _dayName = string.Empty;
+        private string _description = string.Empty;
+        private string _minTemperature = string.Empty;
+        private string _maxTemperature = string.Empty;
+        private string _weatherIcon = string.Empty;
+        private string _sunriseTime = string.Empty;
+        private string _sunsetTime = string.Empty;
+        private double _windDirection;
+        private string _windSpeed = string.Empty;
+        private string _windGust = string.Empty;
+
+        public DateTime Date
+        {
+            get => _date;
+            set => SetProperty(ref _date, value);
+        }
+
+        public string DayName
+        {
+            get => _dayName;
+            set => SetProperty(ref _dayName, value);
+        }
+
+        public string Description
+        {
+            get => _description;
+            set => SetProperty(ref _description, value);
+        }
+
+        public string MinTemperature
+        {
+            get => _minTemperature;
+            set => SetProperty(ref _minTemperature, value);
+        }
+
+        public string MaxTemperature
+        {
+            get => _maxTemperature;
+            set => SetProperty(ref _maxTemperature, value);
+        }
+
+        public string WeatherIcon
+        {
+            get => _weatherIcon;
+            set => SetProperty(ref _weatherIcon, value);
+        }
+
+        public string SunriseTime
+        {
+            get => _sunriseTime;
+            set => SetProperty(ref _sunriseTime, value);
+        }
+
+        public string SunsetTime
+        {
+            get => _sunsetTime;
+            set => SetProperty(ref _sunsetTime, value);
+        }
+
+        public double WindDirection
+        {
+            get => _windDirection;
+            set => SetProperty(ref _windDirection, value);
+        }
+
+        public string WindSpeed
+        {
+            get => _windSpeed;
+            set => SetProperty(ref _windSpeed, value);
+        }
+
+        public string WindGust
+        {
+            get => _windGust;
+            set => SetProperty(ref _windGust, value);
+        }
+
+        public bool IsToday { get; set; }
+    }
+}
     }
 }

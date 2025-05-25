@@ -1,5 +1,6 @@
 using Location.Core.Application.Queries.Weather;
 using Location.Core.Application.Services;
+using Location.Core.Maui.Resources;
 using Location.Core.ViewModels;
 using MediatR;
 using System;
@@ -11,7 +12,7 @@ namespace Location.Core.Maui.Views
     public partial class WeatherDisplay : ContentPage
     {
         private readonly IMediator _mediator;
-        private readonly IAlertService _alertService;
+        private readonly IErrorDisplayService _errorDisplayService;
         private readonly int _locationId;
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
@@ -31,11 +32,11 @@ namespace Location.Core.Maui.Views
         /// </summary>
         public WeatherDisplay(
             IMediator mediator,
-            IAlertService alertService,
+            IErrorDisplayService errorDisplayService,
             int locationId)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _locationId = locationId;
 
             InitializeComponent();
@@ -47,10 +48,10 @@ namespace Location.Core.Maui.Views
         private void InitializeViewModel()
         {
             // Create view model instance
-            var viewModel = new WeatherViewModel(_mediator, _alertService);
+            var viewModel = new WeatherViewModel(_mediator, _errorDisplayService);
 
-            // Subscribe to error events
-            viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+            // Subscribe to system error events
+            viewModel.ErrorOccurred += OnSystemError;
 
             // Set as binding context
             BindingContext = viewModel;
@@ -69,13 +70,11 @@ namespace Location.Core.Maui.Views
                 try
                 {
                     viewModel.IsBusy = true;
-                    await viewModel.LoadWeatherCommand.ExecuteAsync(locationId);
+                    await viewModel.ExecuteAndTrackAsync(viewModel.LoadWeatherCommand, locationId);
                 }
                 catch (Exception ex)
                 {
-                    await _alertService.ShowErrorAlertAsync($"Error loading weather data: {ex.Message}", "Error");
-                    viewModel.ErrorMessage = $"Error loading weather data: {ex.Message}";
-                    viewModel.IsError = true;
+                    viewModel.OnSystemError($"Error loading weather data: {ex.Message}");
                 }
                 finally
                 {
@@ -84,13 +83,18 @@ namespace Location.Core.Maui.Views
             }
         }
 
-        private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
+        private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
-            // Display error if not already shown in the UI
-            MainThread.BeginInvokeOnMainThread(async () =>
+            var retry = await DisplayAlert(
+                AppResources.Error,
+                $"{e.Message}. Click OK to try again.",
+                AppResources.OK,
+                AppResources.Cancel);
+
+            if (retry && sender is WeatherViewModel viewModel)
             {
-                await _alertService.ShowErrorAlertAsync(e.Message, "Error");
-            });
+                await viewModel.RetryLastCommandAsync();
+            }
         }
 
         private void ImageButton_Pressed(object sender, EventArgs e)
@@ -106,8 +110,8 @@ namespace Location.Core.Maui.Views
             // Re-subscribe to ViewModel events in case BindingContext changed
             if (BindingContext is WeatherViewModel viewModel)
             {
-                viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
-                viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+                viewModel.ErrorOccurred -= OnSystemError;
+                viewModel.ErrorOccurred += OnSystemError;
             }
         }
 
@@ -118,7 +122,7 @@ namespace Location.Core.Maui.Views
             // Unsubscribe from ViewModel events
             if (BindingContext is WeatherViewModel viewModel)
             {
-                viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
+                viewModel.ErrorOccurred -= OnSystemError;
             }
 
             // Cancel any pending operations

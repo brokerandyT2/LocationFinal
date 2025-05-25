@@ -30,6 +30,9 @@
             <!-- Custom Converters -->
             <!-- Add your custom converters here -->
             <converters:StringToBoolConverter x:Key="CustomStringToBoolConverter"/>
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:InvertedBoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter"/>
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>

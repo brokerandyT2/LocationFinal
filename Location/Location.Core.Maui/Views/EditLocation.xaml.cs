@@ -1,6 +1,7 @@
 using Location.Core.Application.Locations.Queries.GetLocationById;
 using Location.Core.Application.Services;
 using Location.Core.Maui.Services;
+using Location.Core.Maui.Resources;
 using Location.Core.ViewModels;
 using MediatR;
 using System;
@@ -14,8 +15,8 @@ namespace Location.Core.Maui.Views
         private readonly IMediator _mediator;
         private readonly IMediaService _mediaService;
         private readonly IGeolocationService _geolocationService;
-        private readonly IAlertService _alertService;
         private readonly INavigationService _navigationService;
+        private readonly IErrorDisplayService _errorDisplayService;
         private readonly int _locationId;
         private readonly bool _isModalMode;
         private CancellationTokenSource _cts = new CancellationTokenSource();
@@ -28,7 +29,6 @@ namespace Location.Core.Maui.Views
             InitializeComponent();
             _locationId = 0;
             _isModalMode = false;
-            //CloseModal.IsVisible = _isModalMode;
 
             // Set a default view model for design time
             BindingContext = new LocationViewModel();
@@ -41,23 +41,20 @@ namespace Location.Core.Maui.Views
             IMediator mediator,
             IMediaService mediaService,
             IGeolocationService geolocationService,
-            IAlertService alertService,
             INavigationService navigationService,
+            IErrorDisplayService errorDisplayService,
             int locationId = 0,
             bool isModalMode = false)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _mediaService = mediaService ?? throw new ArgumentNullException(nameof(mediaService));
             _geolocationService = geolocationService ?? throw new ArgumentNullException(nameof(geolocationService));
-            _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _locationId = locationId;
             _isModalMode = isModalMode;
 
             InitializeComponent();
-
-            // Configure UI based on mode
-           // CloseModal.IsVisible = _isModalMode;
 
             // Initialize ViewModel and load data
             InitializeViewModel();
@@ -66,10 +63,10 @@ namespace Location.Core.Maui.Views
         private void InitializeViewModel()
         {
             // Create a view model instance with required services
-            var viewModel = new LocationViewModel(_mediator, _mediaService, _geolocationService, _alertService);
+            var viewModel = new LocationViewModel(_mediator, _mediaService, _geolocationService, _errorDisplayService);
 
-            // Subscribe to error events
-            viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+            // Subscribe to system error events
+            viewModel.ErrorOccurred += OnSystemError;
 
             // Set as binding context
             BindingContext = viewModel;
@@ -88,28 +85,17 @@ namespace Location.Core.Maui.Views
                 try
                 {
                     viewModel.IsBusy = true;
-                    await viewModel.LoadLocationCommand.ExecuteAsync(id);
+                    await viewModel.ExecuteAndTrackAsync(viewModel.LoadLocationCommand, id);
                 }
                 catch (Exception ex)
                 {
-                    await _alertService.ShowErrorAlertAsync($"Error loading location: {ex.Message}", "Error");
-                    viewModel.ErrorMessage = $"Error loading location: {ex.Message}";
-                    viewModel.IsError = true;
+                    viewModel.OnSystemError($"Error loading location: {ex.Message}");
                 }
                 finally
                 {
                     viewModel.IsBusy = false;
                 }
             }
-        }
-
-        private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
-        {
-            // Display error if not already shown in the UI
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                await _alertService.ShowErrorAlertAsync(e.Message, "Error");
-            });
         }
 
         private async void WeatherButton_Pressed(object sender, EventArgs e)
@@ -119,12 +105,12 @@ namespace Location.Core.Maui.Views
                 try
                 {
                     // Navigate to WeatherDisplay for this location
-                    var weatherPage = new WeatherDisplay(_mediator, _alertService, viewModel.Id);
+                    var weatherPage = new WeatherDisplay(_mediator, _errorDisplayService, viewModel.Id);
                     await Navigation.PushModalAsync(new NavigationPage(weatherPage));
                 }
                 catch (Exception ex)
                 {
-                    await _alertService.ShowErrorAlertAsync($"Error opening weather: {ex.Message}", "Error");
+                    await DisplayAlert(AppResources.Error, $"Error opening weather: {ex.Message}", AppResources.OK);
                 }
             }
         }
@@ -137,11 +123,11 @@ namespace Location.Core.Maui.Views
                 {
                     // We would navigate to Sun Calculations here
                     // This will be implemented when we migrate that view
-                    await _alertService.ShowInfoAlertAsync("Sun calculations feature will be available soon.", "Coming Soon");
+                    await DisplayAlert("Coming Soon", "Sun calculations feature will be available soon.", AppResources.OK);
                 }
                 catch (Exception ex)
                 {
-                    await _alertService.ShowErrorAlertAsync($"Error: {ex.Message}", "Error");
+                    await DisplayAlert(AppResources.Error, $"Error: {ex.Message}", AppResources.OK);
                 }
             }
         }
@@ -165,6 +151,20 @@ namespace Location.Core.Maui.Views
             Navigation.PopModalAsync();
         }
 
+        private async void OnSystemError(object sender, OperationErrorEventArgs e)
+        {
+            var retry = await DisplayAlert(
+                AppResources.Error,
+                $"{e.Message}. Click OK to try again.",
+                AppResources.OK,
+                AppResources.Cancel);
+
+            if (retry && sender is LocationViewModel viewModel)
+            {
+                await viewModel.RetryLastCommandAsync();
+            }
+        }
+
         protected override void OnAppearing()
         {
             base.OnAppearing();
@@ -172,8 +172,8 @@ namespace Location.Core.Maui.Views
             // Re-subscribe to ViewModel events in case BindingContext changed
             if (BindingContext is LocationViewModel viewModel)
             {
-                viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
-                viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+                viewModel.ErrorOccurred -= OnSystemError;
+                viewModel.ErrorOccurred += OnSystemError;
             }
         }
 
@@ -184,7 +184,7 @@ namespace Location.Core.Maui.Views
             // Unsubscribe from ViewModel events
             if (BindingContext is LocationViewModel viewModel)
             {
-                viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
+                viewModel.ErrorOccurred -= OnSystemError;
             }
 
             // Cancel any pending operations

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Services;
 using MediatR;
@@ -20,14 +21,18 @@ namespace Location.Core.Application.Commands.Locations
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
         public AttachPhotoCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper)
+            IMapper mapper,
+            IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _mediator = mediator;
         }
+
         /// <summary>
         /// Handles the process of attaching a photo to a location and updating the location in the data store.
         /// </summary>
@@ -46,6 +51,7 @@ namespace Location.Core.Application.Commands.Locations
 
                 if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
+                    await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.LocationId}", LocationErrorType.DatabaseError, "Location not found"), cancellationToken);
                     return Result<LocationDto>.Failure("Location not found");
                 }
 
@@ -55,6 +61,7 @@ namespace Location.Core.Application.Commands.Locations
                 var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
                 if (!updateResult.IsSuccess)
                 {
+                    await _mediator.Publish(new LocationSaveErrorEvent(location.Title, LocationErrorType.DatabaseError, updateResult.ErrorMessage), cancellationToken);
                     return Result<LocationDto>.Failure("Failed to update location");
                 }
 
@@ -63,8 +70,14 @@ namespace Location.Core.Application.Commands.Locations
                 var locationDto = _mapper.Map<LocationDto>(location);
                 return Result<LocationDto>.Success(locationDto);
             }
+            catch (Domain.Exceptions.LocationDomainException ex) when (ex.Code == "INVALID_PHOTO_PATH")
+            {
+                await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.LocationId}", LocationErrorType.ValidationError, ex.Message), cancellationToken);
+                return Result<LocationDto>.Failure("Invalid photo path provided");
+            }
             catch (Exception ex)
             {
+                await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.LocationId}", LocationErrorType.NetworkError, ex.Message), cancellationToken);
                 return Result<LocationDto>.Failure($"Failed to attach photo: {ex.Message}");
             }
         }

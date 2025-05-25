@@ -1,5 +1,6 @@
 ﻿// Location.Core.ViewModels/BaseViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Services;
 using Location.Core.Application.Events;
 using System;
@@ -10,7 +11,6 @@ namespace Location.Core.ViewModels
 {
     public abstract class BaseViewModel : ObservableObject, IDisposable
     {
-        private readonly IAlertService? _alertService;
         private readonly IEventBus? _eventBus;
         private readonly IErrorDisplayService? _errorDisplayService;
 
@@ -19,7 +19,11 @@ namespace Location.Core.ViewModels
         private string _errorMessage = string.Empty;
         private bool _hasActiveErrors;
 
-        // Add the ErrorOccurred event to BaseViewModel
+        // Command tracking for retry functionality
+        private IAsyncRelayCommand? _lastCommand;
+        private object? _lastCommandParameter;
+
+        // Add the ErrorOccurred event for system errors (MediatR failures)
         public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
 
         public bool IsBusy
@@ -35,11 +39,7 @@ namespace Location.Core.ViewModels
             {
                 if (SetProperty(ref _isError, value) && value && !string.IsNullOrEmpty(ErrorMessage))
                 {
-                    // When IsError is set to true, publish the error
-                    PublishErrorAsync(ErrorMessage).ConfigureAwait(false);
-
-                    // Also trigger the ErrorOccurred event
-                    OnErrorOccurred(ErrorMessage);
+                    // ViewModel validation errors stay in UI - no event needed
                 }
             }
         }
@@ -56,9 +56,12 @@ namespace Location.Core.ViewModels
             set => SetProperty(ref _hasActiveErrors, value);
         }
 
-        protected BaseViewModel(IAlertService? alertService = null, IEventBus? eventBus = null, IErrorDisplayService? errorDisplayService = null)
+        // Retry tracking properties
+        public IAsyncRelayCommand? LastCommand => _lastCommand;
+        public object? LastCommandParameter => _lastCommandParameter;
+
+        protected BaseViewModel(IEventBus? eventBus = null, IErrorDisplayService? errorDisplayService = null)
         {
-            _alertService = alertService;
             _eventBus = eventBus;
             _errorDisplayService = errorDisplayService;
 
@@ -69,25 +72,60 @@ namespace Location.Core.ViewModels
             }
         }
 
-        protected virtual async Task PublishErrorAsync(string message)
+        /// <summary>
+        /// Tracks the last executed command for retry functionality
+        /// </summary>
+        protected void TrackCommand(IAsyncRelayCommand command, object? parameter = null)
         {
-            // Only publish if we have an alerting service
-            if (_alertService != null)
-            {
-                await _alertService.ShowErrorAlertAsync(message, "Error");
-            }
+            _lastCommand = command;
+            _lastCommandParameter = parameter;
+        }
 
-            // Also publish to event bus for system-wide handling
-            if (_eventBus != null)
+        /// <summary>
+        /// Executes a command and tracks it for retry capability
+        /// </summary>
+        public async Task ExecuteAndTrackAsync(IAsyncRelayCommand command, object? parameter = null)
+        {
+            TrackCommand(command, parameter);
+            await command.ExecuteAsync(parameter);
+        }
+
+        /// <summary>
+        /// Retries the last executed command
+        /// </summary>
+        public async Task RetryLastCommandAsync()
+        {
+            if (_lastCommand?.CanExecute(_lastCommandParameter) == true)
             {
-                await _eventBus.PublishAsync(new ErrorOccurredEvent(message, GetType().Name));
+                await _lastCommand.ExecuteAsync(_lastCommandParameter);
             }
         }
 
-        // Add the OnErrorOccurred method to BaseViewModel
-        protected virtual void OnErrorOccurred(string message)
+        /// <summary>
+        /// Triggers system error event (for MediatR failures)
+        /// </summary>
+        public virtual void OnSystemError(string message)
         {
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(message));
+        }
+
+        /// <summary>
+        /// Sets validation error (displays in UI)
+        /// </summary>
+        protected virtual void SetValidationError(string message)
+        {
+            ErrorMessage = message;
+            IsError = true;
+        }
+
+        /// <summary>
+        /// Clears all error states
+        /// </summary>
+        protected virtual void ClearErrors()
+        {
+            IsError = false;
+            ErrorMessage = string.Empty;
+            HasActiveErrors = false;
         }
 
         private async void OnErrorsReady(object? sender, ErrorDisplayEventArgs e)
@@ -96,16 +134,8 @@ namespace Location.Core.ViewModels
 
             try
             {
-                // Display the aggregated error message
-                if (_alertService != null)
-                {
-                    await _alertService.ShowErrorAlertAsync(e.DisplayMessage, "Error");
-                }
-
-                // Update ViewModel error state
-                ErrorMessage = e.DisplayMessage;
-                IsError = true;
-                OnErrorOccurred(e.DisplayMessage);
+                // System errors from ErrorDisplayService trigger system error event
+                OnSystemError(e.DisplayMessage);
             }
             finally
             {
@@ -125,7 +155,7 @@ namespace Location.Core.ViewModels
         }
     }
 
-    // Move the OperationErrorEventArgs class to BaseViewModel file
+    // OperationErrorEventArgs for system error events
     public class OperationErrorEventArgs : EventArgs
     {
         public string Message { get; }

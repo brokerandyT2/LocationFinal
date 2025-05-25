@@ -1,5 +1,6 @@
 using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Services;
+using Location.Core.Maui.Resources;
 using Location.Core.ViewModels;
 using MediatR;
 using System;
@@ -11,26 +12,33 @@ namespace Location.Core.Maui.Views
     public partial class TipsPage : ContentPage
     {
         private readonly IMediator _mediator;
-        private readonly IAlertService _alertService;
-        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly IErrorDisplayService _errorDisplayService;
         private readonly ITipRepository _tipRepository;
         private readonly ITipTypeRepository _tipTypeRepository;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+
         [Obsolete("This constructor is for tooling or serialization purposes only. Use the constructor with dependencies instead.")]
-        public TipsPage() { throw new NotImplementedException(); }
+        public TipsPage()
+        {
+            throw new NotImplementedException();
+        }
+
         public TipsPage(
             IMediator mediator,
-            IAlertService alertService, ITipRepository tipRepo, ITipTypeRepository tipType)
+            IErrorDisplayService errorDisplayService,
+            ITipRepository tipRepo,
+            ITipTypeRepository tipType)
         {
             InitializeComponent();
 
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _tipRepository = tipRepo ?? throw new ArgumentNullException(nameof(tipRepo));
             _tipTypeRepository = tipType ?? throw new ArgumentNullException(nameof(tipType));
 
             // Initialize the view model
-            var viewModel = new TipsViewModel(_mediator, _alertService, _tipTypeRepository, _tipRepository);
-            viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+            var viewModel = new TipsViewModel(_mediator, _errorDisplayService, _tipTypeRepository, _tipRepository);
+            viewModel.ErrorOccurred += OnSystemError;
             BindingContext = viewModel;
         }
 
@@ -38,10 +46,14 @@ namespace Location.Core.Maui.Views
         {
             base.OnAppearing();
 
-            // Load tip types when the page appears
+            // Re-subscribe to ViewModel events in case BindingContext changed
             if (BindingContext is TipsViewModel viewModel)
             {
-                await viewModel.LoadTipTypesCommand.ExecuteAsync(_cts.Token);
+                viewModel.ErrorOccurred -= OnSystemError;
+                viewModel.ErrorOccurred += OnSystemError;
+
+                // Load tip types when the page appears
+                await viewModel.ExecuteAndTrackAsync(viewModel.LoadTipTypesCommand, _cts.Token);
             }
         }
 
@@ -52,7 +64,7 @@ namespace Location.Core.Maui.Views
             // Unsubscribe from ViewModel events
             if (BindingContext is TipsViewModel viewModel)
             {
-                viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
+                viewModel.ErrorOccurred -= OnSystemError;
             }
 
             // Cancel any pending operations
@@ -67,18 +79,24 @@ namespace Location.Core.Maui.Views
         private async void OnAddTipClicked(object sender, EventArgs e)
         {
             // Implementation for adding new tips (future feature)
-            await _alertService.ShowInfoAlertAsync(
+            await DisplayAlert(
+                "Coming Soon",
                 "Adding new tips will be implemented in a future update.",
-                "Coming Soon");
+                AppResources.OK);
         }
 
-        private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
+        private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
-            // Display error to user if it's not already displayed in the UI
-            MainThread.BeginInvokeOnMainThread(async () =>
+            var retry = await DisplayAlert(
+                AppResources.Error,
+                $"{e.Message}. Click OK to try again.",
+                AppResources.OK,
+                AppResources.Cancel);
+
+            if (retry && sender is TipsViewModel viewModel)
             {
-                await _alertService.ShowErrorAlertAsync(e.Message, "Error");
-            });
+                await viewModel.RetryLastCommandAsync();
+            }
         }
     }
 }

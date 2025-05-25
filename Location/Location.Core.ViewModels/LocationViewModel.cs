@@ -54,7 +54,7 @@ namespace Location.Core.ViewModels
         private bool _isLocationTracking;
 
         // Default constructor for design-time
-        public LocationViewModel() : base(null)
+        public LocationViewModel() : base(null, null)
         {
         }
 
@@ -63,9 +63,8 @@ namespace Location.Core.ViewModels
             IMediator mediator,
             IMediaService mediaService,
             IGeolocationService geolocationService,
-            IAlertService alertingService,
             IErrorDisplayService errorDisplayService)
-            : base(alertingService, null, errorDisplayService)
+            : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _mediaService = mediaService ?? throw new ArgumentNullException(nameof(mediaService));
@@ -78,8 +77,7 @@ namespace Location.Core.ViewModels
             try
             {
                 IsBusy = true;
-                IsError = false;
-                ErrorMessage = string.Empty;
+                ClearErrors();
 
                 var command = new SaveLocationCommand
                 {
@@ -104,18 +102,14 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    // Error events will be handled automatically by ErrorDisplayService
-                    // Just update local state for immediate feedback
-                    ErrorMessage = result.ErrorMessage ?? "Failed to save location";
-                    IsError = true;
+                    // System error from MediatR - trigger ErrorOccurred event
+                    OnSystemError(result.ErrorMessage ?? "Failed to save location");
                 }
             }
             catch (Exception ex)
             {
-                // Error events will be handled automatically by ErrorDisplayService
-                // Just update local state for immediate feedback
-                ErrorMessage = $"Error saving location: {ex.Message}";
-                IsError = true;
+                // System error - trigger ErrorOccurred event
+                OnSystemError($"Error saving location: {ex.Message}");
             }
             finally
             {
@@ -129,8 +123,7 @@ namespace Location.Core.ViewModels
             try
             {
                 IsBusy = true;
-                IsError = false;
-                ErrorMessage = string.Empty;
+                ClearErrors();
 
                 // Create query
                 var query = new GetLocationByIdQuery { Id = id };
@@ -154,16 +147,14 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    // Error events will be handled automatically by ErrorDisplayService
-                    ErrorMessage = result.ErrorMessage ?? $"Failed to load location with ID {id}";
-                    IsError = true;
+                    // System error from MediatR
+                    OnSystemError(result.ErrorMessage ?? $"Failed to load location with ID {id}");
                 }
             }
             catch (Exception ex)
             {
-                // Error events will be handled automatically by ErrorDisplayService
-                ErrorMessage = $"Error loading location: {ex.Message}";
-                IsError = true;
+                // System error
+                OnSystemError($"Error loading location: {ex.Message}");
             }
             finally
             {
@@ -177,8 +168,7 @@ namespace Location.Core.ViewModels
             try
             {
                 IsBusy = true;
-                IsError = false;
-                ErrorMessage = string.Empty;
+                ClearErrors();
 
                 // Check if capture is supported
                 var supportResult = await _mediaService.IsCaptureSupported();
@@ -192,8 +182,8 @@ namespace Location.Core.ViewModels
                     }
                     else
                     {
-                        ErrorMessage = pickResult.ErrorMessage ?? "Failed to pick photo";
-                        IsError = true;
+                        // Validation error - show in UI
+                        SetValidationError(pickResult.ErrorMessage ?? "Failed to pick photo");
                     }
                     return;
                 }
@@ -206,14 +196,14 @@ namespace Location.Core.ViewModels
                 }
                 else
                 {
-                    ErrorMessage = result.ErrorMessage ?? "Failed to capture photo";
-                    IsError = true;
+                    // Validation error - show in UI
+                    SetValidationError(result.ErrorMessage ?? "Failed to capture photo");
                 }
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error taking photo: {ex.Message}";
-                IsError = true;
+                // System error
+                OnSystemError($"Error taking photo: {ex.Message}");
             }
             finally
             {
@@ -235,8 +225,8 @@ namespace Location.Core.ViewModels
                 var permissionResult = await _geolocationService.RequestPermissionsAsync();
                 if (!permissionResult.IsSuccess || !permissionResult.Data)
                 {
-                    // Not critical, just log
-                    System.Diagnostics.Debug.WriteLine("Location permission denied");
+                    // Validation error - user can fix by granting permission
+                    SetValidationError("Location permission is required");
                     return;
                 }
 
@@ -254,11 +244,16 @@ namespace Location.Core.ViewModels
                         Longitude = Math.Round(locationResult.Data.Longitude, 6);
                     }
                 }
+                else
+                {
+                    // System error
+                    OnSystemError(result.ErrorMessage ?? "Failed to start location tracking");
+                }
             }
             catch (Exception ex)
             {
-                // Not critical, just log
-                System.Diagnostics.Debug.WriteLine($"Error starting location tracking: {ex.Message}");
+                // System error
+                OnSystemError($"Error starting location tracking: {ex.Message}");
             }
             finally
             {
@@ -279,11 +274,16 @@ namespace Location.Core.ViewModels
                 {
                     IsLocationTracking = false;
                 }
+                else
+                {
+                    // System error
+                    OnSystemError(result.ErrorMessage ?? "Failed to stop location tracking");
+                }
             }
             catch (Exception ex)
             {
-                // Not critical, just log
-                System.Diagnostics.Debug.WriteLine($"Error stopping location tracking: {ex.Message}");
+                // System error
+                OnSystemError($"Error stopping location tracking: {ex.Message}");
             }
         }
     }
