@@ -7,12 +7,12 @@ using AutoMapper;
 
 namespace Location.Core.Application
 {
- 
-/// <summary>
-/// Provides extension methods for configuring application services in an <see cref="IServiceCollection"/>.
-/// </summary>
-/// <remarks>This class contains methods to register application-specific dependencies, such as AutoMapper,
-/// MediatR,  and custom pipeline behaviors, into the dependency injection container.</remarks>
+
+    /// <summary>
+    /// Provides extension methods for configuring application services in an <see cref="IServiceCollection"/>.
+    /// </summary>
+    /// <remarks>This class contains methods to register application-specific dependencies, such as AutoMapper,
+    /// MediatR,  and custom pipeline behaviors, into the dependency injection container.</remarks>
     public static class ServiceCollectionExtensions
     {
         /// <summary>

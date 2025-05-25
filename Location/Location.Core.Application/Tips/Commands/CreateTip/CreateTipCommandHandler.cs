@@ -3,8 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
+using System.Collections.Generic;
 
 namespace Location.Core.Application.Tips.Commands.CreateTip
 {
@@ -16,18 +18,21 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
     /// validates and applies optional photography settings and localization data if provided in the request. The
     /// created tip is persisted using the provided <see cref="IUnitOfWork"/> and returned as a data transfer object
     /// (DTO).</remarks>
-    public class CreateTipCommandHandler : IRequest<Result<List<TipDto>>>
+    public class CreateTipCommandHandler : IRequestHandler<CreateTipCommand, Result<List<TipDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMediator _mediator;
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateTipCommandHandler"/> class.
         /// </summary>
         /// <param name="unitOfWork">The unit of work instance used to manage database transactions and operations.  This parameter cannot be
         /// <see langword="null"/>.</param>
+        /// <param name="mediator">The mediator used to publish domain events.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="unitOfWork"/> is <see langword="null"/>.</exception>
-        public CreateTipCommandHandler(IUnitOfWork unitOfWork)
+        public CreateTipCommandHandler(IUnitOfWork unitOfWork, IMediator mediator)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mediator = mediator;
         }
         /// <summary>
         /// Handles the creation of a new tip based on the provided command and returns the result.
@@ -40,7 +45,7 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
         /// <returns>A <see cref="Result{T}"/> containing a <see cref="TipDto"/> representing the created tip if the operation is
         /// successful; otherwise, a failure result with an error message.</returns>
-        public async Task<Result<TipDto>> Handle(CreateTipCommand request, CancellationToken cancellationToken)
+        public async Task<Result<List<TipDto>>> Handle(CreateTipCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -68,7 +73,8 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
 
                 if (!result.IsSuccess)
                 {
-                    return Result<TipDto>.Failure(result.ErrorMessage);
+                    await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Database(result.ErrorMessage ?? "Failed to create tip") }, "CreateTipCommandHandler"), cancellationToken);
+                    return Result<List<TipDto>>.Failure(result.ErrorMessage);
                 }
 
                 var createdTip = result.Data;
@@ -86,11 +92,22 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
                     I8n = createdTip.I8n
                 };
 
-                return Result<TipDto>.Success(tipDto);
+                return Result<List<TipDto>>.Success(new List<TipDto> { tipDto });
+            }
+            catch (Domain.Exceptions.TipDomainException ex) when (ex.Code == "DUPLICATE_TITLE")
+            {
+                await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Validation("Title", "Tip with this title already exists") }, "CreateTipCommandHandler"), cancellationToken);
+                return Result<List<TipDto>>.Failure($"Tip with title '{request.Title}' already exists");
+            }
+            catch (Domain.Exceptions.TipDomainException ex) when (ex.Code == "INVALID_TIP_TYPE")
+            {
+                await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Validation("TipTypeId", "Invalid tip type") }, "CreateTipCommandHandler"), cancellationToken);
+                return Result<List<TipDto>>.Failure("Invalid tip type specified");
             }
             catch (Exception ex)
             {
-                return Result<TipDto>.Failure($"Failed to create tip: {ex.Message}");
+                await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Domain(ex.Message) }, "CreateTipCommandHandler"), cancellationToken);
+                return Result<List<TipDto>>.Failure($"Failed to create tip: {ex.Message}");
             }
         }
     }

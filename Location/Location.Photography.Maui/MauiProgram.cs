@@ -92,7 +92,8 @@ namespace Location.Photography.Maui
             builder.Services.AddTransient<DatabaseInitializer>();
             builder.Services.AddTransient<Location.Core.Maui.Views.TipsPage>();
             builder.Services.AddTransient<Core.ViewModels.TipsViewModel>();
-
+            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<SubscriptionSignUpPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Domain.ValueObjects;
 using MediatR;
@@ -39,15 +40,18 @@ namespace Location.Core.Application.Commands.Locations
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
         /// <summary>
         /// Initializes a new instance of the <see cref="SaveLocationCommandHandler"/> class.
         /// </summary>
         /// <param name="unitOfWork">The unit of work used to manage database transactions and operations.</param>
         /// <param name="mapper">The mapper used to map between domain models and data transfer objects.</param>
-        public SaveLocationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        /// <param name="mediator">The mediator used to publish domain events.</param>
+        public SaveLocationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _mediator = mediator;
         }
         /// <summary>
         /// Handles the process of saving a location by either creating a new location or updating an existing one.
@@ -71,6 +75,7 @@ namespace Location.Core.Application.Commands.Locations
                     var existingLocationResult = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
                     if (!existingLocationResult.IsSuccess || existingLocationResult.Data == null)
                     {
+                        await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.DatabaseError, "Location not found"), cancellationToken);
                         return Result<LocationDto>.Failure("Location not found");
                     }
 
@@ -88,6 +93,7 @@ namespace Location.Core.Application.Commands.Locations
                     var updateResult = await _unitOfWork.Locations.UpdateAsync(location, cancellationToken);
                     if (!updateResult.IsSuccess)
                     {
+                        await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.DatabaseError, updateResult.ErrorMessage), cancellationToken);
                         return Result<LocationDto>.Failure("Failed to update location");
                     }
                 }
@@ -110,6 +116,7 @@ namespace Location.Core.Application.Commands.Locations
                     var createResult = await _unitOfWork.Locations.CreateAsync(location, cancellationToken);
                     if (!createResult.IsSuccess || createResult.Data == null)
                     {
+                        await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.DatabaseError, createResult.ErrorMessage), cancellationToken);
                         return Result<LocationDto>.Failure("Failed to create location");
                     }
                     location = createResult.Data;
@@ -120,8 +127,19 @@ namespace Location.Core.Application.Commands.Locations
                 var locationDto = _mapper.Map<LocationDto>(location);
                 return Result<LocationDto>.Success(locationDto);
             }
+            catch (Domain.Exceptions.LocationDomainException ex) when (ex.Code == "DUPLICATE_TITLE")
+            {
+                await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.DuplicateTitle), cancellationToken);
+                return Result<LocationDto>.Failure($"Location with title '{request.Title}' already exists");
+            }
+            catch (Domain.Exceptions.LocationDomainException ex) when (ex.Code == "INVALID_COORDINATES")
+            {
+                await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.InvalidCoordinates), cancellationToken);
+                return Result<LocationDto>.Failure("Invalid coordinates provided");
+            }
             catch (Exception ex)
             {
+                await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.NetworkError, ex.Message), cancellationToken);
                 return Result<LocationDto>.Failure($"Failed to save location: {ex.Message}");
             }
         }

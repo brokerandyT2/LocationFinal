@@ -7,6 +7,7 @@ using FluentValidation;
 using MediatR;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Events.Errors;
 
 namespace Location.Core.Application.Common.Behaviors
 {
@@ -25,6 +26,7 @@ namespace Location.Core.Application.Common.Behaviors
         where TResponse : class, IResult
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators;
+        private readonly IMediator _mediator;
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidationBehavior{TRequest}"/> class with the specified
         /// collection of validators.
@@ -33,9 +35,11 @@ namespace Location.Core.Application.Common.Behaviors
         /// provided, the behavior will not perform any validation.</remarks>
         /// <param name="validators">A collection of validators to be used for validating <typeparamref name="TRequest"/> instances. Each
         /// validator in the collection must implement the <see cref="IValidator{T}"/> interface.</param>
-        public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
+        /// <param name="mediator">The mediator used to publish validation error events.</param>
+        public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators, IMediator mediator)
         {
             _validators = validators;
+            _mediator = mediator;
         }
         /// <summary>
         /// Processes the specified request by validating it and invoking the next handler in the pipeline.
@@ -75,6 +79,10 @@ namespace Location.Core.Application.Common.Behaviors
             if (failures.Count != 0)
             {
                 var errors = failures.Select(f => Error.Validation(f.PropertyName, f.ErrorMessage));
+
+                // Publish validation error event
+                var entityType = typeof(TRequest).Name.Replace("Command", "").Replace("Query", "");
+                await _mediator.Publish(new ValidationErrorEvent(entityType, errors, $"{typeof(TRequest).Name}Handler"), cancellationToken);
 
                 if (typeof(TResponse).IsGenericType &&
                     typeof(TResponse).GetGenericTypeDefinition() == typeof(Result<>))

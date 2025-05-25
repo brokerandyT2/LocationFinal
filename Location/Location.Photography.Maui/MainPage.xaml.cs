@@ -7,7 +7,7 @@ namespace Location.Photography.Maui
 {
     public partial class MainPage : TabbedPage
     {
-        bool isLoggedIn = !string.IsNullOrEmpty(SecureStorage.GetAsync(MagicStrings.Email).Result);
+        bool isLoggedIn = false;
 
         private readonly IServiceProvider _serviceProvider;
         private readonly ISubscriptionStatusService _subscriptionStatusService;
@@ -23,6 +23,12 @@ namespace Location.Photography.Maui
             _logger = logger;
 
             InitializeComponent();
+            try
+            {
+                isLoggedIn = !string.IsNullOrEmpty(SecureStorage.GetAsync(MagicStrings.Email).Result);
+            }
+            catch { }
+
 
             if (isLoggedIn)
             {

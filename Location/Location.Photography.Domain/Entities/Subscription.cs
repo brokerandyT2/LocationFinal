@@ -10,14 +10,14 @@ namespace Location.Photography.Domain.Entities
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public string ProductId { get; private set; } = string.Empty;
-        public string TransactionId { get; private set; } = string.Empty;
-        public string PurchaseToken { get; private set; } = string.Empty;
-        public DateTime PurchaseDate { get; private set; }
-        public DateTime ExpirationDate { get; private set; }
-        public SubscriptionStatus Status { get; private set; }
-        public SubscriptionPeriod Period { get; private set; }
-        public string UserId { get; private set; } = string.Empty;
+        public string ProductId { get; set; } = string.Empty;
+        public string TransactionId { get; set; } = string.Empty;
+        public string PurchaseToken { get; set; } = string.Empty;
+        public DateTime PurchaseDate { get; set; }
+        public DateTime ExpirationDate { get; set; }
+        public SubscriptionStatus Status { get; set; }
+        public SubscriptionPeriod Period { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public bool IsActive => Status == SubscriptionStatus.Active && ExpirationDate > DateTime.UtcNow;
 
         public Subscription() { } // EF Constructor

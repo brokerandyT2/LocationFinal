@@ -4,6 +4,7 @@
              x:Class="Location.Photography.Maui.SubscriptionSignUpPage"
              xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:xml="http://www.w3.org/XML/1998/namespace"
              Title="Premium Subscription">
 
     <ContentPage.BindingContext>
@@ -17,16 +18,50 @@
             VerticalOptions="Center">
 
             <Label 
-                Text="Unlock Premium Features"
+                Text="Unlock Professional Features"
                 FontSize="24"
                 FontAttributes="Bold"
                 HorizontalOptions="Center" />
 
             <Label 
-                Text="Get unlimited access to all photography tools and features"
-                FontSize="16"
-                HorizontalOptions="Center"
-                HorizontalTextAlignment="Center" />
+    FontSize="16"
+    HorizontalOptions="Center"
+    HorizontalTextAlignment="Center">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Get unlimited access to:" />
+                        <Span Text="&#10;" />
+                        <Span Text="All Premium Features" />
+                        <Span Text="&#10;" />
+                        <!-- Newline -->
+                        <Span Text="Scene Evaluation" />
+                        <Span Text="&#10;" />
+                        <!-- Newline -->
+                        <Span Text="and Sun Event Calculations." />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            <Label 
+     Text="Unlock Premium Features"
+     FontSize="24"
+     FontAttributes="Bold"
+     HorizontalOptions="Center" />
+            <Label 
+    FontSize="16"
+    HorizontalOptions="Center"
+    HorizontalTextAlignment="Center">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Get unlimited access to:" />
+                        <Span Text="&#10;" />
+                        <Span Text="Exposure Calculator" />
+                        <Span Text="&#10;" />
+                        <Span Text="and Sun Locations." />
+                        <Span Text="&#10;" />
+                        <Span Text="Your data will be backed up to the cloud." />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
 
             <!-- Subscription Options -->
             <CollectionView ItemsSource="{Binding SubscriptionProducts}"

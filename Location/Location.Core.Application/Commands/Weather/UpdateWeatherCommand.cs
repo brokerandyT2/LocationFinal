@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
 using MediatR;
@@ -31,15 +32,18 @@ namespace Location.Core.Application.Commands.Weather
         private readonly IUnitOfWork _unitOfWork;
         private readonly IWeatherService _weatherService;
         private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
         public UpdateWeatherCommandHandler(
             IUnitOfWork unitOfWork,
             IWeatherService weatherService,
-            IMapper mapper)
+            IMapper mapper,
+            IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _weatherService = weatherService;
             _mapper = mapper;
+            _mediator = mediator;
         }
         /// <summary>
         /// Handles the update of weather data for a specified location.
@@ -60,6 +64,7 @@ namespace Location.Core.Application.Commands.Weather
 
                 if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
+                    await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, WeatherErrorType.InvalidLocation, "Location not found"), cancellationToken);
                     return Result<WeatherDto>.Failure("Location not found");
                 }
 
@@ -85,13 +90,29 @@ namespace Location.Core.Application.Commands.Weather
 
                 if (!weatherResult.IsSuccess || weatherResult.Data == null)
                 {
+                    var errorType = weatherResult.ErrorMessage?.Contains("API") == true
+                        ? WeatherErrorType.ApiUnavailable
+                        : WeatherErrorType.NetworkTimeout;
+
+                    await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, errorType, weatherResult.ErrorMessage), cancellationToken);
                     return Result<WeatherDto>.Failure("Failed to fetch weather data");
                 }
 
                 return weatherResult;
             }
+            catch (TimeoutException ex)
+            {
+                await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, WeatherErrorType.NetworkTimeout, ex.Message), cancellationToken);
+                return Result<WeatherDto>.Failure($"Weather service timeout: {ex.Message}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, WeatherErrorType.InvalidApiKey, ex.Message), cancellationToken);
+                return Result<WeatherDto>.Failure("Weather service authentication failed");
+            }
             catch (Exception ex)
             {
+                await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, WeatherErrorType.ApiUnavailable, ex.Message), cancellationToken);
                 return Result<WeatherDto>.Failure($"Failed to update weather: {ex.Message}");
             }
         }

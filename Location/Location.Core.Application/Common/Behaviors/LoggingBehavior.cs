@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Common.Models;
 
 namespace Location.Core.Application.Common.Behaviors
 {
@@ -22,15 +24,18 @@ namespace Location.Core.Application.Common.Behaviors
         where TRequest : IRequest<TResponse>
     {
         private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
+        private readonly IMediator _mediator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoggingBehavior{TRequest, TResponse}"/> class.
         /// </summary>
         /// <param name="logger">The logger instance used to log information about the behavior.  Cannot be <see langword="null"/>.</param>
+        /// <param name="mediator">The mediator used to publish error events.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger"/> is <see langword="null"/>.</exception>
-        public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+        public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger, IMediator mediator)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mediator = mediator;
         }
         /// <summary>
         /// Handles a request by invoking the next handler in the pipeline and logging relevant information.
@@ -108,6 +113,10 @@ namespace Location.Core.Application.Common.Behaviors
                     requestName,
                     stopwatch.ElapsedMilliseconds,
                     requestJson);
+
+                // Publish error event for unexpected exceptions
+                var entityType = requestName.Replace("Command", "").Replace("Query", "");
+                await _mediator.Publish(new ValidationErrorEvent(entityType, new[] { Error.Domain(ex.Message) }, $"{requestName}Handler"), cancellationToken);
 
                 throw;
             }

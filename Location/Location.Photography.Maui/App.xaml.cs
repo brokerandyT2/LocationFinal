@@ -116,7 +116,7 @@ namespace Location.Photography.Maui
                     {
                         // User has completed onboarding, show the main app
                         _logger.LogInformation("Onboarding already completed, showing MainPage");
-                        MainPage = new MainPage(_serviceProvider);
+                        MainPage = _serviceProvider.GetRequiredService<MainPage>();
                     }
                 });
 
@@ -132,7 +132,7 @@ namespace Location.Photography.Maui
 
                 // Show fallback UI on main thread
                 await MainThread.InvokeOnMainThreadAsync(() => {
-                    MainPage = new MainPage(_serviceProvider);
+                    MainPage = _serviceProvider.GetRequiredService<MainPage>();
                 });
 
                 // Re-throw to be caught by the outer handler

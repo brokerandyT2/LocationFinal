@@ -174,7 +174,7 @@ namespace Location.Photography.Maui.Views
                     });
 
                     // Navigate to the main page on success
-                    await Navigation.PushAsync(new SubscriptionSignUpPage(_serviceProvider));
+                    await Navigation.PushAsync(_serviceProvider.GetRequiredService<SubscriptionSignUpPage>());
                 }
                 catch (Exception ex)
                 {
