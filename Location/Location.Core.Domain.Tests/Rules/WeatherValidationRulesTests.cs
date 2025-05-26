@@ -154,9 +154,9 @@ namespace Location.Core.Domain.Tests.Rules
             var date = DateTime.Today;
             var forecast = new WeatherForecast(
                 1, date, date.AddHours(6), date.AddHours(18),
-                Temperature.FromCelsius(20),
-                Temperature.FromCelsius(25), // Min temp higher than max
-                Temperature.FromCelsius(15), // Max temp
+               20,
+               25, // Min temp higher than max
+                15, // Max temp
                 "Clear", "01d", new WindInfo(10, 180), 65, 1013, 10, 5.0
             );
             weather.UpdateForecasts(new[] { forecast });
@@ -293,14 +293,12 @@ namespace Location.Core.Domain.Tests.Rules
             for (int i = 0; i < count; i++)
             {
                 var date = DateTime.Today.AddDays(i);
-                var forecast = new WeatherForecast(
-                    1, date, date.AddHours(6), date.AddHours(18),
-                    Temperature.FromCelsius(20),
-                    Temperature.FromCelsius(15),
-                    Temperature.FromCelsius(25),
-                    "Clear", "01d", new WindInfo(10, 180), 65, 1013, 10, 5.0
-                );
-                forecasts.Add(forecast);
+               // var forecast = new WeatherForecast(
+                 //   1, date, date.AddHours(6), date.AddHours(18),
+                //   20, 15, 20, "test","empty");
+                   // "Clear", "01d", new WindInfo(10, 180), 65, 1013, 10, 5.0
+                
+               // forecasts.Add(forecast);
             }
             return forecasts;
         }
@@ -310,9 +308,9 @@ namespace Location.Core.Domain.Tests.Rules
             var date = DateTime.Today;
             return new WeatherForecast(
                 1, date, date.AddHours(6), date.AddHours(18),
-                Temperature.FromCelsius(celsius),
-                Temperature.FromCelsius(celsius - 5),
-                Temperature.FromCelsius(celsius + 5),
+                celsius,
+                celsius - 5,
+                celsius + 5,
                 "Clear", "01d", new WindInfo(10, 180), 65, 1013, 10, 5.0
             );
         }

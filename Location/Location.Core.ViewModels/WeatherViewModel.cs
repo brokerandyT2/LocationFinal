@@ -1,17 +1,12 @@
 ﻿// Location.Core.ViewModels/WeatherViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Queries.Weather;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.Application.Weather.Queries.GetWeatherForecast;
 using MediatR;
-using System;
 using System.Collections.ObjectModel;
-using System.Threading;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Location.Core.ViewModels
 {
@@ -50,30 +45,25 @@ namespace Location.Core.ViewModels
                 ClearErrors();
                 LocationId = locationId;
 
-                // First, get the weather data for the location
+                // Get weather data for the location (includes forecast completeness check)
                 var query = new GetWeatherByLocationQuery { LocationId = locationId };
                 var result = await _mediator.Send(query, cancellationToken);
 
                 if (!result.IsSuccess || result.Data == null)
                 {
-                    // Try updating the weather instead
-                    var updateCommand = new UpdateWeatherCommand { LocationId = locationId, ForceUpdate = true };
-                    result = await _mediator.Send(updateCommand, cancellationToken);
-
-                    if (!result.IsSuccess || result.Data == null)
-                    {
-                        // System error from MediatR
-                        OnSystemError(result.ErrorMessage ?? "Failed to load weather data");
-                        return;
-                    }
+                    // System error from MediatR
+                    OnSystemError(result.ErrorMessage ?? "Failed to load weather data");
+                    return;
                 }
 
-                // Now get the forecast data
+                var weatherData = result.Data;
+
+                // Now get the forecast data using coordinates from weather data
                 var forecastQuery = new GetWeatherForecastQuery
                 {
-                    Latitude = result.Data.Latitude,
-                    Longitude = result.Data.Longitude,
-                    Days = 7
+                    Latitude = weatherData.Latitude,
+                    Longitude = weatherData.Longitude,
+                    Days = 5 // Only need today + next 4 days for display
                 };
 
                 var forecastResult = await _mediator.Send(forecastQuery, cancellationToken);
@@ -116,9 +106,9 @@ namespace Location.Core.ViewModels
                 // Clear existing forecasts
                 DailyForecasts.Clear();
 
-                // Process all available days (up to 7)
+                // Process first 5 days only (today + next 4 days)
                 var today = DateTime.Today;
-                foreach (var dailyForecast in forecast.DailyForecasts.Take(7))
+                foreach (var dailyForecast in forecast.DailyForecasts.Take(5))
                 {
                     var isToday = dailyForecast.Date.Date == today;
 

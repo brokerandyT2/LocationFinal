@@ -26,26 +26,31 @@ namespace Location.Core.Application.Weather.Queries.GetWeatherForecast
     /// Handles the query to retrieve a weather forecast for a specified location and time period.
     /// </summary>
     /// <remarks>This handler processes a <see cref="GetWeatherForecastQuery"/> request by invoking the
-    /// weather service to fetch forecast data for the specified latitude, longitude, and number of days. The result is
-    /// returned as a <see cref="Result{T}"/> containing a <see cref="WeatherForecastDto"/> object if successful, or an
-    /// error message if the operation fails.</remarks>
+    /// weather service to fetch forecast data for the specified latitude, longitude, and number of days. 
+    /// It also transforms wind direction based on user preferences before returning the result.</remarks>
     public class GetWeatherForecastQueryHandler : IRequestHandler<GetWeatherForecastQuery, Result<WeatherForecastDto>>
     {
         private readonly IWeatherService _weatherService;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GetWeatherForecastQueryHandler"/> class.
         /// </summary>
         /// <param name="weatherService">The weather service used to retrieve weather forecast data. This parameter cannot be <see langword="null"/>.</param>
         /// <param name="mapper">The mapper used to transform weather forecast data into the desired output format. This parameter cannot be
         /// <see langword="null"/>.</param>
+        /// <param name="unitOfWork">The unit of work used to access user settings. This parameter cannot be <see langword="null"/>.</param>
         public GetWeatherForecastQueryHandler(
             IWeatherService weatherService,
-            IMapper mapper)
+            IMapper mapper,
+            IUnitOfWork unitOfWork)
         {
             _weatherService = weatherService;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
+
         /// <summary>
         /// Handles the request to retrieve a weather forecast for a specified location and time period.
         /// </summary>
@@ -68,11 +73,50 @@ namespace Location.Core.Application.Weather.Queries.GetWeatherForecast
                     return Result<WeatherForecastDto>.Failure(forecastResult.ErrorMessage ?? "Failed to get weather forecast");
                 }
 
-                return forecastResult;
+                // Transform wind directions based on user preference
+                var transformedForecast = await TransformWindDirectionsAsync(forecastResult.Data, cancellationToken);
+
+                return Result<WeatherForecastDto>.Success(transformedForecast);
             }
             catch (Exception ex)
             {
                 return Result<WeatherForecastDto>.Failure($"Failed to retrieve weather forecast: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Transforms wind directions in the forecast based on user's wind direction preference setting.
+        /// </summary>
+        /// <param name="forecast">The forecast data to transform.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>The forecast with transformed wind directions.</returns>
+        private async Task<WeatherForecastDto> TransformWindDirectionsAsync(WeatherForecastDto forecast, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Get user's wind direction preference
+                var windDirectionSetting = await _unitOfWork.Settings.GetByKeyAsync("WindDirection", cancellationToken);
+
+                bool shouldInvertWindDirection = windDirectionSetting.IsSuccess &&
+                                               windDirectionSetting.Data?.Value == "towardsWind";
+
+                if (shouldInvertWindDirection)
+                {
+                    // Transform wind directions for all daily forecasts
+                    foreach (var dailyForecast in forecast.DailyForecasts)
+                    {
+                        // Inverse the direction (add 180 degrees, wrap around)
+                        dailyForecast.WindDirection = (dailyForecast.WindDirection + 180) % 360;
+                    }
+                }
+
+                return forecast;
+            }
+            catch (Exception)
+            {
+                // If we can't get the setting, return the forecast unchanged
+                // This ensures the forecast is still returned even if settings fail
+                return forecast;
             }
         }
     }

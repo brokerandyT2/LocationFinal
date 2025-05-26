@@ -1,13 +1,9 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
-    public class WeatherRepositoryAdapter : Location.Core.Application.Common.Interfaces.IWeatherRepository
+    public class WeatherRepositoryAdapter : IWeatherRepository
     {
         private readonly Location.Core.Application.Common.Interfaces.Persistence.IWeatherRepository _innerRepository;
 
@@ -26,10 +22,18 @@ namespace Location.Core.Infrastructure.Data.Repositories
             => _innerRepository.AddAsync(weather, cancellationToken);
 
         public void Update(Weather weather)
-            => _innerRepository.UpdateAsync(weather);
+        {
+            // Convert synchronous call to async - this is a limitation of the adapter pattern
+            // The calling code should ideally be updated to use async patterns
+            Task.Run(async () => await _innerRepository.UpdateAsync(weather, CancellationToken.None));
+        }
 
         public void Delete(Weather weather)
-            => _innerRepository.DeleteAsync(weather);
+        {
+            // Convert synchronous call to async - this is a limitation of the adapter pattern
+            // The calling code should ideally be updated to use async patterns
+            Task.Run(async () => await _innerRepository.DeleteAsync(weather, CancellationToken.None));
+        }
 
         public Task<IEnumerable<Weather>> GetRecentAsync(int count = 10, CancellationToken cancellationToken = default)
             => _innerRepository.GetRecentAsync(count, cancellationToken);

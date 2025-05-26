@@ -25,7 +25,7 @@ namespace Location.Core.Application.Mappings
         /// seamless transformation between domain models and DTOs for use in application layers.</remarks>
         public WeatherProfile()
         {
-            // Weather to WeatherDto mapping
+            // Weather to WeatherDto mapping - updated for double temperatures
             CreateMap<Domain.Entities.Weather, WeatherDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.LocationId, opt => opt.MapFrom(src => src.LocationId))
@@ -35,7 +35,11 @@ namespace Location.Core.Application.Mappings
                 .ForMember(dest => dest.TimezoneOffset, opt => opt.MapFrom(src => src.TimezoneOffset))
                 .ForMember(dest => dest.LastUpdate, opt => opt.MapFrom(src => src.LastUpdate))
                 .ForMember(dest => dest.Temperature, opt => opt.MapFrom(src =>
-                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Temperature.Celsius : 0))
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().Temperature : 0))
+                .ForMember(dest => dest.MinimumTemp, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().MinTemperature : 0))
+                .ForMember(dest => dest.MaximumTemp, opt => opt.MapFrom(src =>
+                    src.GetCurrentForecast() != null ? src.GetCurrentForecast().MaxTemperature : 0))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src =>
                     src.GetCurrentForecast() != null ? src.GetCurrentForecast().Description : ""))
                 .ForMember(dest => dest.Icon, opt => opt.MapFrom(src =>
@@ -75,14 +79,14 @@ namespace Location.Core.Application.Mappings
                 .ForMember(dest => dest.TimezoneOffset, opt => opt.MapFrom(src => src.TimezoneOffset))
                 .ForMember(dest => dest.DailyForecasts, opt => opt.MapFrom(src => src.Forecasts));
 
-            // WeatherForecast to DailyForecastDto mapping
+            // WeatherForecast to DailyForecastDto mapping - updated for double temperatures
             CreateMap<WeatherForecast, DailyForecastDto>()
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date))
                 .ForMember(dest => dest.Sunrise, opt => opt.MapFrom(src => src.Sunrise))
                 .ForMember(dest => dest.Sunset, opt => opt.MapFrom(src => src.Sunset))
-                .ForMember(dest => dest.Temperature, opt => opt.MapFrom(src => src.Temperature.Celsius))
-                .ForMember(dest => dest.MinTemperature, opt => opt.MapFrom(src => src.MinTemperature.Celsius))
-                .ForMember(dest => dest.MaxTemperature, opt => opt.MapFrom(src => src.MaxTemperature.Celsius))
+                .ForMember(dest => dest.Temperature, opt => opt.MapFrom(src => src.Temperature))
+                .ForMember(dest => dest.MinTemperature, opt => opt.MapFrom(src => src.MinTemperature))
+                .ForMember(dest => dest.MaxTemperature, opt => opt.MapFrom(src => src.MaxTemperature))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.Icon, opt => opt.MapFrom(src => src.Icon))
                 .ForMember(dest => dest.WindSpeed, opt => opt.MapFrom(src => src.Wind.Speed))
@@ -97,16 +101,16 @@ namespace Location.Core.Application.Mappings
                 .ForMember(dest => dest.MoonSet, opt => opt.MapFrom(src => src.MoonSet))
                 .ForMember(dest => dest.MoonPhase, opt => opt.MapFrom(src => src.MoonPhase));
 
-            // DailyForecastDto to WeatherForecast - needs all properties mapped
+            // DailyForecastDto to WeatherForecast mapping - updated for double temperatures
             CreateMap<DailyForecastDto, WeatherForecast>()
                 .ForMember(dest => dest.WeatherId, opt => opt.Ignore()) // Will be set during construction
                 .ForMember(dest => dest.Id, opt => opt.Ignore()) // Will be set by the database
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date))
                 .ForMember(dest => dest.Sunrise, opt => opt.MapFrom(src => src.Sunrise))
                 .ForMember(dest => dest.Sunset, opt => opt.MapFrom(src => src.Sunset))
-                .ForMember(dest => dest.Temperature, opt => opt.MapFrom(src => Domain.ValueObjects.Temperature.FromCelsius(src.Temperature)))
-                .ForMember(dest => dest.MinTemperature, opt => opt.MapFrom(src => Domain.ValueObjects.Temperature.FromCelsius(src.MinTemperature)))
-                .ForMember(dest => dest.MaxTemperature, opt => opt.MapFrom(src => Domain.ValueObjects.Temperature.FromCelsius(src.MaxTemperature)))
+                .ForMember(dest => dest.Temperature, opt => opt.MapFrom(src => src.Temperature))
+                .ForMember(dest => dest.MinTemperature, opt => opt.MapFrom(src => src.MinTemperature))
+                .ForMember(dest => dest.MaxTemperature, opt => opt.MapFrom(src => src.MaxTemperature))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.Icon, opt => opt.MapFrom(src => src.Icon))
                 .ForMember(dest => dest.Wind, opt => opt.MapFrom(src => new Domain.ValueObjects.WindInfo(src.WindSpeed, src.WindDirection, src.WindGust)))

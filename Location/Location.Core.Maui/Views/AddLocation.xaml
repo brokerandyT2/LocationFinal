@@ -145,7 +145,7 @@
                         Text="{x:Static strings:AppResources.CloseLocationDetails}" 
                         Pressed="CloseModal_Pressed" 
                         Grid.Row="9" 
-                        Grid.ColumnSpan="4"
+                        Grid.ColumnSpan="2"
                         Padding="5"
                         CornerRadius="10"
                         MinimumHeightRequest="50"

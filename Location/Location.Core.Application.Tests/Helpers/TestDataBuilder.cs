@@ -133,9 +133,9 @@
 
         public static WeatherForecast CreateValidWeatherForecast(int weatherId = 1)
         {
-            var temperature = Temperature.FromCelsius(20);
-            var minTemp = Temperature.FromCelsius(15);
-            var maxTemp = Temperature.FromCelsius(25);
+            var temperature = 20;
+            var minTemp = 15;
+            var maxTemp = 25;
             var wind = new WindInfo(10, 180, 15);
 
             return new WeatherForecast(

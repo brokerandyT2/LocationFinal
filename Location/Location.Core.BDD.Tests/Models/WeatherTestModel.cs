@@ -141,7 +141,7 @@ namespace Location.Core.BDD.Tests.Models
 
             if (currentForecast != null)
             {
-                model.Temperature = currentForecast.Temperature.Celsius;
+                model.Temperature = currentForecast.Temperature;
                 model.Description = currentForecast.Description;
                 model.Icon = currentForecast.Icon;
                 model.WindSpeed = currentForecast.Wind.Speed;

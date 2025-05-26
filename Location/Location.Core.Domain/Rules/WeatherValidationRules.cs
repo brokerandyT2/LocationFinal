@@ -83,12 +83,12 @@ namespace Location.Core.Domain.Rules
         /// <param name="errors">A list to which validation error messages will be added. Must not be null.</param>
         private static void ValidateForecast(WeatherForecast forecast, List<string> errors)
         {
-            if (forecast.Temperature?.Celsius < MinTemperature || forecast.Temperature?.Celsius > MaxTemperature)
+            if (forecast.Temperature < MinTemperature || forecast.Temperature > MaxTemperature)
             {
                 errors.Add($"Invalid temperature for {forecast.Date:yyyy-MM-dd}");
             }
 
-            if (forecast.MinTemperature?.Celsius > forecast.MaxTemperature?.Celsius)
+            if (forecast.MinTemperature > forecast.MaxTemperature)
             {
                 errors.Add($"Min temperature cannot exceed max temperature for {forecast.Date:yyyy-MM-dd}");
             }

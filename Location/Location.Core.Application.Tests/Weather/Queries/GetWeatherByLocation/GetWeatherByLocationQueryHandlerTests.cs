@@ -11,6 +11,7 @@ using Location.Core.Application.Common.Models;
 using Location.Core.Application.Queries.Weather;
 using Location.Core.Application.Tests.Utilities;
 using Location.Core.Application.Weather.DTOs;
+using MediatR;
 
 namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
 {
@@ -23,19 +24,19 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
         private Mock<IWeatherRepository> _weatherRepositoryMock;
         private Mock<IMapper> _mapperMock;
         private GetWeatherByLocationQueryHandler _handler;
-
+        private Mock<IMediator> _mediatorMock;
         [SetUp]
         public void SetUp()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _weatherRepositoryMock = new Mock<IWeatherRepository>();
             _mapperMock = new Mock<IMapper>();
-
+            _mediatorMock = new Mock<IMediator>();
             _unitOfWorkMock.Setup(u => u.Weather).Returns(_weatherRepositoryMock.Object);
 
             _handler = new GetWeatherByLocationQueryHandler(
                 _unitOfWorkMock.Object,
-                _mapperMock.Object);
+                _mapperMock.Object, _mediatorMock.Object);
         }
 
         [Test]

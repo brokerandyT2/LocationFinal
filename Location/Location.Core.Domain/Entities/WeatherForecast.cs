@@ -13,9 +13,9 @@ namespace Location.Core.Domain.Entities
         public DateTime Date { get; private set; }
         public DateTime Sunrise { get; private set; }
         public DateTime Sunset { get; private set; }
-        public Temperature Temperature { get; private set; } = null!;
-        public Temperature MinTemperature { get; private set; } = null!;
-        public Temperature MaxTemperature { get; private set; } = null!;
+        public double Temperature { get; private set; }
+        public double MinTemperature { get; private set; }
+        public double MaxTemperature { get; private set; }
         public string Description { get; private set; } = string.Empty;
         public string Icon { get; private set; } = string.Empty;
         public WindInfo Wind { get; private set; } = null!;
@@ -37,9 +37,9 @@ namespace Location.Core.Domain.Entities
             DateTime date,
             DateTime sunrise,
             DateTime sunset,
-            Temperature temperature,
-            Temperature minTemperature,
-            Temperature maxTemperature,
+            double temperature,
+            double minTemperature,
+            double maxTemperature,
             string description,
             string icon,
             WindInfo wind,
@@ -52,9 +52,9 @@ namespace Location.Core.Domain.Entities
             Date = date.Date;
             Sunrise = sunrise;
             Sunset = sunset;
-            Temperature = temperature ?? throw new ArgumentNullException(nameof(temperature));
-            MinTemperature = minTemperature ?? throw new ArgumentNullException(nameof(minTemperature));
-            MaxTemperature = maxTemperature ?? throw new ArgumentNullException(nameof(maxTemperature));
+            Temperature = temperature;
+            MinTemperature = minTemperature;
+            MaxTemperature = maxTemperature;
             Description = description ?? string.Empty;
             Icon = icon ?? string.Empty;
             Wind = wind ?? throw new ArgumentNullException(nameof(wind));

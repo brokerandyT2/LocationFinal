@@ -257,14 +257,11 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         private WeatherForecast MapForecastToDomain(WeatherForecastEntity entity)
         {
-            var temperature = Temperature.FromCelsius(entity.Temperature);
-            var minTemperature = Temperature.FromCelsius(entity.MinTemperature);
-            var maxTemperature = Temperature.FromCelsius(entity.MaxTemperature);
             var wind = new WindInfo(entity.WindSpeed, entity.WindDirection, entity.WindGust);
 
             var forecast = CreateWeatherForecastViaReflection(
                 entity.WeatherId, entity.Date, entity.Sunrise, entity.Sunset,
-                temperature, minTemperature, maxTemperature, entity.Description, entity.Icon,
+                entity.Temperature, entity.MinTemperature, entity.MaxTemperature, entity.Description, entity.Icon,
                 wind, entity.Humidity, entity.Pressure, entity.Clouds, entity.UvIndex);
 
             SetPrivateProperty(forecast, "Id", entity.Id);
@@ -300,9 +297,9 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 Date = forecast.Date,
                 Sunrise = forecast.Sunrise,
                 Sunset = forecast.Sunset,
-                Temperature = forecast.Temperature.Celsius,
-                MinTemperature = forecast.MinTemperature.Celsius,
-                MaxTemperature = forecast.MaxTemperature.Celsius,
+                Temperature = forecast.Temperature,
+                MinTemperature = forecast.MinTemperature,
+                MaxTemperature = forecast.MaxTemperature,
                 Description = forecast.Description,
                 Icon = forecast.Icon,
                 WindSpeed = forecast.Wind.Speed,
@@ -329,14 +326,14 @@ namespace Location.Core.Infrastructure.Data.Repositories
         }
 
         private WeatherForecast CreateWeatherForecastViaReflection(int weatherId, DateTime date, DateTime sunrise, DateTime sunset,
-            Temperature temperature, Temperature minTemperature, Temperature maxTemperature, string description, string icon,
+            double temperature, double minTemperature, double maxTemperature, string description, string icon,
             WindInfo wind, int humidity, int pressure, int clouds, double uvIndex)
         {
             var type = typeof(WeatherForecast);
             var constructor = type.GetConstructor(new[]
             {
                 typeof(int), typeof(DateTime), typeof(DateTime), typeof(DateTime),
-                typeof(Temperature), typeof(Temperature), typeof(Temperature),
+                typeof(double), typeof(double), typeof(double),
                 typeof(string), typeof(string), typeof(WindInfo),
                 typeof(int), typeof(int), typeof(int), typeof(double)
             });

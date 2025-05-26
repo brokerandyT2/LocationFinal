@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using FluentAssertions;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Application.Tests.Utilities;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.Application.Weather.Queries.GetWeatherForecast;
+using Location.Core.Infrastructure.UnitOfWork;
 using Moq;
 using NUnit.Framework;
 
@@ -18,16 +20,16 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherForecast
         private Mock<IWeatherService> _weatherServiceMock;
         private Mock<IMapper> _mapperMock;
         private GetWeatherForecastQueryHandler _handler;
-
+        private IUnitOfWork _uow;
         [SetUp]
         public void SetUp()
         {
             _weatherServiceMock = new Mock<IWeatherService>();
             _mapperMock = new Mock<IMapper>();
-
+            //_uow = new UnitOfWork();
             _handler = new GetWeatherForecastQueryHandler(
                 _weatherServiceMock.Object,
-                _mapperMock.Object);
+                _mapperMock.Object, _uow);
         }
 
         [Test]

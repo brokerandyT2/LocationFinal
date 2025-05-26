@@ -32,7 +32,7 @@
             <converters:StringToBoolConverter x:Key="CustomStringToBoolConverter"/>
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <converters:InvertedBoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter"/>
-            
+            <converters:TemperatureScaleConverter x:Key="TempScaleConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

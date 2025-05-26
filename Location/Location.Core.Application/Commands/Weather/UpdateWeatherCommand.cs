@@ -23,10 +23,8 @@ namespace Location.Core.Application.Commands.Weather
     /// Handles the execution of the <see cref="UpdateWeatherCommand"/> to update weather information for a specific
     /// location.
     /// </summary>
-    /// <remarks>This handler retrieves the location by its identifier, checks for cached weather data, and
-    /// optionally fetches updated weather information from an external weather service. If cached data is available and
-    /// still valid, it is returned unless the <see cref="UpdateWeatherCommand.ForceUpdate"/> flag is set to <see
-    /// langword="true"/>.</remarks>
+    /// <remarks>This handler retrieves the location by its identifier, fetches updated weather information 
+    /// from an external weather service, and persists it to the local database for offline-first capability.</remarks>
     public class UpdateWeatherCommandHandler : IRequestHandler<UpdateWeatherCommand, Result<WeatherDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -48,10 +46,8 @@ namespace Location.Core.Application.Commands.Weather
         /// <summary>
         /// Handles the update of weather data for a specified location.
         /// </summary>
-        /// <remarks>This method retrieves weather data for the specified location. If cached weather data
-        /// exists and is still valid, it returns the cached data unless the <see
-        /// cref="UpdateWeatherCommand.ForceUpdate"/> flag is set to true. Otherwise, it fetches new weather data from
-        /// an external weather service.</remarks>
+        /// <remarks>This method fetches fresh weather data from the external API and persists it to the local 
+        /// database, ensuring offline-first capability by always storing data locally.</remarks>
         /// <param name="request">The command containing the location ID and update options.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
         /// <returns>A <see cref="Result{T}"/> containing a <see cref="WeatherDto"/> with the updated weather data if successful;
@@ -68,24 +64,9 @@ namespace Location.Core.Application.Commands.Weather
                     return Result<WeatherDto>.Failure("Location not found");
                 }
 
-                var location = locationResult.Data;
-
-                // Check if we have cached weather that's still valid
-                var existingWeather = await _unitOfWork.Weather.GetByLocationIdAsync(request.LocationId, cancellationToken);
-                if (existingWeather != null && !request.ForceUpdate)
-                {
-                    var daysSinceUpdate = (DateTime.UtcNow - existingWeather.LastUpdate).TotalDays;
-                    if (daysSinceUpdate < 1) // Update at most once per day
-                    {
-                        var cachedDto = _mapper.Map<WeatherDto>(existingWeather);
-                        return Result<WeatherDto>.Success(cachedDto);
-                    }
-                }
-
-                // Fetch new weather data from OpenWeatherMap API
-                var weatherResult = await _weatherService.GetWeatherAsync(
-                    location.Coordinate.Latitude,
-                    location.Coordinate.Longitude,
+                // Fetch new weather data from API and persist to database
+                var weatherResult = await _weatherService.UpdateWeatherForLocationAsync(
+                    request.LocationId,
                     cancellationToken);
 
                 if (!weatherResult.IsSuccess || weatherResult.Data == null)
@@ -95,7 +76,7 @@ namespace Location.Core.Application.Commands.Weather
                         : WeatherErrorType.NetworkTimeout;
 
                     await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, errorType, weatherResult.ErrorMessage), cancellationToken);
-                    return Result<WeatherDto>.Failure("Failed to fetch weather data");
+                    return Result<WeatherDto>.Failure("Failed to fetch and persist weather data");
                 }
 
                 return weatherResult;

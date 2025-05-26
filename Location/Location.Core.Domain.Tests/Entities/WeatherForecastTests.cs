@@ -9,13 +9,13 @@ namespace Location.Core.Domain.Tests.Entities
     [TestFixture]
     public class WeatherForecastTests
     {
-        private Temperature _validTemp;
+        private double _validTemp;
         private WindInfo _validWind;
 
         [SetUp]
         public void Setup()
         {
-            _validTemp = Temperature.FromCelsius(20);
+            _validTemp = 20;
             _validWind = new WindInfo(10, 180);
         }
 
@@ -29,8 +29,8 @@ namespace Location.Core.Domain.Tests.Entities
                 DateTime.Today.AddHours(6),
                 DateTime.Today.AddHours(18),
                 _validTemp,
-                Temperature.FromCelsius(15),
-                Temperature.FromCelsius(25),
+                15,
+                25,
                 "Clear sky",
                 "01d",
                 _validWind,
@@ -61,9 +61,9 @@ namespace Location.Core.Domain.Tests.Entities
                 DateTime.Today,
                 DateTime.Today.AddHours(6),
                 DateTime.Today.AddHours(18),
-                null,
-                Temperature.FromCelsius(15),
-                Temperature.FromCelsius(25),
+                _validTemp,
+                15,
+               25,
                 "Clear sky",
                 "01d",
                 _validWind,
@@ -88,8 +88,8 @@ namespace Location.Core.Domain.Tests.Entities
                 DateTime.Today.AddHours(6),
                 DateTime.Today.AddHours(18),
                 _validTemp,
-                Temperature.FromCelsius(15),
-                Temperature.FromCelsius(25),
+                15,
+                25,
                 "Clear sky",
                 "01d",
                 null,
@@ -115,8 +115,8 @@ namespace Location.Core.Domain.Tests.Entities
                 DateTime.Today.AddHours(6),
                 DateTime.Today.AddHours(18),
                 _validTemp,
-                Temperature.FromCelsius(15),
-                Temperature.FromCelsius(25),
+                15 ,
+                25,
                 "Clear sky",
                 "01d",
                 _validWind,
@@ -142,8 +142,8 @@ namespace Location.Core.Domain.Tests.Entities
                 DateTime.Today.AddHours(6),
                 DateTime.Today.AddHours(18),
                 _validTemp,
-                Temperature.FromCelsius(15),
-                Temperature.FromCelsius(25),
+                15,
+                25,
                 "Clear sky",
                 "01d",
                 _validWind,
@@ -246,8 +246,8 @@ namespace Location.Core.Domain.Tests.Entities
                 DateTime.Today.AddHours(6),
                 DateTime.Today.AddHours(18),
                 _validTemp,
-                Temperature.FromCelsius(15),
-                Temperature.FromCelsius(25),
+                15,
+                25,
                 "Clear sky",
                 "01d",
                 _validWind,

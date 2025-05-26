@@ -61,7 +61,7 @@ namespace Location.Core.Infrastructure.Data.Entities
 
         public DateTime Sunset { get; set; }
 
-        // Temperature in Celsius
+        // Temperature in user's preferred unit (from API)
         public double Temperature { get; set; }
         public double MinTemperature { get; set; }
         public double MaxTemperature { get; set; }
@@ -70,7 +70,7 @@ namespace Location.Core.Infrastructure.Data.Entities
 
         public string Icon { get; set; } = string.Empty;
 
-        // Wind info
+        // Wind info (raw direction from API)
         public double WindSpeed { get; set; }
         public double WindDirection { get; set; }
         public double? WindGust { get; set; }

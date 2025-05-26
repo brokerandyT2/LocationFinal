@@ -148,9 +148,9 @@ namespace Location.Core.Infrastructure.External
                     DateTime.Today,
                     weatherResult.Data.Sunrise,
                     weatherResult.Data.Sunset,
-                    Temperature.FromCelsius(weatherResult.Data.Temperature),
-                    Temperature.FromCelsius(weatherResult.Data.Temperature - 5), // Approximate min
-                    Temperature.FromCelsius(weatherResult.Data.Temperature + 5), // Approximate max
+                    weatherResult.Data.Temperature,
+                    weatherResult.Data.Temperature - 5, // Approximate min
+                    weatherResult.Data.Temperature + 5, // Approximate max
                     weatherResult.Data.Description,
                     weatherResult.Data.Icon,
                     new WindInfo(weatherResult.Data.WindSpeed, weatherResult.Data.WindDirection, weatherResult.Data.WindGust),
