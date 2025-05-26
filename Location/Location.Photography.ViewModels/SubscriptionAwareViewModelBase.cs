@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {
-    public abstract partial class SubscriptionAwareViewModelBase : ViewModelBase
+    public partial class SubscriptionAwareViewModelBase : ViewModelBase
     {
         protected readonly ISubscriptionFeatureGuard _featureGuard;
         private readonly IErrorDisplayService _errorDisplayService;

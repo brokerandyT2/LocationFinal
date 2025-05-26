@@ -1,11 +1,12 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Data.Repositories;
+using Location.Core.Infrastructure.Services;
 using Location.Core.Infrastructure.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NUnit.Framework;
 using System;
 using System.IO;
 using System.Linq;
@@ -20,15 +21,17 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         private Mock<ILogger<SettingRepository>> _mockLogger;
         private Mock<ILogger<DatabaseContext>> _mockContextLogger;
         private string _testDbPath;
+        private Mock<IInfrastructureExceptionMappingService> _mockInfraLogger;
         [SetUp]
         public async Task Setup()
         {
+            _mockInfraLogger = new Mock<IInfrastructureExceptionMappingService>();
             _mockLogger = new Mock<ILogger<SettingRepository>>();
             _mockContextLogger = new Mock<ILogger<DatabaseContext>>();
             _testDbPath = Path.Combine(Path.GetTempPath(), $"test_{Guid.NewGuid()}.db");
             _context = new DatabaseContext(_mockContextLogger.Object, _testDbPath);
             await _context.InitializeDatabaseAsync();
-            _repository = new SettingRepository(_context, _mockLogger.Object);
+            _repository = new SettingRepository(_context, _mockLogger.Object, _mockInfraLogger.Object);
         }
 
         [TearDown]
@@ -277,7 +280,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         public void Constructor_WithNullContext_ShouldThrowException()
         {
             // Act
-            Action act = () => new SettingRepository(null!, _mockLogger.Object);
+            Action act = () => new SettingRepository(null!, _mockLogger.Object, _mockInfraLogger.Object);
 
             // Assert
             act.Should().Throw<ArgumentNullException>()
@@ -288,7 +291,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         public void Constructor_WithNullLogger_ShouldThrowException()
         {
             // Act
-            Action act = () => new SettingRepository(_context, null!);
+            Action act = () => new SettingRepository(_context, null!, _mockInfraLogger.Object);
 
             // Assert
             act.Should().Throw<ArgumentNullException>()

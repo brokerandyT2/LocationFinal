@@ -8,18 +8,21 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Tests.Utilities;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Commands.Locations.RestoreLocation
 {
     [Category("Locations")]
+    [Category("Restore")]
     [TestFixture]
     public class RestoreLocationCommandHandlerTests
     {
         private Mock<IUnitOfWork> _unitOfWorkMock;
         private Mock<ILocationRepository> _locationRepositoryMock;
         private Mock<IMapper> _mapperMock;
+        private Mock<IMediator> _mediatorMock;
         private RestoreLocationCommandHandler _handler;
 
         [SetUp]
@@ -28,12 +31,14 @@ namespace Location.Core.Application.Tests.Commands.Locations.RestoreLocation
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _locationRepositoryMock = new Mock<ILocationRepository>();
             _mapperMock = new Mock<IMapper>();
+            _mediatorMock = new Mock<IMediator>();
 
             _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
 
             _handler = new RestoreLocationCommandHandler(
                 _unitOfWorkMock.Object,
-                _mapperMock.Object);
+                _mapperMock.Object,
+                _mediatorMock.Object);
         }
 
         [Test]

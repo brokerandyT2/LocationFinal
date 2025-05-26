@@ -1,62 +1,47 @@
+// Location.Photography.Maui/Views/UserOnboarding.xaml.cs
 using Location.Core.Application.Services;
 using Location.Photography.Infrastructure;
 using Location.Photography.Maui.Resources;
 using Location.Photography.ViewModels;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
-using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Maui.Views
 {
     public partial class UserOnboarding : ContentPage
     {
-        #region Services
-
         private readonly IAlertService _alertService;
         private readonly DatabaseInitializer _databaseInitializer;
-
-        #endregion
-
-        #region Fields
+        private readonly ILogger<UserOnboarding> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private string _guid;
         private bool _saveAttempted = false;
 
-        #endregion
-
-        #region Constructors
-
-        /// <summary>
-        /// Default constructor for design-time and XAML preview
-        /// </summary>
         public UserOnboarding()
         {
             InitializeComponent();
+            GetSetting();
         }
-        private readonly IServiceProvider _serviceProvider;
-        /// <summary>
-        /// Main constructor with DI
-        /// </summary>
-        public UserOnboarding(IAlertService alertService, DatabaseInitializer databaseInitializer, ILogger<UserOnboarding> logger, IServiceProvider serviceProvider)
+
+        public UserOnboarding(
+            IAlertService alertService,
+            DatabaseInitializer databaseInitializer,
+            ILogger<UserOnboarding> logger,
+            IServiceProvider serviceProvider)
         {
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _databaseInitializer = databaseInitializer ?? throw new ArgumentNullException(nameof(databaseInitializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceProvider = serviceProvider;
+
             InitializeComponent();
+            GetSetting();
         }
 
-        #endregion
-        private readonly ILogger<UserOnboarding> _logger;
-
-       
         protected override void OnNavigatedTo(NavigatedToEventArgs args)
         {
             base.OnNavigatedTo(args);
-
             GetSetting();
         }
 
@@ -93,11 +78,8 @@ namespace Location.Photography.Maui.Views
 
         private void EmailAddress_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // Update validation message visibility when text changes
             if (emailAddress.Text.Contains('.') && emailAddress.Text.Split('.')[1].Length >= 2)
             {
-                // only execute validation if someone has entered at least 2 characters (minimum) after a period.  
-                // This way we aren't showing an error until the user has had the chance to put in an actual address
                 UpdateValidationMessageVisibility();
             }
         }
@@ -108,11 +90,8 @@ namespace Location.Photography.Maui.Views
             bool isValid = validationBehavior?.IsValid ?? false;
             bool hasText = !string.IsNullOrWhiteSpace(emailAddress.Text);
 
-            // Show validation message only if there's text AND it's invalid
-            // OR if save button was pressed (tracked by a separate flag)
             emailValidationMessage.IsVisible = (hasText && !isValid) || _saveAttempted;
 
-            // You could customize the message based on the error
             if (string.IsNullOrWhiteSpace(emailAddress.Text) && _saveAttempted)
             {
                 emailValidationMessage.Text = "Email is required";
@@ -131,14 +110,10 @@ namespace Location.Photography.Maui.Views
             bool isValid = validationBehavior?.IsValid ?? false;
             bool hasText = !string.IsNullOrWhiteSpace(emailAddress.Text);
 
-           
-
             if (isValid && hasText)
             {
-                // Reset the save attempted flag
                 _saveAttempted = false;
 
-                // Extract settings values for clarity
                 string hemisphere = HemisphereSwitch.IsToggled ? MagicStrings.North : MagicStrings.South;
                 string temperatureFormat = TempFormatSwitch.IsToggled ? MagicStrings.Fahrenheit : MagicStrings.Celsius;
                 string dateFormat = DateFormat.IsToggled ? MagicStrings.USDateFormat : MagicStrings.InternationalFormat;
@@ -146,57 +121,61 @@ namespace Location.Photography.Maui.Views
                 string windDirection = WindDirectionSwitch.IsToggled ? MagicStrings.TowardsWind : MagicStrings.WithWind;
                 string email = emailAddress.Text;
 
-                // Save critical settings to secure storage for quick access
                 await SaveToSecureStorageAsync(email);
                 save.IsEnabled = false;
-                // Show processing indicator
                 processingOverlay.IsVisible = true;
 
                 try
                 {
                     var guid = Guid.NewGuid().ToString();
+                    await SecureStorage.SetAsync(MagicStrings.UniqueID, guid);
 
-                  await  SecureStorage.SetAsync(MagicStrings.UniqueID, guid);
-                    // Initialize database with all settings on a background thread
                     CancellationTokenSource cts = new CancellationTokenSource();
 
                     await MainThread.InvokeOnMainThreadAsync(() => {
                         loadingIndicator.IsRunning = true;
                     });
 
-                    // Brief delay to ensure UI updates
                     await Task.Delay(50);
 
                     await Task.Run(async () =>
                     {
-                         await _databaseInitializer.InitializeDatabaseAsync(cts.Token,hemisphere,temperatureFormat,dateFormat,timeFormat,
-                            windDirection,email,_guid);
+                        await _databaseInitializer.InitializeDatabaseAsync(
+                            cts.Token, hemisphere, temperatureFormat, dateFormat,
+                            timeFormat, windDirection, email, _guid);
                     });
 
-                    // Navigate to the main page on success
                     await Navigation.PushAsync(_serviceProvider.GetRequiredService<SubscriptionSignUpPage>());
                 }
                 catch (Exception ex)
                 {
-                    // Handle any errors
                     string errorMessage = "Error processing data";
                     if (AppResources.ResourceManager.GetString("ErrorProcessingData") != null)
                     {
                         errorMessage = AppResources.ResourceManager.GetString("ErrorProcessingData");
                     }
 
-                    await _alertService.ShowErrorAlertAsync($"{errorMessage}: {ex.Message}", "Error");
+                    if (_alertService != null)
+                    {
+                        await _alertService.ShowErrorAlertAsync($"{errorMessage}: {ex.Message}", "Error");
+                    }
+                    else
+                    {
+                        await DisplayAlert("Error", $"{errorMessage}: {ex.Message}", "OK");
+                    }
                 }
                 finally
                 {
-                    // Hide processing indicator
                     await MainThread.InvokeOnMainThreadAsync(() => {
                         processingOverlay.IsVisible = false;
                         save.IsEnabled = true;
                     });
                 }
             }
-            else { UpdateValidationMessageVisibility(); }
+            else
+            {
+                UpdateValidationMessageVisibility();
+            }
         }
 
         private async Task SaveToSecureStorageAsync(string email)
@@ -204,16 +183,12 @@ namespace Location.Photography.Maui.Views
             try
             {
                 _guid = Guid.NewGuid().ToString();
-                // Save only sensitive user info to secure storage
                 await SecureStorage.Default.SetAsync(MagicStrings.Email, email);
                 await SecureStorage.Default.SetAsync(MagicStrings.UniqueID, _guid);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("Failed to save to SecureStorage, falling back to Preferences: {Message}", ex.Message);
-
-                // Fall back to Preferences if SecureStorage fails
-                
+                _logger?.LogWarning("Failed to save to SecureStorage, falling back to Preferences: {Message}", ex.Message);
             }
         }
 
@@ -249,7 +224,6 @@ namespace Location.Photography.Maui.Views
         }
     }
 
-    // Extension method for string capitalization if needed
     public static class StringExtensions
     {
         public static string FirstCharToUpper(this string input)

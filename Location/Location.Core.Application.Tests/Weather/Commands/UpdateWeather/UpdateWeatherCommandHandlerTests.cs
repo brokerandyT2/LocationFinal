@@ -5,11 +5,11 @@ using AutoMapper;
 using FluentAssertions;
 using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Common.Interfaces;
-
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Application.Tests.Utilities;
 using Location.Core.Application.Weather.DTOs;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 
@@ -25,6 +25,7 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
         private Mock<IWeatherRepository> _weatherRepositoryMock;
         private Mock<IWeatherService> _weatherServiceMock;
         private Mock<IMapper> _mapperMock;
+        private Mock<IMediator> _mediatorMock;
         private UpdateWeatherCommandHandler _handler;
 
         [SetUp]
@@ -35,6 +36,7 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             _weatherRepositoryMock = new Mock<IWeatherRepository>();
             _weatherServiceMock = new Mock<IWeatherService>();
             _mapperMock = new Mock<IMapper>();
+            _mediatorMock = new Mock<IMediator>();
 
             _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
             _unitOfWorkMock.Setup(u => u.Weather).Returns(_weatherRepositoryMock.Object);
@@ -42,7 +44,8 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             _handler = new UpdateWeatherCommandHandler(
                 _unitOfWorkMock.Object,
                 _weatherServiceMock.Object,
-                _mapperMock.Object);
+                _mapperMock.Object,
+                _mediatorMock.Object);
         }
 
         [Test]
@@ -217,7 +220,6 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
-
         [Test]
         public async Task Handle_WhenWeatherServiceFails_ShouldReturnFailure()
         {
@@ -225,7 +227,6 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             var command = new UpdateWeatherCommand { LocationId = 1, ForceUpdate = false };
             var location = TestDataBuilder.CreateValidLocation(1);
 
-            // Fix: Return Result<Location>.Success
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));

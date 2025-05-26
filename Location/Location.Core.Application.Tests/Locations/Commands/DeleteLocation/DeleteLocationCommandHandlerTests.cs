@@ -3,6 +3,7 @@ using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Utilities;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 
@@ -15,6 +16,7 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
     {
         private Mock<IUnitOfWork> _unitOfWorkMock;
         private Mock<ILocationRepository> _locationRepositoryMock;
+        private Mock<IMediator> _mediatorMock;
         private DeleteLocationCommandHandler _handler;
 
         [SetUp]
@@ -22,8 +24,9 @@ namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _locationRepositoryMock = new Mock<ILocationRepository>();
+            _mediatorMock = new Mock<IMediator>();
             _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
-            _handler = new DeleteLocationCommandHandler(_unitOfWorkMock.Object);
+            _handler = new DeleteLocationCommandHandler(_unitOfWorkMock.Object, _mediatorMock.Object);
         }
 
         [Test]

@@ -6,6 +6,7 @@ using Location.Core.Application.Tips.Commands.UpdateTip;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Utilities;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 
@@ -17,13 +18,15 @@ namespace Location.Core.Application.Tests.Tips.Commands.UpdateTip
     public class UpdateTipCommandHandlerTests
     {
         private Mock<ITipRepository> _tipRepositoryMock;
+        private Mock<IMediator> _mediatorMock;
         private UpdateTipCommandHandler _handler;
 
         [SetUp]
         public void SetUp()
         {
             _tipRepositoryMock = new Mock<ITipRepository>();
-            _handler = new UpdateTipCommandHandler(_tipRepositoryMock.Object);
+            _mediatorMock = new Mock<IMediator>();
+            _handler = new UpdateTipCommandHandler(_tipRepositoryMock.Object, _mediatorMock.Object);
         }
 
         [Test]

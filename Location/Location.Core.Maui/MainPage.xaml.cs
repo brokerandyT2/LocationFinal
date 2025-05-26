@@ -19,11 +19,11 @@ namespace Location.Core.Maui
             IAlertService alertService,
             INavigationService navigationService,
             IMediaService mediaService,
-            IGeolocationService geolocationService, ITipRepository tipRepo, ITipTypeRepository tiptype)
+            IGeolocationService geolocationService, ITipRepository tipRepo, ITipTypeRepository tiptype, IErrorDisplayService errorDisplayService, IWeatherService weatherService)
         {
             this.Children.Add(new Views.AddLocation());
-            this.Children.Add(new Views.LocationsPage(mediator, alertService, navigationService, mediaService, geolocationService));
-            this.Children.Add(new Views.TipsPage(mediator, alertService,tipRepo, tiptype));
+            this.Children.Add(new Views.LocationsPage(mediator, navigationService, mediaService,geolocationService, errorDisplayService, weatherService));
+            this.Children.Add(new Views.TipsPage(mediator, errorDisplayService, tipRepo, tiptype));
         }
 
 

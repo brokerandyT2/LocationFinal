@@ -1,8 +1,8 @@
+// Location.Photography.Maui/SubscriptionSignUpPage.xaml.cs
 using Location.Core.Application.Services;
 using Location.Photography.ViewModels;
+using Location.Photography.ViewModels.Events;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Maui
 {
@@ -16,6 +16,8 @@ namespace Location.Photography.Maui
         public SubscriptionSignUpPage()
         {
             InitializeComponent();
+            _viewModel = new SubscriptionSignUpViewModel();
+            BindingContext = _viewModel;
         }
 
         public SubscriptionSignUpPage(
@@ -31,11 +33,6 @@ namespace Location.Photography.Maui
 
             InitializeComponent();
             BindingContext = _viewModel;
-
-            // Subscribe to view model events
-            _viewModel.SubscriptionCompleted += OnSubscriptionCompleted;
-            _viewModel.NotNowSelected += OnNotNowSelected;
-            _viewModel.ErrorOccurred += OnErrorOccurred;
         }
 
         protected override async void OnNavigatedTo(NavigatedToEventArgs args)
@@ -44,15 +41,33 @@ namespace Location.Photography.Maui
 
             try
             {
-                if (_viewModel != null && !_viewModel.IsInitialized)
+                if (_viewModel != null)
                 {
-                    await _viewModel.InitializeCommand.ExecuteAsync(null);
+                    _viewModel.SubscriptionCompleted -= OnSubscriptionCompleted;
+                    _viewModel.NotNowSelected -= OnNotNowSelected;
+                    _viewModel.ErrorOccurred -= OnSystemError;
+
+                    _viewModel.SubscriptionCompleted += OnSubscriptionCompleted;
+                    _viewModel.NotNowSelected += OnNotNowSelected;
+                    _viewModel.ErrorOccurred += OnSystemError;
+
+                    if (!_viewModel.IsInitialized)
+                    {
+                        await _viewModel.InitializeCommand.ExecuteAsync(null);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during page navigation");
-                await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                _logger?.LogError(ex, "Error during page navigation");
+                if (_alertService != null)
+                {
+                    await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                }
+                else
+                {
+                    await DisplayAlert("Error", "There was an error processing your request, please try again", "OK");
+                }
             }
         }
 
@@ -60,12 +75,11 @@ namespace Location.Photography.Maui
         {
             base.OnDisappearing();
 
-            // Unsubscribe from events to prevent memory leaks
             if (_viewModel != null)
             {
                 _viewModel.SubscriptionCompleted -= OnSubscriptionCompleted;
                 _viewModel.NotNowSelected -= OnNotNowSelected;
-                _viewModel.ErrorOccurred -= OnErrorOccurred;
+                _viewModel.ErrorOccurred -= OnSystemError;
             }
         }
 
@@ -77,8 +91,15 @@ namespace Location.Photography.Maui
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error navigating after subscription completion");
-                await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                _logger?.LogError(ex, "Error navigating after subscription completion");
+                if (_alertService != null)
+                {
+                    await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                }
+                else
+                {
+                    await DisplayAlert("Error", "There was an error processing your request, please try again", "OK");
+                }
             }
         }
 
@@ -90,36 +111,56 @@ namespace Location.Photography.Maui
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error navigating after 'Not Now' selection");
-                await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                _logger?.LogError(ex, "Error navigating after 'Not Now' selection");
+                if (_alertService != null)
+                {
+                    await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                }
+                else
+                {
+                    await DisplayAlert("Error", "There was an error processing your request, please try again", "OK");
+                }
             }
         }
 
-        private void OnErrorOccurred(object sender, Location.Photography.ViewModels.Events.OperationErrorEventArgs e)
+        private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
-            _logger.LogWarning("Subscription error occurred: {Message}", e.Message);
+            _logger?.LogWarning("Subscription error occurred: {Message}", e.Message);
+
+            var retry = await DisplayAlert("Error", $"{e.Message}. Try again?", "OK", "Cancel");
+            if (retry && sender is SubscriptionSignUpViewModel viewModel)
+            {
+                await viewModel.RetryLastCommandAsync();
+            }
         }
 
         private async Task NavigateToMainPageAsync()
         {
             try
             {
-                // Navigate to MainPage - you'll need to create this or specify the correct main page
-                var mainPage = _serviceProvider.GetService(typeof(MainPage)) as Page;
-                if (mainPage != null)
+                if (_serviceProvider != null)
                 {
-                    await Navigation.PushAsync(mainPage);
+                    var mainPage = _serviceProvider.GetService(typeof(MainPage)) as Page;
+                    if (mainPage != null)
+                    {
+                        await Navigation.PushAsync(mainPage);
+                        return;
+                    }
                 }
-                else
-                {
-                    // Fallback navigation
-                    await Shell.Current.GoToAsync("//MainPage");
-                }
+
+                await Shell.Current.GoToAsync("//MainPage");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to navigate to main page");
-                await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                _logger?.LogError(ex, "Failed to navigate to main page");
+                if (_alertService != null)
+                {
+                    await _alertService.ShowErrorAlertAsync("There was an error processing your request, please try again", "Error");
+                }
+                else
+                {
+                    await DisplayAlert("Error", "There was an error processing your request, please try again", "OK");
+                }
             }
         }
     }

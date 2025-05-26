@@ -134,7 +134,7 @@ namespace Location.Core.Application.Tests.Common.Models
         public void Failure_WithDomainException_ShouldCreateFailureResult()
         {
             // Arrange
-            var exception = new Domain.Exceptions.LocationDomainException("Domain error", "DOMAIN_CODE");
+            var exception = new Domain.Exceptions.LocationDomainException("DOMAIN_CODE", "Domain error");
 
             // Act
             var result = Result<string>.Failure(exception);

@@ -1,21 +1,30 @@
+// Location.Photography.Maui/Views/Professional/SceneEvaluation.xaml.cs
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
+using Location.Core.Application.Services;
 
 namespace Location.Photography.Maui.Views.Professional
 {
     public partial class SceneEvaluation : ContentPage
     {
         private SceneEvaluationViewModel _viewModel;
+        private readonly IErrorDisplayService _errorDisplayService;
 
         public SceneEvaluation()
         {
             InitializeComponent();
-
-            // Ensure the ViewModel is set
-            _viewModel = BindingContext as SceneEvaluationViewModel ?? new SceneEvaluationViewModel();
+            _viewModel = new SceneEvaluationViewModel();
             BindingContext = _viewModel;
+            RedRadioButton.IsChecked = true;
+        }
 
-            // Set the initial radio button state
+        public SceneEvaluation(IErrorDisplayService errorDisplayService)
+        {
+            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
+
+            InitializeComponent();
+            _viewModel = new SceneEvaluationViewModel(_errorDisplayService);
+            BindingContext = _viewModel;
             RedRadioButton.IsChecked = true;
         }
 
@@ -23,39 +32,39 @@ namespace Location.Photography.Maui.Views.Professional
         {
             base.OnAppearing();
 
-            // If the ViewModel wasn't set in the constructor, get it now
             if (_viewModel == null)
             {
                 _viewModel = BindingContext as SceneEvaluationViewModel;
                 if (_viewModel == null)
                 {
-                    _viewModel = new SceneEvaluationViewModel();
+                    _viewModel = _errorDisplayService != null
+                        ? new SceneEvaluationViewModel(_errorDisplayService)
+                        : new SceneEvaluationViewModel();
                     BindingContext = _viewModel;
                 }
             }
 
-            // Subscribe to error events
-            _viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
+            _viewModel.ErrorOccurred -= OnSystemError;
+            _viewModel.ErrorOccurred += OnSystemError;
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
 
-            // Unsubscribe from events to prevent memory leaks
             if (_viewModel != null)
             {
-                _viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
+                _viewModel.ErrorOccurred -= OnSystemError;
             }
         }
 
-        private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
+        private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
-            // Handle the error event, perhaps showing an alert
-            MainThread.BeginInvokeOnMainThread(async () =>
+            var retry = await DisplayAlert("Error", $"{e.Message}. Try again?", "OK", "Cancel");
+            if (retry && sender is SceneEvaluationViewModel viewModel)
             {
-                await DisplayAlert("Error", e.Message, "OK");
-            });
+                await viewModel.RetryLastCommandAsync();
+            }
         }
 
         private void RadioButton_CheckedChanged(object sender, CheckedChangedEventArgs e)
@@ -66,10 +75,8 @@ namespace Location.Photography.Maui.Views.Professional
                 if (_viewModel == null) return;
             }
 
-            // Only process the event if a radio button is being checked (not unchecked)
             if (!e.Value) return;
 
-            // Determine which radio button was checked
             if (sender == RedRadioButton)
             {
                 _viewModel.IsRedHistogramVisible = true;

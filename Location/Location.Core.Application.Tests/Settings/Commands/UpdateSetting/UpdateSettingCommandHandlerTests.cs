@@ -6,19 +6,20 @@ using Location.Core.Application.Settings.Commands.UpdateSetting;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Utilities;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Settings.Commands.UpdateSetting
 {
-    [Category("Setting")]
+    [Category("Settings")]
     [Category("Update")]
-
     [TestFixture]
     public class UpdateSettingCommandHandlerTests
     {
         private Mock<IUnitOfWork> _unitOfWorkMock;
         private Mock<ISettingRepository> _settingRepositoryMock;
+        private Mock<IMediator> _mediatorMock;
         private UpdateSettingCommandHandler _handler;
 
         [SetUp]
@@ -26,17 +27,18 @@ namespace Location.Core.Application.Tests.Settings.Commands.UpdateSetting
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _settingRepositoryMock = new Mock<ISettingRepository>();
+            _mediatorMock = new Mock<IMediator>();
 
             _unitOfWorkMock.Setup(u => u.Settings).Returns(_settingRepositoryMock.Object);
 
-            _handler = new UpdateSettingCommandHandler(_unitOfWorkMock.Object);
+            _handler = new UpdateSettingCommandHandler(_unitOfWorkMock.Object, _mediatorMock.Object);
         }
 
         [Test]
         public void Constructor_WithNullUnitOfWork_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            NUnit.Framework.Assert.Throws<ArgumentNullException>(() => new UpdateSettingCommandHandler(null));
+            NUnit.Framework.Assert.Throws<ArgumentNullException>(() => new UpdateSettingCommandHandler(null, _mediatorMock.Object));
         }
 
         [Test]

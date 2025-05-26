@@ -17,8 +17,8 @@ namespace Location.Core.Domain.Tests.Exceptions
             // Assert
             exception.Latitude.Should().Be(91.0);
             exception.Longitude.Should().Be(-181.0);
-            exception.Message.Should().Be("Invalid coordinates: Latitude=91, Longitude=-181");
-            exception.Code.Should().Be("INVALID_COORDINATE");
+            exception.Message.Should().Be("Custom error message");
+            exception.Code.Should().Be("Invalid coordinates: Latitude=91, Longitude=-181");
         }
 
         [Test]

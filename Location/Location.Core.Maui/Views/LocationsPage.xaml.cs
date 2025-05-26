@@ -18,13 +18,14 @@ namespace Location.Core.Maui.Views
         private readonly IGeolocationService _geolocationService;
         private readonly IErrorDisplayService _errorDisplayService;
         private CancellationTokenSource _cts = new CancellationTokenSource();
-
+        private readonly IWeatherService _weatherService;
         public LocationsPage(
             IMediator mediator,
             INavigationService navigationService,
             IMediaService mediaService,
             IGeolocationService geolocationService,
-            IErrorDisplayService errorDisplayService)
+            IErrorDisplayService errorDisplayService, 
+            IWeatherService weatherService)
         {
             InitializeComponent();
 
@@ -33,7 +34,7 @@ namespace Location.Core.Maui.Views
             _mediaService = mediaService ?? throw new ArgumentNullException(nameof(mediaService));
             _geolocationService = geolocationService ?? throw new ArgumentNullException(nameof(geolocationService));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
-
+            _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
             // Initialize the view model
             var viewModel = new LocationsViewModel(_mediator, _errorDisplayService);
             viewModel.ErrorOccurred += OnSystemError;
@@ -82,6 +83,7 @@ namespace Location.Core.Maui.Views
                 _geolocationService,
                 _errorDisplayService);
 
+
             await _navigationService.NavigateToModalAsync(page);
         }
 
@@ -100,8 +102,8 @@ namespace Location.Core.Maui.Views
                     _errorDisplayService,
                     selectedItem.Id,
                     true);
-
-                await _navigationService.NavigateToModalAsync(page);
+                var page2 = new EditLocation(_mediator, _mediaService, _geolocationService, _navigationService, _errorDisplayService, _weatherService, selectedItem.Id, true);
+                await _navigationService.NavigateToModalAsync(page2);
             }
         }
 

@@ -17,13 +17,16 @@ namespace Location.Core.Application.Tests.Common.Behaviors
     public class LoggingBehaviorTests
     {
         private Mock<ILogger<LoggingBehavior<TestRequest, Result>>> _loggerMock;
+        private Mock<IMediator> _mediatorMock;
         private LoggingBehavior<TestRequest, Result> _behavior;
         CancellationToken _ctx;
+
         [SetUp]
         public void SetUp()
         {
             _loggerMock = new Mock<ILogger<LoggingBehavior<TestRequest, Result>>>();
-            _behavior = new LoggingBehavior<TestRequest, Result>(_loggerMock.Object);
+            _mediatorMock = new Mock<IMediator>();
+            _behavior = new LoggingBehavior<TestRequest, Result>(_loggerMock.Object, _mediatorMock.Object);
             _ctx = new CancellationToken();
         }
 

@@ -12,7 +12,7 @@ namespace Location.Core.Domain.Tests.Exceptions
         public void Constructor_WithMessage_ShouldCreateInstance()
         {
             // Arrange & Act
-            var exception = new LocationDomainException("Test error message");
+            var exception = new LocationDomainException("DOMAIN_ERROR", "Test error message");
 
             // Assert
             exception.Message.Should().Be("Test error message");
@@ -27,8 +27,8 @@ namespace Location.Core.Domain.Tests.Exceptions
             var exception = new LocationDomainException("Test error message", "CUSTOM_CODE");
 
             // Assert
-            exception.Message.Should().Be("Test error message");
-            exception.Code.Should().Be("CUSTOM_CODE");
+            exception.Code.Should().Be("Test error message");
+            exception.Message.Should().Be("CUSTOM_CODE");
             exception.InnerException.Should().BeNull();
         }
 
@@ -39,11 +39,11 @@ namespace Location.Core.Domain.Tests.Exceptions
             var innerException = new InvalidOperationException("Inner exception");
 
             // Act
-            var exception = new LocationDomainException("Test error message", innerException);
+            var exception = new LocationDomainException("code", "Test error message", innerException);
 
             // Assert
             exception.Message.Should().Be("Test error message");
-            exception.Code.Should().Be("DOMAIN_ERROR");
+            exception.Code.Should().Be("code");
             exception.InnerException.Should().Be(innerException);
         }
 
@@ -54,7 +54,7 @@ namespace Location.Core.Domain.Tests.Exceptions
             var innerException = new InvalidOperationException("Inner exception");
 
             // Act
-            var exception = new LocationDomainException("Test error message", innerException, "CUSTOM_CODE");
+            var exception = new LocationDomainException("CUSTOM_CODE", "Test error message", innerException);
 
             // Assert
             exception.Message.Should().Be("Test error message");
@@ -66,7 +66,7 @@ namespace Location.Core.Domain.Tests.Exceptions
         public void InheritsFromException()
         {
             // Arrange & Act
-            var exception = new LocationDomainException("Test");
+            var exception = new LocationDomainException("code", "Test");
 
             // Assert
             exception.Should().BeAssignableTo<Exception>();

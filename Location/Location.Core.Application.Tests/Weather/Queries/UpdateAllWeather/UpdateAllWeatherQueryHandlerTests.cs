@@ -6,6 +6,7 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.Queries.UpdateAllWeather;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 
@@ -17,20 +18,22 @@ namespace Location.Core.Application.Tests.Weather.Queries.UpdateAllWeather
     public class UpdateAllWeatherQueryHandlerTests
     {
         private Mock<IWeatherService> _weatherServiceMock;
+        private Mock<IMediator> _mediatorMock;
         private UpdateAllWeatherQueryHandler _handler;
 
         [SetUp]
         public void SetUp()
         {
             _weatherServiceMock = new Mock<IWeatherService>();
-            _handler = new UpdateAllWeatherQueryHandler(_weatherServiceMock.Object);
+            _mediatorMock = new Mock<IMediator>();
+            _handler = new UpdateAllWeatherQueryHandler(_weatherServiceMock.Object, _mediatorMock.Object);
         }
 
         [Test]
         public void Constructor_WithNullWeatherService_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            FluentActions.Invoking(() => new UpdateAllWeatherQueryHandler(null))
+            FluentActions.Invoking(() => new UpdateAllWeatherQueryHandler(null, _mediatorMock.Object))
                 .Should().Throw<ArgumentNullException>();
         }
 

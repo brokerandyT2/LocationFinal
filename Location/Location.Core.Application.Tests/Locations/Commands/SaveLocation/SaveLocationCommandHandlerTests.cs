@@ -8,19 +8,21 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Domain.ValueObjects;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 using Assert = NUnit.Framework.Assert;
 
 namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
 {
-    [NUnit.Framework.Category("Locations")]
-    [NUnit.Framework.Category("Delete Location")]
+    [Category("Locations")]
+    [Category("Save")]
     public class SaveLocationCommandHandlerTests
     {
         private Mock<IUnitOfWork> _unitOfWorkMock;
         private Mock<Location.Core.Application.Common.Interfaces.ILocationRepository> _locationRepositoryMock;
         private Mock<IMapper> _mapperMock;
+        private Mock<IMediator> _mediatorMock;
         private SaveLocationCommandHandler _handler;
 
         [SetUp]
@@ -29,9 +31,10 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _locationRepositoryMock = new Mock<ILocationRepository>();
             _mapperMock = new Mock<IMapper>();
+            _mediatorMock = new Mock<IMediator>();
 
             _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
-            _handler = new SaveLocationCommandHandler(_unitOfWorkMock.Object, _mapperMock.Object);
+            _handler = new SaveLocationCommandHandler(_unitOfWorkMock.Object, _mapperMock.Object, _mediatorMock.Object);
         }
 
         [Test]
@@ -56,7 +59,6 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
                 new Coordinate(40.0, -73.0),
                 new Address("Old City", "Old State"));
 
-            // Fix: Return successful result instead of failure
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(locationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Location>.Success(existingLocation));
@@ -101,7 +103,6 @@ namespace Location.Core.Application.Tests.Locations.Commands.SaveLocation
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            // Fix: Check for failure instead of success
             Assert.That(result.IsSuccess, Is.False);
             Assert.That(result.ErrorMessage, Does.Contain("Failed to save location"));
         }

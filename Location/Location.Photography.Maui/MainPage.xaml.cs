@@ -59,7 +59,7 @@ namespace Location.Photography.Maui
                 else
                 {
                     sceneEvaluation.IsEnabled = false;
-                    sceneEvaluation.Title = "Scene Evaluation (Pro)";
+
                     this.Children.Add(sceneEvaluation);
                 }
 
@@ -71,7 +71,6 @@ namespace Location.Photography.Maui
                 else
                 {
                     sunCalculator.IsEnabled = false;
-                    sunCalculator.Title = "Sun Calculator (Pro)";
                     this.Children.Add(sunCalculator);
                 }
 
@@ -84,7 +83,6 @@ namespace Location.Photography.Maui
                 else
                 {
                     sunLocation.IsEnabled = false;
-                    sunLocation.Title = "Sun Location (Premium)";
                     this.Children.Add(sunLocation);
                 }
 

@@ -1,13 +1,14 @@
 ﻿
-using NUnit.Framework;
 using FluentAssertions;
+using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Data.Repositories;
+using Location.Core.Infrastructure.Services;
 using Location.Core.Infrastructure.Tests.Helpers;
-using Location.Core.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NUnit.Framework;
 using System;
 using System.IO;
 using System.Linq;
@@ -22,15 +23,17 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         private Mock<ILogger<LocationRepository>> _mockLogger;
         private Mock<ILogger<DatabaseContext>> _mockContextLogger;
         private string _testDbPath;
+        private Mock<IInfrastructureExceptionMappingService> _mockInfraLogger;
         [SetUp]
         public async Task Setup()
         {
+            _mockInfraLogger = new Mock<IInfrastructureExceptionMappingService>();
             _mockLogger = new Mock<ILogger<LocationRepository>>();
             _mockContextLogger = new Mock<ILogger<DatabaseContext>>();
             _testDbPath = Path.Combine(Path.GetTempPath(), $"test_{Guid.NewGuid()}.db");
             _context = new DatabaseContext(_mockContextLogger.Object, _testDbPath);
             await _context.InitializeDatabaseAsync();
-            _repository = new LocationRepository(_context, _mockLogger.Object);
+            _repository = new LocationRepository(_context, _mockLogger.Object, _mockInfraLogger.Object);
         }
 
         [TearDown]
@@ -311,7 +314,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         public void Constructor_WithNullContext_ShouldThrowException()
         {
             // Act
-            Action act = () => new LocationRepository(null!, _mockLogger.Object);
+            Action act = () => new LocationRepository(null!, _mockLogger.Object, _mockInfraLogger.Object);
 
             // Assert
             act.Should().Throw<ArgumentNullException>()
@@ -322,7 +325,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         public void Constructor_WithNullLogger_ShouldThrowException()
         {
             // Act
-            Action act = () => new LocationRepository(_context, null!);
+            Action act = () => new LocationRepository(_context, null!, _mockInfraLogger.Object  );
 
             // Assert
             act.Should().Throw<ArgumentNullException>()

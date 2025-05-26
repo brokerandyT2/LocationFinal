@@ -1,13 +1,14 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Location.Core.Application.Tips.Commands.CreateTip;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Utilities;
+using Location.Core.Application.Tips.Commands.CreateTip;
+using MediatR;
 using Moq;
 using NUnit.Framework;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Application.Tests.Tips.Commands.CreateTip
 {
@@ -19,16 +20,17 @@ namespace Location.Core.Application.Tests.Tips.Commands.CreateTip
         private Mock<IUnitOfWork> _unitOfWorkMock;
         private Mock<ITipRepository> _tipRepositoryMock;
         private CreateTipCommandHandler _handler;
-
+        private Mock<IMediator> _mediatorMock;
         [SetUp]
         public void SetUp()
         {
+            _mediatorMock = new Mock<IMediator>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _tipRepositoryMock = new Mock<ITipRepository>();
 
             _unitOfWorkMock.Setup(u => u.Tips).Returns(_tipRepositoryMock.Object);
 
-            _handler = new CreateTipCommandHandler(_unitOfWorkMock.Object);
+            _handler = new CreateTipCommandHandler(_unitOfWorkMock.Object, _mediatorMock.Object);
         }
 
         [Test]
@@ -60,7 +62,7 @@ namespace Location.Core.Application.Tests.Tips.Commands.CreateTip
 
             // Assert
             result.IsSuccess.Should().BeTrue();
-            result.Data.Id.Should().Be(42);
+            result.Data[0].Id.Should().Be(42);
         }
     }
 }

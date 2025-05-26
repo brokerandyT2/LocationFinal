@@ -2,267 +2,156 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Location.Core.Application.Settings.Commands.CreateSetting;
+using Location.Core.Application.Tips.Commands.DeleteTip;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Utilities;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 
-namespace Location.Core.Application.Tests.Settings.Commands.CreateSetting
+namespace Location.Core.Application.Tests.Tips.Commands.DeleteTip
 {
     [Category("Tips")]
     [Category("Delete")]
     [TestFixture]
-    public class CreateSettingCommandHandlerTests
+    public class DeleteTipCommandHandlerTests
     {
         private Mock<IUnitOfWork> _unitOfWorkMock;
-        private Mock<ISettingRepository> _settingRepositoryMock;
-        private CreateSettingCommandHandler _handler;
+        private Mock<ITipRepository> _tipRepositoryMock;
+        private Mock<IMediator> _mediatorMock;
+        private DeleteTipCommandHandler _handler;
 
         [SetUp]
         public void SetUp()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _settingRepositoryMock = new Mock<ISettingRepository>();
+            _tipRepositoryMock = new Mock<ITipRepository>();
+            _mediatorMock = new Mock<IMediator>();
 
-            _unitOfWorkMock.Setup(u => u.Settings).Returns(_settingRepositoryMock.Object);
+            _unitOfWorkMock.Setup(u => u.Tips).Returns(_tipRepositoryMock.Object);
 
-            _handler = new CreateSettingCommandHandler(_unitOfWorkMock.Object);
+            _handler = new DeleteTipCommandHandler(_unitOfWorkMock.Object, _mediatorMock.Object);
         }
 
         [Test]
         public void Constructor_WithNullUnitOfWork_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            NUnit.Framework.Assert.Throws<ArgumentNullException>(() => new CreateSettingCommandHandler(null));
+            FluentActions.Invoking(() => new DeleteTipCommandHandler(null, _mediatorMock.Object))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [Test]
-        public async Task Handle_WithValidData_ShouldCreateSetting()
+        public async Task Handle_WithValidId_ShouldDeleteTip()
         {
             // Arrange
-            var command = new CreateSettingCommand
-            {
-                Key = "WeatherApiKey",
-                Value = "test-api-key-123",
-                Description = "API key for weather service"
-            };
+            var command = new DeleteTipCommand { Id = 1 };
+            var tip = TestDataBuilder.CreateValidTip(1);
 
-            _settingRepositoryMock
-                .Setup(x => x.GetByKeyAsync(command.Key, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Failure("Not found"));
+            _tipRepositoryMock
+                .Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Tip>.Success(tip));
 
-            var createdSetting = new Domain.Entities.Setting(
-                command.Key,
-                command.Value,
-                command.Description);
-
-            _settingRepositoryMock
-                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Setting>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Success(createdSetting));
+            _tipRepositoryMock
+                .Setup(x => x.DeleteAsync(command.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<bool>.Success(true));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
             result.IsSuccess.Should().BeTrue();
-            result.Data.Should().NotBeNull();
-            result.Data.Key.Should().Be(command.Key);
-            result.Data.Value.Should().Be(command.Value);
-            result.Data.Description.Should().Be(command.Description);
+            result.Data.Should().BeTrue();
 
-            _settingRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Domain.Entities.Setting>(), It.IsAny<CancellationToken>()), Times.Once);
+            _tipRepositoryMock.Verify(x => x.DeleteAsync(command.Id, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
-        public async Task Handle_WithExistingKey_ShouldReturnFailure()
+        public async Task Handle_WithNonExistentId_ShouldReturnFailure()
         {
             // Arrange
-            var command = new CreateSettingCommand
-            {
-                Key = "WeatherApiKey",
-                Value = "new-api-key",
-                Description = "Updated API key"
-            };
+            var command = new DeleteTipCommand { Id = 999 };
 
-            var existingSetting = new Domain.Entities.Setting(
-                command.Key,
-                "existing-value",
-                "Existing description");
-
-            _settingRepositoryMock
-                .Setup(x => x.GetByKeyAsync(command.Key, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Success(existingSetting));
+            _tipRepositoryMock
+                .Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Tip>.Failure("Tip not found"));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
             result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be($"Setting with key '{command.Key}' already exists");
+            result.ErrorMessage.Should().Contain("Tip not found");
 
-            _settingRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Domain.Entities.Setting>(), It.IsAny<CancellationToken>()), Times.Never);
+            _tipRepositoryMock.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
-        public async Task Handle_WithMinimalData_ShouldCreateSetting()
+        public async Task Handle_WhenDeleteFails_ShouldReturnFailure()
         {
             // Arrange
-            var command = new CreateSettingCommand
-            {
-                Key = "SimpleKey",
-                Value = "SimpleValue",
-                Description = "" // Empty description
-            };
+            var command = new DeleteTipCommand { Id = 1 };
+            var tip = TestDataBuilder.CreateValidTip(1);
 
-            _settingRepositoryMock
-                .Setup(x => x.GetByKeyAsync(command.Key, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Failure("Not found"));
+            _tipRepositoryMock
+                .Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<Domain.Entities.Tip>.Success(tip));
 
-            var createdSetting = new Domain.Entities.Setting(
-                command.Key,
-                command.Value,
-                command.Description);
-
-            _settingRepositoryMock
-                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Setting>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Success(createdSetting));
-
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Key.Should().Be(command.Key);
-            result.Data.Value.Should().Be(command.Value);
-            result.Data.Description.Should().BeEmpty();
-        }
-
-        [Test]
-        public async Task Handle_WhenCreateFails_ShouldReturnFailure()
-        {
-            // Arrange
-            var command = new CreateSettingCommand
-            {
-                Key = "TestKey",
-                Value = "TestValue",
-                Description = "Test Description"
-            };
-
-            _settingRepositoryMock
-                .Setup(x => x.GetByKeyAsync(command.Key, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Failure("Not found"));
-
-            _settingRepositoryMock
-                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Setting>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Failure("Database error"));
+            _tipRepositoryMock
+                .Setup(x => x.DeleteAsync(command.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<bool>.Failure("Failed to delete tip"));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
             result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be("Database error");
+            result.ErrorMessage.Should().Be("Failed to delete tip");
         }
 
         [Test]
         public async Task Handle_WithCancellationToken_ShouldPassItThrough()
         {
             // Arrange
-            var command = new CreateSettingCommand
-            {
-                Key = "TestKey",
-                Value = "TestValue",
-                Description = "Test Description"
-            };
-
+            var command = new DeleteTipCommand { Id = 1 };
+            var tip = TestDataBuilder.CreateValidTip(1);
             var cancellationToken = new CancellationToken();
 
-            _settingRepositoryMock
-                .Setup(x => x.GetByKeyAsync(command.Key, cancellationToken))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Failure("Not found"));
+            _tipRepositoryMock
+                .Setup(x => x.GetByIdAsync(command.Id, cancellationToken))
+                .ReturnsAsync(Result<Domain.Entities.Tip>.Success(tip));
 
-            var createdSetting = TestDataBuilder.CreateValidSetting();
-
-            _settingRepositoryMock
-                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Setting>(), cancellationToken))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Success(createdSetting));
+            _tipRepositoryMock
+                .Setup(x => x.DeleteAsync(command.Id, cancellationToken))
+                .ReturnsAsync(Result<bool>.Success(true));
 
             // Act
             await _handler.Handle(command, cancellationToken);
 
             // Assert
-            _settingRepositoryMock.Verify(x => x.GetByKeyAsync(command.Key, cancellationToken), Times.Once);
-            _settingRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Domain.Entities.Setting>(), cancellationToken), Times.Once);
+            _tipRepositoryMock.Verify(x => x.GetByIdAsync(command.Id, cancellationToken), Times.Once);
+            _tipRepositoryMock.Verify(x => x.DeleteAsync(command.Id, cancellationToken), Times.Once);
         }
 
         [Test]
-        public async Task Handle_ShouldReturnCreatedSettingId()
+        public async Task Handle_WhenRepositoryThrowsException_ShouldReturnFailure()
         {
             // Arrange
-            var command = new CreateSettingCommand
-            {
-                Key = "TestKey",
-                Value = "TestValue",
-                Description = "Test Description"
-            };
+            var command = new DeleteTipCommand { Id = 1 };
+            var exception = new Exception("Database error");
 
-            _settingRepositoryMock
-                .Setup(x => x.GetByKeyAsync(command.Key, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Failure("Not found"));
-
-            var createdSetting = TestDataBuilder.CreateValidSetting();
-            SetPrivateProperty(createdSetting, "Id", 42);
-
-            _settingRepositoryMock
-                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Setting>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Success(createdSetting));
+            _tipRepositoryMock
+                .Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(exception);
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Id.Should().Be(42);
-        }
-
-        [Test]
-        public async Task Handle_ShouldSetTimestamp()
-        {
-            // Arrange
-            var command = new CreateSettingCommand
-            {
-                Key = "TestKey",
-                Value = "TestValue",
-                Description = "Test Description"
-            };
-
-            _settingRepositoryMock
-                .Setup(x => x.GetByKeyAsync(command.Key, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Failure("Not found"));
-
-            var createdSetting = new Domain.Entities.Setting(
-                command.Key,
-                command.Value,
-                command.Description);
-
-            _settingRepositoryMock
-                .Setup(x => x.CreateAsync(It.IsAny<Domain.Entities.Setting>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<Domain.Entities.Setting>.Success(createdSetting));
-
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        }
-
-        private void SetPrivateProperty(object obj, string propertyName, object value)
-        {
-            var property = obj.GetType().GetProperty(propertyName);
-            property?.SetValue(obj, value);
+            result.IsSuccess.Should().BeFalse();
+            result.ErrorMessage.Should().Contain("Failed to delete tip");
+            result.ErrorMessage.Should().Contain("Database error");
         }
     }
 }

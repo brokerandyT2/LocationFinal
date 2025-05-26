@@ -1,15 +1,16 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using FluentAssertions;
 using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Tests.Utilities;
+using MediatR;
 using Moq;
 using NUnit.Framework;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Application.Tests.Commands.Locations.AttachPhoto
 {
@@ -22,10 +23,11 @@ namespace Location.Core.Application.Tests.Commands.Locations.AttachPhoto
         private Mock<ILocationRepository> _locationRepositoryMock;
         private Mock<IMapper> _mapperMock;
         private AttachPhotoCommandHandler _handler;
-
+        private Mock<IMediator> _mediatorMock;
         [SetUp]
         public void SetUp()
         {
+            _mediatorMock = new Mock<IMediator>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _locationRepositoryMock = new Mock<ILocationRepository>();
             _mapperMock = new Mock<IMapper>();
@@ -34,7 +36,7 @@ namespace Location.Core.Application.Tests.Commands.Locations.AttachPhoto
 
             _handler = new AttachPhotoCommandHandler(
                 _unitOfWorkMock.Object,
-                _mapperMock.Object);
+                _mapperMock.Object, _mediatorMock.Object);
         }
 
         [Test]

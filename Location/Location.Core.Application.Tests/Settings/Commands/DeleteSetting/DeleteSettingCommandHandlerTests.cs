@@ -1,12 +1,13 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Location.Core.Application.Settings.Commands.DeleteSetting;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Settings.Commands.DeleteSetting;
+using MediatR;
 using Moq;
 using NUnit.Framework;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Application.Tests.Settings.Commands.DeleteSetting
 {
@@ -19,23 +20,24 @@ namespace Location.Core.Application.Tests.Settings.Commands.DeleteSetting
         private Mock<IUnitOfWork> _unitOfWorkMock;
         private Mock<ISettingRepository> _settingRepositoryMock;
         private DeleteSettingCommandHandler _handler;
-
+        private Mock<IMediator> _mediatorMock;
         [SetUp]
         public void SetUp()
         {
+            _mediatorMock = new Mock<IMediator>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _settingRepositoryMock = new Mock<ISettingRepository>();
-
+            
             _unitOfWorkMock.Setup(u => u.Settings).Returns(_settingRepositoryMock.Object);
 
-            _handler = new DeleteSettingCommandHandler(_unitOfWorkMock.Object);
+            _handler = new DeleteSettingCommandHandler(_unitOfWorkMock.Object, _mediatorMock.Object);
         }
 
         [Test]
         public void Constructor_WithNullUnitOfWork_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            NUnit.Framework.Assert.Throws<ArgumentNullException>(() => new DeleteSettingCommandHandler(null));
+            NUnit.Framework.Assert.Throws<ArgumentNullException>(() => new DeleteSettingCommandHandler(null, null));
         }
 
         [Test]

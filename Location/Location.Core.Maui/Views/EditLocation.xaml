@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<TabbedPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Location.Core.Maui.Views.EditLocation"
              xmlns:models="clr-namespace:Location.Core.ViewModels;assembly=Location.Core.ViewModels"
@@ -8,7 +8,7 @@
              Title="Edit"
              x:DataType="models:LocationViewModel">
 
-    <Grid>
+<!--    <Grid>
         <ScrollView>
             <Grid Padding="10" Margin="5">
                 <Grid.RowDefinitions>
@@ -33,6 +33,7 @@
 
                 <Image Source="{Binding Photo}" 
                        Grid.Column="0" 
+                       Background="White"
                        Grid.ColumnSpan="4" 
                        HeightRequest="150" 
                        Grid.Row="0"
@@ -182,7 +183,7 @@
             </Grid>
         </ScrollView>
 
-        <!-- Busy indicator overlay -->
+
         <Grid IsVisible="{Binding IsBusy}" 
               BackgroundColor="{StaticResource TransparentOverlayBrush}">
             <ActivityIndicator IsRunning="{Binding IsBusy}" 
@@ -190,7 +191,7 @@
                                VerticalOptions="Center" Color="Blue"/>
         </Grid>
 
-        <!-- Error message -->
+
         <Grid IsVisible="{Binding IsError}" 
               BackgroundColor="{StaticResource TransparentErrorBrush}"
               VerticalOptions="End">
@@ -199,5 +200,5 @@
                    Margin="20"
                    FontSize="14"/>
         </Grid>
-    </Grid>
-</ContentPage>
+    </Grid> -->
+</TabbedPage>

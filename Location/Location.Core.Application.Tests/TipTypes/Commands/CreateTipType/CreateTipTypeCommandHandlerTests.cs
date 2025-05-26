@@ -1,13 +1,14 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Commands.TipTypes;
 using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Utilities;
+using MediatR;
 using Moq;
 using NUnit.Framework;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Location.Core.Application.Tests.TipTypes.Commands.CreateTipType
 {
@@ -18,19 +19,20 @@ namespace Location.Core.Application.Tests.TipTypes.Commands.CreateTipType
     {
         private Mock<ITipTypeRepository> _tipTypeRepositoryMock;
         private CreateTipTypeCommandHandler _handler;
-
+        private Mock<IMediator> _mediatorMock;
         [SetUp]
         public void SetUp()
         {
+            _mediatorMock = new Mock<IMediator>();
             _tipTypeRepositoryMock = new Mock<ITipTypeRepository>();
-            _handler = new CreateTipTypeCommandHandler(_tipTypeRepositoryMock.Object);
+            _handler = new CreateTipTypeCommandHandler(_tipTypeRepositoryMock.Object, _mediatorMock.Object);
         }
 
         [Test]
         public void Constructor_WithNullRepository_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            FluentActions.Invoking(() => new CreateTipTypeCommandHandler(null))
+            FluentActions.Invoking(() => new CreateTipTypeCommandHandler(null, null))
                 .Should().Throw<ArgumentNullException>();
         }
 

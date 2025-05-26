@@ -20,19 +20,21 @@ namespace Location.Core.Application.Tests.Common.Behaviors
     {
         private ValidationBehavior<TestRequest, Result<string>> _behavior;
         private Mock<IValidator<TestRequest>> _validatorMock;
+        private Mock<IMediator> _mediatorMock;
 
         [SetUp]
         public void SetUp()
         {
             _validatorMock = new Mock<IValidator<TestRequest>>();
-            _behavior = new ValidationBehavior<TestRequest, Result<string>>(new[] { _validatorMock.Object });
+            _mediatorMock = new Mock<IMediator>();
+            _behavior = new ValidationBehavior<TestRequest, Result<string>>(new[] { _validatorMock.Object }, _mediatorMock.Object);
         }
 
         [Test]
         public async Task Handle_WithNoValidators_ShouldContinuePipeline()
         {
             // Arrange
-            var behavior = new ValidationBehavior<TestRequest, Result<string>>(Enumerable.Empty<IValidator<TestRequest>>());
+            var behavior = new ValidationBehavior<TestRequest, Result<string>>(Enumerable.Empty<IValidator<TestRequest>>(), _mediatorMock.Object);
             var request = new TestRequest();
             var expectedResponse = Result<string>.Success("Success");
             RequestHandlerDelegate<Result<string>> next = (_ctx) => Task.FromResult(expectedResponse);

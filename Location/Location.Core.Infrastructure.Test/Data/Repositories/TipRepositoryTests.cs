@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Location.Core.Infrastructure.Services;
 
 namespace Location.Core.Infrastructure.Tests.Data.Repositories
 {
@@ -22,16 +23,18 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         private Mock<ILogger<TipRepository>> _mockLogger;
         private Mock<ILogger<DatabaseContext>> _mockContextLogger;
         private string _testDbPath;
-
+        private Mock<IInfrastructureExceptionMappingService> _mockInfraLogger;
         [SetUp]
         public async Task Setup()
         {
+            _mockInfraLogger = new Mock<IInfrastructureExceptionMappingService>();
             _mockLogger = new Mock<ILogger<TipRepository>>();
             _mockContextLogger = new Mock<ILogger<DatabaseContext>>();
             _testDbPath = Path.Combine(Path.GetTempPath(), $"test_{Guid.NewGuid()}.db");
             _context = new DatabaseContext(_mockContextLogger.Object, _testDbPath);
+
             await _context.InitializeDatabaseAsync();
-            _repository = new TipRepository(_context, _mockLogger.Object);
+            _repository = new TipRepository(_context, _mockLogger.Object, _mockInfraLogger.Object);
         }
 
         [TearDown]
@@ -261,7 +264,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         public void Constructor_WithNullContext_ShouldThrowException()
         {
             // Act
-            Action act = () => new TipRepository(null!, _mockLogger.Object);
+            Action act = () => new TipRepository(null!, _mockLogger.Object, _mockInfraLogger.Object);
 
             // Assert
             act.Should().Throw<ArgumentNullException>()
@@ -272,7 +275,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         public void Constructor_WithNullLogger_ShouldThrowException()
         {
             // Act
-            Action act = () => new TipRepository(_context, null!);
+            Action act = () => new TipRepository(_context, null!, _mockInfraLogger.Object);
 
             // Assert
             act.Should().Throw<ArgumentNullException>()

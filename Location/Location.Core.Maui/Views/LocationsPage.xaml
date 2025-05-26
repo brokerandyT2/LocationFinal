@@ -4,6 +4,7 @@
              x:Class="Location.Core.Maui.Views.LocationsPage"
              xmlns:viewmodels="clr-namespace:Location.Core.ViewModels;assembly=Location.Core.ViewModels"
              x:DataType="viewmodels:LocationsViewModel"
+             xmlns:strings="clr-namespace:Location.Core.Maui.Resources"
              Title="Locations">
 
     <Grid RowDefinitions="*, Auto">
@@ -18,7 +19,7 @@
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="viewmodels:LocationListItemViewModel">
-                    <Grid Padding="10" ColumnDefinitions="Auto, *">
+                    <Grid Padding="10" ColumnDefinitions="Auto,Auto, *">
                         <Image Grid.Column="0" 
                                Source="{Binding Photo, TargetNullValue='landscape.png'}" 
                                HeightRequest="60" 
@@ -30,7 +31,10 @@
                             <Label Text="{Binding Title}" FontAttributes="Bold" />
                             <Label Text="{Binding FormattedCoordinates}" FontSize="Caption" />
                         </VerticalStackLayout>
-                        <ImageButton Source="map.png" Pressed="ImageButton_Pressed"></ImageButton>
+                        <VerticalStackLayout Grid.Column="2">
+                        <ImageButton Grid.Column="2" HorizontalOptions="End" Source="map.png" Pressed="ImageButton_Pressed"></ImageButton>
+                            <Label Text="{Static strings:AppResources.GoToLocation}" FontSize="Micro" HorizontalOptions="End"/>
+                        </VerticalStackLayout>
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

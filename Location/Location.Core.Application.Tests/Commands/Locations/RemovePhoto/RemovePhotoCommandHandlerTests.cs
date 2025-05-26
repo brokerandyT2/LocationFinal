@@ -8,19 +8,21 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Tests.Utilities;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Commands.Locations.RemovePhoto
 {
     [Category("Locations")]
-    [Category("PHOTO Management")]
+    [Category("Photo Management")]
     [TestFixture]
     public class RemovePhotoCommandHandlerTests
     {
         private Mock<IUnitOfWork> _unitOfWorkMock;
         private Mock<ILocationRepository> _locationRepositoryMock;
         private Mock<IMapper> _mapperMock;
+        private Mock<IMediator> _mediatorMock;
         private RemovePhotoCommandHandler _handler;
 
         [SetUp]
@@ -29,12 +31,14 @@ namespace Location.Core.Application.Tests.Commands.Locations.RemovePhoto
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _locationRepositoryMock = new Mock<ILocationRepository>();
             _mapperMock = new Mock<IMapper>();
+            _mediatorMock = new Mock<IMediator>();
 
             _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
 
             _handler = new RemovePhotoCommandHandler(
                 _unitOfWorkMock.Object,
-                _mapperMock.Object);
+                _mapperMock.Object,
+                _mediatorMock.Object);
         }
 
         [Test]

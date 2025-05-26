@@ -1,11 +1,7 @@
-// Location.Photography.Maui.Views.Premium/SunCalculator.xaml.cs
+// Location.Photography.Maui/Views/Professional/SunCalculator.xaml.cs
 using Location.Core.Application.Services;
+using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
-using Location.Photography.ViewModels.Premium;
-using Microsoft.Maui.Controls;
-using System;
-using System.Threading.Tasks;
-using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 
 namespace Location.Photography.Maui.Views.Professional
 {
@@ -17,6 +13,8 @@ namespace Location.Photography.Maui.Views.Professional
         public SunCalculator()
         {
             InitializeComponent();
+            _viewModel = new SunCalculatorViewModel(null, null);
+            BindingContext = _viewModel;
         }
 
         public SunCalculator(SunCalculatorViewModel viewModel, IAlertService alertService)
@@ -27,9 +25,6 @@ namespace Location.Photography.Maui.Views.Professional
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
 
             BindingContext = _viewModel;
-
-            // Subscribe to ViewModel events
-            _viewModel.ErrorOccurred += ViewModel_ErrorOccurred;
         }
 
         protected override async void OnAppearing()
@@ -38,11 +33,13 @@ namespace Location.Photography.Maui.Views.Professional
 
             try
             {
-                // Load locations when page appears
-                await _viewModel.LoadLocationsAsync();
+                if (_viewModel != null)
+                {
+                    _viewModel.ErrorOccurred -= OnSystemError;
+                    _viewModel.ErrorOccurred += OnSystemError;
 
-                // Initial calculation will happen automatically after location is selected
-                // due to the property changed handler in the view model
+                    await _viewModel.LoadLocationsAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -54,37 +51,43 @@ namespace Location.Photography.Maui.Views.Professional
         {
             base.OnDisappearing();
 
-            // Unsubscribe from ViewModel events
             if (_viewModel != null)
             {
-                _viewModel.ErrorOccurred -= ViewModel_ErrorOccurred;
+                _viewModel.ErrorOccurred -= OnSystemError;
             }
         }
 
         private void LocationPicker_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // The binding will handle updating the ViewModel's SelectedLocation property
-            // which will trigger the calculation of sun times through the property changed handler
+            // Binding handles the SelectedLocation update which triggers calculation
         }
 
         private void DatePicker_DateSelected(object sender, DateChangedEventArgs e)
         {
-            // The binding will handle updating the ViewModel's Date property
-            // which will trigger the calculation of sun times through the property changed handler
+            // Binding handles the Date update which triggers calculation
         }
 
-        private void ViewModel_ErrorOccurred(object sender, OperationErrorEventArgs e)
+        private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
-            Dispatcher.Dispatch(async () =>
+            var retry = await DisplayAlert("Error", $"{e.Message}. Try again?", "OK", "Cancel");
+            if (retry && sender is SunCalculatorViewModel viewModel)
             {
-                await DisplayAlert("Error", e.Message, "OK");
-            });
+                await viewModel.RetryLastCommandAsync();
+            }
         }
 
         private async Task HandleErrorAsync(Exception ex, string message)
         {
             System.Diagnostics.Debug.WriteLine($"{message}: {ex}");
-            await _alertService.ShowErrorAlertAsync(ex.Message, "Error");
+
+            if (_alertService != null)
+            {
+                await _alertService.ShowErrorAlertAsync(ex.Message, "Error");
+            }
+            else
+            {
+                await DisplayAlert("Error", ex.Message, "OK");
+            }
         }
     }
 }

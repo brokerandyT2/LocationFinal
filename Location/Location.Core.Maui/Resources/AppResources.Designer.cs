@@ -403,6 +403,15 @@ namespace Location.Core.Maui.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Get Directions.
+        /// </summary>
+        internal static string GoToLocation {
+            get {
+                return ResourceManager.GetString("GoToLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Green.
         /// </summary>
         internal static string Green {

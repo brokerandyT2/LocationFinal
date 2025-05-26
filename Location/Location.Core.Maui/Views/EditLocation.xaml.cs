@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Location.Core.Maui.Views
 {
-    public partial class EditLocation : ContentPage
+    public partial class EditLocation : TabbedPage
     {
         private readonly IMediator _mediator;
         private readonly IMediaService _mediaService;
@@ -20,12 +20,16 @@ namespace Location.Core.Maui.Views
         private readonly int _locationId;
         private readonly bool _isModalMode;
         private CancellationTokenSource _cts = new CancellationTokenSource();
-
+        private readonly IWeatherService _weatherService;
         /// <summary>
         /// Default constructor for design-time and XAML preview
         /// </summary>
-        public EditLocation()
+        public EditLocation(int id)
         {
+
+
+            //this.Children.Add(new SunEventsPage(_mediator, _errorDisplayService, id));
+
             InitializeComponent();
             _locationId = 0;
             _isModalMode = false;
@@ -43,6 +47,7 @@ namespace Location.Core.Maui.Views
             IGeolocationService geolocationService,
             INavigationService navigationService,
             IErrorDisplayService errorDisplayService,
+            IWeatherService weatherService,
             int locationId = 0,
             bool isModalMode = false)
         {
@@ -53,7 +58,11 @@ namespace Location.Core.Maui.Views
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _locationId = locationId;
             _isModalMode = isModalMode;
-
+            _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
+            var page = new AddLocation(_mediator, _mediaService, _geolocationService, _errorDisplayService, _locationId, true);
+            page.Title = "Edit";
+            this.Children.Add(page);
+            this.Children.Add(new WeatherDisplay(_mediator, _errorDisplayService, _locationId));//, _weatherService));
             InitializeComponent();
 
             // Initialize ViewModel and load data
@@ -105,7 +114,7 @@ namespace Location.Core.Maui.Views
                 try
                 {
                     // Navigate to WeatherDisplay for this location
-                    var weatherPage = new WeatherDisplay(_mediator, _errorDisplayService, viewModel.Id);
+                    var weatherPage = new WeatherDisplay(_mediator, _errorDisplayService, viewModel.Id);//, _weatherService);
                     await Navigation.PushModalAsync(new NavigationPage(weatherPage));
                 }
                 catch (Exception ex)
