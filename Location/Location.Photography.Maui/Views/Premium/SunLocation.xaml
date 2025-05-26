@@ -37,7 +37,7 @@
                     ItemDisplayBinding="{Binding Name}"
                     SelectedIndexChanged="locationPicker_SelectedIndexChanged" 
                     FontSize="14"
-                    Margin="5"/>
+                    Margin="5" IsEnabled="True"/>
 
             <!-- Date and Time Pickers -->
             <HorizontalStackLayout Grid.Row="1" 
@@ -135,7 +135,6 @@
 
             <!-- Busy indicator overlay -->
             <Grid IsVisible="{Binding IsBusy}" 
-                  BackgroundColor="{StaticResource TransparentOverlayBrush}"
                   Grid.RowSpan="8"
                   Padding="10"
                   Margin="5">

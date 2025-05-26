@@ -147,15 +147,17 @@
                 <!-- Subscription Type -->
                 <Label Text="{x:Static strings:AppResources.SubscriptionType}" 
                       Grid.Row="6" 
+                      
                       Grid.Column="0"
                       FontSize="14"
                       Margin="5"/>
                 <Label Text="{Binding Subscription.Value}" 
                       Grid.Row="6" 
-                      Grid.Column="2"
+                      Grid.Column="1"
+                        FontAttributes="Bold"
                       FontSize="14"
-                      Margin="5"/>
-
+                      Margin="5" VerticalOptions="Center"/>
+                <Button Text="{Static strings:AppResources.ChangeSubscriptionType}" Pressed="Button_Pressed" Grid.Row="6" Grid.Column="2"/>
                 <!-- Subscription Expiration -->
                 <Label Text="{x:Static strings:AppResources.SubscriptionExpiration}" 
                       Grid.Row="7" 

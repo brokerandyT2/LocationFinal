@@ -429,4 +429,7 @@
   <data name="WatchAdForAccess" xml:space="preserve">
     <value>Would you like to watch a short Advertisement to gain {0} hours of access to this feature?</value>
   </data>
+  <data name="ChangeSubscriptionType" xml:space="preserve">
+    <value>Change</value>
+  </data>
 </root>

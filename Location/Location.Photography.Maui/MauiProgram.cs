@@ -30,8 +30,21 @@ namespace Location.Photography.Maui
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                });
-
+                })
+             .ConfigureMauiHandlers(handlers =>
+              {
+#if ANDROID
+                  handlers.AddHandler<Location.Photography.Maui.Controls.ColorTemperatureDial,
+         SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+                  handlers.AddHandler<Location.Photography.Maui.Controls.TintDial,
+                      SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+#else
+            handlers.AddHandler<Location.Photography.Maui.Controls.ColorTemperatureDial, 
+                SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+            handlers.AddHandler<Location.Photography.Maui.Controls.TintDial, 
+                SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+#endif
+              });
             // Core services
             builder.Services.AddSingleton<MauiAlertService>();
             builder.Services.AddSingleton<IAlertService>(sp => sp.GetRequiredService<MauiAlertService>());
@@ -95,7 +108,20 @@ namespace Location.Photography.Maui
 
             // Database initializer
             builder.Services.AddTransient<DatabaseInitializer>();
-
+                   
+                  
+    
+                // Logging configuration
+                builder.Logging.AddConsole();
+                builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
+    
+                // Initialize the database
+                builder.Services.AddSingleton<IDatabaseContext, DatabaseContext>();
+                builder.Services.AddSingleton<DatabaseInitializer>();
+            builder.Services.AddTransient(sp => sp.GetRequiredService<DatabaseInitializer>());
+    
+                // Ensure the database is initialized at startup
+                builder.Services.AddSingleton(sp => DatabaseSetup.EnsureDatabaseInitialized(sp));
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

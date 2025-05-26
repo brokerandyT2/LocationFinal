@@ -7,6 +7,7 @@ using Location.Photography.Infrastructure;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
 using MediatR;
+using System.Threading.Tasks;
 
 namespace Location.Photography.Maui.Views
 {
@@ -389,6 +390,11 @@ namespace Location.Photography.Maui.Views
             {
                 _viewModel.ErrorOccurred -= OnSystemError;
             }
+        }
+
+        private async void Button_Pressed(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new NavigationPage( new SubscriptionSignUpPage()));
         }
     }
 }

@@ -108,6 +108,9 @@
     <MauiXaml Update="Views\Premium\ExposureCalculator.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\Premium\LightMeter.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Professional\SunCalculator.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

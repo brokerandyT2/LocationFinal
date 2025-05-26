@@ -4,6 +4,7 @@ using Location.Photography.ViewModels;
 using Location.Photography.Application.Services;
 using Location.Photography.ViewModels.Events;
 using Microsoft.Maui.Controls;
+using MediatR;
 
 namespace Location.Photography.Maui.Views.Premium
 {
@@ -17,7 +18,7 @@ namespace Location.Photography.Maui.Views.Premium
         private const double _halfStopEV = 0.5;
         private const double _thirdStopEV = 0.33;
         private double _currentEVStep = _fullStopEV;
-
+        private IMediator _mediator;
         public ExposureCalculator()
         {
             InitializeComponent();
@@ -29,11 +30,11 @@ namespace Location.Photography.Maui.Views.Premium
         public ExposureCalculator(
             IExposureCalculatorService exposureCalculatorService,
             IAlertService alertService,
-            IErrorDisplayService errorDisplayService)
+            IErrorDisplayService errorDisplayService, IMediator mediator)
         {
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
-
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             InitializeComponent();
             InitializeViewModel(exposureCalculatorService);
         }
@@ -57,7 +58,7 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                _viewModel = new ExposureCalculatorViewModel(null, exposureCalculatorService, _errorDisplayService);
+                _viewModel = new ExposureCalculatorViewModel(_mediator, exposureCalculatorService, _errorDisplayService);
                 BindingContext = _viewModel;
 
                 _skipCalculations = true;

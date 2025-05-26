@@ -178,6 +178,15 @@ namespace Location.Photography.Maui.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change.
+        /// </summary>
+        internal static string ChangeSubscriptionType {
+            get {
+                return ResourceManager.GetString("ChangeSubscriptionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Choose Date:.
         /// </summary>
         internal static string choosedate {

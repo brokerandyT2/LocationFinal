@@ -1,4 +1,5 @@
-﻿using Location.Photography.Application.Services;
+﻿using Location.Photography.Application.Common.Models;
+using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
 using Microsoft.Extensions.Logging;
 using core = Location.Core.Maui.Views;
@@ -42,14 +43,22 @@ namespace Location.Photography.Maui
             {
                 // Get subscription status
                 var statusResult = await _subscriptionStatusService.CheckSubscriptionStatusAsync();
+
+#if DEBUG
+                var canAccessPremium = Result<bool>.Success(true);
+                var canAccessPro = Result<bool>.Success(true);
+#else
                 var canAccessPremium = await _subscriptionStatusService.CanAccessPremiumFeaturesAsync();
                 var canAccessPro = await _subscriptionStatusService.CanAccessProFeaturesAsync();
-
+#endif
                 // Core features - always available
                 this.Children.Add(_serviceProvider.GetRequiredService<core.AddLocation>());
                 this.Children.Add(_serviceProvider.GetRequiredService<core.LocationsPage>());
                 this.Children.Add(_serviceProvider.GetRequiredService<core.TipsPage>());
-
+                if (canAccessPremium.Data)
+                {
+                    canAccessPro = canAccessPremium;
+                }
                 // Professional features
                 var sceneEvaluation = _serviceProvider.GetRequiredService<Views.Professional.SceneEvaluation>();
                 if (canAccessPro.IsSuccess && canAccessPro.Data)
