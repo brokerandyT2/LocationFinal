@@ -5,7 +5,7 @@
              xmlns:viewmodels="clr-namespace:Location.Core.ViewModels;assembly=Location.Core.ViewModels"
              x:DataType="viewmodels:LocationsViewModel"
              xmlns:strings="clr-namespace:Location.Core.Maui.Resources"
-             Title="Locations">
+             IconImageSource="cellphonemarker.png">
 
     <Grid RowDefinitions="*, Auto">
         <CollectionView ItemsSource="{Binding Locations}" 

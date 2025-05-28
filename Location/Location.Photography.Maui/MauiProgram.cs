@@ -16,6 +16,7 @@ using Location.Photography.ViewModels;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
+
 namespace Location.Photography.Maui
 {
     public static class MauiProgram
@@ -58,7 +59,9 @@ namespace Location.Photography.Maui
             // MAUI platform services
             builder.Services.AddSingleton<IGeolocationService, GeolocationService>();
             builder.Services.AddSingleton<IMediaService, MediaService>();
-
+#if ANDROID
+            Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<Platforms.Android.ILightSensorService, Platforms.Android.LightSensorService>(builder.Services);
+#endif
             // MediatR configuration
             var coreAssembly = System.Reflection.Assembly.Load("Location.Core.Application");
             var photographyAssembly = System.Reflection.Assembly.Load("Location.Photography.Application");
@@ -74,7 +77,9 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<ITipTypeRepository, TipTypeRepository>();
             builder.Services.AddSingleton<ITipRepository, TipRepository>();
             builder.Services.AddSingleton<INavigationService, NavigationService>();
-
+            //builder.Services.AddSingleton<IServiceScopeFactory>();
+            //builder.Services.AddTransient<IServiceProvider, ServiceProvider>();
+            //builder.Services.AddSingleton(IServiceProviderFactory,)
             // Core ViewModels
             builder.Services.AddTransient<Core.ViewModels.LocationViewModel>();
             builder.Services.AddTransient<WeatherViewModel>();
@@ -88,13 +93,14 @@ namespace Location.Photography.Maui
             builder.Services.AddTransient<SceneEvaluationViewModel>();
             builder.Services.AddTransient<SubscriptionSignUpViewModel>();
             builder.Services.AddTransient<SettingsViewModel>();
+            builder.Services.AddTransient<LightMeterViewModel>();
 
             // Core Pages
-            builder.Services.AddTransient<Location.Core.Maui.Views.AddLocation>();
-            builder.Services.AddTransient<Location.Core.Maui.Views.EditLocation>();
-            builder.Services.AddTransient<Location.Core.Maui.Views.LocationsPage>();
-            builder.Services.AddTransient<Location.Core.Maui.Views.TipsPage>();
-            builder.Services.AddTransient<Location.Core.Maui.Views.WeatherDisplay>();
+            builder.Services.AddSingleton<Location.Core.Maui.Views.AddLocation>();
+            builder.Services.AddSingleton<Location.Core.Maui.Views.EditLocation>();
+            builder.Services.AddSingleton<Location.Core.Maui.Views.LocationsPage>();
+            builder.Services.AddSingleton<Location.Core.Maui.Views.TipsPage>();
+            builder.Services.AddSingleton<Location.Core.Maui.Views.WeatherDisplay>();
 
             // Photography Pages
             builder.Services.AddTransient<UserOnboarding>();
@@ -103,9 +109,11 @@ namespace Location.Photography.Maui
             builder.Services.AddTransient<Views.Professional.SunCalculator>();
             builder.Services.AddTransient<Views.Professional.SceneEvaluation>();
             builder.Services.AddTransient<Views.Settings>();
-            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddSingleton<MainPage>();
             builder.Services.AddTransient<SubscriptionSignUpPage>();
-
+            builder.Services.AddSingleton<Views.Premium.LightMeter>();
+            builder.Services.AddTransient<Views.Premium.DummyPage>();
+            
             // Database initializer
             builder.Services.AddTransient<DatabaseInitializer>();
                    

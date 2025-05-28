@@ -3,6 +3,7 @@ using aa= Android.App;
 using Android.Content;
 using Android.Hardware;
 using Microsoft.Maui.Controls;
+using Location.Photography.Maui.Platforms.Android;
 [assembly: Dependency(typeof(Location.Photography.Maui.Platforms.Android.LightSensorService))]
 namespace Location.Photography.Maui.Platforms.Android
 {

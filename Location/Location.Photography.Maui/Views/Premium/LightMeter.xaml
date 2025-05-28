@@ -2,11 +2,64 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Location.Photography.Maui.Views.Premium.LightMeter"
-             Title="LightMeter">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
+             xmlns:strings="clr-namespace:Location.Photography.Maui.Resources"
+             x:DataType="viewmodels:LightMeterViewModel"
+             BackgroundColor="Black">
+
+    <Grid Padding="10" Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Close Button Row -->
+        <Grid Grid.Row="0" HorizontalOptions="End" Margin="0,0,10,10">
+            <ImageButton Source="closeoutlinecustom.png" 
+                         Pressed="ImageButton_Pressed"
+                         BackgroundColor="White"
+                         WidthRequest="40"
+                         HeightRequest="40"/>
+        </Grid>
+
+        <!-- Main Light Meter GraphicsView -->
+        <GraphicsView x:Name="LightMeterGraphicsView"
+                      Grid.Row="1"
+                      BackgroundColor="Black"
+                      HorizontalOptions="Fill"
+                      VerticalOptions="Fill" />
+
+        <!-- Busy indicator overlay -->
+        <Grid Grid.Row="1" 
+              IsVisible="{Binding IsBusy}" 
+              BackgroundColor="#80000000" 
+              Padding="10" 
+              Margin="5">
+            <VerticalStackLayout VerticalOptions="Center" 
+                                 HorizontalOptions="Center" 
+                                 Spacing="10">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                                   HeightRequest="50" 
+                                   WidthRequest="50" 
+                                   Color="Blue" />
+                <Label Text="{x:Static strings:AppResources.LoadingLightMeter}" 
+                       TextColor="White" 
+                       FontSize="14" 
+                       Margin="5"/>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Error message display -->
+        <Grid Grid.Row="1" 
+              IsVisible="{Binding IsError}"
+              BackgroundColor="#80FF0000"
+              VerticalOptions="End"
+              Padding="10"
+              Margin="5">
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   FontSize="14"
+                   Margin="5" />
+        </Grid>
+    </Grid>
 </ContentPage>

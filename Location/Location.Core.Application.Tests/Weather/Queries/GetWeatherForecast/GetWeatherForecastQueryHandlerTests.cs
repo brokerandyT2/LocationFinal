@@ -335,7 +335,8 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherForecast
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
-            result.Should().Be(serviceResult);
+            result.IsSuccess.Should().Be(serviceResult.IsSuccess);
+            result.Data.Should().BeEquivalentTo(serviceResult.Data);
         }
     }
 }

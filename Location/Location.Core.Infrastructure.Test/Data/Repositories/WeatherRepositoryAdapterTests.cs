@@ -76,7 +76,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public void Update_ShouldDelegateToInnerRepository()
+        public async Task Update_ShouldDelegateToInnerRepository()
         {
             // Arrange
             var weather = TestDataBuilder.CreateValidWeather();
@@ -87,13 +87,15 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Act
             _adapter.Update(weather);
 
+            // Wait for the Task.Run to complete
+            await Task.Delay(200);
+
             // Assert
             _mockInnerRepository.Verify(x => x.UpdateAsync(weather, It.IsAny<CancellationToken>()), Times.Once);
-
         }
 
         [Test]
-        public void Delete_ShouldDelegateToInnerRepository()
+        public async Task Delete_ShouldDelegateToInnerRepository()
         {
             // Arrange
             var weather = TestDataBuilder.CreateValidWeather();
@@ -103,6 +105,9 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
 
             // Act
             _adapter.Delete(weather);
+
+            // Wait for the Task.Run to complete
+            await Task.Delay(200);
 
             // Assert
             _mockInnerRepository.Verify(x => x.DeleteAsync(weather, It.IsAny<CancellationToken>()), Times.Once);

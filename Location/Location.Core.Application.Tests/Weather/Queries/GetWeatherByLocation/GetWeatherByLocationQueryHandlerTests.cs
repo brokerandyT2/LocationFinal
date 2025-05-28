@@ -1,17 +1,14 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using FluentAssertions;
-using Moq;
-using NUnit.Framework;
 using Location.Core.Application.Common.Interfaces;
-
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Queries.Weather;
 using Location.Core.Application.Tests.Utilities;
 using Location.Core.Application.Weather.DTOs;
+using Location.Core.Domain.ValueObjects;
 using MediatR;
+using Moq;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
 {
@@ -25,6 +22,7 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
         private Mock<IMapper> _mapperMock;
         private GetWeatherByLocationQueryHandler _handler;
         private Mock<IMediator> _mediatorMock;
+
         [SetUp]
         public void SetUp()
         {
@@ -36,7 +34,8 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
 
             _handler = new GetWeatherByLocationQueryHandler(
                 _unitOfWorkMock.Object,
-                _mapperMock.Object, _mediatorMock.Object);
+                _mapperMock.Object,
+                _mediatorMock.Object);
         }
 
         [Test]
@@ -46,6 +45,31 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
             var query = new GetWeatherByLocationQuery { LocationId = 1 };
             var weather = TestDataBuilder.CreateValidWeather(1);
             var weatherDto = TestDataBuilder.CreateValidWeatherDto();
+
+            // Create forecast data for 5 days (today + next 4) with correct dates
+            var forecasts = new List<Domain.Entities.WeatherForecast>();
+            for (int i = 0; i < 5; i++)
+            {
+                var date = DateTime.Today.AddDays(i);
+                var wind = new WindInfo(10, 180, 15);
+                var forecast = new Domain.Entities.WeatherForecast(
+                    1,
+                    date,
+                    date.AddHours(6),
+                    date.AddHours(18),
+                    20,
+                    15,
+                    25,
+                    "Clear sky",
+                    "01d",
+                    wind,
+                    65,
+                    1013,
+                    10,
+                    5.5);
+                forecasts.Add(forecast);
+            }
+            weather.UpdateForecasts(forecasts);
 
             _weatherRepositoryMock
                 .Setup(x => x.GetByLocationIdAsync(query.LocationId, It.IsAny<CancellationToken>()))
@@ -76,12 +100,18 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
                 .Setup(x => x.GetByLocationIdAsync(query.LocationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Domain.Entities.Weather)null);
 
+            var updateResult = Result<WeatherDto>.Failure("Failed to update weather data: API error");
+
+            _mediatorMock
+                .Setup(x => x.Send(It.IsAny<Application.Commands.Weather.UpdateWeatherCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(updateResult);
+
             // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
             result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be("Weather data not found for this location");
+            result.ErrorMessage.Should().Contain("Failed to update weather data");
 
             _weatherRepositoryMock.Verify(x => x.GetByLocationIdAsync(query.LocationId, It.IsAny<CancellationToken>()), Times.Once);
             _mapperMock.Verify(x => x.Map<WeatherDto>(It.IsAny<Domain.Entities.Weather>()), Times.Never);
@@ -115,6 +145,32 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
             // Arrange
             var query = new GetWeatherByLocationQuery { LocationId = 1 };
             var weather = TestDataBuilder.CreateValidWeather(1);
+
+            // Create forecast data for 5 days with correct dates
+            var forecasts = new List<Domain.Entities.WeatherForecast>();
+            for (int i = 0; i < 5; i++)
+            {
+                var date = DateTime.Today.AddDays(i);
+                var wind = new WindInfo(10, 180, 15);
+                var forecast = new Domain.Entities.WeatherForecast(
+                    1,
+                    date,
+                    date.AddHours(6),
+                    date.AddHours(18),
+                    20,
+                    15,
+                    25,
+                    "Clear sky",
+                    "01d",
+                    wind,
+                    65,
+                    1013,
+                    10,
+                    5.5);
+                forecasts.Add(forecast);
+            }
+            weather.UpdateForecasts(forecasts);
+
             var exception = new Exception("Mapping error");
 
             _weatherRepositoryMock
@@ -143,6 +199,31 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
             var weatherDto = TestDataBuilder.CreateValidWeatherDto();
             var cancellationToken = new CancellationToken();
 
+            // Create forecast data for 5 days with correct dates
+            var forecasts = new List<Domain.Entities.WeatherForecast>();
+            for (int i = 0; i < 5; i++)
+            {
+                var date = DateTime.Today.AddDays(i);
+                var wind = new WindInfo(10, 180, 15);
+                var forecast = new Domain.Entities.WeatherForecast(
+                    1,
+                    date,
+                    date.AddHours(6),
+                    date.AddHours(18),
+                    20,
+                    15,
+                    25,
+                    "Clear sky",
+                    "01d",
+                    wind,
+                    65,
+                    1013,
+                    10,
+                    5.5);
+                forecasts.Add(forecast);
+            }
+            weather.UpdateForecasts(forecasts);
+
             _weatherRepositoryMock
                 .Setup(x => x.GetByLocationIdAsync(query.LocationId, cancellationToken))
                 .ReturnsAsync(weather);
@@ -168,12 +249,18 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
                 .Setup(x => x.GetByLocationIdAsync(query.LocationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Domain.Entities.Weather)null);
 
+            var updateResult = Result<WeatherDto>.Failure("Failed to update weather data: Location not found");
+
+            _mediatorMock
+                .Setup(x => x.Send(It.IsAny<Application.    Commands.Weather.UpdateWeatherCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(updateResult);
+
             // Act
             var result = await _handler.Handle(query, CancellationToken.None);
 
             // Assert
             result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be("Weather data not found for this location");
+            result.ErrorMessage.Should().Contain("Failed to update weather data");
 
             _weatherRepositoryMock.Verify(x => x.GetByLocationIdAsync(0, It.IsAny<CancellationToken>()), Times.Once);
         }
@@ -187,6 +274,12 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
             _weatherRepositoryMock
                 .Setup(x => x.GetByLocationIdAsync(query.LocationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Domain.Entities.Weather)null);
+
+            var updateResult = Result<WeatherDto>.Failure("Failed to update weather data: Invalid location");
+
+            _mediatorMock
+                .Setup(x => x.Send(It.IsAny<Application.Commands.Weather.UpdateWeatherCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(updateResult);
 
             // Act
             var result = await _handler.Handle(query, CancellationToken.None);

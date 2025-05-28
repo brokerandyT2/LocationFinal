@@ -432,4 +432,7 @@
   <data name="ChangeSubscriptionType" xml:space="preserve">
     <value>Change</value>
   </data>
+  <data name="LoadingLightMeter" xml:space="preserve">
+    <value>Loading Light Meter</value>
+  </data>
 </root>

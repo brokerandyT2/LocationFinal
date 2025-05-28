@@ -23,9 +23,9 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
@@ -91,6 +91,7 @@
 
                 <Label Grid.Row="5" 
                        Grid.Column="0" 
+                       Grid.ColumnSpan="2"
                        Text="{Binding Latitude}" 
                        FontSize="14" 
                        HorizontalOptions="Start"
@@ -98,6 +99,7 @@
 
                 <Label Grid.Row="5" 
                        Grid.Column="2" 
+                       Grid.ColumnSpan="2"
                        Text="{Binding Longitude}" 
                        FontSize="14" 
                        HorizontalOptions="Start"

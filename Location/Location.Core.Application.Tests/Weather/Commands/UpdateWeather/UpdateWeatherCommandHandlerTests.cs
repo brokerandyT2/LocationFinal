@@ -22,7 +22,6 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
     {
         private Mock<IUnitOfWork> _unitOfWorkMock;
         private Mock<ILocationRepository> _locationRepositoryMock;
-        private Mock<IWeatherRepository> _weatherRepositoryMock;
         private Mock<IWeatherService> _weatherServiceMock;
         private Mock<IMapper> _mapperMock;
         private Mock<IMediator> _mediatorMock;
@@ -33,13 +32,11 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _locationRepositoryMock = new Mock<ILocationRepository>();
-            _weatherRepositoryMock = new Mock<IWeatherRepository>();
             _weatherServiceMock = new Mock<IWeatherService>();
             _mapperMock = new Mock<IMapper>();
             _mediatorMock = new Mock<IMediator>();
 
             _unitOfWorkMock.Setup(u => u.Locations).Returns(_locationRepositoryMock.Object);
-            _unitOfWorkMock.Setup(u => u.Weather).Returns(_weatherRepositoryMock.Object);
 
             _handler = new UpdateWeatherCommandHandler(
                 _unitOfWorkMock.Object,
@@ -60,14 +57,9 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
-            _weatherRepositoryMock
-                .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Weather)null);
-
             _weatherServiceMock
-                .Setup(x => x.GetWeatherAsync(
-                    location.Coordinate.Latitude,
-                    location.Coordinate.Longitude,
+                .Setup(x => x.UpdateWeatherForLocationAsync(
+                    command.LocationId,
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<WeatherDto>.Success(weatherDto));
 
@@ -78,9 +70,8 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().Be(weatherDto);
 
-            _weatherServiceMock.Verify(x => x.GetWeatherAsync(
-                location.Coordinate.Latitude,
-                location.Coordinate.Longitude,
+            _weatherServiceMock.Verify(x => x.UpdateWeatherForLocationAsync(
+                command.LocationId,
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -90,33 +81,24 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             // Arrange
             var command = new UpdateWeatherCommand { LocationId = 1, ForceUpdate = false };
             var location = TestDataBuilder.CreateValidLocation(1);
-            var existingWeather = TestDataBuilder.CreateValidWeather(1);
-            SetPrivateField(existingWeather, "_lastUpdate", DateTime.UtcNow.AddHours(-6)); // 6 hours old
+            var weatherDto = TestDataBuilder.CreateValidWeatherDto();
 
-            var cachedWeatherDto = TestDataBuilder.CreateValidWeatherDto();
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
-            _weatherRepositoryMock
-                .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(existingWeather);
-
-            _mapperMock
-                .Setup(x => x.Map<WeatherDto>(existingWeather))
-                .Returns(cachedWeatherDto);
+            _weatherServiceMock
+                .Setup(x => x.UpdateWeatherForLocationAsync(
+                    command.LocationId,
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<WeatherDto>.Success(weatherDto));
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
             result.IsSuccess.Should().BeTrue();
-            result.Data.Should().Be(cachedWeatherDto);
-
-            _weatherServiceMock.Verify(x => x.GetWeatherAsync(
-                It.IsAny<double>(),
-                It.IsAny<double>(),
-                It.IsAny<CancellationToken>()), Times.Never);
+            result.Data.Should().Be(weatherDto);
         }
 
         [Test]
@@ -125,23 +107,15 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             // Arrange
             var command = new UpdateWeatherCommand { LocationId = 1, ForceUpdate = true };
             var location = TestDataBuilder.CreateValidLocation(1);
-            var existingWeather = TestDataBuilder.CreateValidWeather(1);
-            SetPrivateField(existingWeather, "_lastUpdate", DateTime.UtcNow.AddHours(-6)); // 6 hours old
-
             var weatherDto = TestDataBuilder.CreateValidWeatherDto();
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
-            _weatherRepositoryMock
-                .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(existingWeather);
-
             _weatherServiceMock
-                .Setup(x => x.GetWeatherAsync(
-                    location.Coordinate.Latitude,
-                    location.Coordinate.Longitude,
+                .Setup(x => x.UpdateWeatherForLocationAsync(
+                    command.LocationId,
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<WeatherDto>.Success(weatherDto));
 
@@ -152,9 +126,8 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().Be(weatherDto);
 
-            _weatherServiceMock.Verify(x => x.GetWeatherAsync(
-                location.Coordinate.Latitude,
-                location.Coordinate.Longitude,
+            _weatherServiceMock.Verify(x => x.UpdateWeatherForLocationAsync(
+                command.LocationId,
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -164,23 +137,15 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             // Arrange
             var command = new UpdateWeatherCommand { LocationId = 1, ForceUpdate = false };
             var location = TestDataBuilder.CreateValidLocation(1);
-            var existingWeather = TestDataBuilder.CreateValidWeather(1);
-            SetPrivateField(existingWeather, "_lastUpdate", DateTime.UtcNow.AddDays(-2)); // 2 days old
-
             var weatherDto = TestDataBuilder.CreateValidWeatherDto();
 
             _locationRepositoryMock
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
-            _weatherRepositoryMock
-                .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(existingWeather);
-
             _weatherServiceMock
-                .Setup(x => x.GetWeatherAsync(
-                    location.Coordinate.Latitude,
-                    location.Coordinate.Longitude,
+                .Setup(x => x.UpdateWeatherForLocationAsync(
+                    command.LocationId,
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<WeatherDto>.Success(weatherDto));
 
@@ -191,9 +156,8 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().Be(weatherDto);
 
-            _weatherServiceMock.Verify(x => x.GetWeatherAsync(
-                location.Coordinate.Latitude,
-                location.Coordinate.Longitude,
+            _weatherServiceMock.Verify(x => x.UpdateWeatherForLocationAsync(
+                command.LocationId,
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -214,9 +178,8 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Be("Location not found");
 
-            _weatherServiceMock.Verify(x => x.GetWeatherAsync(
-                It.IsAny<double>(),
-                It.IsAny<double>(),
+            _weatherServiceMock.Verify(x => x.UpdateWeatherForLocationAsync(
+                It.IsAny<int>(),
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
@@ -231,14 +194,9 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
                 .Setup(x => x.GetByIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<Domain.Entities.Location>.Success(location));
 
-            _weatherRepositoryMock
-                .Setup(x => x.GetByLocationIdAsync(command.LocationId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Weather)null);
-
             _weatherServiceMock
-                .Setup(x => x.GetWeatherAsync(
-                    location.Coordinate.Latitude,
-                    location.Coordinate.Longitude,
+                .Setup(x => x.UpdateWeatherForLocationAsync(
+                    command.LocationId,
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result<WeatherDto>.Failure("Weather API error"));
 
@@ -247,7 +205,7 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
 
             // Assert
             result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be("Failed to fetch weather data");
+            result.ErrorMessage.Should().Be("Failed to fetch and persist weather data");
         }
 
         [Test]
@@ -268,14 +226,6 @@ namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Contain("Failed to update weather");
             result.ErrorMessage.Should().Contain("Unexpected error");
-        }
-
-        private void SetPrivateField(object obj, string fieldName, object value)
-        {
-            var field = obj.GetType().GetField(fieldName,
-                System.Reflection.BindingFlags.NonPublic |
-                System.Reflection.BindingFlags.Instance);
-            field?.SetValue(obj, value);
         }
     }
 }

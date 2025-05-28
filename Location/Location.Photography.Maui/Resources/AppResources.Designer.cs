@@ -502,6 +502,15 @@ namespace Location.Photography.Maui.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading Light Meter.
+        /// </summary>
+        internal static string LoadingLightMeter {
+            get {
+                return ResourceManager.GetString("LoadingLightMeter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Login failed. Please try again..
         /// </summary>
         internal static string LoginFailed {

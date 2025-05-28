@@ -11,6 +11,7 @@ namespace Location.Photography.Maui
 {
     public partial class App : Microsoft.Maui.Controls.Application
     {
+        public IServiceProvider ServiceProvider => _serviceProvider;
         private readonly ILogger<App> _logger;
         private readonly IServiceProvider _serviceProvider;
         private bool _isInitializing = false;

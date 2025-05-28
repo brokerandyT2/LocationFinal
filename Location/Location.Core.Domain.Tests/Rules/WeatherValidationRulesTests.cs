@@ -154,8 +154,8 @@ namespace Location.Core.Domain.Tests.Rules
             var date = DateTime.Today;
             var forecast = new WeatherForecast(
                 1, date, date.AddHours(6), date.AddHours(18),
-               20,
-               25, // Min temp higher than max
+                20,
+                25, // Min temp higher than max
                 15, // Max temp
                 "Clear", "01d", new WindInfo(10, 180), 65, 1013, 10, 5.0
             );
@@ -293,12 +293,11 @@ namespace Location.Core.Domain.Tests.Rules
             for (int i = 0; i < count; i++)
             {
                 var date = DateTime.Today.AddDays(i);
-               // var forecast = new WeatherForecast(
-                 //   1, date, date.AddHours(6), date.AddHours(18),
-                //   20, 15, 20, "test","empty");
-                   // "Clear", "01d", new WindInfo(10, 180), 65, 1013, 10, 5.0
-                
-               // forecasts.Add(forecast);
+                var forecast = new WeatherForecast(
+                    1, date, date.AddHours(6), date.AddHours(18),
+                    20, 15, 25, "Clear sky", "01d", new WindInfo(10, 180), 65, 1013, 10, 5.0
+                );
+                forecasts.Add(forecast);
             }
             return forecasts;
         }
@@ -330,9 +329,9 @@ namespace Location.Core.Domain.Tests.Rules
             type.GetProperty("Date").SetValue(forecast, date);
             type.GetProperty("Sunrise").SetValue(forecast, date.AddHours(6));
             type.GetProperty("Sunset").SetValue(forecast, date.AddHours(18));
-            type.GetProperty("Temperature").SetValue(forecast, Temperature.FromCelsius(20));
-            type.GetProperty("MinTemperature").SetValue(forecast, Temperature.FromCelsius(15));
-            type.GetProperty("MaxTemperature").SetValue(forecast, Temperature.FromCelsius(25));
+            type.GetProperty("Temperature").SetValue(forecast, 20);
+            type.GetProperty("MinTemperature").SetValue(forecast, 15);
+            type.GetProperty("MaxTemperature").SetValue(forecast, 25);
             type.GetProperty("Description").SetValue(forecast, "Clear");
             type.GetProperty("Icon").SetValue(forecast, "01d");
             type.GetProperty("Wind").SetValue(forecast, new WindInfo(10, 180));
@@ -359,9 +358,9 @@ namespace Location.Core.Domain.Tests.Rules
             type.GetProperty("Date").SetValue(forecast, date);
             type.GetProperty("Sunrise").SetValue(forecast, date.AddHours(6));
             type.GetProperty("Sunset").SetValue(forecast, date.AddHours(18));
-            type.GetProperty("Temperature").SetValue(forecast, Temperature.FromCelsius(20));
-            type.GetProperty("MinTemperature").SetValue(forecast, Temperature.FromCelsius(15));
-            type.GetProperty("MaxTemperature").SetValue(forecast, Temperature.FromCelsius(25));
+            type.GetProperty("Temperature").SetValue(forecast, 20);
+            type.GetProperty("MinTemperature").SetValue(forecast, 15);
+            type.GetProperty("MaxTemperature").SetValue(forecast, 25);
             type.GetProperty("Description").SetValue(forecast, "Clear");
             type.GetProperty("Icon").SetValue(forecast, "01d");
             type.GetProperty("Wind").SetValue(forecast, new WindInfo(10, 180));
@@ -388,9 +387,9 @@ namespace Location.Core.Domain.Tests.Rules
             type.GetProperty("Date").SetValue(forecast, date);
             type.GetProperty("Sunrise").SetValue(forecast, date.AddHours(6));
             type.GetProperty("Sunset").SetValue(forecast, date.AddHours(18));
-            type.GetProperty("Temperature").SetValue(forecast, Temperature.FromCelsius(20));
-            type.GetProperty("MinTemperature").SetValue(forecast, Temperature.FromCelsius(15));
-            type.GetProperty("MaxTemperature").SetValue(forecast, Temperature.FromCelsius(25));
+            type.GetProperty("Temperature").SetValue(forecast, 20);
+            type.GetProperty("MinTemperature").SetValue(forecast, 15);
+            type.GetProperty("MaxTemperature").SetValue(forecast, 25);
             type.GetProperty("Description").SetValue(forecast, "Clear");
             type.GetProperty("Icon").SetValue(forecast, "01d");
             type.GetProperty("Wind").SetValue(forecast, new WindInfo(10, 180));

@@ -1,6 +1,11 @@
-﻿using Location.Photography.Application.Common.Models;
+﻿using Location.Core.Infrastructure.Data;
+using Location.Photography.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
+using Location.Photography.Infrastructure.Repositories;
+using Location.Photography.Infrastructure.Services;
+using Location.Photography.Maui.Views.Premium;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using core = Location.Core.Maui.Views;
 
@@ -13,7 +18,11 @@ namespace Location.Photography.Maui
         private readonly IServiceProvider _serviceProvider;
         private readonly ISubscriptionStatusService _subscriptionStatusService;
         private readonly ILogger<MainPage> _logger;
-
+        public MainPage():this(new ServiceCollection().BuildServiceProvider(),
+                 new SubscriptionStatusService(new Logger<SubscriptionStatusService>(new LoggerFactory()), new Mediator(new ServiceCollection().BuildServiceProvider()), new SubscriptionService(new Logger<SubscriptionService>(new LoggerFactory()), new SubscriptionRepository(new DatabaseContext(new Logger<DatabaseContext>(new LoggerFactory())), new Logger<SubscriptionRepository>(new LoggerFactory())))),new Logger<MainPage>(new LoggerFactory()))
+        {
+           
+        }
         public MainPage(
             IServiceProvider serviceProvider,
             ISubscriptionStatusService subscriptionStatusService,
@@ -55,71 +64,9 @@ namespace Location.Photography.Maui
                 this.Children.Add(_serviceProvider.GetRequiredService<core.AddLocation>());
                 this.Children.Add(_serviceProvider.GetRequiredService<core.LocationsPage>());
                 this.Children.Add(_serviceProvider.GetRequiredService<core.TipsPage>());
-                if (canAccessPremium.Data)
-                {
-                    canAccessPro = canAccessPremium;
-                }
-                // Professional features
-                var sceneEvaluation = _serviceProvider.GetRequiredService<Views.Professional.SceneEvaluation>();
-                if (canAccessPro.IsSuccess && canAccessPro.Data)
-                {
-                    this.Children.Add(sceneEvaluation);
-                }
-                else
-                {
-                    sceneEvaluation.IsEnabled = false;
+                //AddFeatureTabs(statusResult, canAccessPremium, canAccessPro);
+                this.Children.Add(_serviceProvider.GetRequiredService<DummyPage>());
 
-                    this.Children.Add(sceneEvaluation);
-                }
-
-                var sunCalculator = _serviceProvider.GetRequiredService<Views.Professional.SunCalculator>();
-                if (canAccessPro.IsSuccess && canAccessPro.Data)
-                {
-                    this.Children.Add(sunCalculator);
-                }
-                else
-                {
-                    sunCalculator.IsEnabled = false;
-                    this.Children.Add(sunCalculator);
-                }
-
-                // Premium features
-                var sunLocation = _serviceProvider.GetRequiredService<Views.Premium.SunLocation>();
-                if (canAccessPremium.IsSuccess && canAccessPremium.Data)
-                {
-                    this.Children.Add(sunLocation);
-                }
-                else
-                {
-                    sunLocation.IsEnabled = false;
-                    this.Children.Add(sunLocation);
-                }
-
-                var exposureCalculator = _serviceProvider.GetRequiredService<Views.Premium.ExposureCalculator>();
-                if (canAccessPremium.IsSuccess && canAccessPremium.Data)
-                {
-                    this.Children.Add(exposureCalculator);
-                }
-                else
-                {
-                    exposureCalculator.IsEnabled = false;
-                    exposureCalculator.Title = "Exposure Calculator (Premium)";
-                    this.Children.Add(exposureCalculator);
-                }
-
-                // Settings - always available
-                this.Children.Add(_serviceProvider.GetRequiredService<Views.Settings>());
-
-                this.MinimumWidthRequest = 1000;
-
-                // Log subscription status for debugging
-                if (statusResult.IsSuccess)
-                {
-                    _logger.LogInformation("Subscription Status: {Type}, Expires: {Expiration}, Grace: {Grace}",
-                        statusResult.Data.SubscriptionType,
-                        statusResult.Data.ExpirationDate,
-                        statusResult.Data.IsInGracePeriod);
-                }
             }
             catch (Exception ex)
             {
@@ -150,9 +97,83 @@ namespace Location.Photography.Maui
                 expCalc.Title = "Exposure Calculator (Premium)";
                 this.Children.Add(expCalc);
 
+                var scencalc = _serviceProvider.GetRequiredService<Views.Settings>();
+
+
                 this.Children.Add(_serviceProvider.GetRequiredService<Views.Settings>());
                 this.MinimumWidthRequest = 1000;
             }
+        }
+
+        private void AddFeatureTabs(Core.Application.Common.Models.Result<SubscriptionStatusResult> statusResult, Result<bool> canAccessPremium, Result<bool> canAccessPro)
+        {
+            if (canAccessPremium.Data)
+            {
+                canAccessPro = canAccessPremium;
+            }
+            // Professional features
+            var sceneEvaluation = _serviceProvider.GetRequiredService<Views.Professional.SceneEvaluation>();
+            if (canAccessPro.IsSuccess && canAccessPro.Data)
+            {
+                this.Children.Add(sceneEvaluation);
+            }
+            else
+            {
+                sceneEvaluation.IsEnabled = false;
+
+                this.Children.Add(sceneEvaluation);
+            }
+
+            var sunCalculator = _serviceProvider.GetRequiredService<Views.Professional.SunCalculator>();
+            if (canAccessPro.IsSuccess && canAccessPro.Data)
+            {
+                this.Children.Add(sunCalculator);
+            }
+            else
+            {
+                sunCalculator.IsEnabled = false;
+                this.Children.Add(sunCalculator);
+            }
+
+            // Premium features
+            var sunLocation = _serviceProvider.GetRequiredService<Views.Premium.SunLocation>();
+            if (canAccessPremium.IsSuccess && canAccessPremium.Data)
+            {
+                this.Children.Add(sunLocation);
+            }
+            else
+            {
+                sunLocation.IsEnabled = false;
+                this.Children.Add(sunLocation);
+            }
+
+            var exposureCalculator = _serviceProvider.GetRequiredService<Views.Premium.ExposureCalculator>();
+            if (canAccessPremium.IsSuccess && canAccessPremium.Data)
+            {
+                this.Children.Add(exposureCalculator);
+            }
+            else
+            {
+                exposureCalculator.IsEnabled = false;
+                exposureCalculator.Title = "Exposure Calculator (Premium)";
+                this.Children.Add(exposureCalculator);
+            }
+
+            // Settings - always available
+            this.Children.Add(_serviceProvider.GetRequiredService<Views.Settings>());
+
+            this.MinimumWidthRequest = 1000;
+
+            // Log subscription status for debugging
+            if (statusResult.IsSuccess)
+            {
+                _logger.LogInformation("Subscription Status: {Type}, Expires: {Expiration}, Grace: {Grace}",
+                    statusResult.Data.SubscriptionType,
+                    statusResult.Data.ExpirationDate,
+                    statusResult.Data.IsInGracePeriod);
+            }
+
+            //return canAccessPro;
         }
     }
 }

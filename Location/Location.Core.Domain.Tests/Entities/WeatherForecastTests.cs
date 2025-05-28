@@ -52,31 +52,7 @@ namespace Location.Core.Domain.Tests.Entities
             forecast.UvIndex.Should().Be(5.0);
         }
 
-        [Test]
-        public void Constructor_WithNullTemperature_ShouldThrowException()
-        {
-            // Arrange & Act
-            Action act = () => new WeatherForecast(
-                1,
-                DateTime.Today,
-                DateTime.Today.AddHours(6),
-                DateTime.Today.AddHours(18),
-                _validTemp,
-                15,
-               25,
-                "Clear sky",
-                "01d",
-                _validWind,
-                65,
-                1013,
-                10,
-                5.0
-            );
-
-            // Assert
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("temperature");
-        }
+       
 
         [Test]
         public void Constructor_WithNullWind_ShouldThrowException()

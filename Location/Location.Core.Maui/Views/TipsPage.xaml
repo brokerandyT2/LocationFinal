@@ -4,7 +4,7 @@
              x:Class="Location.Core.Maui.Views.TipsPage"
              xmlns:viewmodels="clr-namespace:Location.Core.ViewModels;assembly=Location.Core.ViewModels"
              x:DataType="viewmodels:TipsViewModel"
-             Title="Tips">
+             IconImageSource="clipboard.png">
 
     <Grid RowDefinitions="Auto, *, Auto">
         <!-- Tip Type Picker -->

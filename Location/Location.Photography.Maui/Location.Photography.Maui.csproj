@@ -105,6 +105,9 @@
     <MauiXaml Update="UserOnboarding.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\Premium\DummyPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Premium\ExposureCalculator.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

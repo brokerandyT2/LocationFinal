@@ -173,13 +173,17 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             var setting1 = TestDataBuilder.CreateValidSetting(key: "duplicate_key");
             var setting2 = TestDataBuilder.CreateValidSetting(key: "duplicate_key");
 
+            // Setup the exception mapper to return a SettingDomainException
+            _mockInfraLogger.Setup(x => x.MapToSettingDomainException(It.IsAny<Exception>(), It.IsAny<string>()))
+                .Returns<Exception, string>((ex, op) => new Location.Core.Domain.Exceptions.SettingDomainException("DUPLICATE_KEY", ex.Message, ex));
+
             // Act
             await _repository.AddAsync(setting1);
 
             // Act & Assert
             Func<Task> act = async () => await _repository.AddAsync(setting2);
 
-            await act.Should().ThrowAsync<InvalidOperationException>()
+            await act.Should().ThrowAsync<Location.Core.Domain.Exceptions.SettingDomainException>()
                 .WithMessage("*duplicate_key*already exists*");
         }
 

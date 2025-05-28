@@ -17,7 +17,7 @@ namespace Location.Core.Domain.Tests.Exceptions
             // Assert
             exception.Latitude.Should().Be(91.0);
             exception.Longitude.Should().Be(-181.0);
-            exception.Message.Should().Be("Custom error message");
+            exception.Message.Should().Be("INVALID_COORDINATE");
             exception.Code.Should().Be("Invalid coordinates: Latitude=91, Longitude=-181");
         }
 
@@ -30,8 +30,8 @@ namespace Location.Core.Domain.Tests.Exceptions
             // Assert
             exception.Latitude.Should().Be(91.0);
             exception.Longitude.Should().Be(-181.0);
-            exception.Message.Should().Be("Custom error message");
-            exception.Code.Should().Be("INVALID_COORDINATE");
+            exception.Message.Should().Be("INVALID_COORDINATE");
+            exception.Code.Should().Be("Custom error message");
         }
 
         [Test]
@@ -68,9 +68,10 @@ namespace Location.Core.Domain.Tests.Exceptions
             var exception = new InvalidCoordinateException(45.5, -122.6);
 
             // Assert
-            exception.Message.Should().Contain("45.5");
-            exception.Message.Should().Contain("-122.6");
-            exception.Message.Should().Contain("Invalid coordinates");
+            exception.Code.Should().Contain("45.5");
+            exception.Code.Should().Contain("-122.6");
+            exception.Code.Should().Contain("Invalid coordinates");
+            exception.Message.Should().Be("INVALID_COORDINATE");
         }
     }
 }
