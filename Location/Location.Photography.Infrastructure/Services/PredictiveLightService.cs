@@ -5,8 +5,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Location.Core.Application.Weather.DTOs;
 using Location.Photography.Application.Services;
+using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using Microsoft.Extensions.Logging;
+using EnhancedSunTimes = Location.Photography.Application.Services.EnhancedSunTimes;
+using ExposureTriangle = Location.Photography.Application.Services.ExposureTriangle;
+using HourlyLightPrediction = Location.Photography.Application.Services.HourlyLightPrediction;
+using LightCharacteristics = Location.Photography.Application.Services.LightCharacteristics;
+using SunPosition = Location.Photography.Application.Services.SunPosition;
 
 namespace Location.Photography.Infrastructure.Services
 {

@@ -1,12 +1,14 @@
 ﻿// Location.Photography.Application/Queries/SunLocation/GetEnhancedSunTimesQueryHandler.cs
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
+using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using EnhancedSunTimes = Location.Photography.Application.Services.EnhancedSunTimes;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {
@@ -23,7 +25,7 @@ namespace Location.Photography.Application.Queries.SunLocation
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Result<EnhancedSunTimes>> Handle(GetEnhancedSunTimesQuery request, CancellationToken cancellationToken)
+        public async Task<Result<Services.EnhancedSunTimes>> Handle(GetEnhancedSunTimesQuery request, CancellationToken cancellationToken)
         {
             try
             {

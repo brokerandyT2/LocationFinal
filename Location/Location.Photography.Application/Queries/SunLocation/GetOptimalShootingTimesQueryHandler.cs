@@ -1,6 +1,7 @@
 ﻿// Location.Photography.Application/Queries/SunLocation/GetOptimalShootingTimesQueryHandler.cs
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
+using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;

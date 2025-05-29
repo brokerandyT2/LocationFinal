@@ -1,23 +1,27 @@
-﻿using System;
+﻿// Location.Photography.Application/Services/PredictiveLightModels.cs
+using Location.Core.Application.Weather.DTOs;
+using Location.Photography.Domain.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Location.Core.Application.Weather.DTOs;
-using Location.Photography.Domain.Models;
+
+// Note: This file uses LightQuality and ShadowIntensity from Location.Photography.Domain.Models
+// to avoid namespace conflicts
 
 namespace Location.Photography.Application.Services
 {
+    #region Service Interface
     public interface IPredictiveLightService
     {
         Task<WeatherImpactAnalysis> AnalyzeWeatherImpactAsync(WeatherImpactAnalysisRequest request, CancellationToken cancellationToken = default);
-
         Task<List<HourlyLightPrediction>> GenerateHourlyPredictionsAsync(PredictiveLightRequest request, CancellationToken cancellationToken = default);
-
         Task<PredictiveLightRecommendation> GenerateRecommendationAsync(PredictiveLightRequest request, CancellationToken cancellationToken = default);
-
         Task CalibrateWithActualReadingAsync(LightMeterCalibrationRequest request, CancellationToken cancellationToken = default);
     }
+    #endregion
 
+    #region Request Models
     public class WeatherImpactAnalysisRequest
     {
         public WeatherForecastDto WeatherForecast { get; set; } = new();
@@ -48,6 +52,19 @@ namespace Location.Photography.Application.Services
         public WeatherConditions? WeatherConditions { get; set; }
     }
 
+    public class ShootingAlertRequest
+    {
+        public int LocationId { get; set; }
+        public DateTime AlertTime { get; set; }
+        public DateTime ShootingWindowStart { get; set; }
+        public DateTime ShootingWindowEnd { get; set; }
+        public LightQuality LightQuality { get; set; }
+        public string? RecommendedSettings { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+    #endregion
+
+    #region Weather Models
     public class WeatherImpactAnalysis
     {
         public WeatherConditions? CurrentConditions { get; set; }
@@ -67,6 +84,28 @@ namespace Location.Photography.Application.Services
         public string Reasoning { get; set; } = string.Empty;
     }
 
+    public class WeatherConditions
+    {
+        public double CloudCover { get; set; } // 0-1
+        public double Precipitation { get; set; } // mm/hour
+        public double Humidity { get; set; } // 0-1
+        public double Visibility { get; set; } // km
+        public int AirQualityIndex { get; set; } // 0-500
+        public double WindSpeed { get; set; } // m/s
+        public string Description { get; set; } = string.Empty;
+    }
+
+    public class WeatherAlert
+    {
+        public AlertType Type { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public DateTime ValidFrom { get; set; }
+        public DateTime ValidTo { get; set; }
+        public AlertSeverity Severity { get; set; }
+    }
+    #endregion
+
+    #region Light Prediction Models
     public class HourlyLightPrediction
     {
         public DateTime DateTime { get; set; }
@@ -103,7 +142,9 @@ namespace Location.Photography.Application.Services
         public HourlyLightPrediction? RecommendedExposure { get; set; }
         public List<string> Warnings { get; set; } = new();
     }
+    #endregion
 
+    #region Supporting Models
     public class ExposureTriangle
     {
         public string Aperture { get; set; } = string.Empty; // "f/4"
@@ -125,78 +166,10 @@ namespace Location.Photography.Application.Services
     {
         public double Azimuth { get; set; } // 0-360 degrees
         public double Elevation { get; set; } // -90 to 90 degrees
-        public double Distance { get; set; } // AU (for seasonal variations)
+        public double Distance { get; set; } = 1.0; // AU (for seasonal variations)
         public bool IsAboveHorizon { get; set; }
     }
 
-    public class WeatherConditions
-    {
-        public double CloudCover { get; set; } // 0-1
-        public double Precipitation { get; set; } // mm/hour
-        public double Humidity { get; set; } // 0-1
-        public double Visibility { get; set; } // km
-        public int AirQualityIndex { get; set; } // 0-500
-        public double WindSpeed { get; set; } // m/s
-        public string Description { get; set; } = string.Empty;
-    }
-
-    public class WeatherAlert
-    {
-        public AlertType Type { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public DateTime ValidFrom { get; set; }
-        public DateTime ValidTo { get; set; }
-        public AlertSeverity Severity { get; set; }
-    }
-
-    public class ShootingAlertRequest
-    {
-        public int LocationId { get; set; }
-        public DateTime AlertTime { get; set; }
-        public DateTime ShootingWindowStart { get; set; }
-        public DateTime ShootingWindowEnd { get; set; }
-        public LightQuality LightQuality { get; set; }
-        public string? RecommendedSettings { get; set; }
-        public string Message { get; set; } = string.Empty;
-    }
-
-    public enum LightQuality
-    {
-        Unknown,
-        Harsh,
-        Soft,
-        GoldenHour,
-        BlueHour,
-        Overcast,
-        Dramatic,
-        Flat
-    }
-
-    public enum ShadowIntensity
-    {
-        None,
-        Soft,
-        Medium,
-        Hard,
-        VeryHard
-    }
-
-    public enum AlertType
-    {
-        Weather,
-        Light,
-        Shooting,
-        Calibration
-    }
-
-    public enum AlertSeverity
-    {
-        Info,
-        Warning,
-        Critical
-    }
-
-    // Enhanced Sun Times with precise calculations
     public class EnhancedSunTimes
     {
         public DateTime Sunrise { get; set; }
@@ -222,73 +195,25 @@ namespace Location.Photography.Application.Services
         public TimeSpan UtcOffset { get; set; }
         public TimeSpan SolarTimeOffset { get; set; } // Difference between solar noon and clock noon
     }
+    #endregion
 
-    // Moon integration
-    public class MoonPhaseData
+    #region Enums
+    // Note: LightQuality and ShadowIntensity are already defined in Location.Photography.Domain.Models
+    // Using those existing enums instead of duplicating here
+
+    public enum AlertType
     {
-        public DateTime Date { get; set; }
-        public double Phase { get; set; } // 0-1, 0 = new moon, 0.5 = full moon
-        public string PhaseName { get; set; } = string.Empty; // "New Moon", "Waxing Crescent", etc.
-        public double IlluminationPercentage { get; set; } // 0-100
-        public DateTime? MoonRise { get; set; }
-        public DateTime? MoonSet { get; set; }
-        public MoonPosition Position { get; set; } = new();
-        public double Brightness { get; set; } // Magnitude
+        Weather,
+        Light,
+        Shooting,
+        Calibration
     }
 
-    public class MoonPosition
+    public enum AlertSeverity
     {
-        public double Azimuth { get; set; }
-        public double Elevation { get; set; }
-        public double Distance { get; set; } // km
-        public bool IsAboveHorizon { get; set; }
+        Info,
+        Warning,
+        Critical
     }
-
-    // Sun path for interactive visualization
-    public class SunPathPoint
-    {
-        public DateTime Time { get; set; }
-        public double Azimuth { get; set; }
-        public double Elevation { get; set; }
-        public bool IsVisible { get; set; } // Above horizon
-    }
-
-    // Shadow calculations
-    public class ShadowCalculationResult
-    {
-        public double ShadowLength { get; set; } // meters
-        public double ShadowDirection { get; set; } // degrees from north
-        public double ObjectHeight { get; set; } // meters
-        public DateTime CalculationTime { get; set; }
-        public TerrainType Terrain { get; set; }
-        public List<ShadowTimePoint> ShadowProgression { get; set; } = new();
-    }
-
-    public class ShadowTimePoint
-    {
-        public DateTime Time { get; set; }
-        public double Length { get; set; }
-        public double Direction { get; set; }
-    }
-
-    public enum TerrainType
-    {
-        Flat,
-        Urban,
-        Forest,
-        Mountain,
-        Beach
-    }
-
-    // Optimal shooting times
-    public class OptimalShootingTime
-    {
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public LightQuality LightQuality { get; set; }
-        public double QualityScore { get; set; } // 0-1
-        public string Description { get; set; } = string.Empty;
-        public List<string> IdealFor { get; set; } = new();
-        public HourlyLightPrediction? RecommendedExposure { get; set; }
-    }
+    #endregion
 }
