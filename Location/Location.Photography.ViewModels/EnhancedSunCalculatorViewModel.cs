@@ -4,6 +4,7 @@ using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.Queries.GetWeatherForecast;
 using Location.Core.ViewModels;
+using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using MediatR;
 using System.Collections.ObjectModel;

@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Queries\SunLocation\GetEnhancedSunTimesQueryValidator.cs" />
+    <Compile Remove="Queries\SunLocation\GetMoonDataQueryValidator.cs" />
+    <Compile Remove="Queries\SunLocation\GetOptimalShootingTimesQueryValidator.cs" />
+    <Compile Remove="Queries\SunLocation\GetShadowCalculationQueryValidator.cs" />
+    <Compile Remove="Queries\SunLocation\GetSunPathDataQueryValidator.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="MediatR" Version="12.5.0" />

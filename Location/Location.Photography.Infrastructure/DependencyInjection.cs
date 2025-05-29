@@ -30,8 +30,12 @@ namespace Location.Photography.Infrastructure
             services.AddScoped<ISubscriptionStatusService, SubscriptionStatusService>();
             services.AddScoped<ISubscriptionFeatureGuard, SubscriptionFeatureGuard>();
 
+            // Register predictive light service
+            services.AddScoped<IPredictiveLightService, PredictiveLightService>();
+
             // Register other photography services
             services.AddScoped<ISceneEvaluationService, SceneEvaluationService>();
+
             // Register ViewModels as Transient (new instance each time)
             services.AddTransient<SunCalculationsViewModel>();
             services.AddTransient<SunCalculatorViewModel>();
@@ -41,9 +45,11 @@ namespace Location.Photography.Infrastructure
             services.AddTransient<SubscriptionSignUpViewModel>();
             services.AddTransient<SettingsViewModel>();
             services.AddTransient<SettingViewModel>();
+            services.AddTransient<EnhancedSunCalculatorViewModel>();
 
             // Register subscription-aware base ViewModels
             services.AddTransient<SubscriptionAwareViewModelBase>();
+
             return services;
         }
     }
