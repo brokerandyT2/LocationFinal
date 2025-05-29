@@ -29,6 +29,8 @@ namespace Location.Photography.Maui.Views.Premium
         {
             InitializeComponent();
             _viewModel = new LightMeterViewModel();
+            _viewModel.LoadExposureArraysAsync();
+
             BindingContext = _viewModel;
         }
 
@@ -46,13 +48,28 @@ namespace Location.Photography.Maui.Views.Premium
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
 
             InitializeComponent();
+            ApertureSlider.ValueChanged += OnApertureChanged;
+            IsoSlider.ValueChanged += OnIsoChanged;
+            ShutterSpeedSlider.ValueChanged += OnShutterSpeedChanged;
+            EvSlider.ValueChanged += OnEvChanged;
+            FullStepRadio.CheckedChanged += OnStepChanged;
+            HalfStepRadio.CheckedChanged += OnStepChanged;
+            ThirdStepRadio.CheckedChanged += OnStepChanged;
+            MeasureButton.Clicked += OnMeasurePressed;
+
+
+            InitializeViewModel();
+            LoadRefreshInterval();
+            // Start monitoring when the page appears
+            //StartLightSensorMonitoring();
+
+
         }
 
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            InitializeViewModel();
-            LoadRefreshInterval();
+
             // DON'T start monitoring automatically
         }
 
@@ -292,6 +309,14 @@ namespace Location.Photography.Maui.Views.Premium
                 _viewModel.CalculateEV();
             }
         }
+        private void ApertureSlider_ValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.SelectedApertureIndex = (int)Math.Round(e.NewValue);
+                _viewModel.CalculateEV();
+            }
+        }
 
         private void OnIsoChanged(object sender, ValueChangedEventArgs e)
         {
@@ -379,6 +404,11 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 await viewModel.RetryLastCommandAsync();
             }
+        }
+
+        private void ApertureSlider_ValueChanged_1(object sender, ValueChangedEventArgs e)
+        {
+
         }
     }
 }

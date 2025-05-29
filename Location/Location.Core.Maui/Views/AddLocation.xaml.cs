@@ -84,6 +84,7 @@ namespace Location.Core.Maui.Views
             {
                 // Create new location ViewModel with services
                 var viewModel = new LocationViewModel(_mediator, _mediaService, _geolocationService, _errorDisplayService);
+                viewModel.StartLocationTrackingCommand.Execute(viewModel);
                 viewModel.Photo = string.IsNullOrEmpty(viewModel.Photo) ? "landscape.png" : viewModel.Photo;
 
                 // Subscribe to system error events
@@ -264,7 +265,7 @@ namespace Location.Core.Maui.Views
         #endregion
 
         #region Lifecycle Methods
-
+        
         /// <summary>
         /// Called when the page appears
         /// </summary>
@@ -286,6 +287,8 @@ namespace Location.Core.Maui.Views
                 }
             }
         }
+       
+
 
         /// <summary>
         /// Called when the page disappears

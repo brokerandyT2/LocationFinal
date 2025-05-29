@@ -5,7 +5,6 @@
              xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
              xmlns:strings="clr-namespace:Location.Photography.Maui.Resources"
              x:DataType="viewmodels:LightMeterViewModel"
-             
              IconImageSource="camerameter.png"
              BackgroundColor="Black">
 
@@ -42,29 +41,33 @@
 
         <!-- Sliders Section -->
         <ScrollView Grid.Row="2" VerticalOptions="Fill">
-            <StackLayout Spacing="25" Padding="10">
+            <Border BackgroundColor="#1a1a1a" 
+                    StrokeThickness="2" 
+                    Stroke="#333333"
+                    StrokeShape="RoundRectangle 15">
+                <StackLayout Spacing="25" Padding="10" Background="#1a1a1a">
 
-                <!-- Aperture Slider -->
-                <StackLayout>
-                    <Label Text="APERTURE" 
+                    <!-- Aperture Slider -->
+                    <StackLayout>
+                        <Label Text="APERTURE" 
                            FontSize="12" 
                            TextColor="#CCCCCC" 
                            HorizontalOptions="Center" 
                            Margin="0,0,0,5"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
 
-                        <Label Grid.Column="0" 
+                            <Label Grid.Column="0" 
                                Text="{Binding MinAperture}" 
                                FontSize="10" 
                                TextColor="#888888" 
                                VerticalOptions="Center"/>
 
-                        <Slider Grid.Column="1" 
+                            <Slider Grid.Column="1" 
                                 x:Name="ApertureSlider"
                                 Minimum="0" 
                                 Maximum="{Binding MaxApertureIndex}"
@@ -72,43 +75,43 @@
                                 ThumbColor="White"
                                 MinimumTrackColor="White"
                                 MaximumTrackColor="#444444"
-                                ValueChanged="OnApertureChanged"/>
+                               />
 
-                        <Label Grid.Column="2" 
+                            <Label Grid.Column="2" 
                                Text="{Binding MaxAperture}" 
                                FontSize="10" 
                                TextColor="#888888" 
                                VerticalOptions="Center"/>
-                    </Grid>
-                    <Label Text="{Binding SelectedAperture}" 
+                        </Grid>
+                        <Label Text="{Binding SelectedAperture}" 
                            FontSize="18" 
                            FontAttributes="Bold"
                            TextColor="White" 
                            HorizontalOptions="Center" 
                            Margin="0,10,0,0"/>
-                </StackLayout>
+                    </StackLayout>
 
-                <!-- ISO Slider -->
-                <StackLayout>
-                    <Label Text="ISO" 
+                    <!-- ISO Slider -->
+                    <StackLayout>
+                        <Label Text="ISO" 
                            FontSize="12" 
                            TextColor="#CCCCCC" 
                            HorizontalOptions="Center" 
                            Margin="0,0,0,5"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
 
-                        <Label Grid.Column="0" 
+                            <Label Grid.Column="0" 
                                Text="{Binding MinIso}" 
                                FontSize="10" 
                                TextColor="#888888" 
                                VerticalOptions="Center"/>
 
-                        <Slider Grid.Column="1" 
+                            <Slider Grid.Column="1" 
                                 x:Name="IsoSlider"
                                 Minimum="0" 
                                 Maximum="{Binding MaxIsoIndex}"
@@ -116,43 +119,43 @@
                                 ThumbColor="White"
                                 MinimumTrackColor="White"
                                 MaximumTrackColor="#444444"
-                                ValueChanged="OnIsoChanged"/>
+                                />
 
-                        <Label Grid.Column="2" 
+                            <Label Grid.Column="2" 
                                Text="{Binding MaxIso}" 
                                FontSize="10" 
                                TextColor="#888888" 
                                VerticalOptions="Center"/>
-                    </Grid>
-                    <Label Text="{Binding SelectedIso}" 
+                        </Grid>
+                        <Label Text="{Binding SelectedIso}" 
                            FontSize="18" 
                            FontAttributes="Bold"
                            TextColor="White" 
                            HorizontalOptions="Center" 
                            Margin="0,10,0,0"/>
-                </StackLayout>
+                    </StackLayout>
 
-                <!-- Shutter Speed Slider -->
-                <StackLayout>
-                    <Label Text="SHUTTER SPEED" 
+                    <!-- Shutter Speed Slider -->
+                    <StackLayout>
+                        <Label Text="SHUTTER SPEED" 
                            FontSize="12" 
                            TextColor="#CCCCCC" 
                            HorizontalOptions="Center" 
                            Margin="0,0,0,5"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
 
-                        <Label Grid.Column="0" 
+                            <Label Grid.Column="0" 
                                Text="{Binding MinShutterSpeed}" 
                                FontSize="10" 
                                TextColor="#888888" 
                                VerticalOptions="Center"/>
 
-                        <Slider Grid.Column="1" 
+                            <Slider Grid.Column="1" 
                                 x:Name="ShutterSpeedSlider"
                                 Minimum="0" 
                                 Maximum="{Binding MaxShutterSpeedIndex}"
@@ -160,43 +163,43 @@
                                 ThumbColor="White"
                                 MinimumTrackColor="White"
                                 MaximumTrackColor="#444444"
-                                ValueChanged="OnShutterSpeedChanged"/>
+                                />
 
-                        <Label Grid.Column="2" 
+                            <Label Grid.Column="2" 
                                Text="{Binding MaxShutterSpeed}" 
                                FontSize="10" 
                                TextColor="#888888" 
                                VerticalOptions="Center"/>
-                    </Grid>
-                    <Label Text="{Binding SelectedShutterSpeed}" 
+                        </Grid>
+                        <Label Text="{Binding SelectedShutterSpeed}" 
                            FontSize="18" 
                            FontAttributes="Bold"
                            TextColor="White" 
                            HorizontalOptions="Center" 
                            Margin="0,10,0,0"/>
-                </StackLayout>
+                    </StackLayout>
 
-                <!-- EV Slider -->
-                <StackLayout>
-                    <Label Text="EV" 
+                    <!-- EV Slider -->
+                    <StackLayout>
+                        <Label Text="EV" 
                            FontSize="12" 
                            TextColor="#CCCCCC" 
                            HorizontalOptions="Center" 
                            Margin="0,0,0,5"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
 
-                        <Label Grid.Column="0" 
+                            <Label Grid.Column="0" 
                                Text="-7" 
                                FontSize="10" 
                                TextColor="#888888" 
                                VerticalOptions="Center"/>
 
-                        <Slider Grid.Column="1" 
+                            <Slider Grid.Column="1" 
                                 x:Name="EvSlider"
                                 Minimum="-7" 
                                 Maximum="7"
@@ -204,27 +207,28 @@
                                 ThumbColor="White"
                                 MinimumTrackColor="White"
                                 MaximumTrackColor="#444444"
-                                ValueChanged="OnEvChanged"/>
+                                />
 
-                        <Label Grid.Column="2" 
+                            <Label Grid.Column="2" 
                                Text="7" 
                                FontSize="10" 
                                TextColor="#888888" 
                                VerticalOptions="Center"/>
-                    </Grid>
-                    <Label Text="{Binding SelectedEV, StringFormat='{0:F1}'}" 
+                        </Grid>
+                        <Label Text="{Binding SelectedEV, StringFormat='{0:F1}'}" 
                            FontSize="18" 
                            FontAttributes="Bold"
                            TextColor="White" 
                            HorizontalOptions="Center" 
                            Margin="0,10,0,0"/>
-                </StackLayout>
+                    </StackLayout>
 
-            </StackLayout>
+                </StackLayout>
+            </Border>
         </ScrollView>
 
         <!-- Step Selection Radio Buttons -->
-        <StackLayout Grid.Row="3" Orientation="Horizontal" HorizontalOptions="Center" Spacing="30" Margin="0,20,0,0">
+        <StackLayout Grid.Row="3" Orientation="Horizontal" HorizontalOptions="Center" Spacing="30" Margin="0,20,0,0"  BackgroundColor="#1a1a1a">
             <Label Text="Steps:" 
                    FontSize="14" 
                    TextColor="#CCCCCC" 
@@ -234,7 +238,7 @@
                 <StackLayout Orientation="Horizontal" Spacing="5">
                     <RadioButton x:Name="FullStepRadio" 
                                  IsChecked="{Binding IsFullStep}"
-                                 CheckedChanged="OnStepChanged"
+                                 
                                  BackgroundColor="Transparent"/>
                     <Label Text="1/1" 
                            FontSize="12" 
@@ -245,7 +249,7 @@
                 <StackLayout Orientation="Horizontal" Spacing="5">
                     <RadioButton x:Name="HalfStepRadio" 
                                  IsChecked="{Binding IsHalfStep}"
-                                 CheckedChanged="OnStepChanged"
+                                 
                                  BackgroundColor="Transparent"/>
                     <Label Text="1/2" 
                            FontSize="12" 
@@ -256,7 +260,7 @@
                 <StackLayout Orientation="Horizontal" Spacing="5">
                     <RadioButton x:Name="ThirdStepRadio" 
                                  IsChecked="{Binding IsThirdStep}"
-                                 CheckedChanged="OnStepChanged"
+                                 
                                  BackgroundColor="Transparent"/>
                     <Label Text="1/3" 
                            FontSize="12" 
@@ -276,7 +280,8 @@
                 CornerRadius="25"
                 HeightRequest="50"
                 Margin="0,20,0,10"
-                Pressed="OnMeasurePressed"/>
+                x:Name="MeasureButton"
+                />
 
         <!-- Busy indicator overlay -->
         <Grid Grid.RowSpan="5" 

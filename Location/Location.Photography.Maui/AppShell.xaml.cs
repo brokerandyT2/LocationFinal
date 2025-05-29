@@ -345,8 +345,8 @@ namespace Location.Photography.Maui
                     var geoService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IGeolocationService>();
                     var errorService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IErrorDisplayService>();
                     var weatherService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IWeatherService>();
-                    
-                    return new Location.Core.Maui.Views.LocationsPage(mediator, navService, mediaService, geoService, errorService, weatherService);
+
+                    return (ContentPage)_serviceProvider.GetRequiredService<Location.Core.Maui.Views.LocationsPage>(); // Location.Core.Maui.Views.LocationsPage(mediator, navService, mediaService, geoService, errorService, weatherService);
                 }
                 else if (pageType == typeof(Location.Core.Maui.Views.TipsPage))
                 {
@@ -487,7 +487,11 @@ namespace Location.Photography.Maui
                 var canAccessPremium = await _subscriptionStatusService.CanAccessPremiumFeaturesAsync();
                 var canAccessPro = await _subscriptionStatusService.CanAccessProFeaturesAsync();
 #endif
+                var email = SecureStorage.GetAsync(MagicStrings.Email);
+                if(email.ToString().ToLower() == "brokerandy25@gmail.com")
+                {
 
+                }
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     try

@@ -38,8 +38,8 @@ namespace Location.Photography.Maui.Views
                 _logger.LogInformation("UserOnboarding InitializeComponent completed");
 
                 // Defer GetSetting to after the page is loaded
-                this.Loaded += OnPageLoaded;
-
+                //this.Loaded += OnPageLoaded;
+                GetSetting();
                 _logger.LogInformation("UserOnboarding constructor completed");
             }
             catch (Exception ex)
@@ -47,6 +47,7 @@ namespace Location.Photography.Maui.Views
                 _logger.LogError(ex, "Error in UserOnboarding constructor");
                 throw;
             }
+
         }
 
         private void OnPageLoaded(object sender, EventArgs e)
@@ -156,7 +157,8 @@ namespace Location.Photography.Maui.Views
 
                     CancellationTokenSource cts = new CancellationTokenSource();
 
-                    await MainThread.InvokeOnMainThreadAsync(() => {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
                         loadingIndicator.IsRunning = true;
                     });
 
@@ -190,7 +192,8 @@ namespace Location.Photography.Maui.Views
                 }
                 finally
                 {
-                    await MainThread.InvokeOnMainThreadAsync(() => {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
                         processingOverlay.IsVisible = false;
                         save.IsEnabled = true;
                     });
@@ -218,23 +221,40 @@ namespace Location.Photography.Maui.Views
 
         private void HemisphereSwitch_Toggled(object sender, ToggledEventArgs e)
         {
-            ((SettingsViewModel)BindingContext).Hemisphere.Value = e.Value ? MagicStrings.North : MagicStrings.South;
+            if (((SettingsViewModel)BindingContext).Hemisphere == null)
+            {
+                return;
+            }
+                ((SettingsViewModel)BindingContext).Hemisphere.Value = e.Value ? MagicStrings.North : MagicStrings.South;
+
         }
 
         private void TimeSwitch_Toggled(object sender, ToggledEventArgs e)
         {
-            ((SettingsViewModel)BindingContext).TimeFormat.Value = e.Value ? MagicStrings.USTimeformat : MagicStrings.InternationalTimeFormat;
+            if (((SettingsViewModel)BindingContext).TimeFormat == null)
+            {
+                return;
+            }
+                ((SettingsViewModel)BindingContext).TimeFormat.Value = e.Value ? MagicStrings.USTimeformat : MagicStrings.InternationalTimeFormat;
+
         }
 
         private void DateFormat_Toggled(object sender, ToggledEventArgs e)
         {
+            if (((SettingsViewModel)BindingContext).DateFormat == null)
+            {
+                return;
+            }
             ((SettingsViewModel)BindingContext).DateFormat.Value = e.Value ? MagicStrings.USDateFormat : MagicStrings.InternationalFormat;
         }
 
         private void WindDirectionSwitch_Toggled(object sender, ToggledEventArgs e)
         {
             var vm = (SettingsViewModel)BindingContext;
-
+            if (vm.WindDirection == null)
+            {
+                return;
+            }
             vm.WindDirection.Value = e.Value ? MagicStrings.TowardsWind : MagicStrings.WithWind;
 
             WindDirection.Text = e.Value
@@ -244,6 +264,10 @@ namespace Location.Photography.Maui.Views
 
         private void TempFormatSwitch_Toggled(object sender, ToggledEventArgs e)
         {
+            if (((SettingsViewModel)BindingContext).TemperatureFormat == null)
+            {
+                return;
+            }
             ((SettingsViewModel)BindingContext).TemperatureFormat.Value = e.Value ? MagicStrings.Fahrenheit : MagicStrings.Celsius;
         }
     }

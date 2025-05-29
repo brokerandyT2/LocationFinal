@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Location.Core.ViewModels
 {
-    public partial class LocationViewModel : BaseViewModel
+    public partial class LocationViewModel : BaseViewModel, INavigationAware
     {
         private readonly IMediator _mediator;
         private readonly IMediaService _mediaService;
@@ -285,6 +285,16 @@ namespace Location.Core.ViewModels
                 // System error
                 OnSystemError($"Error stopping location tracking: {ex.Message}");
             }
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            StartLocationTrackingAsync();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            StopLocationTrackingAsync();
         }
     }
 }

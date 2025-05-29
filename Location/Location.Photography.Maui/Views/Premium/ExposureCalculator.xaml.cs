@@ -23,6 +23,7 @@ namespace Location.Photography.Maui.Views.Premium
         {
             InitializeComponent();
             _viewModel = new ExposureCalculatorViewModel();
+            _viewModel.CalculateCommand.Execute(_viewModel);
             BindingContext = _viewModel;
             CloseButton.IsVisible = false;
         }

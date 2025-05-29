@@ -307,7 +307,7 @@ namespace Location.Photography.Maui.Controls
                     {
                         Title = displayName,
                         PageType = type,
-                        IsEnabled = false // Will be enabled based on subscription
+                        IsEnabled = false // Will be enabled based on subscription,
                     });
                 }
 

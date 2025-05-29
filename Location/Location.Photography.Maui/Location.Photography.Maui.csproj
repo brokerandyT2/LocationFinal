@@ -44,6 +44,10 @@
 	  <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
+	  <AndroidPackageFormat>apk</AndroidPackageFormat>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
@@ -112,16 +116,13 @@
     <MauiXaml Update="UserOnboarding.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\Premium\DummyPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
     <MauiXaml Update="Views\Premium\ExposureCalculator.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\Premium\LightMeter.xaml">
+    <MauiXaml Update="Views\Professional\LightMeter.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\Professional\SunCalculator.xaml">
+    <MauiXaml Update="Views\SunCalculator.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Premium\SunLocation.xaml">

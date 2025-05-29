@@ -22,7 +22,9 @@ namespace Location.Photography.Maui.Views
         {
             InitializeComponent();
             _viewModel = new SettingsViewModel();
+            
             BindingContext = _viewModel;
+            InitializeViewModel();
         }
 
         public Settings(
@@ -35,6 +37,7 @@ namespace Location.Photography.Maui.Views
             _settingRepository = settingRepository ?? throw new ArgumentNullException(nameof(settingRepository));
 
             InitializeComponent();
+            InitializeViewModel();
         }
 
         protected override void OnAppearing()
@@ -187,10 +190,16 @@ namespace Location.Photography.Maui.Views
 
         private void GetFormattedExpiration()
         {
-            var date = _viewModel.DateFormat.Value.ToString();
-            var time = _viewModel.TimeFormat.Value.ToString();
-            var format = date + ' ' + time;
-            Failure.Text= DateTime.Parse(_viewModel.SubscriptionExpiration.Value).ToString(format);
+            if (_viewModel.DateFormat != null && _viewModel.TimeFormat != null)
+            {
+                if (!string.IsNullOrEmpty(_viewModel.DateFormat.Value) && !string.IsNullOrEmpty(_viewModel.TimeFormat.Value))
+                {
+                    var date = _viewModel.DateFormat.Value.ToString();
+                    var time = _viewModel.TimeFormat.Value.ToString();
+                    var format = date + ' ' + time;
+                    Failure.Text = DateTime.Parse(_viewModel.SubscriptionExpiration.Value).ToString(format);
+                }
+            }
         }
 
         private async Task<bool> UpdateSettingAsync(string key, string value, string description = "")
@@ -412,7 +421,7 @@ namespace Location.Photography.Maui.Views
 
         private async void Button_Pressed(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new NavigationPage(new SubscriptionSignUpPage()));
+            await Shell.Current.Navigation.PushAsync(new SubscriptionSignUpPage(), true);// Navigation.PushAsync(new NavigationPage(new SubscriptionSignUpPage()));
         }
     }
 }

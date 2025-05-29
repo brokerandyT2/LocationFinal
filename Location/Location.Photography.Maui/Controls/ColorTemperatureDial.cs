@@ -104,7 +104,7 @@ namespace Location.Photography.Maui.Controls
                     TextAlign = SKTextAlign.Center
                 })
                 {
-                    canvas.DrawText(Title, center, size - 10, textPaint);
+                    canvas.DrawText(Title, center, size- 10, textPaint);
                 }
 
                 // Draw value text
@@ -116,7 +116,7 @@ namespace Location.Photography.Maui.Controls
                     TextAlign = SKTextAlign.Center
                 })
                 {
-                    canvas.DrawText($"{Value:F0}K", center, center + 5, textPaint);
+                    canvas.DrawText($"{Value:F0}K", center, center +40, textPaint);
                 }
 
                 // Calculate needle angle based on value

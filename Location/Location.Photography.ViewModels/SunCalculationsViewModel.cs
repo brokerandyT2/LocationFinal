@@ -13,7 +13,7 @@ using OperationErrorEventArgs = Location.Photography.ViewModels.Events.Operation
 
 namespace Location.Photography.ViewModels
 {
-    public class SunCalculationsViewModel : ViewModelBase, ISunCalculations
+    public class SunCalculationsViewModel : ViewModelBase, ISunCalculations, INavigationAware
     {
         #region Fields
         private readonly ISunCalculatorService _sunCalculatorService;
@@ -275,8 +275,8 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region Commands
-        public ICommand LoadLocationsCommand { get; }
-        public ICommand CalculateSunTimesCommand { get; }
+        public ICommand LoadLocationsCommand { get; internal set; }
+        public ICommand CalculateSunTimesCommand { get; internal set; }
         #endregion
 
         #region Events
@@ -353,6 +353,17 @@ namespace Location.Photography.ViewModels
         protected override void OnErrorOccurred(string message)
         {
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            LoadLocationsCommand = new AsyncRelayCommand(LoadLocationsAsync);
+            CalculateSunTimesCommand = new RelayCommand(CalculateSun);
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            //throw new NotImplementedException();
         }
         #endregion
     }

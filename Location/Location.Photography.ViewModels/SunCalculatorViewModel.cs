@@ -11,6 +11,7 @@ using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
 using Location.Photography.ViewModels.Events;
+using Location.Photography.ViewModels.Interfaces;
 using MediatR;
 using System;
 using System.Collections.ObjectModel;
@@ -24,7 +25,7 @@ using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErr
 
 namespace Location.Photography.ViewModels
 {
-    public partial class SunCalculatorViewModel : ViewModelBase
+    public partial class SunCalculatorViewModel : ViewModelBase, Interfaces.INavigationAware
     {
         private readonly IMediator _mediator;
         private readonly IErrorDisplayService _errorDisplayService;
@@ -262,6 +263,16 @@ namespace Location.Photography.ViewModels
         protected override void OnErrorOccurred(string message)
         {
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            _ = LoadLocationsAsync();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+           // throw new NotImplementedException();
         }
     }
 }

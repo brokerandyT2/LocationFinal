@@ -37,6 +37,7 @@ namespace Location.Core.Maui.Views
             _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
             // Initialize the view model
             var viewModel = new LocationsViewModel(_mediator, _errorDisplayService);
+            viewModel.LoadLocationsCommand.Execute(viewModel);
             viewModel.ErrorOccurred += OnSystemError;
             BindingContext = viewModel;
         }
@@ -103,7 +104,7 @@ namespace Location.Core.Maui.Views
                     selectedItem.Id,
                     true);
                 var page2 = new EditLocation(_mediator, _mediaService, _geolocationService, _navigationService, _errorDisplayService, _weatherService, selectedItem.Id, true);
-                await _navigationService.NavigateToModalAsync(page2);
+                await  _navigationService.NavigateToModalAsync(page2);
             }
         }
 

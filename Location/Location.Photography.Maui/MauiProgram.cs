@@ -242,11 +242,7 @@ namespace Location.Photography.Maui
             });
 
             builder.Services.AddSingleton<MainPage>();
-            builder.Services.AddTransient<Views.Premium.DummyPage>(sp =>
-            {
-                var serviceProvider = sp;
-                return new Views.Premium.DummyPage(serviceProvider);
-            });
+            
 
             // ==================== APP SHELL ====================
             // AppShell with all dependencies

@@ -15,7 +15,9 @@
             <!-- Colors -->
             <Color x:Key="ErrorRed">#FF0000</Color>
             <Color x:Key="Gray400">#9E9E9E</Color>
-
+            <Color x:Key="SuccessGreen">#00ee00</Color>
+            <Color x:Key="LightGreen">#e0ffe0</Color>
+            <Color x:Key="LightRed">#ffb0b0</Color>
             <!-- Brushes -->
             <SolidColorBrush x:Key="TransparentOverlayBrush" Color="#80000000"/>
             <SolidColorBrush x:Key="TransparentErrorBrush" Color="#80FF0000"/>

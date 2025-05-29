@@ -39,6 +39,8 @@ namespace Location.Core.Maui.Views
             // Initialize the view model
             var viewModel = new TipsViewModel(_mediator, _errorDisplayService, _tipTypeRepository, _tipRepository);
             viewModel.ErrorOccurred += OnSystemError;
+            viewModel.LoadTipTypesCommand.Execute(viewModel);
+            //viewModel.LoadTipsByTypeCommand.Execute(viewModel);
             BindingContext = viewModel;
         }
 

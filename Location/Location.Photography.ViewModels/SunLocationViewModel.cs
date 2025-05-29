@@ -10,7 +10,7 @@ using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErr
 
 namespace Location.Photography.ViewModels
 {
-    public class SunLocationViewModel : ViewModelBase, Location.Photography.ViewModels.Interfaces.ISunLocation
+    public class SunLocationViewModel : ViewModelBase, Location.Photography.ViewModels.Interfaces.ISunLocation, INavigationAware
     {
         #region Fields
         private readonly IMediator _mediator;
@@ -169,7 +169,7 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region Commands
-        public IRelayCommand UpdateSunPositionCommand { get; }
+        public IRelayCommand UpdateSunPositionCommand { get; internal set; }
         #endregion
 
         #region Constructors
@@ -344,6 +344,23 @@ namespace Location.Photography.ViewModels
         protected override void OnErrorOccurred(string message)
         {
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            UpdateSunPositionCommand = new RelayCommand(UpdateSunPosition);
+
+            // Set default values
+            _selectedDate = DateTime.Today;
+            _selectedTime = DateTime.Now.TimeOfDay;
+            UpdateSelectedDateTime();
+            StartSensors();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            StopSensors();
+            //throw new NotImplementedException();
         }
         #endregion
     }

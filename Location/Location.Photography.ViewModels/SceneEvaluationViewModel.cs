@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Services;
 using Location.Photography.ViewModels.Events;
+using Location.Photography.ViewModels.Interfaces;
 using SkiaSharp;
 using System;
 using System.IO;
@@ -11,7 +12,7 @@ using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErr
 
 namespace Location.Photography.ViewModels
 {
-    public partial class SceneEvaluationViewModel : ViewModelBase
+    public partial class SceneEvaluationViewModel : ViewModelBase, INavigationAware
     {
         #region Fields
         private readonly IErrorDisplayService _errorDisplayService;
@@ -360,6 +361,16 @@ namespace Location.Photography.ViewModels
         protected override void OnErrorOccurred(string message)
         {
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            //throw new NotImplementedException();
         }
         #endregion
     }

@@ -14,7 +14,7 @@ using MediatR;
 
 namespace Location.Core.ViewModels
 {
-    public partial class TipsViewModel : BaseViewModel
+    public partial class TipsViewModel : BaseViewModel, INavigationAware
     {
         private readonly IMediator _mediator;
         private readonly ITipTypeRepository _tiptyperepo;
@@ -157,6 +157,16 @@ namespace Location.Core.ViewModels
                 SelectedTipTypeId = value.Id;
                 LoadTipsByTypeCommand.Execute(value.Id);
             }
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            LoadTipTypesAsync();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            //throw new NotImplementedException();
         }
     }
 

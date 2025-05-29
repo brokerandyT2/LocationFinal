@@ -178,7 +178,7 @@ namespace Location.Photography.Maui.Controls
                     TextAlign = SKTextAlign.Center
                 })
                 {
-                    canvas.DrawText(valueText, center, center + 5, textPaint);
+                    canvas.DrawText(valueText, center, center + 40, textPaint);
                 }
             }
         }

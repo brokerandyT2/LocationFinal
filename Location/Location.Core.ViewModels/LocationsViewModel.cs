@@ -12,7 +12,7 @@ using MediatR;
 
 namespace Location.Core.ViewModels
 {
-    public partial class LocationsViewModel : BaseViewModel
+    public partial class LocationsViewModel : BaseViewModel, INavigationAware
     {
         private readonly IMediator _mediator;
 
@@ -81,6 +81,17 @@ namespace Location.Core.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            LoadLocationsAsync(CancellationToken.None);
+
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+           // throw new NotImplementedException();
         }
     }
 

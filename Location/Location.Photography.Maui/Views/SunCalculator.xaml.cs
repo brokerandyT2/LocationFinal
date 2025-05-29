@@ -14,6 +14,7 @@ namespace Location.Photography.Maui.Views.Professional
         {
             InitializeComponent();
             _viewModel = new SunCalculatorViewModel(null, null);
+            //_viewModel.CalculateSunAsync();
             BindingContext = _viewModel;
         }
 
@@ -23,7 +24,8 @@ namespace Location.Photography.Maui.Views.Professional
 
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
-
+            _viewModel.LoadLocationsAsync();
+            _viewModel.CalculateSun();
             BindingContext = _viewModel;
         }
 

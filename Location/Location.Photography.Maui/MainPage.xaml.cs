@@ -115,7 +115,7 @@ namespace Location.Photography.Maui
                         this.Children.Add(_serviceProvider.GetRequiredService<core.AddLocation>());
                         this.Children.Add(_serviceProvider.GetRequiredService<core.LocationsPage>());
                         this.Children.Add(_serviceProvider.GetRequiredService<core.TipsPage>());
-                        this.Children.Add(_serviceProvider.GetRequiredService<DummyPage>());
+                       
 
                         _logger.LogInformation("Core tabs added successfully");
 

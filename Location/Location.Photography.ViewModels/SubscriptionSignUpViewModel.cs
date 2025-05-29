@@ -6,6 +6,7 @@ using Location.Photography.Application.Commands.Subscription;
 using Location.Photography.Application.Queries.Subscription;
 using Location.Photography.Domain.Entities;
 using Location.Photography.ViewModels.Events;
+using Location.Photography.ViewModels.Interfaces;
 using MediatR;
 using System;
 using System.Collections.ObjectModel;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {
-    public partial class SubscriptionSignUpViewModel : ViewModelBase
+    public partial class SubscriptionSignUpViewModel : ViewModelBase, INavigationAware
     {
         private readonly IMediator _mediator;
         private readonly IErrorDisplayService _errorDisplayService;
@@ -174,6 +175,15 @@ namespace Location.Photography.ViewModels
         protected virtual void OnNotNowSelected()
         {
             NotNowSelected?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void OnNavigatedToAsync()
+        {
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+
         }
     }
 

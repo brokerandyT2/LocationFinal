@@ -14,6 +14,7 @@ namespace Location.Photography.Maui.Views.Professional
         {
             InitializeComponent();
             _viewModel = new SceneEvaluationViewModel();
+            
             BindingContext = _viewModel;
             RedRadioButton.IsChecked = true;
         }

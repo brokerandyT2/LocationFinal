@@ -5,13 +5,14 @@ using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
 using Location.Photography.ViewModels.Events;
+using Location.Photography.ViewModels.Interfaces;
 using MediatR;
 using System;
 using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {
-    public class LightMeterViewModel : ViewModelBase
+    public class LightMeterViewModel : ViewModelBase, INavigationAware
     {
         #region Fields
         private readonly IMediator _mediator;
@@ -445,6 +446,17 @@ namespace Location.Photography.ViewModels
         protected override void OnErrorOccurred(string message)
         {
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            InitializeCommands();
+            LoadDefaultArrays();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

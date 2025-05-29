@@ -10,7 +10,7 @@ using System.Collections.ObjectModel;
 
 namespace Location.Core.ViewModels
 {
-    public partial class WeatherViewModel : BaseViewModel
+    public partial class WeatherViewModel : BaseViewModel, INavigationAware
     {
         private readonly IMediator _mediator;
 
@@ -145,7 +145,17 @@ namespace Location.Core.ViewModels
 
             // Map icon code to local image or return URL for web images
             // This is a simplified implementation - you may need to adjust it
-            return $"weather_{iconCode}.png";
+            return $"a{iconCode}.png";
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 

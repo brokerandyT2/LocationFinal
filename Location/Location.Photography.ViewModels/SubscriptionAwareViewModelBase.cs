@@ -4,12 +4,13 @@ using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
 using Location.Photography.ViewModels.Events;
+using Location.Photography.ViewModels.Interfaces;
 using System;
 using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {
-    public partial class SubscriptionAwareViewModelBase : ViewModelBase
+    public partial class SubscriptionAwareViewModelBase : ViewModelBase, INavigationAware
     {
         protected readonly ISubscriptionFeatureGuard _featureGuard;
         private readonly IErrorDisplayService _errorDisplayService;
@@ -177,6 +178,16 @@ namespace Location.Photography.ViewModels
                 Message = "Upgrade to Premium to access this feature"
             });
             await Task.CompletedTask;
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            //throw new NotImplementedException();
         }
     }
 }

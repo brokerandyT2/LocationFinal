@@ -1,10 +1,11 @@
 ﻿// Location.Photography.ViewModels/SettingsViewModel.cs
 using Location.Core.Application.Services;
+using Location.Photography.ViewModels.Interfaces;
 using System;
 
 namespace Location.Photography.ViewModels
 {
-    public class SettingViewModel : ViewModelBase
+    public class SettingViewModel : ViewModelBase, INavigationAware
     {
         private int _id;
         private string _key;
@@ -48,6 +49,16 @@ namespace Location.Photography.ViewModels
 
         public SettingViewModel(IErrorDisplayService errorDisplayService) : base(null, errorDisplayService)
         {
+        }
+
+        public void OnNavigatedToAsync()
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            //throw new NotImplementedException();
         }
     }
 

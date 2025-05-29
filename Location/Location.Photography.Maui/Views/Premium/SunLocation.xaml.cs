@@ -73,6 +73,9 @@ namespace Location.Photography.Maui.Views.Premium
             try
             {
                 _viewModel = new SunLocationViewModel(_mediator, _sunCalculatorService, errorDisplayService);
+                _viewModel.BeginMonitoring = true;
+                _viewModel.StartSensors();
+                _viewModel.UpdateSunPositionCommand.Execute(errorDisplayService);
                 BindingContext = _viewModel;
                 LoadLocationsAsync();
             }
