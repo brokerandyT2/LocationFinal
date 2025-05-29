@@ -16,79 +16,46 @@ namespace Location.Photography.ViewModels
         #region Fields
         private readonly IMediator _mediator;
         private readonly ISettingRepository _settingRepository;
+        private readonly IExposureCalculatorService _exposureCalculatorService;
         private readonly IErrorDisplayService _errorDisplayService;
 
-        private string _selectedIso = "100";
-        private string _selectedAperture = "f/5.6";
-        private string _selectedShutterSpeed = "1/60";
-        private string _exposureStep = "Third";
+        // Current exposure values
         private float _currentLux;
-        private double _currentEV;
-        private bool _isUserInteracting;
-        private bool _isSensorActive;
-        private string[] _shutterSpeedsForPicker;
-        private string[] _aperturesForPicker;
-        private string[] _isosForPicker;
-        private ExposureIncrements _fullHalfThirds = ExposureIncrements.Third;
-        private double _needleAngle;
-        private string _lightConditionText = "Unknown";
+        private double _calculatedEV;
+        private double _selectedEV;
+        private ExposureIncrements _currentStep = ExposureIncrements.Third;
+
+        // Slider arrays and indices
+        private string[] _apertureArray;
+        private string[] _isoArray;
+        private string[] _shutterSpeedArray;
+        private int _selectedApertureIndex = 0;
+        private int _selectedIsoIndex = 0;
+        private int _selectedShutterSpeedIndex = 0;
+
+        // Step selection flags
+        private bool _isFullStep;
+        private bool _isHalfStep = false;
+        private bool _isThirdStep = true; // Default to thirds
         #endregion
 
         #region Events
         public new event EventHandler<OperationErrorEventArgs> ErrorOccurred;
-        public event EventHandler<LightMeterUpdateEventArgs> LightMeterUpdated;
         #endregion
 
         #region Properties
-        public string SelectedIso
+
+        // EV Properties
+        public double CalculatedEV
         {
-            get => _selectedIso;
-            set
-            {
-                if (SetProperty(ref _selectedIso, value))
-                {
-                    CalculateEV();
-                    OnPropertyChanged(nameof(ExposureInfo));
-                }
-            }
+            get => _calculatedEV;
+            set => SetProperty(ref _calculatedEV, value);
         }
 
-        public string SelectedAperture
+        public double SelectedEV
         {
-            get => _selectedAperture;
-            set
-            {
-                if (SetProperty(ref _selectedAperture, value))
-                {
-                    CalculateEV();
-                    OnPropertyChanged(nameof(ExposureInfo));
-                }
-            }
-        }
-
-        public string SelectedShutterSpeed
-        {
-            get => _selectedShutterSpeed;
-            set
-            {
-                if (SetProperty(ref _selectedShutterSpeed, value))
-                {
-                    CalculateEV();
-                    OnPropertyChanged(nameof(ExposureInfo));
-                }
-            }
-        }
-
-        public string ExposureStep
-        {
-            get => _exposureStep;
-            set
-            {
-                if (SetProperty(ref _exposureStep, value))
-                {
-                    LoadPickerValuesAsync().ConfigureAwait(false);
-                }
-            }
+            get => _selectedEV;
+            set => SetProperty(ref _selectedEV, value);
         }
 
         public float CurrentLux
@@ -99,80 +66,116 @@ namespace Location.Photography.ViewModels
                 if (SetProperty(ref _currentLux, value))
                 {
                     CalculateEV();
-                    UpdateLightCondition();
-                    OnPropertyChanged(nameof(LightConditionText));
                 }
             }
         }
 
-        public double CurrentEV
+        // Step Selection Properties
+        public bool IsFullStep
         {
-            get => _currentEV;
+            get => _isFullStep;
+            set => SetProperty(ref _isFullStep, value);
+        }
+
+        public bool IsHalfStep
+        {
+            get => _isHalfStep;
+            set => SetProperty(ref _isHalfStep, value);
+        }
+
+        public bool IsThirdStep
+        {
+            get => _isThirdStep;
+            set => SetProperty(ref _isThirdStep, value);
+        }
+
+        public ExposureIncrements CurrentStep
+        {
+            get => _currentStep;
             set
             {
-                if (SetProperty(ref _currentEV, value))
+                if (SetProperty(ref _currentStep, value))
                 {
-                    CalculateNeedleAngle();
-                    OnPropertyChanged(nameof(NeedleAngle));
+                    UpdateStepFlags();
                 }
             }
         }
 
-        public bool IsUserInteracting
+        // Aperture Properties
+        public string[] ApertureArray
         {
-            get => _isUserInteracting;
-            set => SetProperty(ref _isUserInteracting, value);
+            get => _apertureArray;
+            set => SetProperty(ref _apertureArray, value);
         }
 
-        public bool IsSensorActive
+        public int SelectedApertureIndex
         {
-            get => _isSensorActive;
-            set => SetProperty(ref _isSensorActive, value);
-        }
-
-        public string[] ShutterSpeedsForPicker
-        {
-            get => _shutterSpeedsForPicker;
-            set => SetProperty(ref _shutterSpeedsForPicker, value);
-        }
-
-        public string[] AperturesForPicker
-        {
-            get => _aperturesForPicker;
-            set => SetProperty(ref _aperturesForPicker, value);
-        }
-
-        public string[] ISOsForPicker
-        {
-            get => _isosForPicker;
-            set => SetProperty(ref _isosForPicker, value);
-        }
-
-        public ExposureIncrements FullHalfThirds
-        {
-            get => _fullHalfThirds;
+            get => _selectedApertureIndex;
             set
             {
-                if (SetProperty(ref _fullHalfThirds, value))
+                if (SetProperty(ref _selectedApertureIndex, value))
                 {
-                    LoadPickerValuesAsync().ConfigureAwait(false);
+                    OnPropertyChanged(nameof(SelectedAperture));
                 }
             }
         }
 
-        public double NeedleAngle
+        public int MaxApertureIndex => ApertureArray?.Length - 1 ?? 0;
+
+        public string SelectedAperture => ApertureArray?[Math.Min(SelectedApertureIndex, MaxApertureIndex)] ?? "f/5.6";
+        public string MinAperture => ApertureArray?[0] ?? "f/1";
+        public string MaxAperture => ApertureArray?[MaxApertureIndex] ?? "f/64";
+
+        // ISO Properties
+        public string[] IsoArray
         {
-            get => _needleAngle;
-            set => SetProperty(ref _needleAngle, value);
+            get => _isoArray;
+            set => SetProperty(ref _isoArray, value);
         }
 
-        public string LightConditionText
+        public int SelectedIsoIndex
         {
-            get => _lightConditionText;
-            set => SetProperty(ref _lightConditionText, value);
+            get => _selectedIsoIndex;
+            set
+            {
+                if (SetProperty(ref _selectedIsoIndex, value))
+                {
+                    OnPropertyChanged(nameof(SelectedIso));
+                }
+            }
         }
 
-        public string ExposureInfo => $"ISO {SelectedIso} • {SelectedAperture} • {SelectedShutterSpeed}";
+        public int MaxIsoIndex => IsoArray?.Length - 1 ?? 0;
+
+        public string SelectedIso => IsoArray?[Math.Min(SelectedIsoIndex, MaxIsoIndex)] ?? "100";
+        public string MinIso => IsoArray?[MaxIsoIndex] ?? "50"; // ISO array is in reverse order (high to low)
+        public string MaxIso => IsoArray?[0] ?? "25600";
+
+        // Shutter Speed Properties
+        public string[] ShutterSpeedArray
+        {
+            get => _shutterSpeedArray;
+            set => SetProperty(ref _shutterSpeedArray, value);
+        }
+
+        public int SelectedShutterSpeedIndex
+        {
+            get => _selectedShutterSpeedIndex;
+            set
+            {
+                if (SetProperty(ref _selectedShutterSpeedIndex, value))
+                {
+                    OnPropertyChanged(nameof(SelectedShutterSpeed));
+                }
+            }
+        }
+
+        public int MaxShutterSpeedIndex => ShutterSpeedArray?.Length - 1 ?? 0;
+
+        public string SelectedShutterSpeed => ShutterSpeedArray?[Math.Min(SelectedShutterSpeedIndex, MaxShutterSpeedIndex)] ?? "1/60";
+        public string MinShutterSpeed => ShutterSpeedArray?[0] ?? "30\"";
+        public string MaxShutterSpeed => ShutterSpeedArray?[MaxShutterSpeedIndex] ?? "1/8000";
+
         #endregion
 
         #region Commands
@@ -183,59 +186,96 @@ namespace Location.Photography.ViewModels
         public LightMeterViewModel() : base(null, null)
         {
             // Design-time constructor
-            LoadDefaultPickerValues();
+            LoadDefaultArrays();
             InitializeCommands();
         }
 
         public LightMeterViewModel(
             IMediator mediator,
             ISettingRepository settingRepository,
+            IExposureCalculatorService exposureCalculatorService,
             IErrorDisplayService errorDisplayService)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _settingRepository = settingRepository ?? throw new ArgumentNullException(nameof(settingRepository));
-            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
+            _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
+            _errorDisplayService = errorDisplayService;
 
             InitializeCommands();
-            LoadPickerValuesAsync().ConfigureAwait(false);
+            LoadDefaultArrays();
         }
         #endregion
 
         #region Methods
+
         private void InitializeCommands()
         {
             ResetCommand = new RelayCommand(Reset);
         }
 
-        private void LoadDefaultPickerValues()
+        private void LoadDefaultArrays()
         {
-            // Use the existing utility classes with default Third increments
-            _shutterSpeedsForPicker = ShutterSpeeds.Thirds;
-            _aperturesForPicker = Apetures.Thirds;
-            _isosForPicker = ISOs.Thirds;
+            // Load default arrays (Third step)
+            ApertureArray = Apetures.Thirds;
+            IsoArray = ISOs.Thirds;
+            ShutterSpeedArray = ShutterSpeeds.Thirds;
+
+            // Set default selections to middle values
+            SelectedApertureIndex = ApertureArray.Length / 2;
+            SelectedIsoIndex = IsoArray.Length / 2;
+            SelectedShutterSpeedIndex = ShutterSpeedArray.Length / 2;
         }
 
-        private async Task LoadPickerValuesAsync()
+        public async Task LoadExposureArraysAsync()
         {
             try
             {
                 IsBusy = true;
                 ClearErrors();
 
-                string incrementString = GetIncrementString();
+                if (_exposureCalculatorService != null)
+                {
+                    // Load arrays from service based on current step
+                    var apertureResult = await _exposureCalculatorService.GetAperturesAsync(CurrentStep);
+                    var isoResult = await _exposureCalculatorService.GetIsosAsync(CurrentStep);
+                    var shutterResult = await _exposureCalculatorService.GetShutterSpeedsAsync(CurrentStep);
 
-                // Use the existing utility classes from ShutterSpeeds.cs
-                ShutterSpeedsForPicker = ShutterSpeeds.GetScale(incrementString);
-                AperturesForPicker = Apetures.GetScale(incrementString);
-                ISOsForPicker = ISOs.GetScale(incrementString);
+                    if (apertureResult.IsSuccess)
+                        ApertureArray = apertureResult.Data;
 
-                // Set default values if current selections are not in the new arrays
-                EnsureValidSelections();
+                    if (isoResult.IsSuccess)
+                        IsoArray = isoResult.Data;
+
+                    if (shutterResult.IsSuccess)
+                        ShutterSpeedArray = shutterResult.Data;
+                }
+                else
+                {
+                    // Fallback to utility classes
+                    string stepString = GetStepString();
+                    ApertureArray = Apetures.GetScale(stepString);
+                    IsoArray = ISOs.GetScale(stepString);
+                    ShutterSpeedArray = ShutterSpeeds.GetScale(stepString);
+                }
+
+                // Ensure valid indices after array change
+                EnsureValidIndices();
+
+                // Notify UI of array changes
+                OnPropertyChanged(nameof(MaxApertureIndex));
+                OnPropertyChanged(nameof(MaxIsoIndex));
+                OnPropertyChanged(nameof(MaxShutterSpeedIndex));
+                OnPropertyChanged(nameof(MinAperture));
+                OnPropertyChanged(nameof(MaxAperture));
+                OnPropertyChanged(nameof(MinIso));
+                OnPropertyChanged(nameof(MaxIso));
+                OnPropertyChanged(nameof(MinShutterSpeed));
+                OnPropertyChanged(nameof(MaxShutterSpeed));
             }
             catch (Exception ex)
             {
-                OnSystemError($"Error loading exposure values: {ex.Message}");
+                OnSystemError($"Error loading exposure arrays: {ex.Message}");
             }
             finally
             {
@@ -243,9 +283,9 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        private string GetIncrementString()
+        private string GetStepString()
         {
-            return FullHalfThirds switch
+            return CurrentStep switch
             {
                 ExposureIncrements.Full => "Full",
                 ExposureIncrements.Half => "Half",
@@ -254,55 +294,26 @@ namespace Location.Photography.ViewModels
             };
         }
 
-        private void EnsureValidSelections()
+        private void EnsureValidIndices()
         {
-            // Ensure current selections are valid for the new scale
-            if (ShutterSpeedsForPicker != null && !Array.Exists(ShutterSpeedsForPicker, s => s == SelectedShutterSpeed))
-            {
-                SelectedShutterSpeed = ShutterSpeedsForPicker.Length > 0 ? ShutterSpeedsForPicker[ShutterSpeedsForPicker.Length / 2] : "1/60";
-            }
+            // Ensure indices are within valid ranges
+            if (ApertureArray != null && SelectedApertureIndex >= ApertureArray.Length)
+                SelectedApertureIndex = ApertureArray.Length / 2;
 
-            if (AperturesForPicker != null && !Array.Exists(AperturesForPicker, a => a == SelectedAperture))
-            {
-                SelectedAperture = AperturesForPicker.Length > 0 ? AperturesForPicker[AperturesForPicker.Length / 2] : "f/5.6";
-            }
+            if (IsoArray != null && SelectedIsoIndex >= IsoArray.Length)
+                SelectedIsoIndex = IsoArray.Length / 2;
 
-            if (ISOsForPicker != null && !Array.Exists(ISOsForPicker, i => i == SelectedIso))
-            {
-                SelectedIso = ISOsForPicker.Length > 0 ? ISOsForPicker[ISOsForPicker.Length / 2] : "100";
-            }
+            if (ShutterSpeedArray != null && SelectedShutterSpeedIndex >= ShutterSpeedArray.Length)
+                SelectedShutterSpeedIndex = ShutterSpeedArray.Length / 2;
         }
 
-        public void UpdateExposureSettings(string iso, string aperture, string shutterSpeed)
+        private void UpdateStepFlags()
         {
-            try
-            {
-                // Validate that the values exist in our picker arrays
-                if (ISOsForPicker != null && Array.Exists(ISOsForPicker, i => i == iso))
-                {
-                    SelectedIso = iso;
-                }
-
-                if (AperturesForPicker != null && Array.Exists(AperturesForPicker, a => a == aperture))
-                {
-                    SelectedAperture = aperture;
-                }
-
-                if (ShutterSpeedsForPicker != null && Array.Exists(ShutterSpeedsForPicker, s => s == shutterSpeed))
-                {
-                    SelectedShutterSpeed = shutterSpeed;
-                }
-
-                // Notify light meter updated
-                LightMeterUpdated?.Invoke(this, new LightMeterUpdateEventArgs(SelectedIso, SelectedAperture, SelectedShutterSpeed, CurrentEV));
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error updating exposure settings: {ex.Message}");
-            }
+            IsFullStep = (CurrentStep == ExposureIncrements.Full);
+            IsHalfStep = (CurrentStep == ExposureIncrements.Half);
+            IsThirdStep = (CurrentStep == ExposureIncrements.Third);
         }
 
-        // Method to be called from code-behind with light sensor readings
         public void UpdateLightReading(float lux)
         {
             try
@@ -315,33 +326,24 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        // Method to be called from code-behind to indicate sensor status
-        public void SetSensorStatus(bool isActive)
-        {
-            IsSensorActive = isActive;
-        }
-
-        private void CalculateEV()
+        public void CalculateEV()
         {
             try
             {
                 if (CurrentLux <= 0)
                 {
-                    CurrentEV = 0;
+                    CalculatedEV = 0;
                     return;
                 }
 
-                // Parse aperture (remove 'f/' prefix and handle comma decimal separator)
-                string apertureStr = SelectedAperture.Replace("f/", "").Replace(",", ".");
-                if (!double.TryParse(apertureStr, out double aperture) || aperture <= 0)
-                {
-                    aperture = 5.6; // Default fallback
-                }
+                // Parse current values
+                double aperture = ParseAperture(SelectedAperture);
+                int iso = ParseIso(SelectedIso);
 
-                // Parse ISO
-                if (!int.TryParse(SelectedIso, out int iso) || iso <= 0)
+                if (aperture <= 0 || iso <= 0)
                 {
-                    iso = 100; // Default fallback
+                    CalculatedEV = 0;
+                    return;
                 }
 
                 // Calculate EV using standard formula
@@ -349,62 +351,88 @@ namespace Location.Photography.ViewModels
                 const double CalibrationConstant = 12.5;
                 double ev = Math.Log2((CurrentLux * aperture * aperture) / (CalibrationConstant * iso));
 
-                CurrentEV = Math.Round(ev, 1);
+                // Round to step precision
+                CalculatedEV = RoundToStep(ev);
             }
             catch (Exception ex)
             {
                 OnSystemError($"Error calculating EV: {ex.Message}");
-                CurrentEV = 0;
+                CalculatedEV = 0;
             }
         }
 
-        private void CalculateNeedleAngle()
+        public void CalculateFromEV()
         {
-            // Convert EV (-5 to +5) to needle angle for meter display  
-            // Clamp EV to display range
-            double clampedEV = Math.Max(-5, Math.Min(5, CurrentEV));
-
-            // Convert to angle (assuming 150° to 30° range like in the drawable)
-            double startAngle = 150; // degrees
-            double endAngle = 30;    // degrees
-            double range = startAngle - endAngle; // 120 degrees total
-
-            // Map EV range (-5 to +5) to angle range
-            double normalizedEV = (clampedEV + 5) / 10.0; // 0 to 1
-            NeedleAngle = startAngle - (normalizedEV * range);
+            try
+            {
+                // This would adjust other settings based on EV change
+                // For now, just update the calculated EV
+                CalculatedEV = RoundToStep(SelectedEV);
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error calculating from EV: {ex.Message}");
+            }
         }
 
-        private void UpdateLightCondition()
+        private double RoundToStep(double ev)
         {
-            LightConditionText = CurrentLux switch
+            // Round EV to the appropriate step increment
+            double stepSize = CurrentStep switch
             {
-                < 1 => "Very Dark",
-                < 10 => "Dark",
-                < 100 => "Dim",
-                < 1000 => "Normal Indoor",
-                < 10000 => "Bright Indoor",
-                < 50000 => "Daylight",
-                _ => "Bright Daylight"
+                ExposureIncrements.Full => 1.0,
+                ExposureIncrements.Half => 0.5,
+                ExposureIncrements.Third => 1.0 / 3.0,
+                _ => 1.0 / 3.0
             };
+
+            return Math.Round(ev / stepSize) * stepSize;
+        }
+
+        private double ParseAperture(string aperture)
+        {
+            if (string.IsNullOrWhiteSpace(aperture))
+                return 5.6;
+
+            // Handle f-stop format like "f/2.8"
+            if (aperture.StartsWith("f/"))
+            {
+                string value = aperture.Substring(2).Replace(",", ".");
+                if (double.TryParse(value, out double fNumber))
+                {
+                    return fNumber;
+                }
+            }
+
+            return 5.6; // Default fallback
+        }
+
+        private int ParseIso(string iso)
+        {
+            if (string.IsNullOrWhiteSpace(iso))
+                return 100;
+
+            if (int.TryParse(iso, out int value))
+            {
+                return value;
+            }
+
+            return 100; // Default fallback
         }
 
         private void Reset()
         {
             try
             {
-                // Reset to default values from the middle of each array
-                if (ShutterSpeedsForPicker?.Length > 0)
-                    SelectedShutterSpeed = ShutterSpeedsForPicker[ShutterSpeedsForPicker.Length / 2];
-
-                if (AperturesForPicker?.Length > 0)
-                    SelectedAperture = AperturesForPicker[AperturesForPicker.Length / 2];
-
-                if (ISOsForPicker?.Length > 0)
-                    SelectedIso = ISOsForPicker[ISOsForPicker.Length / 2];
+                // Reset to middle values
+                SelectedApertureIndex = ApertureArray?.Length / 2 ?? 0;
+                SelectedIsoIndex = IsoArray?.Length / 2 ?? 0;
+                SelectedShutterSpeedIndex = ShutterSpeedArray?.Length / 2 ?? 0;
 
                 CurrentLux = 0;
-                CurrentEV = 0;
-                FullHalfThirds = ExposureIncrements.Third;
+                CalculatedEV = 0;
+                SelectedEV = 0;
+                CurrentStep = ExposureIncrements.Third;
 
                 ClearErrors();
             }
@@ -418,23 +446,7 @@ namespace Location.Photography.ViewModels
         {
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
         }
+
         #endregion
-    }
-
-    // Event args class for light meter updates
-    public class LightMeterUpdateEventArgs : EventArgs
-    {
-        public string Iso { get; }
-        public string Aperture { get; }
-        public string ShutterSpeed { get; }
-        public double EV { get; }
-
-        public LightMeterUpdateEventArgs(string iso, string aperture, string shutterSpeed, double ev)
-        {
-            Iso = iso;
-            Aperture = aperture;
-            ShutterSpeed = shutterSpeed;
-            EV = ev;
-        }
     }
 }

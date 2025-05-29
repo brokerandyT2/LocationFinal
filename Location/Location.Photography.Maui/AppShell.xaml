@@ -3,12 +3,31 @@
     x:Class="Location.Photography.Maui.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:Location.Photography.Maui"
-    Title="Location.Photography.Maui">
+    xmlns:core="clr-namespace:Location.Core.Maui.Views;assembly=Location.Core.Maui"
+    xmlns:premium="clr-namespace:Location.Photography.Maui.Views.Premium"
+    xmlns:professional="clr-namespace:Location.Photography.Maui.Views.Professional"
+    xmlns:settings="clr-namespace:Location.Photography.Maui.Views"
+    xmlns:controls="clr-namespace:Location.Photography.Maui.Controls"
+    Title="PixMap">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <!-- Shell Visual Styles for Rounded Rectangle Tabs at Top -->
+    <ShellContent>
+        <ContentPage>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Custom Top Tab Bar -->
+                <controls:TopTabBar x:Name="TopTabs" 
+                                   Grid.Row="0" />
+
+                <!-- Content Area -->
+                <ContentPresenter x:Name="ContentArea" 
+                                 Grid.Row="1" />
+            </Grid>
+        </ContentPage>
+    </ShellContent>
 
 </Shell>

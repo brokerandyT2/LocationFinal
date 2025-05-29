@@ -87,6 +87,9 @@ namespace Location.Photography.Maui.Views
                                     Timestamp = DateTime.Now
                                 };
                                 _viewModel.TimeFormatToggle = setting.Value == MagicStrings.USTimeformat;
+                                TimeFormatPattern.Text = setting.Value;
+                                
+                                GetFormattedExpiration();
                                 break;
 
                             case var key when key == MagicStrings.DateFormat:
@@ -146,12 +149,14 @@ namespace Location.Photography.Maui.Views
                                     Description = setting.Description,
                                     Timestamp = DateTime.Now
                                 };
+                                GetFormattedExpiration();
                                 break;
-
+                               
                             case var key when key == MagicStrings.FreePremiumAdSupported:
                                 _viewModel.AdSupportboolean = setting.Value == MagicStrings.True_string;
                                 break;
                         }
+
                     }
 
                     HemisphereSwitch.Toggled += HemisphereSwitch_Toggled;
@@ -176,7 +181,16 @@ namespace Location.Photography.Maui.Views
             finally
             {
                 _viewModel.IsBusy = false;
+                BindingContext = _viewModel;
             }
+        }
+
+        private void GetFormattedExpiration()
+        {
+            var date = _viewModel.DateFormat.Value.ToString();
+            var time = _viewModel.TimeFormat.Value.ToString();
+            var format = date + ' ' + time;
+            Failure.Text= DateTime.Parse(_viewModel.SubscriptionExpiration.Value).ToString(format);
         }
 
         private async Task<bool> UpdateSettingAsync(string key, string value, string description = "")
@@ -259,6 +273,8 @@ namespace Location.Photography.Maui.Views
                     {
                         _viewModel.TimeFormat.Value = newValue;
                         _viewModel.TimeFormatToggle = e.Value;
+                        var format = Failure.Text + ' ' + newValue;
+                        GetFormattedExpiration();
                     }
                     else
                     {
@@ -287,6 +303,8 @@ namespace Location.Photography.Maui.Views
                     {
                         _viewModel.DateFormat.Value = newValue;
                         _viewModel.DateFormatToggle = e.Value;
+                        GetFormattedExpiration();
+
                     }
                     else
                     {
@@ -394,7 +412,7 @@ namespace Location.Photography.Maui.Views
 
         private async void Button_Pressed(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new NavigationPage( new SubscriptionSignUpPage()));
+            await Navigation.PushAsync(new NavigationPage(new SubscriptionSignUpPage()));
         }
     }
 }

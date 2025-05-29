@@ -30,23 +30,34 @@ namespace Location.Photography.Maui
         protected override Window CreateWindow(IActivationState? activationState)
         {
             // Set a loading page first
-            MainPage = new Microsoft.Maui.Controls.ContentPage
+            MainPage = new ContentPage
             {
-                Content = new Microsoft.Maui.Controls.StackLayout
-                {
-                    Children =
-                {
-                    new Microsoft.Maui.Controls.ActivityIndicator
-                    {
-                        IsRunning = true,
-                        HorizontalOptions = Microsoft.Maui.Controls.LayoutOptions.Center,
-                        VerticalOptions = Microsoft.Maui.Controls.LayoutOptions.Center
-                    }
-                }
-                }
+                BackgroundColor = Colors.White
             };
 
             var window = base.CreateWindow(activationState);
+
+            // Add loading text after a tiny delay
+            Task.Run(async () =>
+            {
+                await Task.Delay(50);
+
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (MainPage is ContentPage loadingPage)
+                    {
+                        loadingPage.Content = new Label
+                        {
+                            Text = "Loading...",
+                            HorizontalOptions = LayoutOptions.Center,
+                            VerticalOptions = LayoutOptions.Center,
+                            FontSize = 16
+                        };
+                    }
+                });
+            });
+
+            //var window = base.CreateWindow(activationState);
 
             // Trigger initialization once (if not already happening)
             if (!_isInitializing)
@@ -71,7 +82,8 @@ namespace Location.Photography.Maui
                         _initializationTcs.SetException(ex);
 
                         // Show error UI or fallback UI on main thread
-                        MainThread.BeginInvokeOnMainThread(() => {
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
                             MainPage = new Microsoft.Maui.Controls.ContentPage
                             {
                                 Content = new Microsoft.Maui.Controls.Label
@@ -95,6 +107,8 @@ namespace Location.Photography.Maui
             // No database initialization here - moved to the CreateWindow sequence
         }
 
+        // In App.xaml.cs - Optimize the InitializeAppAsync method
+        // App.xaml.cs - Update to use AppShell instead of MainPage
         private async Task InitializeAppAsync()
         {
             try
@@ -115,9 +129,29 @@ namespace Location.Photography.Maui
                     }
                     else
                     {
-                        // User has completed onboarding, show the main app
-                        _logger.LogInformation("Onboarding already completed, showing MainPage");
-                        MainPage = _serviceProvider.GetRequiredService<MainPage>();
+                        // User has completed onboarding, show the main Shell app
+                        _logger.LogInformation("Onboarding already completed, showing AppShell");
+
+                        try
+                        {
+                            MainPage = _serviceProvider.GetRequiredService<AppShell>();
+                            _logger.LogInformation("AppShell created successfully");
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to create AppShell");
+
+                            // Fallback to simple page
+                            MainPage = new ContentPage
+                            {
+                                Content = new Label
+                                {
+                                    Text = "Error loading main app. Please restart.",
+                                    HorizontalOptions = LayoutOptions.Center,
+                                    VerticalOptions = LayoutOptions.Center
+                                }
+                            };
+                        }
                     }
                 });
 
@@ -133,7 +167,15 @@ namespace Location.Photography.Maui
 
                 // Show fallback UI on main thread
                 await MainThread.InvokeOnMainThreadAsync(() => {
-                    MainPage = _serviceProvider.GetRequiredService<MainPage>();
+                    MainPage = new ContentPage
+                    {
+                        Content = new Label
+                        {
+                            Text = "Startup error. Please restart the app.",
+                            HorizontalOptions = LayoutOptions.Center,
+                            VerticalOptions = LayoutOptions.Center
+                        }
+                    };
                 });
 
                 // Re-throw to be caught by the outer handler

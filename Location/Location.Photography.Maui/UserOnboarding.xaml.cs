@@ -18,31 +18,55 @@ namespace Location.Photography.Maui.Views
         private string _guid;
         private bool _saveAttempted = false;
 
-        public UserOnboarding()
-        {
-            InitializeComponent();
-            GetSetting();
-        }
-
         public UserOnboarding(
-            IAlertService alertService,
-            DatabaseInitializer databaseInitializer,
-            ILogger<UserOnboarding> logger,
-            IServiceProvider serviceProvider)
+    IAlertService alertService,
+    DatabaseInitializer databaseInitializer,
+    ILogger<UserOnboarding> logger,
+    IServiceProvider serviceProvider)
         {
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _databaseInitializer = databaseInitializer ?? throw new ArgumentNullException(nameof(databaseInitializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceProvider = serviceProvider;
 
-            InitializeComponent();
-            GetSetting();
+            try
+            {
+                _logger.LogInformation("UserOnboarding constructor starting");
+
+                // Initialize the page first
+                InitializeComponent();
+                _logger.LogInformation("UserOnboarding InitializeComponent completed");
+
+                // Defer GetSetting to after the page is loaded
+                this.Loaded += OnPageLoaded;
+
+                _logger.LogInformation("UserOnboarding constructor completed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UserOnboarding constructor");
+                throw;
+            }
+        }
+
+        private void OnPageLoaded(object sender, EventArgs e)
+        {
+            try
+            {
+                _logger.LogInformation("UserOnboarding page loaded, calling GetSetting");
+                GetSetting();
+                _logger.LogInformation("GetSetting completed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in OnPageLoaded");
+            }
         }
 
         protected override void OnNavigatedTo(NavigatedToEventArgs args)
         {
             base.OnNavigatedTo(args);
-            GetSetting();
+            //GetSetting();
         }
 
         private void GetSetting()

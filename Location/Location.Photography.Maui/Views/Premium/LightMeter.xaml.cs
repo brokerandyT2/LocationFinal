@@ -1,99 +1,82 @@
+#if ANDROID
 using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Services;
-using Location.Photography.Maui.Controls;
-
-#if ANDROID
-using Location.Photography.Maui.Platforms.Android;
-#endif
+using Location.Photography.Infrastructure;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
+using Location.Photography.Maui.Platforms.Android;
+using Location.Photography.Application.Services;
+using Location.Core.Application.Common.Models;
 using MediatR;
+using System.Threading.Tasks;
+using System.Timers;
 
 namespace Location.Photography.Maui.Views.Premium
 {
     public partial class LightMeter : ContentPage
     {
-        private IServiceProvider _serviceProvider;
         private readonly IMediator _mediator;
         private readonly IAlertService _alertService;
         private readonly ISettingRepository _settingRepository;
-#if ANDROID
         private readonly ILightSensorService _lightSensorService;
-#endif
+        private readonly IExposureCalculatorService _exposureCalculatorService;
         private LightMeterViewModel _viewModel;
-        private LunaProDrawable _lightMeterDrawable;
+        private System.Timers.Timer _sensorTimer;
+        private int _refreshInterval = 2000; // Default 2 seconds
+        private bool _isMonitoring = false;
 
         public LightMeter()
         {
-
-            ///FUCK.  Wrong Constructor is being called.
-            ///
             InitializeComponent();
             _viewModel = new LightMeterViewModel();
             BindingContext = _viewModel;
-            InitializeLightMeter();
         }
-#if ANDROID
 
-        
         public LightMeter(
             IMediator mediator,
             IAlertService alertService,
             ISettingRepository settingRepository,
-            ILightSensorService lightSensorService, IServiceProvider serviceProvider)
+            ILightSensorService lightSensorService,
+            IExposureCalculatorService exposureCalculatorService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _settingRepository = settingRepository ?? throw new ArgumentNullException(nameof(settingRepository));
             _lightSensorService = lightSensorService ?? throw new ArgumentNullException(nameof(lightSensorService));
-            _serviceProvider = serviceProvider;
+            _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
+
             InitializeComponent();
-            InitializeLightMeter();
-        }
-#endif
-        private void InitializeLightMeter()
-        {
-            // Create and configure the light meter drawable
-            _lightMeterDrawable = new LunaProDrawable(LightMeterGraphicsView);
-
-            // Set up event handlers for interactions
-            _lightMeterDrawable.InteractionStarted += OnLightMeterInteractionStarted;
-            _lightMeterDrawable.InteractionEnded += OnLightMeterInteractionEnded;
-
-            // Assign the drawable to the GraphicsView
-            LightMeterGraphicsView.Drawable = _lightMeterDrawable;
         }
 
         protected override void OnAppearing()
         {
             base.OnAppearing();
             InitializeViewModel();
-            StartLightSensor();
+            LoadRefreshInterval();
+            // DON'T start monitoring automatically
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            StopLightSensor();
+            StopLightSensorMonitoring();
 
             if (_viewModel != null)
             {
                 _viewModel.ErrorOccurred -= OnSystemError;
             }
-
-            if (_lightMeterDrawable != null)
-            {
-                _lightMeterDrawable.InteractionStarted -= OnLightMeterInteractionStarted;
-                _lightMeterDrawable.InteractionEnded -= OnLightMeterInteractionEnded;
-            }
         }
 
         private async void InitializeViewModel()
         {
-            _viewModel = new LightMeterViewModel()
+            if (_mediator != null && _settingRepository != null && _exposureCalculatorService != null)
             {
-                IsBusy = true
-            };
+                _viewModel = new LightMeterViewModel(_mediator, _settingRepository, _exposureCalculatorService, null);
+            }
+            else
+            {
+                _viewModel = new LightMeterViewModel();
+            }
 
             BindingContext = _viewModel;
             _viewModel.ErrorOccurred -= OnSystemError;
@@ -101,11 +84,10 @@ namespace Location.Photography.Maui.Views.Premium
 
             try
             {
-                // Initialize any settings or data needed for the light meter
-                await Task.Delay(500); // Simulate initialization
+                _viewModel.IsBusy = true;
 
-                // TODO: Load user preferences for exposure calculation settings
-                // TODO: Initialize with saved ISO, aperture, shutter speed settings
+                // Initialize the arrays for sliders
+                await _viewModel.LoadExposureArraysAsync();
 
             }
             catch (Exception ex)
@@ -120,69 +102,273 @@ namespace Location.Photography.Maui.Views.Premium
             }
         }
 
-        private void StartLightSensor()
+        private async void LoadRefreshInterval()
         {
             try
             {
-#if ANDROID
-                _lightSensorService?.StartListening();
-#endif
+                if (_settingRepository != null)
+                {
+                    // Get refresh interval from settings using MagicStrings.CameraRefresh
+                    var setting = await _settingRepository.GetByKeyAsync(MagicStrings.CameraRefresh);
+                    if (int.TryParse(setting.Value, out int interval))
+                    {
+                        _refreshInterval = interval; // Convert to milliseconds
+                        System.Diagnostics.Debug.WriteLine($"Loaded refresh interval: {_refreshInterval}ms");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Using default refresh interval: {_refreshInterval}ms");
+                    }
+                }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error starting light sensor: {ex.Message}");
-                // TODO: Show user-friendly message about sensor not available
+                System.Diagnostics.Debug.WriteLine($"Error loading refresh interval: {ex.Message}");
             }
         }
 
-        private void StopLightSensor()
+        private void StartLightSensorMonitoring()
         {
             try
             {
-#if ANDROID
+                if (_lightSensorService != null)
+                {
+                    _lightSensorService.StartListening();
+
+                    // Initialize sensor update timer with interval from settings
+                    _sensorTimer = new System.Timers.Timer(_refreshInterval);
+                    _sensorTimer.Elapsed += OnSensorTimerElapsed;
+                    _sensorTimer.AutoReset = true;
+                    _sensorTimer.Start();
+
+                    System.Diagnostics.Debug.WriteLine($"Light sensor monitoring started with {_refreshInterval}ms interval");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Light sensor service not available");
+                    // Set a default lux value for testing/fallback
+                    _viewModel?.UpdateLightReading(100f);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error starting light sensor monitoring: {ex.Message}");
+
+                // Show user-friendly message about sensor not available
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    if (_alertService != null)
+                    {
+                        await _alertService.ShowErrorAlertAsync(
+                            "Light sensor is not available on this device. Using default values.",
+                            "Sensor Unavailable");
+                    }
+                });
+            }
+        }
+
+        private void StopLightSensorMonitoring()
+        {
+            try
+            {
+                if (_sensorTimer != null)
+                {
+                    _sensorTimer.Stop();
+                    _sensorTimer.Elapsed -= OnSensorTimerElapsed;
+                    _sensorTimer.Dispose();
+                    _sensorTimer = null;
+                }
+
                 _lightSensorService?.StopListening();
-#endif
+
+                System.Diagnostics.Debug.WriteLine("Light sensor monitoring stopped");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error stopping light sensor: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error stopping light sensor monitoring: {ex.Message}");
             }
         }
 
-        private void OnLightMeterInteractionStarted(object sender, EventArgs e)
+        private async void OnSensorTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            // Handle when user starts interacting with the light meter dials
-            // This could be used to pause sensor updates or provide haptic feedback
-            System.Diagnostics.Debug.WriteLine("Light meter interaction started");
-
-            // TODO: Notify ViewModel that user is interacting with dials
-            if (_viewModel != null)
+            try
             {
-                // _viewModel.IsUserInteracting = true;
+                if (_lightSensorService != null && _viewModel != null)
+                {
+                    float currentLux = _lightSensorService.GetCurrentLux();
+
+                    // Do calculations on background thread to avoid main thread blocking
+                    await Task.Run(() =>
+                    {
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            // Update ambient light reading
+                            _viewModel.UpdateLightReading(currentLux);
+
+                            // Calculate EV based on current ISO/Shutter/F-stop settings + ambient light
+                            _viewModel.CalculateEV();
+
+                            System.Diagnostics.Debug.WriteLine($"Timer reading: {currentLux} lux, Calculated EV: {_viewModel.CalculatedEV}");
+                        });
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error reading light sensor: {ex.Message}");
             }
         }
 
-        private void OnLightMeterInteractionEnded(object sender, EventArgs e)
+        // Event handler for MEASURE button
+        private async void OnMeasurePressed(object sender, EventArgs e)
         {
-            // Handle when user finishes interacting with the light meter dials
-            System.Diagnostics.Debug.WriteLine("Light meter interaction ended");
-
-            if (_lightMeterDrawable != null)
+            try
             {
-                // Get the current selected values from the light meter
-                var selectedValues = _lightMeterDrawable.SelectedValues;
-                System.Diagnostics.Debug.WriteLine($"Selected: ASA={selectedValues.Asa}, Shutter={selectedValues.ShutterSpeed}, F-Stop={selectedValues.FStop}");
+                if (!_isMonitoring)
+                {
+                    // START monitoring
+                    _isMonitoring = true;
 
-                // TODO: Update ViewModel with new exposure settings
-                // TODO: Recalculate exposure based on current light sensor reading
-                // TODO: Update any exposure calculations or recommendations
+                    // Take immediate reading when button is pressed
+                    if (_lightSensorService != null && _viewModel != null)
+                    {
+                        _viewModel.IsBusy = true;
+
+                        float currentLux = _lightSensorService.GetCurrentLux();
+                        _viewModel.UpdateLightReading(currentLux);
+                        _viewModel.CalculateEV();
+
+                        System.Diagnostics.Debug.WriteLine($"Immediate reading: {currentLux} lux, Calculated EV: {_viewModel.CalculatedEV}");
+
+                        // Provide haptic feedback
+                        try
+                        {
+                            HapticFeedback.Perform(HapticFeedbackType.Click);
+                        }
+                        catch { } // Ignore haptic errors
+
+                        // Brief delay for visual feedback
+                        await Task.Delay(200);
+                        _viewModel.IsBusy = false;
+                    }
+
+                    // Start continuous monitoring
+                    StartLightSensorMonitoring();
+
+                    // Update button text or state
+                    if (sender is Button button)
+                    {
+                        button.Text = "STOP";
+                        button.BackgroundColor = Color.FromRgb(180, 50, 50); // Red color for stop
+                    }
+                }
+                else
+                {
+                    // STOP monitoring
+                    _isMonitoring = false;
+                    StopLightSensorMonitoring();
+
+                    // Update button text or state
+                    if (sender is Button button)
+                    {
+                        button.Text = "MEASURE";
+                        button.BackgroundColor = Color.FromRgb(51, 51, 51); // Original dark color
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error toggling monitoring: {ex.Message}");
+                _viewModel.IsBusy = false;
+            }
+        }
 
-            // TODO: Notify ViewModel that user interaction is complete
+        // Event handlers for sliders
+        private void OnApertureChanged(object sender, ValueChangedEventArgs e)
+        {
             if (_viewModel != null)
             {
-                // _viewModel.IsUserInteracting = false;
-                // _viewModel.UpdateExposureCalculation(selectedValues);
+                _viewModel.SelectedApertureIndex = (int)Math.Round(e.NewValue);
+                _viewModel.CalculateEV();
+            }
+        }
+
+        private void OnIsoChanged(object sender, ValueChangedEventArgs e)
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.SelectedIsoIndex = (int)Math.Round(e.NewValue);
+                _viewModel.CalculateEV();
+            }
+        }
+
+        private void OnShutterSpeedChanged(object sender, ValueChangedEventArgs e)
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.SelectedShutterSpeedIndex = (int)Math.Round(e.NewValue);
+                _viewModel.CalculateEV();
+            }
+        }
+
+        private void OnEvChanged(object sender, ValueChangedEventArgs e)
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.SelectedEV = e.NewValue;
+                // EV changes might affect other calculations
+                _viewModel.CalculateFromEV();
+            }
+        }
+
+        // Event handler for step selection
+        private async void OnStepChanged(object sender, CheckedChangedEventArgs e)
+        {
+            if (_viewModel != null && e.Value) // Only process when checked (not unchecked)
+            {
+                try
+                {
+                    if (sender == FullStepRadio)
+                    {
+                        _viewModel.CurrentStep = ExposureIncrements.Full;
+                    }
+                    else if (sender == HalfStepRadio)
+                    {
+                        _viewModel.CurrentStep = ExposureIncrements.Half;
+                    }
+                    else if (sender == ThirdStepRadio)
+                    {
+                        _viewModel.CurrentStep = ExposureIncrements.Third;
+                    }
+
+                    // Reload arrays with new step size
+                    await _viewModel.LoadExposureArraysAsync();
+
+                    // Recalculate EV with new step precision
+                    _viewModel.CalculateEV();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error changing step size: {ex.Message}");
+                }
+            }
+        }
+
+        // Event handler for Close button
+        private async void ImageButton_Pressed(object sender, EventArgs e)
+        {
+            try
+            {
+                // Stop sensor monitoring before closing
+                StopLightSensorMonitoring();
+                _isMonitoring = false;
+
+                // Close the modal
+                await Navigation.PopModalAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error closing light meter: {ex.Message}");
             }
         }
 
@@ -194,19 +380,6 @@ namespace Location.Photography.Maui.Views.Premium
                 await viewModel.RetryLastCommandAsync();
             }
         }
-
-        private async void ImageButton_Pressed(object sender, EventArgs e)
-        {
-            try
-            {
-                Navigation.PopModalAsync();
-            
-            }
-            catch (Exception ex)
-            {
-                
-                //_mediator.Send();
-            }
-        }
     }
 }
+#endif

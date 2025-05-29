@@ -182,7 +182,7 @@ namespace Location.Photography.Infrastructure
                 (MagicStrings.LastBulkWeatherUpdate, DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
                 (MagicStrings.DefaultLanguage, "en-US", "Default language setting"),
                 (MagicStrings.WindDirection, windDirection, "Wind direction setting (towardsWind/withWind)"),
-                (MagicStrings.CameraRefresh, "2000", "Camera refresh rate in milliseconds"),
+                (MagicStrings.CameraRefresh, "500", "Camera refresh rate in milliseconds"),
                 (MagicStrings.AppOpenCounter, "1", "Number of times the app has been opened"),
                 (MagicStrings.TimeFormat, timeFormat, "Time format (12h/24h)"),
                 (MagicStrings.DateFormat, dateFormat, "Date format (US/International)"),

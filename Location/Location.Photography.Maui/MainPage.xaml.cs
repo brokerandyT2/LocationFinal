@@ -18,90 +18,136 @@ namespace Location.Photography.Maui
         private readonly IServiceProvider _serviceProvider;
         private readonly ISubscriptionStatusService _subscriptionStatusService;
         private readonly ILogger<MainPage> _logger;
-        public MainPage():this(new ServiceCollection().BuildServiceProvider(),
-                 new SubscriptionStatusService(new Logger<SubscriptionStatusService>(new LoggerFactory()), new Mediator(new ServiceCollection().BuildServiceProvider()), new SubscriptionService(new Logger<SubscriptionService>(new LoggerFactory()), new SubscriptionRepository(new DatabaseContext(new Logger<DatabaseContext>(new LoggerFactory())), new Logger<SubscriptionRepository>(new LoggerFactory())))),new Logger<MainPage>(new LoggerFactory()))
-        {
-           
-        }
+
+        // MainPage.xaml.cs - Fixed constructor
         public MainPage(
             IServiceProvider serviceProvider,
             ISubscriptionStatusService subscriptionStatusService,
             ILogger<MainPage> logger)
         {
-            _serviceProvider = serviceProvider;
-            _subscriptionStatusService = subscriptionStatusService;
-            _logger = logger;
-
-            InitializeComponent();
             try
             {
-                isLoggedIn = !string.IsNullOrEmpty(SecureStorage.GetAsync(MagicStrings.Email).Result);
+                _serviceProvider = serviceProvider;
+                _subscriptionStatusService = subscriptionStatusService;
+                _logger = logger;
+
+                _logger.LogInformation("MainPage constructor starting");
+
+                // Only do the absolute minimum in constructor
+                InitializeComponent();
+
+                _logger.LogInformation("MainPage InitializeComponent completed");
+
+                // Move ALL heavy work to background - don't block constructor
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        _logger.LogInformation("Starting background MainPage setup");
+
+                        // Check login status safely (no .Result!)
+                        try
+                        {
+                            var email = await SecureStorage.GetAsync(MagicStrings.Email);
+                            isLoggedIn = !string.IsNullOrEmpty(email);
+                            _logger.LogInformation($"Login status checked: {isLoggedIn}");
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to check login status");
+                            isLoggedIn = false;
+                        }
+
+                        if (isLoggedIn)
+                        {
+                            _logger.LogInformation("User logged in, initializing tabs");
+                            await InitializeTabsAsync();
+                        }
+                        else
+                        {
+                            _logger.LogInformation("User not logged in, MainPage ready");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error in MainPage background setup");
+                    }
+                });
+
+                _logger.LogInformation("MainPage constructor completed");
             }
-            catch { }
-
-
-            if (isLoggedIn)
+            catch (Exception ex)
             {
-                _ = InitializeTabsAsync();
+                _logger.LogError(ex, "Error in MainPage constructor");
+                throw;
             }
         }
 
+        // MainPage.xaml.cs - Optimized InitializeTabsAsync
         private async Task InitializeTabsAsync()
         {
             try
             {
-                // Get subscription status
+                _logger.LogInformation("InitializeTabsAsync starting");
+
+                // Get subscription status with timeout
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
                 var statusResult = await _subscriptionStatusService.CheckSubscriptionStatusAsync();
+                _logger.LogInformation("Subscription status check completed");
 
 #if DEBUG
                 var canAccessPremium = Result<bool>.Success(true);
                 var canAccessPro = Result<bool>.Success(true);
 #else
-                var canAccessPremium = await _subscriptionStatusService.CanAccessPremiumFeaturesAsync();
-                var canAccessPro = await _subscriptionStatusService.CanAccessProFeaturesAsync();
+        var canAccessPremium = await _subscriptionStatusService.CanAccessPremiumFeaturesAsync();
+        var canAccessPro = await _subscriptionStatusService.CanAccessProFeaturesAsync();
 #endif
-                // Core features - always available
-                this.Children.Add(_serviceProvider.GetRequiredService<core.AddLocation>());
-                this.Children.Add(_serviceProvider.GetRequiredService<core.LocationsPage>());
-                this.Children.Add(_serviceProvider.GetRequiredService<core.TipsPage>());
-                //AddFeatureTabs(statusResult, canAccessPremium, canAccessPro);
-                this.Children.Add(_serviceProvider.GetRequiredService<DummyPage>());
 
+                // Add tabs on main thread but do it efficiently
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    try
+                    {
+                        _logger.LogInformation("Adding core tabs");
+
+                        // Core features - always available
+                        this.Children.Add(_serviceProvider.GetRequiredService<core.AddLocation>());
+                        this.Children.Add(_serviceProvider.GetRequiredService<core.LocationsPage>());
+                        this.Children.Add(_serviceProvider.GetRequiredService<core.TipsPage>());
+                        this.Children.Add(_serviceProvider.GetRequiredService<DummyPage>());
+
+                        _logger.LogInformation("Core tabs added successfully");
+
+                        // Set minimum width
+                        this.MinimumWidthRequest = 1000;
+
+                        _logger.LogInformation("InitializeTabsAsync completed successfully");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error adding tabs to UI");
+                        throw;
+                    }
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error initializing tabs with subscription status");
+                _logger.LogError(ex, "Error in InitializeTabsAsync");
 
-                // Fallback - add all tabs but mark premium/pro as disabled
-                this.Children.Add(_serviceProvider.GetRequiredService<core.AddLocation>());
-                this.Children.Add(_serviceProvider.GetRequiredService<core.LocationsPage>());
-                this.Children.Add(_serviceProvider.GetRequiredService<core.TipsPage>());
-
-                var sceneEval = _serviceProvider.GetRequiredService<Views.Professional.SceneEvaluation>();
-                sceneEval.IsEnabled = false;
-                sceneEval.Title = "Scene Evaluation (Pro)";
-                this.Children.Add(sceneEval);
-
-                var sunCalc = _serviceProvider.GetRequiredService<Views.Professional.SunCalculator>();
-                sunCalc.IsEnabled = false;
-                sunCalc.Title = "Sun Calculator (Pro)";
-                this.Children.Add(sunCalc);
-
-                var sunLoc = _serviceProvider.GetRequiredService<Views.Premium.SunLocation>();
-                sunLoc.IsEnabled = false;
-                sunLoc.Title = "Sun Location (Premium)";
-                this.Children.Add(sunLoc);
-
-                var expCalc = _serviceProvider.GetRequiredService<Views.Premium.ExposureCalculator>();
-                expCalc.IsEnabled = false;
-                expCalc.Title = "Exposure Calculator (Premium)";
-                this.Children.Add(expCalc);
-
-                var scencalc = _serviceProvider.GetRequiredService<Views.Settings>();
-
-
-                this.Children.Add(_serviceProvider.GetRequiredService<Views.Settings>());
-                this.MinimumWidthRequest = 1000;
+                // Fallback - add minimal tabs
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    try
+                    {
+                        this.Children.Add(_serviceProvider.GetRequiredService<core.AddLocation>());
+                        this.Children.Add(_serviceProvider.GetRequiredService<Views.Settings>());
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        _logger.LogError(fallbackEx, "Even fallback tab initialization failed");
+                    }
+                });
             }
         }
 
@@ -115,48 +161,50 @@ namespace Location.Photography.Maui
             var sceneEvaluation = _serviceProvider.GetRequiredService<Views.Professional.SceneEvaluation>();
             if (canAccessPro.IsSuccess && canAccessPro.Data)
             {
-                this.Children.Add(sceneEvaluation);
+                this.Children.Add(new NavigationPage(sceneEvaluation) { Title = sceneEvaluation.Title, IconImageSource = sceneEvaluation.IconImageSource});
+                var lm = _serviceProvider.GetRequiredService<LightMeter>();
+                this.Children.Add(new NavigationPage(lm) { Title = lm.Title, IconImageSource = lm.IconImageSource});
             }
             else
             {
                 sceneEvaluation.IsEnabled = false;
 
-                this.Children.Add(sceneEvaluation);
+                this.Children.Add(new NavigationPage(sceneEvaluation));
             }
 
             var sunCalculator = _serviceProvider.GetRequiredService<Views.Professional.SunCalculator>();
             if (canAccessPro.IsSuccess && canAccessPro.Data)
             {
-                this.Children.Add(sunCalculator);
+                this.Children.Add(new NavigationPage(sunCalculator));
             }
             else
             {
                 sunCalculator.IsEnabled = false;
-                this.Children.Add(sunCalculator);
+                this.Children.Add(new NavigationPage(sunCalculator));
             }
 
             // Premium features
             var sunLocation = _serviceProvider.GetRequiredService<Views.Premium.SunLocation>();
             if (canAccessPremium.IsSuccess && canAccessPremium.Data)
             {
-                this.Children.Add(sunLocation);
+                this.Children.Add(new NavigationPage(sunLocation));
             }
             else
             {
                 sunLocation.IsEnabled = false;
-                this.Children.Add(sunLocation);
+                this.Children.Add(new NavigationPage(sunLocation));
             }
 
             var exposureCalculator = _serviceProvider.GetRequiredService<Views.Premium.ExposureCalculator>();
             if (canAccessPremium.IsSuccess && canAccessPremium.Data)
             {
-                this.Children.Add(exposureCalculator);
+                this.Children.Add(new NavigationPage(exposureCalculator));
             }
             else
             {
                 exposureCalculator.IsEnabled = false;
                 exposureCalculator.Title = "Exposure Calculator (Premium)";
-                this.Children.Add(exposureCalculator);
+                this.Children.Add(new NavigationPage(exposureCalculator));
             }
 
             // Settings - always available
