@@ -1,4 +1,4 @@
-// Location.Photography.Maui/Views/Professional/SceneEvaluation.xaml.cs
+using Location.Photography.Application.Services;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
 using Location.Core.Application.Services;
@@ -9,50 +9,52 @@ namespace Location.Photography.Maui.Views.Professional
     {
         private SceneEvaluationViewModel _viewModel;
         private readonly IErrorDisplayService _errorDisplayService;
+        private readonly IImageAnalysisService _imageAnalysisService;
 
         public SceneEvaluation()
         {
             InitializeComponent();
-            _viewModel = new SceneEvaluationViewModel();
-            
+            _imageAnalysisService = new ImageAnalysisService();
+            _viewModel = new SceneEvaluationViewModel(_imageAnalysisService, null);
+
             BindingContext = _viewModel;
             RedRadioButton.IsChecked = true;
+
+            // Subscribe to events immediately
+            SubscribeToViewModelEvents();
+
+            // Initialize view model state
+            _viewModel.OnNavigatedToAsync();
         }
 
-        public SceneEvaluation(IErrorDisplayService errorDisplayService)
+        public SceneEvaluation(IImageAnalysisService imageAnalysisService, IErrorDisplayService errorDisplayService)
         {
+            _imageAnalysisService = imageAnalysisService ?? throw new ArgumentNullException(nameof(imageAnalysisService));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
 
             InitializeComponent();
-            _viewModel = new SceneEvaluationViewModel(_errorDisplayService);
+            _viewModel = new SceneEvaluationViewModel(_imageAnalysisService, _errorDisplayService);
             BindingContext = _viewModel;
             RedRadioButton.IsChecked = true;
+
+            // Subscribe to events immediately
+            SubscribeToViewModelEvents();
+
+            // Initialize view model state
+            _viewModel.OnNavigatedToAsync();
         }
 
-        protected override void OnAppearing()
+        private void SubscribeToViewModelEvents()
         {
-            base.OnAppearing();
-
-            if (_viewModel == null)
+            if (_viewModel != null)
             {
-                _viewModel = BindingContext as SceneEvaluationViewModel;
-                if (_viewModel == null)
-                {
-                    _viewModel = _errorDisplayService != null
-                        ? new SceneEvaluationViewModel(_errorDisplayService)
-                        : new SceneEvaluationViewModel();
-                    BindingContext = _viewModel;
-                }
+                _viewModel.ErrorOccurred -= OnSystemError;
+                _viewModel.ErrorOccurred += OnSystemError;
             }
-
-            _viewModel.ErrorOccurred -= OnSystemError;
-            _viewModel.ErrorOccurred += OnSystemError;
         }
 
-        protected override void OnDisappearing()
+        private void UnsubscribeFromViewModelEvents()
         {
-            base.OnDisappearing();
-
             if (_viewModel != null)
             {
                 _viewModel.ErrorOccurred -= OnSystemError;
@@ -80,32 +82,42 @@ namespace Location.Photography.Maui.Views.Professional
 
             if (sender == RedRadioButton)
             {
-                _viewModel.IsRedHistogramVisible = true;
-                _viewModel.IsGreenHistogramVisible = false;
-                _viewModel.IsBlueHistogramVisible = false;
-                _viewModel.IsContrastHistogramVisible = false;
+                _viewModel.SetHistogramMode(HistogramDisplayMode.Red);
             }
             else if (sender == GreenRadioButton)
             {
-                _viewModel.IsRedHistogramVisible = false;
-                _viewModel.IsGreenHistogramVisible = true;
-                _viewModel.IsBlueHistogramVisible = false;
-                _viewModel.IsContrastHistogramVisible = false;
+                _viewModel.SetHistogramMode(HistogramDisplayMode.Green);
             }
             else if (sender == BlueRadioButton)
             {
-                _viewModel.IsRedHistogramVisible = false;
-                _viewModel.IsGreenHistogramVisible = false;
-                _viewModel.IsBlueHistogramVisible = true;
-                _viewModel.IsContrastHistogramVisible = false;
+                _viewModel.SetHistogramMode(HistogramDisplayMode.Blue);
             }
-            else if (sender == ContrastRadioButton)
+            else if (sender == LuminanceRadioButton)
             {
-                _viewModel.IsRedHistogramVisible = false;
-                _viewModel.IsGreenHistogramVisible = false;
-                _viewModel.IsBlueHistogramVisible = false;
-                _viewModel.IsContrastHistogramVisible = true;
+                _viewModel.SetHistogramMode(HistogramDisplayMode.Luminance);
             }
+        }
+
+        protected override void OnBindingContextChanged()
+        {
+            base.OnBindingContextChanged();
+
+            // Unsubscribe from old view model
+            UnsubscribeFromViewModelEvents();
+
+            if (BindingContext is SceneEvaluationViewModel viewModel)
+            {
+                _viewModel = viewModel;
+                SubscribeToViewModelEvents();
+                _viewModel.OnNavigatedToAsync();
+            }
+        }
+
+        ~SceneEvaluation()
+        {
+            UnsubscribeFromViewModelEvents();
+            _viewModel?.OnNavigatedFromAsync();
+            _viewModel?.Dispose();
         }
     }
 }

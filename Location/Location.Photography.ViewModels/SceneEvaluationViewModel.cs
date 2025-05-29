@@ -1,25 +1,24 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Services;
+using Location.Photography.Application.Services;
 using Location.Photography.ViewModels.Events;
 using Location.Photography.ViewModels.Interfaces;
-using SkiaSharp;
 using System;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 
 namespace Location.Photography.ViewModels
 {
-    public partial class SceneEvaluationViewModel : ViewModelBase, INavigationAware
+    public partial class SceneEvaluationViewModel : ViewModelBase, INavigationAware, IDisposable
     {
         #region Fields
+        private readonly IImageAnalysisService _imageAnalysisService;
         private readonly IErrorDisplayService _errorDisplayService;
-        private bool _isRedHistogramVisible = true;
-        private bool _isGreenHistogramVisible = false;
-        private bool _isBlueHistogramVisible = false;
-        private bool _isContrastHistogramVisible = false;
+        private CancellationTokenSource _cancellationTokenSource;
+        private bool _disposed = false;
         #endregion
 
         #region Events
@@ -28,334 +27,275 @@ namespace Location.Photography.ViewModels
 
         #region Properties
         [ObservableProperty]
-        private string _redHistogramImage = string.Empty;
+        private ImageAnalysisResult _analysisResult;
 
         [ObservableProperty]
-        private string _greenHistogramImage = string.Empty;
+        private HistogramDisplayMode _selectedHistogramMode = HistogramDisplayMode.Red;
 
         [ObservableProperty]
-        private string _blueHistogramImage = string.Empty;
+        private bool _showExposureWarnings = true;
 
         [ObservableProperty]
-        private string _contrastHistogramImage = string.Empty;
+        private string _currentHistogramImage = string.Empty;
 
         [ObservableProperty]
         private bool _isProcessing;
 
         [ObservableProperty]
-        private double _colorTemperature = 5500;  // Default 5500K (neutral)
+        private double _colorTemperature = 5500;
 
         [ObservableProperty]
-        private double _tintValue = 0;  // Default 0 (neutral)
+        private double _tintValue = 0;
 
-        // Explicitly implement histogram visibility properties
-        public bool IsRedHistogramVisible
-        {
-            get => _isRedHistogramVisible;
-            set
-            {
-                if (_isRedHistogramVisible != value)
-                {
-                    _isRedHistogramVisible = value;
-                    OnPropertyChanged(nameof(IsRedHistogramVisible));
-                }
-            }
-        }
+        // Professional analysis properties
+        [ObservableProperty]
+        private double _dynamicRange;
 
-        public bool IsGreenHistogramVisible
-        {
-            get => _isGreenHistogramVisible;
-            set
-            {
-                if (_isGreenHistogramVisible != value)
-                {
-                    _isGreenHistogramVisible = value;
-                    OnPropertyChanged(nameof(IsGreenHistogramVisible));
-                }
-            }
-        }
+        [ObservableProperty]
+        private string _exposureRecommendation = string.Empty;
 
-        public bool IsBlueHistogramVisible
-        {
-            get => _isBlueHistogramVisible;
-            set
-            {
-                if (_isBlueHistogramVisible != value)
-                {
-                    _isBlueHistogramVisible = value;
-                    OnPropertyChanged(nameof(IsBlueHistogramVisible));
-                }
-            }
-        }
+        [ObservableProperty]
+        private bool _hasClippingWarning;
 
-        public bool IsContrastHistogramVisible
-        {
-            get => _isContrastHistogramVisible;
-            set
-            {
-                if (_isContrastHistogramVisible != value)
-                {
-                    _isContrastHistogramVisible = value;
-                    OnPropertyChanged(nameof(IsContrastHistogramVisible));
-                }
-            }
-        }
+        [ObservableProperty]
+        private string _clippingWarningMessage = string.Empty;
+
+        [ObservableProperty]
+        private double _rmsContrast;
+
+        [ObservableProperty]
+        private double _redMean;
+
+        [ObservableProperty]
+        private double _greenMean;
+
+        [ObservableProperty]
+        private double _blueMean;
+
+        // Histogram visibility properties
+        [ObservableProperty]
+        private bool _isRedHistogramVisible = true;
+
+        [ObservableProperty]
+        private bool _isGreenHistogramVisible = false;
+
+        [ObservableProperty]
+        private bool _isBlueHistogramVisible = false;
+
+        [ObservableProperty]
+        private bool _isLuminanceHistogramVisible = false;
         #endregion
 
         #region Constructor
         public SceneEvaluationViewModel() : base(null, null)
         {
+            _imageAnalysisService = new ImageAnalysisService();
+            _errorDisplayService = null;
         }
 
-        public SceneEvaluationViewModel(IErrorDisplayService errorDisplayService) : base(null, errorDisplayService)
+        public SceneEvaluationViewModel(IImageAnalysisService imageAnalysisService, IErrorDisplayService errorDisplayService)
+            : base(null, errorDisplayService)
         {
+            _imageAnalysisService = imageAnalysisService ?? throw new ArgumentNullException(nameof(imageAnalysisService));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
         }
         #endregion
 
-        #region Methods
+        #region Commands
         [RelayCommand]
         private async Task EvaluateSceneAsync()
         {
-            var command = new AsyncRelayCommand(async () =>
+            try
             {
-                try
-                {
-                    IsProcessing = true;
-                    ClearErrors();
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource = new CancellationTokenSource();
 
-                    await GetImageAsync();
-                }
-                catch (Exception ex)
-                {
-                    OnSystemError($"Error evaluating scene: {ex.Message}");
-                }
-                finally
-                {
-                    IsProcessing = false;
-                }
-            });
+                IsProcessing = true;
+                ClearErrors();
 
-            await ExecuteAndTrackAsync(command);
+                var photo = await CapturePhotoAsync();
+                if (photo != null)
+                {
+                    using var stream = await photo.OpenReadAsync();
+                    AnalysisResult = await _imageAnalysisService.AnalyzeImageAsync(stream, _cancellationTokenSource.Token);
+                    await UpdateDisplayAsync();
+                    GenerateRecommendations();
+                    await GenerateHistogramImagesAsync();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // User cancelled - no error needed
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Analysis failed: {ex.Message}");
+            }
+            finally
+            {
+                IsProcessing = false;
+            }
         }
 
-        private async Task GetImageAsync()
+        [RelayCommand]
+        private async Task ChangeHistogramModeAsync(string mode)
+        {
+            if (Enum.TryParse<HistogramDisplayMode>(mode, out var histogramMode))
+            {
+                SelectedHistogramMode = histogramMode;
+                await UpdateDisplayAsync();
+                UpdateHistogramVisibility();
+            }
+        }
+        #endregion
+
+        #region Methods
+        private async Task<FileResult> CapturePhotoAsync()
         {
             if (MediaPicker.Default.IsCaptureSupported)
             {
                 try
                 {
-                    var photo = await MediaPicker.Default.CapturePhotoAsync();
-
-                    if (photo != null)
-                    {
-                        await ProcessImageAsync(photo);
-                    }
+                    return await MediaPicker.Default.CapturePhotoAsync();
                 }
                 catch (Exception ex)
                 {
                     SetValidationError($"Error capturing photo: {ex.Message}");
+                    return null;
                 }
             }
             else
             {
                 SetValidationError("Camera capture is not supported on this device.");
+                return null;
             }
         }
 
-        private async Task ProcessImageAsync(FileResult photo)
+        private async Task UpdateDisplayAsync()
         {
-            string path = string.Empty;
+            if (AnalysisResult == null) return;
+
+            var histogram = SelectedHistogramMode switch
+            {
+                HistogramDisplayMode.Red => AnalysisResult.RedHistogram,
+                HistogramDisplayMode.Green => AnalysisResult.GreenHistogram,
+                HistogramDisplayMode.Blue => AnalysisResult.BlueHistogram,
+                HistogramDisplayMode.Luminance => AnalysisResult.LuminanceHistogram,
+                _ => AnalysisResult.RedHistogram
+            };
+
+            CurrentHistogramImage = histogram.ImagePath;
+            UpdateAnalysisMetrics(histogram);
+        }
+
+        private void UpdateAnalysisMetrics(HistogramData histogram)
+        {
+            if (histogram?.Statistics == null || AnalysisResult == null) return;
+
+            // Update display properties from analysis results
+            ColorTemperature = AnalysisResult.WhiteBalance.Temperature;
+            TintValue = AnalysisResult.WhiteBalance.Tint;
+            DynamicRange = histogram.Statistics.DynamicRange;
+            RmsContrast = AnalysisResult.Contrast.RMSContrast;
+            RedMean = AnalysisResult.RedHistogram.Statistics.Mean;
+            GreenMean = AnalysisResult.GreenHistogram.Statistics.Mean;
+            BlueMean = AnalysisResult.BlueHistogram.Statistics.Mean;
+
+            HasClippingWarning = histogram.Statistics.ShadowClipping || histogram.Statistics.HighlightClipping;
+
+            if (HasClippingWarning)
+            {
+                ClippingWarningMessage = GenerateClippingWarning(histogram.Statistics);
+            }
+        }
+
+        private string GenerateClippingWarning(HistogramStatistics statistics)
+        {
+            var warnings = new System.Collections.Generic.List<string>();
+
+            if (statistics.ShadowClipping)
+                warnings.Add("Shadow clipping detected in dark areas");
+
+            if (statistics.HighlightClipping)
+                warnings.Add("Highlight clipping detected in bright areas");
+
+            return string.Join(". ", warnings);
+        }
+
+        private void GenerateRecommendations()
+        {
+            if (AnalysisResult?.Exposure == null) return;
+
+            var recommendations = new System.Collections.Generic.List<string>();
+
+            // Use the recommendation from the analysis service
+            if (!string.IsNullOrEmpty(AnalysisResult.Exposure.RecommendedSettings))
+            {
+                recommendations.Add(AnalysisResult.Exposure.RecommendedSettings);
+            }
+
+            // Additional exposure recommendations
+            if (AnalysisResult.Exposure.IsUnderexposed)
+                recommendations.Add("Consider increasing exposure (+1 to +2 stops)");
+            else if (AnalysisResult.Exposure.IsOverexposed)
+                recommendations.Add("Consider decreasing exposure (-1 to -2 stops)");
+
+            // Dynamic range recommendations
+            if (DynamicRange > 10)
+                recommendations.Add("High dynamic range scene - consider HDR or graduated filters");
+            else if (DynamicRange < 4)
+                recommendations.Add("Low contrast scene - consider increasing contrast in post");
+
+            // White balance recommendations
+            if (ColorTemperature < 3000)
+                recommendations.Add("Very warm light detected - check white balance");
+            else if (ColorTemperature > 8000)
+                recommendations.Add("Very cool light detected - check white balance");
+
+            ExposureRecommendation = string.Join("\n• ", recommendations);
+        }
+
+        private async Task GenerateHistogramImagesAsync()
+        {
+            if (AnalysisResult == null) return;
 
             try
             {
-                // Save the file into local storage
-                string localFilePath = Path.Combine(FileSystem.AppDataDirectory, photo.FileName);
-                DirectoryInfo di = new DirectoryInfo(FileSystem.AppDataDirectory);
-                var files = di.GetFiles();
+                // Generate histogram images for all channels
+                AnalysisResult.RedHistogram.ImagePath = await _imageAnalysisService.GenerateHistogramImageAsync(
+                    AnalysisResult.RedHistogram.Values, SkiaSharp.SKColors.Red, "red_histogram.png");
 
-                foreach (var file in files)
-                {
-                    if (file.Extension == ".jpg")
-                    {
-                        file.Delete();
-                    }
-                }
+                AnalysisResult.GreenHistogram.ImagePath = await _imageAnalysisService.GenerateHistogramImageAsync(
+                    AnalysisResult.GreenHistogram.Values, SkiaSharp.SKColors.Green, "green_histogram.png");
 
-                using (Stream sourceStream = await photo.OpenReadAsync())
-                using (FileStream localFileStream = File.OpenWrite(localFilePath))
-                {
-                    path = localFilePath;
-                    await sourceStream.CopyToAsync(localFileStream);
-                }
+                AnalysisResult.BlueHistogram.ImagePath = await _imageAnalysisService.GenerateHistogramImageAsync(
+                    AnalysisResult.BlueHistogram.Values, SkiaSharp.SKColors.Blue, "blue_histogram.png");
 
-                double[] redHistogram = new double[256];
-                double[] greenHistogram = new double[256];
-                double[] blueHistogram = new double[256];
-                double[] contrastHistogram = new double[256];
+                AnalysisResult.LuminanceHistogram.ImagePath = await _imageAnalysisService.GenerateHistogramImageAsync(
+                    AnalysisResult.LuminanceHistogram.Values, SkiaSharp.SKColors.Black, "luminance_histogram.png");
 
-                int totalPixels = 0;
-                double redSum = 0;
-                double greenSum = 0;
-                double blueSum = 0;
-
-                using (var bitmap = SKBitmap.Decode(path))
-                {
-                    totalPixels = bitmap.Width * bitmap.Height;
-
-                    for (int y = 0; y < bitmap.Height; y++)
-                    {
-                        for (int x = 0; x < bitmap.Width; x++)
-                        {
-                            SKColor color = bitmap.GetPixel(x, y);
-                            redHistogram[color.Red]++;
-                            greenHistogram[color.Green]++;
-                            blueHistogram[color.Blue]++;
-
-                            redSum += color.Red;
-                            greenSum += color.Green;
-                            blueSum += color.Blue;
-
-                            // Contrast calculation (Luminance Approximation)
-                            int contrast = (int)(0.299 * color.Red + 0.587 * color.Green + 0.114 * color.Blue);
-                            contrastHistogram[contrast]++;
-                        }
-                    }
-
-                    // Normalize histograms
-                    NormalizeHistogram(redHistogram, totalPixels);
-                    NormalizeHistogram(greenHistogram, totalPixels);
-                    NormalizeHistogram(blueHistogram, totalPixels);
-                    NormalizeHistogram(contrastHistogram, totalPixels);
-
-                    // Calculate color temperature and tint (simplified algorithm)
-                    double avgRed = redSum / totalPixels;
-                    double avgGreen = greenSum / totalPixels;
-                    double avgBlue = blueSum / totalPixels;
-
-                    // Simplified calculation for color temperature
-                    double redBlueRatio = avgRed / avgBlue;
-                    ColorTemperature = CalculateColorTemperature(redBlueRatio);
-
-                    // Simplified calculation for tint (green-magenta axis)
-                    double greenMagentaRatio = avgGreen / ((avgRed + avgBlue) / 2);
-                    TintValue = CalculateTintValue(greenMagentaRatio);
-                }
-
-                string redPath = Path.Combine(FileSystem.AppDataDirectory, "red.png");
-                string bluePath = Path.Combine(FileSystem.AppDataDirectory, "blue.png");
-                string greenPath = Path.Combine(FileSystem.AppDataDirectory, "green.png");
-                string contrastPath = Path.Combine(FileSystem.AppDataDirectory, "contrast.png");
-
-                // Generate histogram images
-                RedHistogramImage = GenerateHistogramImage(redPath, redHistogram, SKColors.Red);
-                GreenHistogramImage = GenerateHistogramImage(greenPath, greenHistogram, SKColors.Green);
-                BlueHistogramImage = GenerateHistogramImage(bluePath, blueHistogram, SKColors.Blue);
-                ContrastHistogramImage = GenerateHistogramImage(contrastPath, contrastHistogram, SKColors.Black);
+                // Update current display
+                await UpdateDisplayAsync();
             }
             catch (Exception ex)
             {
-                OnSystemError($"Error processing image: {ex.Message}");
+                OnSystemError($"Error generating histogram images: {ex.Message}");
             }
         }
 
-        private double CalculateColorTemperature(double redBlueRatio)
+        private void UpdateHistogramVisibility()
         {
-            // Simplified algorithm - in reality would use a more complex model
-            if (redBlueRatio > 1.0)
-            {
-                // More red than blue - warmer
-                return 6500 - ((redBlueRatio - 1.0) * 3800);  // Range: 2700K (warm) to 6500K (neutral)
-            }
-            else
-            {
-                // More blue than red - cooler
-                return 6500 + ((1.0 - redBlueRatio) * 2500);  // Range: 6500K (neutral) to 9000K (cool)
-            }
+            IsRedHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Red;
+            IsGreenHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Green;
+            IsBlueHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Blue;
+            IsLuminanceHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Luminance;
         }
 
-        private double CalculateTintValue(double greenMagentaRatio)
+        public void SetHistogramMode(HistogramDisplayMode mode)
         {
-            // Simplified algorithm - in reality would use a more complex model
-            // Output range: -1.0 (magenta) to 1.0 (green), with 0 being neutral
-            return (greenMagentaRatio - 1.0) * 2.0;  // Scale to range of -1 to 1
-        }
-
-        private static void NormalizeHistogram(double[] histogram, int totalPixels)
-        {
-            double maxValue = 0;
-            for (int i = 0; i < histogram.Length; i++)
-            {
-                histogram[i] /= totalPixels;  // Normalize to [0,1]
-                if (histogram[i] > maxValue)
-                    maxValue = histogram[i]; // Get max value
-            }
-
-            // Scale values so the highest value is 100% of the image height
-            if (maxValue > 0)
-            {
-                for (int i = 0; i < histogram.Length; i++)
-                {
-                    histogram[i] /= maxValue;
-                }
-            }
-        }
-
-        private static string GenerateHistogramImage(string filePath, double[] histodata, SKColor color)
-        {
-            int width = 512;  // Histogram image width
-            int height = 256; // Histogram image height
-            int margin = 10;  // Margin for better visibility
-
-            using (var surface = SKSurface.Create(new SKImageInfo(width, height)))
-            {
-                var canvas = surface.Canvas;
-                canvas.Clear(SKColors.White);
-
-                // Draw Axes
-                using (var axisPaint = new SKPaint { Color = SKColors.Black, StrokeWidth = 2, IsAntialias = true })
-                {
-                    canvas.DrawLine(margin, height - margin, width - margin, height - margin, axisPaint); // X-axis
-                    canvas.DrawLine(margin, height - margin, margin, margin, axisPaint); // Y-axis
-                }
-
-                // Draw Histogram
-                DrawHistogramLine(canvas, histodata, color, width, height, margin);
-
-                // Save Image
-                using (var image = surface.Snapshot())
-                using (var data = image.Encode(SKEncodedImageFormat.Png, 100))
-                using (var stream = File.OpenWrite(filePath))
-                {
-                    data.SaveTo(stream);
-                }
-                return filePath;
-            }
-        }
-
-        private static void DrawHistogramLine(SKCanvas canvas, double[] histogram, SKColor color, int width, int height, int margin)
-        {
-            int graphWidth = width - (2 * margin);
-            int graphHeight = height - (2 * margin);
-
-            using (var paint = new SKPaint
-            {
-                Color = color,
-                StrokeWidth = 2,
-                IsAntialias = true,
-                Style = SKPaintStyle.Fill
-            })
-            {
-                for (int i = 1; i < histogram.Length; i++)
-                {
-                    float x1 = margin + ((i - 1) * (graphWidth / 256f));
-                    float y1 = height - margin - (float)(histogram[i - 1] * graphHeight);
-                    float x2 = margin + (i * (graphWidth / 256f));
-                    float y2 = height - margin - (float)(histogram[i] * graphHeight);
-
-                    canvas.DrawLine(x1, y1, x2, y2, paint);
-                }
-            }
+            SelectedHistogramMode = mode;
+            UpdateHistogramVisibility();
+            _ = UpdateDisplayAsync();
         }
 
         protected override void OnErrorOccurred(string message)
@@ -365,12 +305,47 @@ namespace Location.Photography.ViewModels
 
         public void OnNavigatedToAsync()
         {
-            //throw new NotImplementedException();
+            // Initialize default state
+            SelectedHistogramMode = HistogramDisplayMode.Red;
+            UpdateHistogramVisibility();
         }
 
         public void OnNavigatedFromAsync()
         {
-            //throw new NotImplementedException();
+            // Cancel any ongoing operations
+            _cancellationTokenSource?.Cancel();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed && disposing)
+            {
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource?.Dispose();
+                _disposed = true;
+            }
+        }
+        #endregion
+
+        #region Partial Methods
+        partial void OnSelectedHistogramModeChanged(HistogramDisplayMode value)
+        {
+            UpdateHistogramVisibility();
+            _ = UpdateDisplayAsync();
+        }
+
+        partial void OnAnalysisResultChanged(ImageAnalysisResult value)
+        {
+            if (value != null)
+            {
+                _ = UpdateDisplayAsync();
+            }
         }
         #endregion
     }

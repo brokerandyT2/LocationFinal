@@ -67,7 +67,7 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<IMediaService, MediaService>();
             builder.Services.AddSingleton<INavigationService, NavigationService>();
             builder.Services.AddSingleton<IErrorDisplayService, ErrorDisplayService>();
-
+            builder.Services.AddSingleton<IImageAnalysisService, ImageAnalysisService>();
 #if ANDROID
             // Android-specific services
             builder.Services.AddSingleton<Platforms.Android.ILightSensorService, Platforms.Android.LightSensorService>();
@@ -202,8 +202,9 @@ namespace Location.Photography.Maui
             // Professional Pages
             builder.Services.AddTransient<Views.Professional.SceneEvaluation>(sp =>
             {
+                var imageAnalysisService = sp.GetRequiredService<IImageAnalysisService>();
                 var errorService = sp.GetRequiredService<IErrorDisplayService>();
-                return new Views.Professional.SceneEvaluation(errorService);
+                return new Views.Professional.SceneEvaluation(imageAnalysisService, errorService);
             });
 
             builder.Services.AddTransient<Views.Professional.SunCalculator>(sp =>
