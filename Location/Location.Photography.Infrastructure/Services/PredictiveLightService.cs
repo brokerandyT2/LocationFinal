@@ -69,7 +69,7 @@ namespace Location.Photography.Infrastructure.Services
             }
         }
 
-        public async Task<List<HourlyLightPrediction>> GenerateHourlyPredictionsAsync(
+        public async Task<List<Application.Services.HourlyLightPrediction>> GenerateHourlyPredictionsAsync(
             PredictiveLightRequest request,
             CancellationToken cancellationToken = default)
         {
@@ -474,6 +474,8 @@ namespace Location.Photography.Infrastructure.Services
         {
             return 0.85;
         }
+
+     
 
         #endregion
 

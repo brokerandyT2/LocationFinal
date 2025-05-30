@@ -122,7 +122,7 @@ namespace Location.Photography.ViewModels
         }
 
         [RelayCommand]
-        private async Task LoadLocationsAsync()
+        public async Task LoadLocationsAsync()
         {
             var command = new AsyncRelayCommand(async () =>
             {
@@ -182,7 +182,7 @@ namespace Location.Photography.ViewModels
         }
 
         [RelayCommand]
-        private async Task CalculateEnhancedSunDataAsync()
+        public async Task CalculateEnhancedSunDataAsync()
         {
             var command = new AsyncRelayCommand(async () =>
             {
@@ -218,7 +218,7 @@ namespace Location.Photography.ViewModels
         }
 
         [RelayCommand]
-        private async Task CalibrateWithLightMeterAsync(double actualEV)
+        public async Task CalibrateWithLightMeterAsync(double actualEV)
         {
             var command = new AsyncRelayCommand(async () =>
             {

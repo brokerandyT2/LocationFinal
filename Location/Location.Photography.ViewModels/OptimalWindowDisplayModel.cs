@@ -5,6 +5,8 @@
         public string WindowType { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        public string FormattedTimeRange => $"{StartTime.ToString(TimeFormat)} - {EndTime.ToString(TimeFormat)}";
+        public string TimeFormat { get; set; } = "HH:mm"; // Default time format
         public string StartTimeDisplay { get; set; } = string.Empty;
         public string EndTimeDisplay { get; set; } = string.Empty;
         public string LightQuality { get; set; } = string.Empty;

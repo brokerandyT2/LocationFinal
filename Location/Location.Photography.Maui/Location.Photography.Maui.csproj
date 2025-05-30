@@ -107,6 +107,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiXaml Update="Controls\SunPathVisualization.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="SimpleMainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
