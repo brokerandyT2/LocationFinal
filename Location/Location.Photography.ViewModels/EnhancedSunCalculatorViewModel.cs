@@ -1,5 +1,7 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
@@ -12,7 +14,6 @@ using MediatR;
 using System.Collections.ObjectModel;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
-
 namespace Location.Photography.ViewModels
 {
     public partial class EnhancedSunCalculatorViewModel : ViewModelBase
@@ -20,8 +21,10 @@ namespace Location.Photography.ViewModels
         private readonly IMediator _mediator;
         private readonly IErrorDisplayService _errorDisplayService;
         private readonly IPredictiveLightService _predictiveLightService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ITimezoneService _timezoneService;
+        private readonly WeatherEntityToDtoMapper _weatherMapper;
         private CancellationTokenSource _cancellationTokenSource = new();
-
         [ObservableProperty]
         private ObservableCollection<LocationListItemViewModel> _locations = new();
 
@@ -35,10 +38,10 @@ namespace Location.Photography.ViewModels
         private string _locationPhoto = string.Empty;
 
         [ObservableProperty]
-        private string _timeFormat = "TimeFormat";
+        private string _timeFormat = "HH:mm";
 
         [ObservableProperty]
-        private string _dateFormat = "DateFormat";
+        private string _dateFormat = "MM/dd/yyyy";
 
         [ObservableProperty]
         private TimeZoneInfo _deviceTimeZone = TimeZoneInfo.Local;
@@ -57,7 +60,6 @@ namespace Location.Photography.ViewModels
 
         [ObservableProperty]
         private string _nextOptimalWindowText = string.Empty;
-
 
         private ObservableCollection<HourlyPredictionDisplayModel> _hourlyPredictions = new();
 
@@ -110,15 +112,26 @@ namespace Location.Photography.ViewModels
 
         public new event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
 
+        public EnhancedSunCalculatorViewModel() : base(null, null)
+        {
+            InitializeTimezoneDisplays();
+        }
+
         public EnhancedSunCalculatorViewModel(
             IMediator mediator,
             IErrorDisplayService errorDisplayService,
-            IPredictiveLightService predictiveLightService)
+            IPredictiveLightService predictiveLightService,
+            IUnitOfWork unitOfWork,
+            ITimezoneService timezoneService,
+            WeatherEntityToDtoMapper weatherMapper)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _predictiveLightService = predictiveLightService ?? throw new ArgumentNullException(nameof(predictiveLightService));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
+            _weatherMapper = weatherMapper ?? throw new ArgumentNullException(nameof(weatherMapper));
 
             InitializeTimezoneDisplays();
         }
@@ -201,6 +214,7 @@ namespace Location.Photography.ViewModels
 
                     ClearErrors();
 
+                    await LoadLocationTimezoneAsync();
                     await CalculateSunTimesAsync();
                     await GenerateSunPathPointsAsync();
                     await LoadWeatherAndPredictionsAsync();
@@ -257,6 +271,92 @@ namespace Location.Photography.ViewModels
             });
 
             await ExecuteAndTrackAsync(command);
+        }
+
+        [RelayCommand]
+        public async Task OpenLightMeterAsync(HourlyPredictionDisplayModel prediction)
+        {
+            try
+            {
+                // This will be handled in code-behind with PushModalAsync
+                // Pass prediction values to pre-populate light meter
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error opening light meter: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        public async Task OpenCameraTipsAsync(HourlyPredictionDisplayModel prediction)
+        {
+            try
+            {
+                // Check if prediction settings match any tips
+                // This will be handled in code-behind with PushModalAsync
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error opening camera tips: {ex.Message}");
+            }
+        }
+
+        private async Task LoadLocationTimezoneAsync()
+        {
+            if (SelectedLocation == null) return;
+
+            try
+            {
+                // First, check weather repository for existing timezone data
+                var weather = await _unitOfWork.Weather.GetByLocationIdAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
+
+                if (weather != null && !string.IsNullOrEmpty(weather.Timezone))
+                {
+                    // Use timezone from weather data
+                    try
+                    {
+                        LocationTimeZone = _timezoneService.GetTimeZoneInfo(weather.Timezone);
+                    }
+                    catch
+                    {
+                        // If timezone ID is invalid, determine timezone from coordinates
+                        await DetermineTimezoneFromCoordinatesAsync();
+                    }
+                }
+                else
+                {
+                    // No weather data exists yet, determine timezone from coordinates
+                    await DetermineTimezoneFromCoordinatesAsync();
+                }
+
+                LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error loading location timezone: {ex.Message}");
+                LocationTimeZone = TimeZoneInfo.Local;
+                LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+            }
+        }
+
+        private async Task DetermineTimezoneFromCoordinatesAsync()
+        {
+            if (SelectedLocation == null) return;
+
+            var timezoneResult = await _timezoneService.GetTimezoneFromCoordinatesAsync(
+                SelectedLocation.Latitude,
+                SelectedLocation.Longitude,
+                _cancellationTokenSource.Token);
+
+            if (timezoneResult.IsSuccess)
+            {
+                LocationTimeZone = _timezoneService.GetTimeZoneInfo(timezoneResult.Data);
+            }
+            else
+            {
+                // Fallback to device timezone
+                LocationTimeZone = TimeZoneInfo.Local;
+            }
         }
 
         private async Task LoadUserSettingsAsync()
@@ -369,20 +469,120 @@ namespace Location.Photography.ViewModels
         {
             if (SelectedLocation == null) return;
 
-            var weatherQuery = new GetWeatherForecastQuery
+            WeatherForecastDto weatherForecast = null;
+
+            // Step 1: Check local weather repository first (per business rules)
+            var existingWeather = await _unitOfWork.Weather.GetByLocationIdAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
+
+            if (existingWeather != null)
             {
-                Latitude = SelectedLocation.Latitude,
-                Longitude = SelectedLocation.Longitude,
-                Days = 5
-            };
+                // Get forecast data for this weather entity
+                var forecastEntities = await GetWeatherForecastEntitiesAsync(existingWeather.Id);
 
-            var weatherResult = await _mediator.Send(weatherQuery, _cancellationTokenSource.Token);
+                // Validate if existing data is suitable for predictions
+                var validationResult = WeatherDataValidator.ValidateForPredictions(existingWeather, forecastEntities);
 
-            if (weatherResult.IsSuccess && weatherResult.Data != null)
+                if (validationResult.IsValid)
+                {
+                    // Use existing weather data
+                    weatherForecast = _weatherMapper.MapToWeatherForecastDto(existingWeather, forecastEntities);
+
+                    // Update location timezone if it wasn't set before
+                    if (string.IsNullOrEmpty(existingWeather.Timezone))
+                    {
+                        await UpdateWeatherTimezoneAsync(existingWeather);
+                    }
+                }
+                else
+                {
+                    // Data is stale or incomplete, fetch fresh data
+                    weatherForecast = await FetchFreshWeatherDataAsync();
+                }
+            }
+            else
+            {
+                // No existing weather data, fetch fresh data
+                weatherForecast = await FetchFreshWeatherDataAsync();
+            }
+
+            // Step 2: Generate predictions if we have valid weather data
+            if (weatherForecast != null)
+            {
+                await GeneratePredictionsFromWeatherAsync(weatherForecast);
+            }
+            else
+            {
+                OnSystemError("Unable to load weather data for predictions");
+            }
+        }
+
+        private async Task<List<WeatherForecastEntity>> GetWeatherForecastEntitiesAsync(int weatherId)
+        {
+            // This would need to be implemented to retrieve forecast entities
+            // For now, return empty list as placeholder
+            return new List<WeatherForecastEntity>();
+        }
+
+        private async Task UpdateWeatherTimezoneAsync(WeatherEntity weatherEntity)
+        {
+            if (SelectedLocation == null) return;
+
+            try
+            {
+                var timezoneResult = await _timezoneService.GetTimezoneFromCoordinatesAsync(
+                    SelectedLocation.Latitude,
+                    SelectedLocation.Longitude,
+                    _cancellationTokenSource.Token);
+
+                if (timezoneResult.IsSuccess)
+                {
+                    weatherEntity.Timezone = timezoneResult.Data;
+                    await _unitOfWork.Weather.UpdateAsync(weatherEntity, _cancellationTokenSource.Token);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the whole process
+                System.Diagnostics.Debug.WriteLine($"Error updating weather timezone: {ex.Message}");
+            }
+        }
+
+        private async Task<WeatherForecastDto> FetchFreshWeatherDataAsync()
+        {
+            if (SelectedLocation == null) return null;
+
+            try
+            {
+                var weatherQuery = new GetWeatherForecastQuery
+                {
+                    Latitude = SelectedLocation.Latitude,
+                    Longitude = SelectedLocation.Longitude,
+                    Days = 5 // 5-day forecast per business rules
+                };
+
+                var weatherResult = await _mediator.Send(weatherQuery, _cancellationTokenSource.Token);
+
+                if (weatherResult.IsSuccess && weatherResult.Data != null)
+                {
+                    // Weather service will handle storing to local repository
+                    return weatherResult.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error fetching weather data: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private async Task GeneratePredictionsFromWeatherAsync(WeatherForecastDto weatherForecast)
+        {
+            try
             {
                 var analysisRequest = new WeatherImpactAnalysisRequest
                 {
-                    WeatherForecast = weatherResult.Data,
+                    WeatherForecast = weatherForecast,
                     SunTimes = new Location.Photography.Domain.Models.EnhancedSunTimes(),
                     MoonData = new MoonPhaseData()
                 };
@@ -409,6 +609,8 @@ namespace Location.Photography.ViewModels
                 {
                     if (prediction.DateTime >= DateTime.Now)
                     {
+                        var confidence = CalculateEnhancedConfidence(prediction, WeatherImpact);
+
                         _hourlyPredictions.Add(new HourlyPredictionDisplayModel
                         {
                             Time = prediction.DateTime,
@@ -416,19 +618,80 @@ namespace Location.Photography.ViewModels
                             LocationTimeDisplay = FormatTimeForTimezone(prediction.DateTime, LocationTimeZone),
                             PredictedEV = prediction.PredictedEV,
                             EVConfidenceMargin = prediction.EVConfidenceMargin,
-                            SuggestedAperture = prediction.SuggestedSettings.Aperture.Replace("f/", ""),
+                            SuggestedAperture = ExtractApertureValue(prediction.SuggestedSettings.Aperture),
                             SuggestedShutterSpeed = prediction.SuggestedSettings.ShutterSpeed,
-                            SuggestedISO = prediction.SuggestedSettings.ISO.Replace("ISO ", ""),
-                            ConfidenceLevel = prediction.ConfidenceLevel,
+                            SuggestedISO = ExtractISOValue(prediction.SuggestedSettings.ISO),
+                            ConfidenceLevel = confidence,
                             LightQuality = prediction.LightQuality.OptimalFor,
                             ColorTemperature = prediction.LightQuality.ColorTemperature,
                             Recommendations = string.Join(", ", prediction.Recommendations),
-                            IsOptimalTime = prediction.IsOptimalForPhotography
+                            IsOptimalTime = prediction.IsOptimalForPhotography,
+                            TimeFormat = TimeFormat
                         });
                     }
                 }
-                // _hourlyPredictions = (ObservableCollection<HourlyPredictionDisplayModel>)_hourlyPredictions.OrderBy(x => x.Time);
             }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error generating predictions: {ex.Message}");
+            }
+        }
+
+        private string ExtractApertureValue(string aperture)
+        {
+            return aperture?.Replace("f/", "") ?? "8";
+        }
+
+        private string ExtractISOValue(string iso)
+        {
+            return iso?.Replace("ISO ", "") ?? "100";
+        }
+
+        private double CalculateEnhancedConfidence(HourlyLightPrediction prediction, WeatherImpactAnalysis weather)
+        {
+            double baseConfidence = 0.90; // Start with 90%
+
+            // Reduce by time into future (5% per day)
+            var hoursFromNow = (prediction.DateTime - DateTime.Now).TotalHours;
+            var daysFromNow = hoursFromNow / 24.0;
+            baseConfidence -= (daysFromNow * 0.05);
+
+            // Weather factors
+            if (weather.CurrentConditions != null)
+            {
+                // Cloud cover uncertainty (10-30% reduction)
+                baseConfidence -= (weather.CurrentConditions.CloudCover * 0.3);
+
+                // Precipitation reduces confidence by 40%
+                if (weather.CurrentConditions.Precipitation > 0)
+                {
+                    baseConfidence -= 0.4;
+                }
+            }
+
+            // Time of day factors
+            var hour = prediction.DateTime.Hour;
+            if (hour <= 6 || hour >= 18) // Twilight periods less predictable
+            {
+                baseConfidence -= 0.2;
+            }
+
+            // After sunset - base on moon phase
+            if (prediction.SunPosition?.IsAboveHorizon == false)
+            {
+                // Simplified moon phase calculation
+                var dayOfMonth = prediction.DateTime.Day;
+                var approximateMoonPhase = Math.Abs(dayOfMonth - 15) / 15.0; // 0 = full, 1 = new
+
+                if (approximateMoonPhase < 0.2) // Near full moon
+                    baseConfidence = Math.Max(baseConfidence, 0.7);
+                else if (approximateMoonPhase > 0.8) // Near new moon  
+                    baseConfidence = Math.Min(baseConfidence, 0.3);
+                else
+                    baseConfidence = Math.Min(baseConfidence, 0.5);
+            }
+
+            return Math.Max(0.1, Math.Min(1.0, baseConfidence));
         }
 
         private async Task CalculateOptimalWindowsAsync()
@@ -461,7 +724,8 @@ namespace Location.Photography.ViewModels
                         LightQuality = window.Description,
                         OptimalFor = string.Join(", ", window.IdealFor),
                         IsCurrentlyActive = DateTime.Now >= window.StartTime && DateTime.Now <= window.EndTime,
-                        ConfidenceLevel = window.QualityScore
+                        ConfidenceLevel = window.QualityScore,
+                        TimeFormat = TimeFormat
                     });
                 }
             }
@@ -494,33 +758,37 @@ namespace Location.Photography.ViewModels
 
         private string FormatTimeForTimezone(DateTime utcTime, TimeZoneInfo timezone)
         {
-            try { 
+            try
+            {
                 if (timezone == null)
                 {
                     throw new ArgumentNullException(nameof(timezone), "Timezone cannot be null");
                 }
+
+                DateTime localTime = utcTime;
+                try
+                {
+                    if (utcTime.Hour == 0 && utcTime.Minute == 0 && utcTime.Second == 0)
+                    {
+                        // Handle default DateTime values
+                    }
+                    else
+                    {
+                        utcTime = DateTime.SpecifyKind(utcTime, DateTimeKind.Utc);
+                        localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, timezone);
+                    }
+                }
+                catch (Exception)
+                {
+                    // Use original time if conversion fails
+                }
+                return localTime.ToString(TimeFormat);
             }
             catch (ArgumentNullException ex)
             {
                 OnErrorOccurred($"Error formatting time: {ex.Message}");
+                return utcTime.ToString(TimeFormat);
             }
-            DateTime localTime = utcTime;
-            try
-            {
-                if (utcTime.Hour == 0 && utcTime.Minute == 0 && utcTime.Second == 0)
-                {
-                }
-                else
-                {
-                    utcTime = DateTime.SpecifyKind(utcTime, DateTimeKind.Utc);
-                    localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, timezone);
-                }
-            }
-            catch (Exception ex)
-            {
-                var y = string.Empty;
-            }
-            return localTime.ToString(TimeFormat);
         }
 
         protected override void OnErrorOccurred(string message)

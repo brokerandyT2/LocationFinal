@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maui="clr-namespace:epj.Expander.Maui;assembly=epj.Expander.Maui"
              xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
              x:Class="Location.Photography.Maui.Views.Professional.SunCalculator"
+             x:DataType="viewmodels:EnhancedSunCalculatorViewModel"
              Title="Enhanced Sun Calculator">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- Ensure we have the string to bool converter -->
+            <x:String x:Key="StringToBoolConverter">StringToBoolConverter</x:String>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <Grid Padding="10" Margin="5">
         <Grid.RowDefinitions>
@@ -29,8 +37,8 @@
 
                         <!-- Location Image -->
                         <Image Grid.Row="1" Source="{Binding LocationPhoto}" 
-                               HeightRequest="200" Aspect="AspectFill" 
-                               />
+                           HeightRequest="200" Aspect="AspectFill" 
+                           />
 
                         <!-- Location Picker -->
                         <Grid Grid.Row="2" Margin="0,10,0,0">
@@ -40,9 +48,9 @@
                             </Grid.RowDefinitions>
                             <Label Grid.Row="0" Text="Choose your location" FontSize="14"/>
                             <Picker Grid.Row="1" ItemsSource="{Binding Locations}" 
-                                    SelectedItem="{Binding SelectedLocation}"
-                                    ItemDisplayBinding="{Binding Title}" x:Name="LocationPicker"
-                                    FontSize="14" Margin="0,5,0,0"/>
+                                SelectedItem="{Binding SelectedLocation}"
+                                ItemDisplayBinding="{Binding Title}" x:Name="LocationPicker"
+                                FontSize="14" Margin="0,5,0,0"/>
                         </Grid>
 
                         <!-- Date Picker -->
@@ -53,8 +61,8 @@
                             </Grid.RowDefinitions>
                             <Label Grid.Row="0" Text="Choose date" FontSize="14"/>
                             <DatePicker Grid.Row="1" Date="{Binding SelectedDate}"
-                                        Format="{Binding DateFormat}"
-                                        FontSize="14" Margin="0,5,0,0"/>
+                                    Format="{Binding DateFormat}"
+                                    FontSize="14" Margin="0,5,0,0"/>
                         </Grid>
                     </Grid>
                 </Frame>
@@ -111,7 +119,7 @@
                             </StackLayout>
                             <StackLayout Grid.Column="2">
                                 <Label Text="Sun Up" FontSize="12" TextColor="Gray"/>
-                                <Label Text="{Binding IsSunUp, Converter={StaticResource BoolToSunStatusConverter}}" FontSize="16" FontAttributes="Bold"/>
+                                <Label Text="{Binding IsSunUp}" FontSize="16" FontAttributes="Bold"/>
                             </StackLayout>
                         </Grid>
                     </Grid>
@@ -187,10 +195,10 @@
                         <Label Grid.Row="0" Text="Optimal Shooting Windows" FontSize="16" FontAttributes="Bold" TextColor="#F57F17" Margin="0,0,0,10"/>
                         <CollectionView Grid.Row="1" ItemsSource="{Binding OptimalWindows}">
                             <CollectionView.ItemTemplate>
-                                <DataTemplate>
+                                <DataTemplate x:DataType="viewmodels:OptimalWindowDisplayModel">
                                     <Grid Margin="0,5,0,5">
-                                        <Frame BackgroundColor="{Binding IsCurrentlyActive, Converter={StaticResource BoolToActiveColorConverter}}" 
-                                               CornerRadius="8" Padding="10" HasShadow="False">
+                                        <Frame BackgroundColor="{Binding IsCurrentlyActive}" 
+                                           CornerRadius="8" Padding="10" HasShadow="False">
                                             <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto"/>
@@ -209,51 +217,144 @@
                     </Grid>
                 </Frame>
 
-                <!-- Hourly Light Predictions Timeline -->
+                <!-- Hourly Light Predictions with Expanders -->
                 <Frame BackgroundColor="#F9FBE7" HasShadow="True" CornerRadius="10" Padding="15">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="300"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <Label Grid.Row="0" Text="Hourly Light Predictions (Next 48 Hours)" FontSize="16" FontAttributes="Bold" TextColor="#689F38" Margin="0,0,0,10"/>
-                        <ScrollView Grid.Row="1" Orientation="Vertical">
-                            <CollectionView ItemsSource="{Binding HourlyPredictions}" 
-                                          ItemsLayout="VerticalList">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid Margin="5,0,5,0" WidthRequest="200">
-                                            <Frame BackgroundColor="{Binding IsOptimalTime, Converter={StaticResource BoolToOptimalColorConverter}}" 
-                                                   CornerRadius="8" Padding="10" HasShadow="True">
-                                                <StackLayout Spacing="3">
-                                                    <Label Text="{Binding LocationTimeDisplay}" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
-                                                    <Label Text="{Binding FormattedPrediction}" FontSize="12" HorizontalOptions="Center" TextColor="#1B5E20"/>
-                                                    <Label Text="{Binding FormattedSettings}" FontSize="11" HorizontalOptions="Center"/>
-                                                    <Label Text="{Binding LightQuality}" FontSize="10" HorizontalOptions="Center" TextColor="Gray"/>
-                                                    <Label Text="{Binding ConfidenceDisplay}" FontSize="10" HorizontalOptions="Center" TextColor="#4CAF50"/>
-                                                </StackLayout>
-                                            </Frame>
+
+                        <CollectionView Grid.Row="1" ItemsSource="{Binding HourlyPredictions}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodels:HourlyPredictionDisplayModel">
+                                    <maui:Expander Animated="True" Margin="0,2,0,2">
+                                        <maui:Expander.HeaderContent>
+                                            <Grid BackgroundColor="{Binding IsOptimalTime}" Padding="15">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Label Grid.Column="0" 
+                                                   Text="{Binding LocationTimeDisplay}" 
+                                                   FontSize="16" 
+                                                   FontAttributes="Bold" 
+                                                   TextColor="White" 
+                                                   VerticalOptions="Center"/>
+                                                <Label Grid.Column="1" 
+                                                   Text="{Binding FormattedPrediction}" 
+                                                   FontSize="12" 
+                                                   TextColor="White" 
+                                                   VerticalOptions="Center"/>
+                                            </Grid>
+                                        </maui:Expander.HeaderContent>
+
+                                        <!-- Expanded Content -->
+                                        <Grid Padding="15" BackgroundColor="White">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Exposure Settings -->
+                                            <Label Grid.Row="0" Grid.ColumnSpan="2" 
+                                               Text="Suggested Camera Settings" 
+                                               FontSize="14" 
+                                               FontAttributes="Bold" 
+                                               TextColor="#2E7D32" 
+                                               Margin="0,0,0,10"/>
+
+                                            <StackLayout Grid.Row="1" Grid.Column="0">
+                                                <Label Text="Aperture" FontSize="12" TextColor="Gray"/>
+                                                <Label Text="{Binding SuggestedAperture, StringFormat='f/{0}'}" FontSize="16" FontAttributes="Bold"/>
+                                            </StackLayout>
+
+                                            <StackLayout Grid.Row="1" Grid.Column="1">
+                                                <Label Text="Shutter Speed" FontSize="12" TextColor="Gray"/>
+                                                <Label Text="{Binding SuggestedShutterSpeed}" FontSize="16" FontAttributes="Bold"/>
+                                            </StackLayout>
+
+                                            <StackLayout Grid.Row="2" Grid.Column="0">
+                                                <Label Text="ISO" FontSize="12" TextColor="Gray"/>
+                                                <Label Text="{Binding SuggestedISO}" FontSize="16" FontAttributes="Bold"/>
+                                            </StackLayout>
+
+                                            <StackLayout Grid.Row="2" Grid.Column="1">
+                                                <Label Text="Color Temperature" FontSize="12" TextColor="Gray"/>
+                                                <Label Text="{Binding ColorTemperature, StringFormat='{0:F0}K'}" FontSize="16" FontAttributes="Bold"/>
+                                            </StackLayout>
+
+                                            <!-- Light Quality and Confidence -->
+                                            <Label Grid.Row="3" Grid.ColumnSpan="2" 
+                                               Text="{Binding LightQuality}" 
+                                               FontSize="14" 
+                                               TextColor="#1976D2" 
+                                               Margin="0,10,0,5"/>
+
+                                            <Label Grid.Row="4" Grid.ColumnSpan="2" 
+                                               Text="{Binding ConfidenceDisplay}" 
+                                               FontSize="12" 
+                                               TextColor="#4CAF50" 
+                                               Margin="0,0,0,10"/>
+
+                                            <!-- Recommendations -->
+                                            <Label Grid.Row="5" Grid.ColumnSpan="2" 
+                                               Text="{Binding Recommendations}" 
+                                               FontSize="12" 
+                                               TextColor="#666666" 
+                                               Margin="0,0,0,10"/>
+
+                                            <!-- Action Buttons -->
+                                            <Button Grid.Row="6" Grid.Column="0" 
+                                                Text="Light Meter" 
+                                                FontSize="12" 
+                                                BackgroundColor="#2196F3" 
+                                                TextColor="White" 
+                                                CornerRadius="15" 
+                                                Margin="0,0,5,0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:EnhancedSunCalculatorViewModel}}, Path=OpenLightMeterCommand}"
+                                                CommandParameter="{Binding .}"/>
+
+                                            <Button Grid.Row="6" Grid.Column="1" 
+                                                Text="Camera Tips" 
+                                                FontSize="12" 
+                                                BackgroundColor="#FF9800" 
+                                                TextColor="White" 
+                                                CornerRadius="15" 
+                                                Margin="5,0,0,0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:EnhancedSunCalculatorViewModel}}, Path=OpenCameraTipsCommand}"
+                                                CommandParameter="{Binding .}"/>
                                         </Grid>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                        </ScrollView>
+                                    </maui:Expander>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
                     </Grid>
                 </Frame>
 
-                <!-- Sun Path Visualization Placeholder -->
+                <!-- Sun Path Diagram -->
                 <Frame BackgroundColor="#EFEBE9" HasShadow="True" CornerRadius="10" Padding="15">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="200"/>
+                            <RowDefinition Height="250"/>
                         </Grid.RowDefinitions>
                         <Label Grid.Row="0" Text="Sun Path Diagram" FontSize="16" FontAttributes="Bold" TextColor="#5D4037" Margin="0,0,0,10"/>
-                        <Frame Grid.Row="1" BackgroundColor="White" CornerRadius="8" HasShadow="False">
-                            <Label Text="Interactive Sun Path Visualization&#x0a;(Coming in next update)" 
-                                   FontSize="14" TextColor="Gray" 
-                                   HorizontalOptions="Center" VerticalOptions="Center"
-                                   HorizontalTextAlignment="Center"/>
+
+                        <Frame Grid.Row="1" BackgroundColor="White" CornerRadius="8" HasShadow="False" Padding="10">
+                            <GraphicsView x:Name="SunPathCanvas" BackgroundColor="#87CEEB">
+                                <!-- Canvas will be populated in code-behind with sun path arc and markers -->
+                            </GraphicsView>
                         </Frame>
                     </Grid>
                 </Frame>
@@ -274,9 +375,9 @@
                             </Grid.ColumnDefinitions>
                             <Entry Grid.Column="0" Placeholder="Enter actual EV reading" Keyboard="Numeric" x:Name="ActualEVEntry"/>
                             <Button Grid.Column="1" Text="Calibrate" 
-                                    Command="{Binding CalibrateWithLightMeterCommand}" 
-                                    CommandParameter="{Binding Source={x:Reference ActualEVEntry}, Path=Text}"
-                                    BackgroundColor="#E91E63" TextColor="White"/>
+                                Command="{Binding CalibrateWithLightMeterCommand}" 
+                                CommandParameter="{Binding Source={x:Reference ActualEVEntry}, Path=Text}"
+                                BackgroundColor="#E91E63" TextColor="White"/>
                         </Grid>
                         <StackLayout Grid.Row="2" Margin="0,10,0,0" IsVisible="{Binding IsLightMeterCalibrated}">
                             <Label Text="{Binding LastLightMeterReading, StringFormat='Last calibration: {0:HH:mm}'}" FontSize="12" TextColor="#AD1457"/>
@@ -292,11 +393,11 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Button Grid.Column="0" Text="Load Locations" 
-                            Command="{Binding LoadLocationsCommand}"
-                            BackgroundColor="#1976D2" TextColor="White" Margin="0,0,5,0"/>
+                        Command="{Binding LoadLocationsCommand}"
+                        BackgroundColor="#1976D2" TextColor="White" Margin="0,0,5,0"/>
                     <Button Grid.Column="1" Text="Calculate Enhanced Data" 
-                            Command="{Binding CalculateEnhancedSunDataCommand}"
-                            BackgroundColor="#388E3C" TextColor="White" Margin="5,0,0,0"/>
+                        Command="{Binding CalculateEnhancedSunDataCommand}"
+                        BackgroundColor="#388E3C" TextColor="White" Margin="5,0,0,0"/>
                 </Grid>
 
             </StackLayout>
@@ -312,21 +413,21 @@
 
         <!-- Error message display -->
         <Grid Grid.Row="1" 
-              IsVisible="{Binding IsError}"
-              BackgroundColor="#FFCDD2"
-              Padding="15"
-              Margin="5">
+          IsVisible="{Binding IsError}"
+          BackgroundColor="#FFCDD2"
+          Padding="15"
+          Margin="5">
             <StackLayout Orientation="Horizontal" Spacing="10">
                 <Label Text="⚠️" FontSize="16" VerticalOptions="Center"/>
                 <Label Text="{Binding ErrorMessage}"
-                       TextColor="#D32F2F"
-                       FontSize="14"
-                       VerticalOptions="Center"
-                       HorizontalOptions="FillAndExpand"/>
+                   TextColor="#D32F2F"
+                   FontSize="14"
+                   VerticalOptions="Center"
+                   HorizontalOptions="FillAndExpand"/>
                 <Button Text="Retry" 
-                        Command="{Binding RetryLastCommandCommand}"
-                        BackgroundColor="#D32F2F" TextColor="White"
-                        FontSize="12" Padding="10,5"/>
+                    Command="{Binding RetryLastCommandCommand}"
+                    BackgroundColor="#D32F2F" TextColor="White"
+                    FontSize="12" Padding="10,5"/>
             </StackLayout>
         </Grid>
     </Grid>

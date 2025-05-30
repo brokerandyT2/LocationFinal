@@ -12,6 +12,7 @@ using Location.Core.ViewModels;
 using Location.Photography.Application;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
+using Location.Photography.Infrastructure.Services;
 using Location.Photography.Maui.Views;
 using Location.Photography.ViewModels;
 using MediatR;
@@ -212,7 +213,8 @@ namespace Location.Photography.Maui
                 var viewModel = sp.GetRequiredService<EnhancedSunCalculatorViewModel>();
                 var alertService = sp.GetRequiredService<IAlertService>();
                 var mediator = sp.GetRequiredService<IMediator>();
-                return new Views.Professional.SunCalculator(viewModel, alertService, mediator);
+                var expCalc = sp.GetRequiredService<IExposureCalculatorService>();
+                return new Views.Professional.SunCalculator(viewModel, alertService, mediator, expCalc);
             });
 
             // Settings and Onboarding Pages
