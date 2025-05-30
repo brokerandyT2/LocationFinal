@@ -85,9 +85,12 @@ namespace Location.Photography.Application.Queries.SunLocation
         {
             var minDate = new DateTime(1900, 1, 1);
             var maxDate = new DateTime(2100, 12, 31);
+
             return date != default && date >= minDate && date <= maxDate;
         }
     }
+
+
 
     public class GetOptimalShootingTimesQueryValidator : AbstractValidator<GetOptimalShootingTimesQuery>
     {
@@ -112,6 +115,7 @@ namespace Location.Photography.Application.Queries.SunLocation
         {
             var minDate = new DateTime(1900, 1, 1);
             var maxDate = new DateTime(2100, 12, 31);
+
             return date != default && date >= minDate && date <= maxDate;
         }
     }

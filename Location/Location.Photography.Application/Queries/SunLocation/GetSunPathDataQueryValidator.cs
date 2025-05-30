@@ -1,5 +1,4 @@
-﻿// Location.Photography.Application/Queries/SunLocation/GetSunPathDataQueryValidator.cs
-using FluentValidation;
+﻿using FluentValidation;
 using System;
 
 namespace Location.Photography.Application.Queries.SunLocation
@@ -29,7 +28,6 @@ namespace Location.Photography.Application.Queries.SunLocation
 
         private bool BeValidDate(DateTime date)
         {
-            // Ensure date is not default and within reasonable range for sun calculations
             var minDate = new DateTime(1900, 1, 1);
             var maxDate = new DateTime(2100, 12, 31);
 

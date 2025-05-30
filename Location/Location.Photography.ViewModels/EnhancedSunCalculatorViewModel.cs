@@ -1,8 +1,8 @@
-﻿// Location.Photography.ViewModels/EnhancedSunCalculatorViewModel.cs
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
+using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Core.Application.Weather.Queries.GetWeatherForecast;
 using Location.Core.ViewModels;
 using Location.Photography.Application.Queries.SunLocation;
@@ -10,8 +10,6 @@ using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
 using MediatR;
 using System.Collections.ObjectModel;
-using EnhancedSunTimes = Location.Photography.Domain.Models.EnhancedSunTimes;
-using HourlyLightPrediction = Location.Photography.Application.Services.HourlyLightPrediction;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 
@@ -19,14 +17,11 @@ namespace Location.Photography.ViewModels
 {
     public partial class EnhancedSunCalculatorViewModel : ViewModelBase
     {
-        #region Fields
         private readonly IMediator _mediator;
         private readonly IErrorDisplayService _errorDisplayService;
         private readonly IPredictiveLightService _predictiveLightService;
         private CancellationTokenSource _cancellationTokenSource = new();
-        #endregion
 
-        #region Properties
         [ObservableProperty]
         private ObservableCollection<LocationListItemViewModel> _locations = new();
 
@@ -39,7 +34,12 @@ namespace Location.Photography.ViewModels
         [ObservableProperty]
         private string _locationPhoto = string.Empty;
 
-        // Dual Timezone Support - As Required
+        [ObservableProperty]
+        private string _timeFormat = "TimeFormat";
+
+        [ObservableProperty]
+        private string _dateFormat = "DateFormat";
+
         [ObservableProperty]
         private TimeZoneInfo _deviceTimeZone = TimeZoneInfo.Local;
 
@@ -47,45 +47,56 @@ namespace Location.Photography.ViewModels
         private TimeZoneInfo _locationTimeZone = TimeZoneInfo.Local;
 
         [ObservableProperty]
-        private bool _showDualTimezone = true;
-
-        // Enhanced Sun Times with dual timezone support
-        [ObservableProperty]
-        private EnhancedSunTimes _deviceTimeSunTimes = new();
+        private string _deviceTimeZoneDisplay = string.Empty;
 
         [ObservableProperty]
-        private EnhancedSunTimes _locationTimeSunTimes = new();
+        private string _locationTimeZoneDisplay = string.Empty;
 
-        // Formatted Properties for UI Binding - Device Time
-        public string DeviceSunriseFormatted => DeviceTimeSunTimes.Sunrise.ToString("hh:mm tt");
-        public string DeviceSunsetFormatted => DeviceTimeSunTimes.Sunset.ToString("hh:mm tt");
-        public string DeviceGoldenHourMorningFormatted => DeviceTimeSunTimes.GoldenHourMorningStart.ToString("hh:mm tt");
-        public string DeviceGoldenHourEveningFormatted => DeviceTimeSunTimes.GoldenHourEveningStart.ToString("hh:mm tt");
+        [ObservableProperty]
+        private string _currentPredictionText = string.Empty;
 
-        // Formatted Properties for UI Binding - Location Time
-        public string LocationSunriseFormatted => LocationTimeSunTimes.Sunrise.ToString("hh:mm tt");
-        public string LocationSunsetFormatted => LocationTimeSunTimes.Sunset.ToString("hh:mm tt");
-        public string LocationGoldenHourMorningFormatted => LocationTimeSunTimes.GoldenHourMorningStart.ToString("hh:mm tt");
-        public string LocationGoldenHourEveningFormatted => LocationTimeSunTimes.GoldenHourEveningStart.ToString("hh:mm tt");
+        [ObservableProperty]
+        private string _nextOptimalWindowText = string.Empty;
 
-        // Weather Integration - 5 Day Alignment with Business Rules
+        [ObservableProperty]
+        private ObservableCollection<HourlyPredictionDisplayModel> _hourlyPredictions = new();
+
+        [ObservableProperty]
+        private ObservableCollection<SunPathPoint> _sunPathPoints = new();
+
+        [ObservableProperty]
+        private ObservableCollection<OptimalWindowDisplayModel> _optimalWindows = new();
+
+        [ObservableProperty]
+        private string _sunriseDeviceTime = string.Empty;
+
+        [ObservableProperty]
+        private string _sunriseLocationTime = string.Empty;
+
+        [ObservableProperty]
+        private string _sunsetDeviceTime = string.Empty;
+
+        [ObservableProperty]
+        private string _sunsetLocationTime = string.Empty;
+
+        [ObservableProperty]
+        private string _solarNoonDeviceTime = string.Empty;
+
+        [ObservableProperty]
+        private string _solarNoonLocationTime = string.Empty;
+
+        [ObservableProperty]
+        private double _currentAzimuth;
+
+        [ObservableProperty]
+        private double _currentElevation;
+
+        [ObservableProperty]
+        private bool _isSunUp;
+
         [ObservableProperty]
         private WeatherImpactAnalysis _weatherImpact = new();
 
-        // Predictive Light Modeling - Option B Advanced Features
-        [ObservableProperty]
-        private ObservableCollection<HourlyLightPrediction> _hourlyPredictions = new();
-
-        [ObservableProperty]
-        private PredictiveLightRecommendation _lightRecommendation = new();
-
-        [ObservableProperty]
-        private OptimalShootingWindow _bestShootingWindow = new();
-
-        [ObservableProperty]
-        private ObservableCollection<OptimalShootingTime> _optimalShootingTimes = new();
-
-        // Light Meter Integration with Calibration
         [ObservableProperty]
         private bool _isLightMeterCalibrated;
 
@@ -95,34 +106,8 @@ namespace Location.Photography.ViewModels
         [ObservableProperty]
         private double _calibrationAccuracy;
 
-        // Moon Integration
-        [ObservableProperty]
-        private MoonPhaseData _moonData = new();
-
-        // Interactive Sun Path Data
-        [ObservableProperty]
-        private ObservableCollection<SunPathPoint> _sunPathPoints = new();
-
-        [ObservableProperty]
-        private SunPathPoint _currentSunPosition = new();
-
-        // Professional Photography Features
-        [ObservableProperty]
-        private ShadowCalculationResult _shadowData = new();
-
-        // Current Prediction Display - Key Feature for Option B
-        [ObservableProperty]
-        private string _currentPredictionText = string.Empty;
-
-        [ObservableProperty]
-        private bool _isPredictionAvailable;
-        #endregion
-
-        #region Events
         public new event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
-        #endregion
 
-        #region Constructor
         public EnhancedSunCalculatorViewModel(
             IMediator mediator,
             IErrorDisplayService errorDisplayService,
@@ -132,10 +117,10 @@ namespace Location.Photography.ViewModels
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _predictiveLightService = predictiveLightService ?? throw new ArgumentNullException(nameof(predictiveLightService));
-        }
-        #endregion
 
-        #region Commands
+            InitializeTimezoneDisplays();
+        }
+
         [RelayCommand]
         private async Task LoadLocationsAsync()
         {
@@ -147,6 +132,7 @@ namespace Location.Photography.ViewModels
                     _cancellationTokenSource = new CancellationTokenSource();
 
                     ClearErrors();
+                    await LoadUserSettingsAsync();
 
                     var query = new GetLocationsQuery
                     {
@@ -185,7 +171,6 @@ namespace Location.Photography.ViewModels
                 }
                 catch (OperationCanceledException)
                 {
-                    // User cancelled - no error needed
                 }
                 catch (Exception ex)
                 {
@@ -214,21 +199,14 @@ namespace Location.Photography.ViewModels
 
                     ClearErrors();
 
-                    // Execute all enhanced calculations in sequence
-                    await CalculateDualTimezoneSunTimesAsync();
-                    await CalculateMoonDataAsync();
-                    await GenerateSunPathDataAsync();
-                    await CalculateOptimalShootingTimesAsync();
-                    await CalculateShadowDataAsync();
-                    await IntegrateWeatherDataAsync(); // 5-day alignment with business rules
-                    await GeneratePredictiveLightRecommendationsAsync(); // Option B Advanced
-
-                    // Update current prediction display
+                    await CalculateSunTimesAsync();
+                    await GenerateSunPathPointsAsync();
+                    await LoadWeatherAndPredictionsAsync();
+                    await CalculateOptimalWindowsAsync();
                     UpdateCurrentPredictionDisplay();
                 }
                 catch (OperationCanceledException)
                 {
-                    // User cancelled - no error needed  
                 }
                 catch (Exception ex)
                 {
@@ -240,7 +218,7 @@ namespace Location.Photography.ViewModels
         }
 
         [RelayCommand]
-        private async Task CalibrateLightMeterAsync(double currentEV)
+        private async Task CalibrateWithLightMeterAsync(double actualEV)
         {
             var command = new AsyncRelayCommand(async () =>
             {
@@ -252,14 +230,13 @@ namespace Location.Photography.ViewModels
                         return;
                     }
 
-                    // Calibrate predictive model with actual light meter reading
                     var calibrationRequest = new LightMeterCalibrationRequest
                     {
                         LocationId = SelectedLocation.Id,
                         Latitude = SelectedLocation.Latitude,
                         Longitude = SelectedLocation.Longitude,
                         DateTime = DateTime.Now,
-                        ActualEV = currentEV,
+                        ActualEV = actualEV,
                         WeatherConditions = WeatherImpact?.CurrentConditions
                     };
 
@@ -268,10 +245,7 @@ namespace Location.Photography.ViewModels
                     IsLightMeterCalibrated = true;
                     LastLightMeterReading = DateTime.Now;
 
-                    // Regenerate predictions with calibrated model - weighted average with more weight to recent readings
-                    await GeneratePredictiveLightRecommendationsAsync();
-
-                    // Update prediction display with calibrated data
+                    await LoadWeatherAndPredictionsAsync();
                     UpdateCurrentPredictionDisplay();
                 }
                 catch (Exception ex)
@@ -283,101 +257,83 @@ namespace Location.Photography.ViewModels
             await ExecuteAndTrackAsync(command);
         }
 
-        [RelayCommand]
-        private void SetupShootingAlerts()
+        private async Task LoadUserSettingsAsync()
         {
-            // Stubbed as requested - no foreground service implementation yet
             try
             {
-                if (OptimalShootingTimes?.Any() != true)
+                var timeFormatQuery = new GetSettingByKeyQuery { Key = "TimeFormat" };
+                var dateFormatQuery = new GetSettingByKeyQuery { Key = "DateFormat" };
+
+                var timeFormatResult = await _mediator.Send(timeFormatQuery, _cancellationTokenSource.Token);
+                var dateFormatResult = await _mediator.Send(dateFormatQuery, _cancellationTokenSource.Token);
+
+                if (timeFormatResult.IsSuccess && timeFormatResult.Data != null)
                 {
-                    SetValidationError("No optimal shooting times available. Calculate sun data first.");
-                    return;
+                    TimeFormat = timeFormatResult.Data.Value;
                 }
 
-                // Prepare alert data structure for future foreground service
-                var alertRequests = OptimalShootingTimes
-                    .Where(t => t.StartTime > DateTime.Now)
-                    .Take(3) // Limit to next 3 optimal times
-                    .Select(t => new ShootingAlertRequest
-                    {
-                        LocationId = SelectedLocation?.Id ?? 0,
-                        AlertTime = t.StartTime.AddMinutes(-30), // Alert 30 minutes before
-                        ShootingWindowStart = t.StartTime,
-                        ShootingWindowEnd = t.EndTime,
-                        LightQuality = t.LightQuality,
-                        RecommendedSettings = t.RecommendedExposure?.SuggestedSettings?.FormattedSettings,
-                        Message = $"Optimal {t.LightQuality} shooting window starts in 30 minutes"
-                    })
-                    .ToList();
-
-                // Store alerts for future implementation
-                SetValidationError($"Alerts prepared for {alertRequests.Count} upcoming shooting windows. Foreground service coming soon!");
+                if (dateFormatResult.IsSuccess && dateFormatResult.Data != null)
+                {
+                    DateFormat = dateFormatResult.Data.Value;
+                }
             }
             catch (Exception ex)
             {
-                OnSystemError($"Error setting up alerts: {ex.Message}");
-            }
-        }
-        #endregion
-
-        #region Private Methods
-        private async Task CalculateDualTimezoneSunTimesAsync()
-        {
-            if (SelectedLocation == null) return;
-
-            // Get location timezone from coordinates - simplified to local for now
-            LocationTimeZone = await GetTimezoneForCoordinatesAsync(SelectedLocation.Latitude, SelectedLocation.Longitude);
-
-            // Calculate enhanced sun times
-            var sunTimesQuery = new GetEnhancedSunTimesQuery
-            {
-                Latitude = SelectedLocation.Latitude,
-                Longitude = SelectedLocation.Longitude,
-                Date = SelectedDate,
-                UseHighPrecision = true
-            };
-
-            var result = await _mediator.Send(sunTimesQuery, _cancellationTokenSource.Token);
-
-            if (result.IsSuccess && result.Data != null)
-            {
-                // Convert to both timezones for dual display
-                DeviceTimeSunTimes = ConvertSunTimesToTimezone(result.Data, DeviceTimeZone);
-                LocationTimeSunTimes = ConvertSunTimesToTimezone(result.Data, LocationTimeZone);
-
-                // Notify UI of formatted property changes
-                OnPropertyChanged(nameof(DeviceSunriseFormatted));
-                OnPropertyChanged(nameof(DeviceSunsetFormatted));
-                OnPropertyChanged(nameof(DeviceGoldenHourMorningFormatted));
-                OnPropertyChanged(nameof(DeviceGoldenHourEveningFormatted));
-                OnPropertyChanged(nameof(LocationSunriseFormatted));
-                OnPropertyChanged(nameof(LocationSunsetFormatted));
-                OnPropertyChanged(nameof(LocationGoldenHourMorningFormatted));
-                OnPropertyChanged(nameof(LocationGoldenHourEveningFormatted));
+                OnSystemError($"Error loading user settings: {ex.Message}");
             }
         }
 
-        private async Task CalculateMoonDataAsync()
+        private void InitializeTimezoneDisplays()
+        {
+            DeviceTimeZoneDisplay = $"Device: {DeviceTimeZone.DisplayName}";
+            LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+        }
+
+        private async Task CalculateSunTimesAsync()
         {
             if (SelectedLocation == null) return;
 
-            var moonQuery = new GetMoonDataQuery
+            var sunTimesQuery = new GetSunTimesQuery
             {
                 Latitude = SelectedLocation.Latitude,
                 Longitude = SelectedLocation.Longitude,
                 Date = SelectedDate
             };
 
-            var result = await _mediator.Send(moonQuery, _cancellationTokenSource.Token);
+            var result = await _mediator.Send(sunTimesQuery, _cancellationTokenSource.Token);
 
             if (result.IsSuccess && result.Data != null)
             {
-                MoonData = result.Data;
+                var sunTimes = result.Data;
+
+                SunriseDeviceTime = FormatTimeForTimezone(sunTimes.Sunrise, DeviceTimeZone);
+                SunriseLocationTime = FormatTimeForTimezone(sunTimes.Sunrise, LocationTimeZone);
+
+                SunsetDeviceTime = FormatTimeForTimezone(sunTimes.Sunset, DeviceTimeZone);
+                SunsetLocationTime = FormatTimeForTimezone(sunTimes.Sunset, LocationTimeZone);
+
+                SolarNoonDeviceTime = FormatTimeForTimezone(sunTimes.SolarNoon, DeviceTimeZone);
+                SolarNoonLocationTime = FormatTimeForTimezone(sunTimes.SolarNoon, LocationTimeZone);
+
+                var currentPositionQuery = new GetSunPositionQuery
+                {
+                    Latitude = SelectedLocation.Latitude,
+                    Longitude = SelectedLocation.Longitude,
+                    DateTime = DateTime.Now
+                };
+
+                var positionResult = await _mediator.Send(currentPositionQuery, _cancellationTokenSource.Token);
+
+                if (positionResult.IsSuccess && positionResult.Data != null)
+                {
+                    CurrentAzimuth = positionResult.Data.Azimuth;
+                    CurrentElevation = positionResult.Data.Elevation;
+                    IsSunUp = positionResult.Data.Elevation > 0;
+                }
             }
         }
 
-        private async Task GenerateSunPathDataAsync()
+        private async Task GenerateSunPathPointsAsync()
         {
             if (SelectedLocation == null) return;
 
@@ -386,7 +342,7 @@ namespace Location.Photography.ViewModels
                 Latitude = SelectedLocation.Latitude,
                 Longitude = SelectedLocation.Longitude,
                 Date = SelectedDate,
-                IntervalMinutes = 15 // Every 15 minutes for smooth path
+                IntervalMinutes = 15
             };
 
             var result = await _mediator.Send(pathQuery, _cancellationTokenSource.Token);
@@ -396,18 +352,84 @@ namespace Location.Photography.ViewModels
                 SunPathPoints.Clear();
                 foreach (var point in result.Data.PathPoints)
                 {
-                    SunPathPoints.Add(point);
+                    SunPathPoints.Add(new SunPathPoint
+                    {
+                        Time = point.Time,
+                        Azimuth = point.Azimuth,
+                        Elevation = point.Elevation,
+                        IsCurrentPosition = Math.Abs((point.Time - DateTime.Now).TotalMinutes) < 15
+                    });
                 }
-
-                CurrentSunPosition = result.Data.CurrentPosition;
             }
         }
 
-        private async Task CalculateOptimalShootingTimesAsync()
+        private async Task LoadWeatherAndPredictionsAsync()
         {
             if (SelectedLocation == null) return;
 
-            var shootingQuery = new GetOptimalShootingTimesQuery
+            var weatherQuery = new GetWeatherForecastQuery
+            {
+                Latitude = SelectedLocation.Latitude,
+                Longitude = SelectedLocation.Longitude,
+                Days = 5
+            };
+
+            var weatherResult = await _mediator.Send(weatherQuery, _cancellationTokenSource.Token);
+
+            if (weatherResult.IsSuccess && weatherResult.Data != null)
+            {
+                var analysisRequest = new WeatherImpactAnalysisRequest
+                {
+                    WeatherForecast = weatherResult.Data,
+                    SunTimes = new Location.Photography.Domain.Models.EnhancedSunTimes(),
+                    MoonData = new MoonPhaseData()
+                };
+
+                WeatherImpact = await _predictiveLightService.AnalyzeWeatherImpactAsync(analysisRequest, _cancellationTokenSource.Token);
+
+                var predictionRequest = new PredictiveLightRequest
+                {
+                    LocationId = SelectedLocation.Id,
+                    Latitude = SelectedLocation.Latitude,
+                    Longitude = SelectedLocation.Longitude,
+                    TargetDate = SelectedDate,
+                    WeatherImpact = WeatherImpact,
+                    SunTimes = new Location.Photography.Domain.Models.EnhancedSunTimes(),
+                    MoonPhase = new MoonPhaseData(),
+                    LastCalibrationReading = LastLightMeterReading,
+                    PredictionWindowHours = 48
+                };
+
+                var predictions = await _predictiveLightService.GenerateHourlyPredictionsAsync(predictionRequest, _cancellationTokenSource.Token);
+
+                HourlyPredictions.Clear();
+                foreach (var prediction in predictions)
+                {
+                    HourlyPredictions.Add(new HourlyPredictionDisplayModel
+                    {
+                        Time = prediction.DateTime,
+                        DeviceTimeDisplay = FormatTimeForTimezone(prediction.DateTime, DeviceTimeZone),
+                        LocationTimeDisplay = FormatTimeForTimezone(prediction.DateTime, LocationTimeZone),
+                        PredictedEV = prediction.PredictedEV,
+                        EVConfidenceMargin = prediction.EVConfidenceMargin,
+                        SuggestedAperture = prediction.SuggestedSettings.Aperture.Replace("f/", ""),
+                        SuggestedShutterSpeed = prediction.SuggestedSettings.ShutterSpeed,
+                        SuggestedISO = prediction.SuggestedSettings.ISO.Replace("ISO ", ""),
+                        ConfidenceLevel = prediction.ConfidenceLevel,
+                        LightQuality = prediction.LightQuality.OptimalFor,
+                        ColorTemperature = prediction.LightQuality.ColorTemperature,
+                        Recommendations = string.Join(", ", prediction.Recommendations),
+                        IsOptimalTime = prediction.IsOptimalForPhotography
+                    });
+                }
+            }
+        }
+
+        private async Task CalculateOptimalWindowsAsync()
+        {
+            if (SelectedLocation == null) return;
+
+            var optimalQuery = new GetOptimalShootingTimesQuery
             {
                 Latitude = SelectedLocation.Latitude,
                 Longitude = SelectedLocation.Longitude,
@@ -415,164 +437,65 @@ namespace Location.Photography.ViewModels
                 IncludeWeatherForecast = true
             };
 
-            var result = await _mediator.Send(shootingQuery, _cancellationTokenSource.Token);
+            var result = await _mediator.Send(optimalQuery, _cancellationTokenSource.Token);
 
             if (result.IsSuccess && result.Data != null)
             {
-                OptimalShootingTimes.Clear();
-                foreach (var time in result.Data)
+                OptimalWindows.Clear();
+                foreach (var window in result.Data)
                 {
-                    OptimalShootingTimes.Add(time);
+                    OptimalWindows.Add(new OptimalWindowDisplayModel
+                    {
+                        WindowType = window.LightQuality.ToString(),
+                        StartTime = window.StartTime,
+                        EndTime = window.EndTime,
+                        StartTimeDisplay = FormatTimeForTimezone(window.StartTime, LocationTimeZone),
+                        EndTimeDisplay = FormatTimeForTimezone(window.EndTime, LocationTimeZone),
+                        LightQuality = window.Description,
+                        OptimalFor = string.Join(", ", window.IdealFor),
+                        IsCurrentlyActive = DateTime.Now >= window.StartTime && DateTime.Now <= window.EndTime,
+                        ConfidenceLevel = window.QualityScore
+                    });
                 }
-            }
-        }
-
-        private async Task CalculateShadowDataAsync()
-        {
-            if (SelectedLocation == null) return;
-
-            var shadowQuery = new GetShadowCalculationQuery
-            {
-                Latitude = SelectedLocation.Latitude,
-                Longitude = SelectedLocation.Longitude,
-                DateTime = SelectedDate.Add(DateTime.Now.TimeOfDay),
-                ObjectHeight = 6.0, // Default 6 feet person
-                TerrainType = TerrainType.Flat
-            };
-
-            var result = await _mediator.Send(shadowQuery, _cancellationTokenSource.Token);
-
-            if (result.IsSuccess && result.Data != null)
-            {
-                ShadowData = result.Data;
-            }
-        }
-
-        private async Task IntegrateWeatherDataAsync()
-        {
-            if (SelectedLocation == null) return;
-
-            // Get 5-day weather forecast to align with business rules
-            var weatherQuery = new GetWeatherForecastQuery
-            {
-                Latitude = SelectedLocation.Latitude,
-                Longitude = SelectedLocation.Longitude,
-                Days = 5 // Align with existing weather business rules
-            };
-
-            var result = await _mediator.Send(weatherQuery, _cancellationTokenSource.Token);
-
-            if (result.IsSuccess && result.Data != null)
-            {
-                // Analyze weather impact on light conditions
-                var analysisRequest = new WeatherImpactAnalysisRequest
-                {
-                    WeatherForecast = result.Data,
-                    SunTimes = LocationTimeSunTimes,
-                    MoonData = MoonData
-                };
-
-                WeatherImpact = await _predictiveLightService.AnalyzeWeatherImpactAsync(analysisRequest, _cancellationTokenSource.Token);
-            }
-        }
-
-        private async Task GeneratePredictiveLightRecommendationsAsync()
-        {
-            if (SelectedLocation == null) return;
-
-            var predictionRequest = new PredictiveLightRequest
-            {
-                LocationId = SelectedLocation.Id,
-                Latitude = SelectedLocation.Latitude,
-                Longitude = SelectedLocation.Longitude,
-                TargetDate = SelectedDate,
-                WeatherImpact = WeatherImpact,
-                SunTimes = LocationTimeSunTimes,
-                MoonPhase = MoonData,
-                LastCalibrationReading = LastLightMeterReading,
-                PredictionWindowHours = 24
-            };
-
-            // Generate hourly predictions - Key feature for Option B Advanced
-            var predictions = await _predictiveLightService.GenerateHourlyPredictionsAsync(predictionRequest, _cancellationTokenSource.Token);
-
-            HourlyPredictions.Clear();
-            foreach (var prediction in predictions)
-            {
-                HourlyPredictions.Add(prediction);
-            }
-
-            // Generate overall recommendation
-            LightRecommendation = await _predictiveLightService.GenerateRecommendationAsync(predictionRequest, _cancellationTokenSource.Token);
-
-            if (LightRecommendation.BestTimeWindow != null)
-            {
-                BestShootingWindow = LightRecommendation.BestTimeWindow;
-                CalibrationAccuracy = LightRecommendation.CalibrationAccuracy;
             }
         }
 
         private void UpdateCurrentPredictionDisplay()
         {
-            // Update the current prediction text for Option B Advanced display
-            var currentPrediction = HourlyPredictions?.FirstOrDefault(p => p.DateTime.Hour == DateTime.Now.Hour);
+            var now = DateTime.Now;
+            var currentPrediction = HourlyPredictions.FirstOrDefault(p =>
+                Math.Abs((p.Time - now).TotalMinutes) < 30);
 
             if (currentPrediction != null)
             {
-                // Format: "At 6:30 PM, expect EV 11.5 ±0.5, f/4 @ 1/250s ISO 100, 85% confidence"
                 CurrentPredictionText =
-                    $"At {currentPrediction.DateTime:h:mm tt}, expect EV {currentPrediction.PredictedEV:F1} " +
-                    $"±{currentPrediction.EVConfidenceMargin:F1}, {currentPrediction.SuggestedSettings.FormattedSettings}, " +
-                    $"{currentPrediction.ConfidenceLevel:P0} confidence {currentPrediction.ConfidenceReason}";
-
-                IsPredictionAvailable = true;
+                    $"At {currentPrediction.LocationTimeDisplay}, expect EV {currentPrediction.PredictedEV:F1} " +
+                    $"±{currentPrediction.EVConfidenceMargin:F1}, " +
+                    $"f/{currentPrediction.SuggestedAperture} @ {currentPrediction.SuggestedShutterSpeed} " +
+                    $"ISO {currentPrediction.SuggestedISO}, " +
+                    $"{currentPrediction.ConfidenceLevel:P0} confidence";
             }
-            else
+
+            var nextWindow = OptimalWindows.FirstOrDefault(w => w.StartTime > now);
+            if (nextWindow != null)
             {
-                CurrentPredictionText = "No prediction available for current time";
-                IsPredictionAvailable = false;
+                var timeUntil = nextWindow.StartTime - now;
+                NextOptimalWindowText =
+                    $"Next optimal window: {nextWindow.WindowType} in {timeUntil.Hours}h {timeUntil.Minutes}m";
             }
         }
 
-        private async Task<TimeZoneInfo> GetTimezoneForCoordinatesAsync(double latitude, double longitude)
+        private string FormatTimeForTimezone(DateTime utcTime, TimeZoneInfo timezone)
         {
-            // TODO: Implement coordinate to timezone lookup
-            // For now, return local timezone as per business rules
-            return TimeZoneInfo.Local;
-        }
-
-        private EnhancedSunTimes ConvertSunTimesToTimezone(EnhancedSunTimes utcTimes, TimeZoneInfo targetTimezone)
-        {
-            return new EnhancedSunTimes
-            {
-                Sunrise = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.Sunrise, targetTimezone),
-                Sunset = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.Sunset, targetTimezone),
-                SolarNoon = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.SolarNoon, targetTimezone),
-                CivilDawn = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.CivilDawn, targetTimezone),
-                CivilDusk = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.CivilDusk, targetTimezone),
-                NauticalDawn = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.NauticalDawn, targetTimezone),
-                NauticalDusk = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.NauticalDusk, targetTimezone),
-                AstronomicalDawn = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.AstronomicalDawn, targetTimezone),
-                AstronomicalDusk = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.AstronomicalDusk, targetTimezone),
-                BlueHourMorning = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.BlueHourMorning, targetTimezone),
-                BlueHourEvening = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.BlueHourEvening, targetTimezone),
-                GoldenHourMorningStart = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.GoldenHourMorningStart, targetTimezone),
-                GoldenHourMorningEnd = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.GoldenHourMorningEnd, targetTimezone),
-                GoldenHourEveningStart = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.GoldenHourEveningStart, targetTimezone),
-                GoldenHourEveningEnd = TimeZoneInfo.ConvertTimeFromUtc(utcTimes.GoldenHourEveningEnd, targetTimezone),
-                TimeZone = targetTimezone,
-                IsDaylightSavingTime = targetTimezone.IsDaylightSavingTime(DateTime.Now),
-                UtcOffset = targetTimezone.GetUtcOffset(DateTime.Now)
-            };
+            var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, timezone);
+            return localTime.ToString(TimeFormat);
         }
 
         protected override void OnErrorOccurred(string message)
         {
             ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
         }
-        #endregion
 
-        #region Navigation
         public void OnNavigatedToAsync()
         {
             SelectedDate = DateTime.Today;
@@ -583,9 +506,7 @@ namespace Location.Photography.ViewModels
         {
             _cancellationTokenSource?.Cancel();
         }
-        #endregion
 
-        #region Partial Methods
         partial void OnSelectedLocationChanged(LocationListItemViewModel? value)
         {
             if (value != null)
@@ -602,18 +523,12 @@ namespace Location.Photography.ViewModels
                 _ = CalculateEnhancedSunDataAsync();
             }
         }
-        #endregion
 
-        #region Disposal
-        protected override void Dispose(bool disposing)
+        public override void Dispose()
         {
-            if (disposing)
-            {
-                _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource?.Dispose();
-            }
-            base.Dispose(disposing);
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            base.Dispose();
         }
-        #endregion
     }
 }

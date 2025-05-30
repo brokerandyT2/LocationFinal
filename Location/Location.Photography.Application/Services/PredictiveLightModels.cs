@@ -1,13 +1,9 @@
-﻿// Location.Photography.Application/Services/PredictiveLightModels.cs
-using Location.Core.Application.Weather.DTOs;
+﻿using Location.Core.Application.Weather.DTOs;
 using Location.Photography.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
-// Note: This file uses LightQuality and ShadowIntensity from Location.Photography.Domain.Models
-// to avoid namespace conflicts
 
 namespace Location.Photography.Application.Services
 {
@@ -25,7 +21,7 @@ namespace Location.Photography.Application.Services
     public class WeatherImpactAnalysisRequest
     {
         public WeatherForecastDto WeatherForecast { get; set; } = new();
-        public EnhancedSunTimes SunTimes { get; set; } = new();
+        public Location.Photography.Domain.Models.EnhancedSunTimes SunTimes { get; set; } = new();
         public MoonPhaseData MoonData { get; set; } = new();
     }
 
@@ -36,7 +32,7 @@ namespace Location.Photography.Application.Services
         public double Longitude { get; set; }
         public DateTime TargetDate { get; set; }
         public WeatherImpactAnalysis WeatherImpact { get; set; } = new();
-        public EnhancedSunTimes SunTimes { get; set; } = new();
+        public Location.Photography.Domain.Models.EnhancedSunTimes SunTimes { get; set; } = new();
         public MoonPhaseData MoonPhase { get; set; } = new();
         public DateTime? LastCalibrationReading { get; set; }
         public int PredictionWindowHours { get; set; } = 24;
@@ -69,7 +65,7 @@ namespace Location.Photography.Application.Services
     {
         public WeatherConditions? CurrentConditions { get; set; }
         public List<HourlyWeatherImpact> HourlyImpacts { get; set; } = new();
-        public double OverallLightReductionFactor { get; set; } = 1.0; // 1.0 = no reduction, 0.5 = 50% reduction
+        public double OverallLightReductionFactor { get; set; } = 1.0;
         public string Summary { get; set; } = string.Empty;
         public List<WeatherAlert> Alerts { get; set; } = new();
     }
@@ -78,20 +74,20 @@ namespace Location.Photography.Application.Services
     {
         public DateTime Hour { get; set; }
         public double LightReductionFactor { get; set; } = 1.0;
-        public double ColorTemperatureShift { get; set; } = 0; // Kelvin shift from clear sky
-        public double ContrastReduction { get; set; } = 0; // 0-1 scale
+        public double ColorTemperatureShift { get; set; } = 0;
+        public double ContrastReduction { get; set; } = 0;
         public LightQuality PredictedQuality { get; set; } = LightQuality.Unknown;
         public string Reasoning { get; set; } = string.Empty;
     }
 
     public class WeatherConditions
     {
-        public double CloudCover { get; set; } // 0-1
-        public double Precipitation { get; set; } // mm/hour
-        public double Humidity { get; set; } // 0-1
-        public double Visibility { get; set; } // km
-        public int AirQualityIndex { get; set; } // 0-500
-        public double WindSpeed { get; set; } // m/s
+        public double CloudCover { get; set; }
+        public double Precipitation { get; set; }
+        public double Humidity { get; set; }
+        public double Visibility { get; set; }
+        public int AirQualityIndex { get; set; }
+        public double WindSpeed { get; set; }
         public string Description { get; set; } = string.Empty;
     }
 
@@ -110,8 +106,8 @@ namespace Location.Photography.Application.Services
     {
         public DateTime DateTime { get; set; }
         public double PredictedEV { get; set; }
-        public double EVConfidenceMargin { get; set; } // ±margin
-        public double ConfidenceLevel { get; set; } // 0-1
+        public double EVConfidenceMargin { get; set; }
+        public double ConfidenceLevel { get; set; }
         public string ConfidenceReason { get; set; } = string.Empty;
         public ExposureTriangle SuggestedSettings { get; set; } = new();
         public LightCharacteristics LightQuality { get; set; } = new();
@@ -127,7 +123,7 @@ namespace Location.Photography.Application.Services
         public List<OptimalShootingWindow> AlternativeWindows { get; set; } = new();
         public string OverallRecommendation { get; set; } = string.Empty;
         public List<string> KeyInsights { get; set; } = new();
-        public double CalibrationAccuracy { get; set; } // 0-1, only if calibrated
+        public double CalibrationAccuracy { get; set; }
         public bool RequiresRecalibration { get; set; }
     }
 
@@ -136,9 +132,9 @@ namespace Location.Photography.Application.Services
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public LightQuality LightQuality { get; set; }
-        public double OptimalityScore { get; set; } // 0-1
+        public double OptimalityScore { get; set; }
         public string Description { get; set; } = string.Empty;
-        public List<string> RecommendedFor { get; set; } = new(); // "Portraits", "Landscapes", etc.
+        public List<string> RecommendedFor { get; set; } = new();
         public HourlyLightPrediction? RecommendedExposure { get; set; }
         public List<string> Warnings { get; set; } = new();
     }
@@ -147,60 +143,31 @@ namespace Location.Photography.Application.Services
     #region Supporting Models
     public class ExposureTriangle
     {
-        public string Aperture { get; set; } = string.Empty; // "f/4"
-        public string ShutterSpeed { get; set; } = string.Empty; // "1/125s"
-        public string ISO { get; set; } = string.Empty; // "ISO 100"
+        public string Aperture { get; set; } = string.Empty;
+        public string ShutterSpeed { get; set; } = string.Empty;
+        public string ISO { get; set; } = string.Empty;
         public string FormattedSettings => $"{Aperture}, {ShutterSpeed}, {ISO}";
     }
 
     public class LightCharacteristics
     {
-        public double ColorTemperature { get; set; } // Kelvin
-        public double SoftnessFactor { get; set; } // 0-1, 1 = very soft
+        public double ColorTemperature { get; set; }
+        public double SoftnessFactor { get; set; }
         public ShadowIntensity ShadowHarshness { get; set; } = ShadowIntensity.Medium;
-        public string OptimalFor { get; set; } = string.Empty; // "Portraits", "Landscapes"
-        public double DirectionalityFactor { get; set; } // 0-1, 1 = very directional
+        public string OptimalFor { get; set; } = string.Empty;
+        public double DirectionalityFactor { get; set; }
     }
 
     public class SunPosition
     {
-        public double Azimuth { get; set; } // 0-360 degrees
-        public double Elevation { get; set; } // -90 to 90 degrees
-        public double Distance { get; set; } = 1.0; // AU (for seasonal variations)
+        public double Azimuth { get; set; }
+        public double Elevation { get; set; }
+        public double Distance { get; set; } = 1.0;
         public bool IsAboveHorizon { get; set; }
-    }
-
-    public class EnhancedSunTimes
-    {
-        public DateTime Sunrise { get; set; }
-        public DateTime Sunset { get; set; }
-        public DateTime SolarNoon { get; set; }
-        public DateTime CivilDawn { get; set; }
-        public DateTime CivilDusk { get; set; }
-        public DateTime NauticalDawn { get; set; }
-        public DateTime NauticalDusk { get; set; }
-        public DateTime AstronomicalDawn { get; set; }
-        public DateTime AstronomicalDusk { get; set; }
-
-        // Enhanced calculations
-        public DateTime BlueHourMorning { get; set; }
-        public DateTime BlueHourEvening { get; set; }
-        public DateTime GoldenHourMorningStart { get; set; }
-        public DateTime GoldenHourMorningEnd { get; set; }
-        public DateTime GoldenHourEveningStart { get; set; }
-        public DateTime GoldenHourEveningEnd { get; set; }
-
-        public TimeZoneInfo TimeZone { get; set; } = TimeZoneInfo.Local;
-        public bool IsDaylightSavingTime { get; set; }
-        public TimeSpan UtcOffset { get; set; }
-        public TimeSpan SolarTimeOffset { get; set; } // Difference between solar noon and clock noon
     }
     #endregion
 
     #region Enums
-    // Note: LightQuality and ShadowIntensity are already defined in Location.Photography.Domain.Models
-    // Using those existing enums instead of duplicating here
-
     public enum AlertType
     {
         Weather,

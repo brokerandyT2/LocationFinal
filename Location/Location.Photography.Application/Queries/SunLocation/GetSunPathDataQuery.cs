@@ -1,9 +1,9 @@
-﻿// Location.Photography.Application/Queries/SunLocation/GetSunPathDataQuery.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
 using MediatR;
 using System;
+using System.Collections.Generic;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {
@@ -33,5 +33,13 @@ namespace Location.Photography.Application.Queries.SunLocation
         public double SunriseAzimuth { get; set; }
         public double SunsetAzimuth { get; set; }
         public string SeasonalNote { get; set; } = string.Empty;
+    }
+
+    public class SunPathPoint
+    {
+        public DateTime Time { get; set; }
+        public double Azimuth { get; set; }
+        public double Elevation { get; set; }
+        public bool IsVisible { get; set; }
     }
 }

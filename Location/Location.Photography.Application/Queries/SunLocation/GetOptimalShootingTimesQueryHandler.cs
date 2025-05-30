@@ -1,6 +1,4 @@
-﻿// Location.Photography.Application/Queries/SunLocation/GetOptimalShootingTimesQueryHandler.cs
-using Location.Core.Application.Common.Models;
-using Location.Photography.Application.Services;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using MediatR;
@@ -34,13 +32,11 @@ namespace Location.Photography.Application.Queries.SunLocation
 
                 var optimalTimes = new List<OptimalShootingTime>();
 
-                // Calculate key sun times
                 var sunrise = _sunCalculatorService.GetSunrise(request.Date, request.Latitude, request.Longitude);
                 var sunset = _sunCalculatorService.GetSunset(request.Date, request.Latitude, request.Longitude);
                 var civilDawn = _sunCalculatorService.GetCivilDawn(request.Date, request.Latitude, request.Longitude);
                 var civilDusk = _sunCalculatorService.GetCivilDusk(request.Date, request.Latitude, request.Longitude);
 
-                // Blue Hour Morning
                 optimalTimes.Add(new OptimalShootingTime
                 {
                     StartTime = civilDawn,
@@ -51,7 +47,6 @@ namespace Location.Photography.Application.Queries.SunLocation
                     IdealFor = new List<string> { "Cityscapes", "Landscapes", "Architecture" }
                 });
 
-                // Golden Hour Morning
                 optimalTimes.Add(new OptimalShootingTime
                 {
                     StartTime = sunrise,
@@ -62,7 +57,6 @@ namespace Location.Photography.Application.Queries.SunLocation
                     IdealFor = new List<string> { "Portraits", "Landscapes", "Nature" }
                 });
 
-                // Golden Hour Evening
                 optimalTimes.Add(new OptimalShootingTime
                 {
                     StartTime = sunset.AddMinutes(-60),
@@ -73,7 +67,6 @@ namespace Location.Photography.Application.Queries.SunLocation
                     IdealFor = new List<string> { "Portraits", "Landscapes", "Silhouettes" }
                 });
 
-                // Blue Hour Evening
                 optimalTimes.Add(new OptimalShootingTime
                 {
                     StartTime = sunset,
@@ -84,7 +77,6 @@ namespace Location.Photography.Application.Queries.SunLocation
                     IdealFor = new List<string> { "Cityscapes", "Architecture", "Street Photography" }
                 });
 
-                // Sort by start time
                 optimalTimes = optimalTimes.OrderBy(t => t.StartTime).ToList();
 
                 return await Task.FromResult(Result<List<OptimalShootingTime>>.Success(optimalTimes));

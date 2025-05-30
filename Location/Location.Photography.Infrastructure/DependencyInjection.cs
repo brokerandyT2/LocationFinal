@@ -1,5 +1,4 @@
-﻿// Location.Photography.Infrastructure/DependencyInjection.cs
-using Location.Photography.Application.Common.Interfaces;
+﻿using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure.Repositories;
@@ -14,29 +13,21 @@ namespace Location.Photography.Infrastructure
     {
         public static IServiceCollection AddPhotographyInfrastructure(this IServiceCollection services)
         {
-            // Register database initializer
-            //services.AddDatabaseInitializer();
-
             services.AddScoped<ISunCalculatorService, SunCalculatorService>();
             services.AddScoped<ISunService, SunService>();
 
-            // Register exposure calculation services
             services.AddScoped<IExposureTriangleService, ExposureTriangleService>();
             services.AddScoped<IExposureCalculatorService, ExposureCalculatorService>();
 
-            // Register subscription services
             services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
             services.AddScoped<ISubscriptionStatusService, SubscriptionStatusService>();
-            services.AddScoped<ISubscriptionFeatureGuard, SubscriptionFeatureGuard>();
+            services.AddScoped<ISubscriptionFeatureGuard, SubscriptionFeatureGuardService>();
 
-            // Register predictive light service
             services.AddScoped<IPredictiveLightService, PredictiveLightService>();
 
-            // Register other photography services
             services.AddScoped<ISceneEvaluationService, SceneEvaluationService>();
 
-            // Register ViewModels as Transient (new instance each time)
             services.AddTransient<SunCalculationsViewModel>();
             services.AddTransient<SunCalculatorViewModel>();
             services.AddTransient<SunLocationViewModel>();
@@ -47,7 +38,6 @@ namespace Location.Photography.Infrastructure
             services.AddTransient<SettingViewModel>();
             services.AddTransient<EnhancedSunCalculatorViewModel>();
 
-            // Register subscription-aware base ViewModels
             services.AddTransient<SubscriptionAwareViewModelBase>();
 
             return services;
