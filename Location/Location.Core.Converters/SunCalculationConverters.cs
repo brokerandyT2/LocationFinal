@@ -3,7 +3,7 @@ using System;
 using System.Globalization;
 using Microsoft.Maui.Controls;
 
-namespace Location.Photography.Maui.Converters
+namespace Location.Core.Converters
 {
     public class BoolToSunStatusConverter : IValueConverter
     {

@@ -14,70 +14,70 @@ namespace Location.Photography.Infrastructure.Services
         private const double DegToRad = Math.PI / 180.0;
         private const double RadToDeg = 180.0 / Math.PI;
 
-        public DateTime GetSunrise(DateTime date, double latitude, double longitude)
+        public DateTime GetSunrise(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var sunrise = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "sunrise");
-            return sunrise.PhaseTime != default ? sunrise.PhaseTime : date; // Return date if no sunrise found
+            return sunrise.PhaseTime.ToLocalTime() != default ? sunrise.PhaseTime.ToLocalTime() : date; // Return date if no sunrise found
         }
 
-        public DateTime GetSunset(DateTime date, double latitude, double longitude)
+        public DateTime GetSunset(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var sunset = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "sunset");
-            return sunset.PhaseTime != default ? sunset.PhaseTime : date; // Return date if no sunset found
+            return sunset.PhaseTime.ToLocalTime() != default ? sunset.PhaseTime.ToLocalTime() : date; // Return date if no sunset found
         }
 
-        public DateTime GetSolarNoon(DateTime date, double latitude, double longitude)
+        public DateTime GetSolarNoon(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var solarNoon = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "solar noon");
-            return solarNoon.PhaseTime != default ? solarNoon.PhaseTime : date.Date.AddHours(12); // Noon as fallback
+            return solarNoon.PhaseTime.ToLocalTime() != default ? solarNoon.PhaseTime.ToLocalTime() : date.Date.AddHours(12); // Noon as fallback
         }
 
-        public DateTime GetCivilDawn(DateTime date, double latitude, double longitude)
+        public DateTime GetCivilDawn(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var dawn = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "dawn");
-            return dawn.PhaseTime != default ? dawn.PhaseTime : date; // Return date if not found
+            return dawn.PhaseTime.ToLocalTime() != default ? dawn.PhaseTime.ToLocalTime() : date; // Return date if not found
         }
 
-        public DateTime GetCivilDusk(DateTime date, double latitude, double longitude)
+        public DateTime GetCivilDusk(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var dusk = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "dusk");
-            return dusk.PhaseTime != default ? dusk.PhaseTime : date; // Return date if not found
+            return dusk.PhaseTime.ToLocalTime() != default ? dusk.PhaseTime.ToLocalTime() : date; // Return date if not found
         }
 
-        public DateTime GetNauticalDawn(DateTime date, double latitude, double longitude)
+        public DateTime GetNauticalDawn(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var nauticalDawn = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "nautical dawn");
-            return nauticalDawn.PhaseTime != default ? nauticalDawn.PhaseTime : date; // Return date if not found
+            return nauticalDawn.PhaseTime.ToLocalTime() != default ? nauticalDawn.PhaseTime.ToLocalTime() : date; // Return date if not found
         }
 
-        public DateTime GetNauticalDusk(DateTime date, double latitude, double longitude)
+        public DateTime GetNauticalDusk(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var nauticalDusk = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "nautical dusk");
-            return nauticalDusk.PhaseTime != default ? nauticalDusk.PhaseTime : date; // Return date if not found
+            return nauticalDusk.PhaseTime.ToLocalTime() != default ? nauticalDusk.PhaseTime.ToLocalTime() : date; // Return date if not found
         }
 
-        public DateTime GetAstronomicalDawn(DateTime date, double latitude, double longitude)
+        public DateTime GetAstronomicalDawn(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var nightEnd = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "night end");
-            return nightEnd.PhaseTime != default ? nightEnd.PhaseTime : date; // Return date if not found
+            return nightEnd.PhaseTime.ToLocalTime() != default ? nightEnd.PhaseTime.ToLocalTime() : date; // Return date if not found
         }
 
-        public DateTime GetAstronomicalDusk(DateTime date, double latitude, double longitude)
+        public DateTime GetAstronomicalDusk(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var night = phases.FirstOrDefault(p => p.Name.Value == "night");
-            return night.PhaseTime != default ? night.PhaseTime : date; // Return date if not found
+            return night.PhaseTime.ToLocalTime() != default ? night.PhaseTime.ToLocalTime() : date; // Return date if not found
         }
 
-        public double GetSolarAzimuth(DateTime dateTime, double latitude, double longitude)
+        public double GetSolarAzimuth(DateTime dateTime, double latitude, double longitude, string timezone)
         {
             var position = SunCalc.GetSunPosition(dateTime, latitude, longitude);
 
@@ -93,7 +93,7 @@ namespace Location.Photography.Infrastructure.Services
             return azimuthDegrees;
         }
 
-        public double GetSolarElevation(DateTime dateTime, double latitude, double longitude)
+        public double GetSolarElevation(DateTime dateTime, double latitude, double longitude, string timezone)
         {
             var position = SunCalc.GetSunPosition(dateTime, latitude, longitude);
 

@@ -309,15 +309,15 @@ namespace Location.Photography.ViewModels
                 }
 
                 // Calculate sun times using our custom service
-                Sunrise = _sunCalculatorService.GetSunrise(Date, Latitude, Longitude);
-                Sunset = _sunCalculatorService.GetSunset(Date, Latitude, Longitude);
-                SolarNoon = _sunCalculatorService.GetSolarNoon(Date, Latitude, Longitude);
-                AstronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(Date, Latitude, Longitude);
-                AstronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(Date, Latitude, Longitude);
-                NauticalDawn = _sunCalculatorService.GetNauticalDawn(Date, Latitude, Longitude);
-                NauticalDusk = _sunCalculatorService.GetNauticalDusk(Date, Latitude, Longitude);
-                Civildawn = _sunCalculatorService.GetCivilDawn(Date, Latitude, Longitude);
-                Civildusk = _sunCalculatorService.GetCivilDusk(Date, Latitude, Longitude);
+                Sunrise = _sunCalculatorService.GetSunrise(Date, Latitude, Longitude, TimeZoneInfo.Local.ToString());
+                Sunset = _sunCalculatorService.GetSunset(Date, Latitude, Longitude, TimeZoneInfo.Local.ToString());
+                SolarNoon = _sunCalculatorService.GetSolarNoon(Date, Latitude, Longitude, TimeZoneInfo.Local.ToString());
+                AstronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(Date, Latitude, Longitude, TimeZoneInfo.Local.ToString());
+                AstronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(Date, Latitude, Longitude, TimeZoneInfo.Local.ToString());
+                NauticalDawn = _sunCalculatorService.GetNauticalDawn(Date, Latitude, Longitude, TimeZoneInfo.Local.ToString());
+                NauticalDusk = _sunCalculatorService.GetNauticalDusk(Date, Latitude, Longitude, TimeZoneInfo.Local.ToString());
+                Civildawn = _sunCalculatorService.GetCivilDawn(Date, Latitude, Longitude, TimeZoneInfo.Local.ToString());
+                Civildusk = _sunCalculatorService.GetCivilDusk(Date, Latitude, Longitude, TimeZoneInfo.Local.ToString());
             }
             catch (Exception ex)
             {

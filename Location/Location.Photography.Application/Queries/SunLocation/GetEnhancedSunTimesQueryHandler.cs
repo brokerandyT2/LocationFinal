@@ -33,15 +33,15 @@ namespace Location.Photography.Application.Queries.SunLocation
                 // Calculate all sun times with enhanced precision
                 var sunTimes = new EnhancedSunTimes
                 {
-                    Sunrise = _sunCalculatorService.GetSunrise(request.Date, request.Latitude, request.Longitude),
-                    Sunset = _sunCalculatorService.GetSunset(request.Date, request.Latitude, request.Longitude),
-                    SolarNoon = _sunCalculatorService.GetSolarNoon(request.Date, request.Latitude, request.Longitude),
-                    CivilDawn = _sunCalculatorService.GetCivilDawn(request.Date, request.Latitude, request.Longitude),
-                    CivilDusk = _sunCalculatorService.GetCivilDusk(request.Date, request.Latitude, request.Longitude),
-                    NauticalDawn = _sunCalculatorService.GetNauticalDawn(request.Date, request.Latitude, request.Longitude),
-                    NauticalDusk = _sunCalculatorService.GetNauticalDusk(request.Date, request.Latitude, request.Longitude),
-                    AstronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(request.Date, request.Latitude, request.Longitude),
-                    AstronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(request.Date, request.Latitude, request.Longitude),
+                    Sunrise = _sunCalculatorService.GetSunrise(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    Sunset = _sunCalculatorService.GetSunset(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    SolarNoon = _sunCalculatorService.GetSolarNoon(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    CivilDawn = _sunCalculatorService.GetCivilDawn(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    CivilDusk = _sunCalculatorService.GetCivilDusk(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    NauticalDawn = _sunCalculatorService.GetNauticalDawn(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    NauticalDusk = _sunCalculatorService.GetNauticalDusk(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    AstronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    AstronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
                     TimeZone = timezone,
                     IsDaylightSavingTime = timezone.IsDaylightSavingTime(request.Date),
                     UtcOffset = timezone.GetUtcOffset(request.Date)

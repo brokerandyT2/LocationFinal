@@ -58,7 +58,7 @@ namespace Location.Photography.ViewModels
         [ObservableProperty]
         private string _nextOptimalWindowText = string.Empty;
 
-        [ObservableProperty]
+
         private ObservableCollection<HourlyPredictionDisplayModel> _hourlyPredictions = new();
 
         [ObservableProperty]
@@ -105,6 +105,8 @@ namespace Location.Photography.ViewModels
 
         [ObservableProperty]
         private double _calibrationAccuracy;
+
+        public ObservableCollection<HourlyPredictionDisplayModel> HourlyPredictions { get => _hourlyPredictions; set { _hourlyPredictions = value; OnPropertyChanged(nameof(HourlyPredictions)); } }
 
         public new event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
 
@@ -402,26 +404,30 @@ namespace Location.Photography.ViewModels
 
                 var predictions = await _predictiveLightService.GenerateHourlyPredictionsAsync(predictionRequest, _cancellationTokenSource.Token);
 
-                HourlyPredictions.Clear();
+                _hourlyPredictions.Clear();
                 foreach (var prediction in predictions)
                 {
-                    HourlyPredictions.Add(new HourlyPredictionDisplayModel
+                    if (prediction.DateTime >= DateTime.Now)
                     {
-                        Time = prediction.DateTime,
-                        DeviceTimeDisplay = FormatTimeForTimezone(prediction.DateTime, DeviceTimeZone),
-                        LocationTimeDisplay = FormatTimeForTimezone(prediction.DateTime, LocationTimeZone),
-                        PredictedEV = prediction.PredictedEV,
-                        EVConfidenceMargin = prediction.EVConfidenceMargin,
-                        SuggestedAperture = prediction.SuggestedSettings.Aperture.Replace("f/", ""),
-                        SuggestedShutterSpeed = prediction.SuggestedSettings.ShutterSpeed,
-                        SuggestedISO = prediction.SuggestedSettings.ISO.Replace("ISO ", ""),
-                        ConfidenceLevel = prediction.ConfidenceLevel,
-                        LightQuality = prediction.LightQuality.OptimalFor,
-                        ColorTemperature = prediction.LightQuality.ColorTemperature,
-                        Recommendations = string.Join(", ", prediction.Recommendations),
-                        IsOptimalTime = prediction.IsOptimalForPhotography
-                    });
+                        _hourlyPredictions.Add(new HourlyPredictionDisplayModel
+                        {
+                            Time = prediction.DateTime,
+                            DeviceTimeDisplay = FormatTimeForTimezone(prediction.DateTime, DeviceTimeZone),
+                            LocationTimeDisplay = FormatTimeForTimezone(prediction.DateTime, LocationTimeZone),
+                            PredictedEV = prediction.PredictedEV,
+                            EVConfidenceMargin = prediction.EVConfidenceMargin,
+                            SuggestedAperture = prediction.SuggestedSettings.Aperture.Replace("f/", ""),
+                            SuggestedShutterSpeed = prediction.SuggestedSettings.ShutterSpeed,
+                            SuggestedISO = prediction.SuggestedSettings.ISO.Replace("ISO ", ""),
+                            ConfidenceLevel = prediction.ConfidenceLevel,
+                            LightQuality = prediction.LightQuality.OptimalFor,
+                            ColorTemperature = prediction.LightQuality.ColorTemperature,
+                            Recommendations = string.Join(", ", prediction.Recommendations),
+                            IsOptimalTime = prediction.IsOptimalForPhotography
+                        });
+                    }
                 }
+                // _hourlyPredictions = (ObservableCollection<HourlyPredictionDisplayModel>)_hourlyPredictions.OrderBy(x => x.Time);
             }
         }
 
@@ -434,7 +440,8 @@ namespace Location.Photography.ViewModels
                 Latitude = SelectedLocation.Latitude,
                 Longitude = SelectedLocation.Longitude,
                 Date = SelectedDate,
-                IncludeWeatherForecast = true
+                IncludeWeatherForecast = true,
+                TimeZone = LocationTimeZone.Id
             };
 
             var result = await _mediator.Send(optimalQuery, _cancellationTokenSource.Token);
@@ -487,7 +494,32 @@ namespace Location.Photography.ViewModels
 
         private string FormatTimeForTimezone(DateTime utcTime, TimeZoneInfo timezone)
         {
-            var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, timezone);
+            try { 
+                if (timezone == null)
+                {
+                    throw new ArgumentNullException(nameof(timezone), "Timezone cannot be null");
+                }
+            }
+            catch (ArgumentNullException ex)
+            {
+                OnErrorOccurred($"Error formatting time: {ex.Message}");
+            }
+            DateTime localTime = utcTime;
+            try
+            {
+                if (utcTime.Hour == 0 && utcTime.Minute == 0 && utcTime.Second == 0)
+                {
+                }
+                else
+                {
+                    utcTime = DateTime.SpecifyKind(utcTime, DateTimeKind.Utc);
+                    localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, timezone);
+                }
+            }
+            catch (Exception ex)
+            {
+                var y = string.Empty;
+            }
             return localTime.ToString(TimeFormat);
         }
 

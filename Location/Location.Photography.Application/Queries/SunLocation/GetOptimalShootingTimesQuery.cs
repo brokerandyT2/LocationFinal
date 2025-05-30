@@ -12,5 +12,6 @@ namespace Location.Photography.Application.Queries.SunLocation
         public double Longitude { get; set; }
         public DateTime Date { get; set; }
         public bool IncludeWeatherForecast { get; set; } = false;
+        public string TimeZone { get; set; }
     }
 }

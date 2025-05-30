@@ -23,8 +23,8 @@ namespace Location.Photography.Application.Services
 
             try
             {
-                var azimuth = _sunCalculatorService.GetSolarAzimuth(dateTime, latitude, longitude);
-                var elevation = _sunCalculatorService.GetSolarElevation(dateTime, latitude, longitude);
+                var azimuth = _sunCalculatorService.GetSolarAzimuth(dateTime, latitude, longitude, TimeZoneInfo.Local.ToString());
+                var elevation = _sunCalculatorService.GetSolarElevation(dateTime, latitude, longitude, TimeZoneInfo.Local.ToString());
 
                 var result = new SunPositionDto
                 {
@@ -54,19 +54,19 @@ namespace Location.Photography.Application.Services
                     Date = date,
                     Latitude = latitude,
                     Longitude = longitude,
-                    Sunrise = _sunCalculatorService.GetSunrise(date, latitude, longitude),
-                    Sunset = _sunCalculatorService.GetSunset(date, latitude, longitude),
-                    SolarNoon = _sunCalculatorService.GetSolarNoon(date, latitude, longitude),
-                    AstronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(date, latitude, longitude),
-                    AstronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(date, latitude, longitude),
-                    NauticalDawn = _sunCalculatorService.GetNauticalDawn(date, latitude, longitude),
-                    NauticalDusk = _sunCalculatorService.GetNauticalDusk(date, latitude, longitude),
-                    CivilDawn = _sunCalculatorService.GetCivilDawn(date, latitude, longitude),
-                    CivilDusk = _sunCalculatorService.GetCivilDusk(date, latitude, longitude),
-                    GoldenHourMorningStart = _sunCalculatorService.GetSunrise(date, latitude, longitude),
-                    GoldenHourMorningEnd = _sunCalculatorService.GetSunrise(date, latitude, longitude).AddHours(1),
-                    GoldenHourEveningStart = _sunCalculatorService.GetSunset(date, latitude, longitude).AddHours(-1),
-                    GoldenHourEveningEnd = _sunCalculatorService.GetSunset(date, latitude, longitude)
+                    Sunrise = _sunCalculatorService.GetSunrise(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    Sunset = _sunCalculatorService.GetSunset(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    SolarNoon = _sunCalculatorService.GetSolarNoon(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    AstronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    AstronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    NauticalDawn = _sunCalculatorService.GetNauticalDawn(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    NauticalDusk = _sunCalculatorService.GetNauticalDusk(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    CivilDawn = _sunCalculatorService.GetCivilDawn(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    CivilDusk = _sunCalculatorService.GetCivilDusk(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    GoldenHourMorningStart = _sunCalculatorService.GetSunrise(date, latitude, longitude, TimeZoneInfo.Local.ToString()),
+                    GoldenHourMorningEnd = _sunCalculatorService.GetSunrise(date, latitude, longitude, TimeZoneInfo.Local.ToString()).AddHours(1),
+                    GoldenHourEveningStart = _sunCalculatorService.GetSunset(date, latitude, longitude, TimeZoneInfo.Local.ToString()).AddHours(-1),
+                    GoldenHourEveningEnd = _sunCalculatorService.GetSunset(date, latitude, longitude, TimeZoneInfo.Local.ToString())
                 };
 
                 return Result<SunTimesDto>.Success(result);

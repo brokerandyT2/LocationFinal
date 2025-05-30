@@ -31,8 +31,8 @@ namespace Location.Photography.Application.Queries.SunLocation
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var sunElevation = _sunCalculatorService.GetSolarElevation(request.DateTime, request.Latitude, request.Longitude);
-                var sunAzimuth = _sunCalculatorService.GetSolarAzimuth(request.DateTime, request.Latitude, request.Longitude);
+                var sunElevation = _sunCalculatorService.GetSolarElevation(request.DateTime, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
+                var sunAzimuth = _sunCalculatorService.GetSolarAzimuth(request.DateTime, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
 
                 // Calculate shadow length using trigonometry
                 var shadowLength = sunElevation > 0
@@ -53,8 +53,8 @@ namespace Location.Photography.Application.Queries.SunLocation
 
                 for (var time = startTime; time <= endTime; time = time.AddHours(1))
                 {
-                    var elevation = _sunCalculatorService.GetSolarElevation(time, request.Latitude, request.Longitude);
-                    var azimuth = _sunCalculatorService.GetSolarAzimuth(time, request.Latitude, request.Longitude);
+                    var elevation = _sunCalculatorService.GetSolarElevation(time, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
+                    var azimuth = _sunCalculatorService.GetSolarAzimuth(time, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
 
                     if (elevation > 0)
                     {

@@ -209,9 +209,10 @@ namespace Location.Photography.Maui
 
             builder.Services.AddTransient<Views.Professional.SunCalculator>(sp =>
             {
-                var viewModel = sp.GetRequiredService<SunCalculatorViewModel>();
+                var viewModel = sp.GetRequiredService<EnhancedSunCalculatorViewModel>();
                 var alertService = sp.GetRequiredService<IAlertService>();
-                return new Views.Professional.SunCalculator(viewModel, alertService);
+                var mediator = sp.GetRequiredService<IMediator>();
+                return new Views.Professional.SunCalculator(viewModel, alertService, mediator);
             });
 
             // Settings and Onboarding Pages

@@ -21,7 +21,7 @@ namespace Location.Photography.Application.Services
     public class WeatherImpactAnalysisRequest
     {
         public WeatherForecastDto WeatherForecast { get; set; } = new();
-        public Location.Photography.Domain.Models.EnhancedSunTimes SunTimes { get; set; } = new();
+        public EnhancedSunTimes SunTimes { get; set; } = new();
         public MoonPhaseData MoonData { get; set; } = new();
     }
 
@@ -32,7 +32,7 @@ namespace Location.Photography.Application.Services
         public double Longitude { get; set; }
         public DateTime TargetDate { get; set; }
         public WeatherImpactAnalysis WeatherImpact { get; set; } = new();
-        public Location.Photography.Domain.Models.EnhancedSunTimes SunTimes { get; set; } = new();
+        public EnhancedSunTimes SunTimes { get; set; } = new();
         public MoonPhaseData MoonPhase { get; set; } = new();
         public DateTime? LastCalibrationReading { get; set; }
         public int PredictionWindowHours { get; set; } = 24;
@@ -102,20 +102,6 @@ namespace Location.Photography.Application.Services
     #endregion
 
     #region Light Prediction Models
-    public class HourlyLightPrediction
-    {
-        public DateTime DateTime { get; set; }
-        public double PredictedEV { get; set; }
-        public double EVConfidenceMargin { get; set; }
-        public double ConfidenceLevel { get; set; }
-        public string ConfidenceReason { get; set; } = string.Empty;
-        public ExposureTriangle SuggestedSettings { get; set; } = new();
-        public LightCharacteristics LightQuality { get; set; } = new();
-        public List<string> Recommendations { get; set; } = new();
-        public bool IsOptimalForPhotography { get; set; }
-        public SunPosition SunPosition { get; set; } = new();
-    }
-
     public class PredictiveLightRecommendation
     {
         public DateTime GeneratedAt { get; set; }
@@ -137,33 +123,6 @@ namespace Location.Photography.Application.Services
         public List<string> RecommendedFor { get; set; } = new();
         public HourlyLightPrediction? RecommendedExposure { get; set; }
         public List<string> Warnings { get; set; } = new();
-    }
-    #endregion
-
-    #region Supporting Models
-    public class ExposureTriangle
-    {
-        public string Aperture { get; set; } = string.Empty;
-        public string ShutterSpeed { get; set; } = string.Empty;
-        public string ISO { get; set; } = string.Empty;
-        public string FormattedSettings => $"{Aperture}, {ShutterSpeed}, {ISO}";
-    }
-
-    public class LightCharacteristics
-    {
-        public double ColorTemperature { get; set; }
-        public double SoftnessFactor { get; set; }
-        public ShadowIntensity ShadowHarshness { get; set; } = ShadowIntensity.Medium;
-        public string OptimalFor { get; set; } = string.Empty;
-        public double DirectionalityFactor { get; set; }
-    }
-
-    public class SunPosition
-    {
-        public double Azimuth { get; set; }
-        public double Elevation { get; set; }
-        public double Distance { get; set; } = 1.0;
-        public bool IsAboveHorizon { get; set; }
     }
     #endregion
 

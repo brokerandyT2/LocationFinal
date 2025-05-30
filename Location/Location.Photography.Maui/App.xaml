@@ -32,6 +32,7 @@
             <!-- Custom Converters -->
             <!-- Add your custom converters here -->
             <converters:StringToBoolConverter x:Key="CustomStringToBoolConverter"/>
+            <converters:BoolToOptimalColorConverter x:Key="BoolToOptimalColorConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

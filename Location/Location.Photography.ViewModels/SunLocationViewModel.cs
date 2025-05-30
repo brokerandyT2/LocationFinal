@@ -216,8 +216,8 @@ namespace Location.Photography.ViewModels
                     return;
 
                 // Use the SunCalculatorService to get the current sun position
-                var azimuth = _sunCalculatorService.GetSolarAzimuth(SelectedDateTime, Latitude, Longitude);
-                var elevation = _sunCalculatorService.GetSolarElevation(SelectedDateTime, Latitude, Longitude);
+                var azimuth = _sunCalculatorService.GetSolarAzimuth(SelectedDateTime, Latitude, Longitude, TimeZoneInfo.Local.ToString());
+                var elevation = _sunCalculatorService.GetSolarElevation(SelectedDateTime, Latitude, Longitude, TimeZoneInfo.Local.ToString());
 
                 // Update the sun direction (azimuth)
                 SunDirection = azimuth;

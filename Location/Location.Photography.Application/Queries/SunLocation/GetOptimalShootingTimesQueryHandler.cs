@@ -32,10 +32,10 @@ namespace Location.Photography.Application.Queries.SunLocation
 
                 var optimalTimes = new List<OptimalShootingTime>();
 
-                var sunrise = _sunCalculatorService.GetSunrise(request.Date, request.Latitude, request.Longitude);
-                var sunset = _sunCalculatorService.GetSunset(request.Date, request.Latitude, request.Longitude);
-                var civilDawn = _sunCalculatorService.GetCivilDawn(request.Date, request.Latitude, request.Longitude);
-                var civilDusk = _sunCalculatorService.GetCivilDusk(request.Date, request.Latitude, request.Longitude);
+                var sunrise = _sunCalculatorService.GetSunrise(request.Date, request.Latitude, request.Longitude, request.TimeZone);
+                var sunset = _sunCalculatorService.GetSunset(request.Date, request.Latitude, request.Longitude, request.TimeZone);
+                var civilDawn = _sunCalculatorService.GetCivilDawn(request.Date, request.Latitude, request.Longitude, request.TimeZone);
+                var civilDusk = _sunCalculatorService.GetCivilDusk(request.Date, request.Latitude, request.Longitude, request.TimeZone);
 
                 optimalTimes.Add(new OptimalShootingTime
                 {

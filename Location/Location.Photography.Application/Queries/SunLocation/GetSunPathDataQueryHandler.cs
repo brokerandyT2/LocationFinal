@@ -41,8 +41,8 @@ namespace Location.Photography.Application.Queries.SunLocation
 
                 for (var time = startTime; time < endTime; time = time.Add(interval))
                 {
-                    var azimuth = _sunCalculatorService.GetSolarAzimuth(time, request.Latitude, request.Longitude);
-                    var elevation = _sunCalculatorService.GetSolarElevation(time, request.Latitude, request.Longitude);
+                    var azimuth = _sunCalculatorService.GetSolarAzimuth(time, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
+                    var elevation = _sunCalculatorService.GetSolarElevation(time, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
 
                     pathPoints.Add(new SunPathPoint
                     {
@@ -70,13 +70,13 @@ namespace Location.Photography.Application.Queries.SunLocation
                 var currentPosition = new SunPathPoint
                 {
                     Time = DateTime.Now,
-                    Azimuth = _sunCalculatorService.GetSolarAzimuth(DateTime.Now, request.Latitude, request.Longitude),
-                    Elevation = _sunCalculatorService.GetSolarElevation(DateTime.Now, request.Latitude, request.Longitude),
-                    IsVisible = _sunCalculatorService.GetSolarElevation(DateTime.Now, request.Latitude, request.Longitude) > 0
+                    Azimuth = _sunCalculatorService.GetSolarAzimuth(DateTime.Now, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    Elevation = _sunCalculatorService.GetSolarElevation(DateTime.Now, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()),
+                    IsVisible = _sunCalculatorService.GetSolarElevation(DateTime.Now, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString()) > 0
                 };
 
-                var sunrise = _sunCalculatorService.GetSunrise(request.Date, request.Latitude, request.Longitude);
-                var sunset = _sunCalculatorService.GetSunset(request.Date, request.Latitude, request.Longitude);
+                var sunrise = _sunCalculatorService.GetSunrise(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
+                var sunset = _sunCalculatorService.GetSunset(request.Date, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
                 var daylightDuration = sunset - sunrise;
 
                 var result = new SunPathDataResult

@@ -1,7 +1,10 @@
 // Location.Photography.Maui/Views/Professional/SunCalculator.xaml.cs
 using Location.Core.Application.Services;
+using Location.Core.Application.Settings.Queries.GetSettingByKey;
+using Location.Photography.Infrastructure;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
+using MediatR;
 
 namespace Location.Photography.Maui.Views.Professional
 {
@@ -9,24 +12,32 @@ namespace Location.Photography.Maui.Views.Professional
     {
         private readonly EnhancedSunCalculatorViewModel _viewModel;
         private readonly IAlertService _alertService;
-
+        private readonly IMediator _mediator;
         public SunCalculator()
         {
             InitializeComponent();
             // Design-time constructor - uses basic ViewModel for preview
             _viewModel = new EnhancedSunCalculatorViewModel(null, null, null);
+
             BindingContext = _viewModel;
         }
 
-        public SunCalculator(EnhancedSunCalculatorViewModel viewModel, IAlertService alertService)
+        public SunCalculator(EnhancedSunCalculatorViewModel viewModel, IAlertService alertService, IMediator mediator)
         {
             InitializeComponent();
 
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
 
+            
+            _mediator = mediator;
+           
             BindingContext = _viewModel;
+            _viewModel.LoadLocationsCommand.Execute(_viewModel);
+            LocationPicker.SelectedIndex = 0;
+            //_viewModel.CalculateEnhancedSunDataCommand.Execute(_viewModel);
         }
+
 
         protected override async void OnAppearing()
         {
@@ -279,6 +290,6 @@ namespace Location.Photography.Maui.Views.Professional
         }
 
         // Navigation awareness for proper cleanup
-       
+
     }
 }

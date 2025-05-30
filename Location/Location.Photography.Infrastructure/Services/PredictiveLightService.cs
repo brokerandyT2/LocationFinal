@@ -69,14 +69,14 @@ namespace Location.Photography.Infrastructure.Services
             }
         }
 
-        public async Task<List<Application.Services.HourlyLightPrediction>> GenerateHourlyPredictionsAsync(
-            PredictiveLightRequest request,
-            CancellationToken cancellationToken = default)
+        public async Task<List<HourlyLightPrediction>> GenerateHourlyPredictionsAsync(
+    PredictiveLightRequest request,
+    CancellationToken cancellationToken = default)
         {
             try
             {
                 var predictions = new List<HourlyLightPrediction>();
-                var startTime = request.TargetDate.Date;
+                var startTime = request.TargetDate.Date.ToLocalTime();
 
                 for (int hour = 0; hour < request.PredictionWindowHours; hour++)
                 {
@@ -85,7 +85,7 @@ namespace Location.Photography.Infrastructure.Services
                     predictions.Add(prediction);
                 }
 
-                return predictions;
+                return predictions = predictions.OrderBy(x => x.DateTime).ToList() ;
             }
             catch (Exception ex)
             {
@@ -249,9 +249,9 @@ namespace Location.Photography.Infrastructure.Services
         }
 
         private async Task<HourlyLightPrediction> GenerateSingleHourPredictionAsync(
-            PredictiveLightRequest request,
-            DateTime targetTime,
-            CancellationToken cancellationToken)
+     PredictiveLightRequest request,
+     DateTime targetTime,
+     CancellationToken cancellationToken)
         {
             var prediction = new HourlyLightPrediction { DateTime = targetTime };
 
@@ -294,8 +294,8 @@ namespace Location.Photography.Infrastructure.Services
 
         private SunPosition GetSunPosition(DateTime dateTime, double latitude, double longitude)
         {
-            var azimuth = _sunCalculatorService.GetSolarAzimuth(dateTime, latitude, longitude);
-            var elevation = _sunCalculatorService.GetSolarElevation(dateTime, latitude, longitude);
+            var azimuth = _sunCalculatorService.GetSolarAzimuth(dateTime, latitude, longitude, TimeZoneInfo.Local.ToString());
+            var elevation = _sunCalculatorService.GetSolarElevation(dateTime, latitude, longitude, TimeZoneInfo.Local.ToString());
 
             return new SunPosition
             {

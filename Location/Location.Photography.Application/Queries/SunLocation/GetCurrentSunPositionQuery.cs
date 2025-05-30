@@ -31,8 +31,8 @@ namespace Location.Photography.Application.Queries.SunLocation
 
                 try
                 {
-                    var azimuth = _sunCalculatorService.GetSolarAzimuth(request.DateTime, request.Latitude, request.Longitude);
-                    var elevation = _sunCalculatorService.GetSolarElevation(request.DateTime, request.Latitude, request.Longitude);
+                    var azimuth = _sunCalculatorService.GetSolarAzimuth(request.DateTime, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
+                    var elevation = _sunCalculatorService.GetSolarElevation(request.DateTime, request.Latitude, request.Longitude, TimeZoneInfo.Local.ToString());
 
                     var result = new SunPositionDto
                     {
