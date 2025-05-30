@@ -34,7 +34,7 @@ namespace Location.Core.Domain.Entities
         public string Timezone
         {
             get => _timezone;
-            private set => _timezone = value ?? string.Empty;
+            set => _timezone = value ?? string.Empty;
         }
 
         public int TimezoneOffset

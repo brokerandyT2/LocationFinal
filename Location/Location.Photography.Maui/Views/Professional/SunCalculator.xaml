@@ -82,7 +82,7 @@
                 </Frame>
 
                 <!-- Current Prediction Display -->
-                <Frame BackgroundColor="#E8F5E8" HasShadow="True" CornerRadius="10" Padding="15" IsVisible="{Binding CurrentPredictionText, Converter={StaticResource StringToBoolConverter}}">
+                <Frame BackgroundColor="#E8F5E8" HasShadow="True" CornerRadius="10" Padding="15" IsVisible="{Binding CurrentPredictionText, Converter={StaticResource CustomStringToBoolConverter}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -172,7 +172,7 @@
                 </Frame>
 
                 <!-- Weather Impact -->
-                <Frame BackgroundColor="#E1F5FE" HasShadow="True" CornerRadius="10" Padding="15" IsVisible="{Binding WeatherImpact.Summary, Converter={StaticResource StringToBoolConverter}}">
+                <Frame BackgroundColor="#E1F5FE" HasShadow="True" CornerRadius="10" Padding="15" IsVisible="{Binding WeatherImpact.Summary, Converter={StaticResource CustomStringToBoolConverter}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>

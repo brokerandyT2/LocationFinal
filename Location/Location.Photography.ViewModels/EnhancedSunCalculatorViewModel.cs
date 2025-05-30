@@ -1,5 +1,4 @@
-﻿
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Locations.Queries.GetLocations;
@@ -14,6 +13,8 @@ using MediatR;
 using System.Collections.ObjectModel;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
+using Location.Core.Application.Weather.DTOs;
+
 namespace Location.Photography.ViewModels
 {
     public partial class EnhancedSunCalculatorViewModel : ViewModelBase
@@ -23,8 +24,8 @@ namespace Location.Photography.ViewModels
         private readonly IPredictiveLightService _predictiveLightService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITimezoneService _timezoneService;
-        private readonly WeatherEntityToDtoMapper _weatherMapper;
         private CancellationTokenSource _cancellationTokenSource = new();
+
         [ObservableProperty]
         private ObservableCollection<LocationListItemViewModel> _locations = new();
 
@@ -122,8 +123,7 @@ namespace Location.Photography.ViewModels
             IErrorDisplayService errorDisplayService,
             IPredictiveLightService predictiveLightService,
             IUnitOfWork unitOfWork,
-            ITimezoneService timezoneService,
-            WeatherEntityToDtoMapper weatherMapper)
+            ITimezoneService timezoneService)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -131,7 +131,6 @@ namespace Location.Photography.ViewModels
             _predictiveLightService = predictiveLightService ?? throw new ArgumentNullException(nameof(predictiveLightService));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
-            _weatherMapper = weatherMapper ?? throw new ArgumentNullException(nameof(weatherMapper));
 
             InitializeTimezoneDisplays();
         }
@@ -476,33 +475,22 @@ namespace Location.Photography.ViewModels
 
             if (existingWeather != null)
             {
-                // Get forecast data for this weather entity
-                var forecastEntities = await GetWeatherForecastEntitiesAsync(existingWeather.Id);
-
-                // Validate if existing data is suitable for predictions
-                var validationResult = WeatherDataValidator.ValidateForPredictions(existingWeather, forecastEntities);
-
-                if (validationResult.IsValid)
+                // Check if existing data is fresh enough (1 hour max age for predictions)
+                if ((DateTime.UtcNow - existingWeather.LastUpdate).TotalHours < 1)
                 {
-                    // Use existing weather data
-                    weatherForecast = _weatherMapper.MapToWeatherForecastDto(existingWeather, forecastEntities);
-
-                    // Update location timezone if it wasn't set before
-                    if (string.IsNullOrEmpty(existingWeather.Timezone))
-                    {
-                        await UpdateWeatherTimezoneAsync(existingWeather);
-                    }
+                    // Use existing weather data - but we need to get forecast data via query
+                    weatherForecast = await FetchWeatherForecastDataAsync();
                 }
                 else
                 {
-                    // Data is stale or incomplete, fetch fresh data
-                    weatherForecast = await FetchFreshWeatherDataAsync();
+                    // Data is stale, fetch fresh data
+                    weatherForecast = await FetchWeatherForecastDataAsync();
                 }
             }
             else
             {
                 // No existing weather data, fetch fresh data
-                weatherForecast = await FetchFreshWeatherDataAsync();
+                weatherForecast = await FetchWeatherForecastDataAsync();
             }
 
             // Step 2: Generate predictions if we have valid weather data
@@ -516,38 +504,7 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        private async Task<List<WeatherForecastEntity>> GetWeatherForecastEntitiesAsync(int weatherId)
-        {
-            // This would need to be implemented to retrieve forecast entities
-            // For now, return empty list as placeholder
-            return new List<WeatherForecastEntity>();
-        }
-
-        private async Task UpdateWeatherTimezoneAsync(WeatherEntity weatherEntity)
-        {
-            if (SelectedLocation == null) return;
-
-            try
-            {
-                var timezoneResult = await _timezoneService.GetTimezoneFromCoordinatesAsync(
-                    SelectedLocation.Latitude,
-                    SelectedLocation.Longitude,
-                    _cancellationTokenSource.Token);
-
-                if (timezoneResult.IsSuccess)
-                {
-                    weatherEntity.Timezone = timezoneResult.Data;
-                    await _unitOfWork.Weather.UpdateAsync(weatherEntity, _cancellationTokenSource.Token);
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log error but don't fail the whole process
-                System.Diagnostics.Debug.WriteLine($"Error updating weather timezone: {ex.Message}");
-            }
-        }
-
-        private async Task<WeatherForecastDto> FetchFreshWeatherDataAsync()
+        private async Task<WeatherForecastDto> FetchWeatherForecastDataAsync()
         {
             if (SelectedLocation == null) return null;
 
@@ -815,7 +772,14 @@ namespace Location.Photography.ViewModels
                 _ = CalculateEnhancedSunDataAsync();
             }
         }
-
+        [RelayCommand]
+        public async Task RetryLastCommandAsync()
+        {
+            if (LastCommand?.CanExecute(LastCommandParameter) == true)
+            {
+                await LastCommand.ExecuteAsync(LastCommandParameter);
+            }
+        }
         partial void OnSelectedDateChanged(DateTime value)
         {
             if (SelectedLocation != null)
