@@ -11,7 +11,7 @@ using MediatR;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace Location.Photography.Maui.Views.Premium
+namespace Location.Photography.Maui.Views.Professional
 {
     public partial class LightMeter : ContentPage
     {

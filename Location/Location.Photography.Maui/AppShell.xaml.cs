@@ -157,12 +157,7 @@ namespace Location.Photography.Maui
                         IsEnabled = false
                     });
 
-                    subTabs.Add(new TabItem
-                    {
-                        Title = "Light Meter",
-                        PageType = typeof(Views.Premium.LightMeter),
-                        IsEnabled = false
-                    });
+                   
                 }
 
                 _logger.LogInformation($"Discovered {subTabs.Count} Premium sub-tabs: {string.Join(", ", subTabs.Select(s => s.Title))}");
@@ -199,6 +194,12 @@ namespace Location.Photography.Maui
                     {
                         Title = "Sun Calc",
                         PageType = typeof(Views.Professional.SunCalculator),
+                        IsEnabled = false
+                    });
+                    subTabs.Add(new TabItem
+                    {
+                        Title = "Light Meter",
+                        PageType = typeof(Views.Professional.LightMeter),
                         IsEnabled = false
                     });
                 }

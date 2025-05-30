@@ -5,6 +5,7 @@ using Location.Photography.Infrastructure;
 using Location.Photography.Infrastructure.Repositories;
 using Location.Photography.Infrastructure.Services;
 using Location.Photography.Maui.Views.Premium;
+using Location.Photography.Maui.Views.Professional;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using core = Location.Core.Maui.Views;

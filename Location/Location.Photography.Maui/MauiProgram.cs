@@ -184,7 +184,7 @@ namespace Location.Photography.Maui
                 return new Views.Premium.SunLocation(mediator, alertService, locationRepo, sunCalcService, settingRepo, errorService);
             });
 
-            builder.Services.AddTransient<Views.Premium.LightMeter>(sp =>
+            builder.Services.AddTransient<Views.Professional.LightMeter>(sp =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 var alertService = sp.GetRequiredService<IAlertService>();
@@ -193,9 +193,9 @@ namespace Location.Photography.Maui
                 var serviceProvider = sp;
 #if ANDROID
                 var lightSensorService = sp.GetRequiredService<Platforms.Android.ILightSensorService>();
-                return new Views.Premium.LightMeter(mediator, alertService, settingRepo, lightSensorService, expService);
+                return new Views.Professional.LightMeter(mediator, alertService, settingRepo, lightSensorService, expService);
 #else
-                return new Views.Premium.LightMeter();
+                return new Views.Professional.LightMeter();
 #endif
             });
 
