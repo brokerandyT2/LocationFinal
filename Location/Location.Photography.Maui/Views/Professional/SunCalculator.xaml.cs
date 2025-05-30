@@ -36,32 +36,36 @@ namespace Location.Photography.Maui.Views.Professional
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
-             LoadLocations();
-            _viewModel.ErrorOccurred -= OnSystemError;
-            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
-            InitializeSunPathCanvas();
-
-            if (_viewModel.SelectedLocation != null)
-            {
-                _viewModel.CalculateEnhancedSunDataAsync();
-                UpdateSunPathCanvas();
-            }
             BindingContext = _viewModel;
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            
         }
+
+       
+
         private async void LoadLocations()
         {
+           
             try
             {
                 if (_viewModel != null)
                 {
+                    _viewModel.ErrorOccurred -= OnSystemError;
+                    _viewModel.ErrorOccurred += OnSystemError;
+
                     await _viewModel.LoadLocationsAsync();
+
+                    if (_viewModel.SelectedLocation != null)
+                    {
+                        await _viewModel.CalculateEnhancedSunDataAsync();
+                        UpdateSunPathCanvas();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading locations: {ex.Message}");
-                await HandleErrorAsync(ex, "Error loading locations for sun calculator");
+                await HandleErrorAsync(ex, "Error initializing enhanced sun calculator");
             }
         }
         protected override async void OnAppearing()
@@ -432,6 +436,26 @@ namespace Location.Photography.Maui.Views.Professional
         public SunPathDrawable GetSunPathDrawable()
         {
             return _sunPathDrawable;
+        }
+
+        protected override void OnPropertyChanged(string propertyName = null)
+        {
+            base.OnPropertyChanged(propertyName);
+
+
+
+
+
+            if (LocationPicker == null)
+            {
+                LoadLocations();
+            }
+            if (propertyName == nameof(IsVisible) && IsVisible)
+            {
+                // Tab just became visible — refresh or hydrate here
+                
+                BindingContext = _viewModel;
+            }
         }
     }
 }

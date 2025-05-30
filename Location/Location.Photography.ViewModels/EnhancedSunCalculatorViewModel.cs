@@ -137,61 +137,61 @@ namespace Location.Photography.ViewModels
         [RelayCommand]
         public async Task LoadLocationsAsync()
         {
-             var command = new AsyncRelayCommand(async () =>
-              {
-            try
-            {
-                _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource = new CancellationTokenSource();
+            var command = new AsyncRelayCommand(async () =>
+             {
+                 try
+                 {
+                     _cancellationTokenSource?.Cancel();
+                     _cancellationTokenSource = new CancellationTokenSource();
 
-                ClearErrors();
-                await LoadUserSettingsAsync();
+                     ClearErrors();
+                     await LoadUserSettingsAsync();
 
-                var query = new GetLocationsQuery
-                {
-                    PageNumber = 1,
-                    PageSize = 100,
-                    IncludeDeleted = false
-                };
+                     var query = new GetLocationsQuery
+                     {
+                         PageNumber = 1,
+                         PageSize = 100,
+                         IncludeDeleted = false
+                     };
 
-                var result = await _mediator.Send(query, _cancellationTokenSource.Token);
+                     var result = await _mediator.Send(query, _cancellationTokenSource.Token);
 
-                if (result.IsSuccess && result.Data != null)
-                {
-                    Locations.Clear();
-                    foreach (var locationDto in result.Data.Items)
-                    {
-                        Locations.Add(new LocationListItemViewModel
-                        {
-                            Id = locationDto.Id,
-                            Title = locationDto.Title,
-                            Latitude = locationDto.Latitude,
-                            Longitude = locationDto.Longitude,
-                            Photo = locationDto.PhotoPath,
-                            IsDeleted = locationDto.IsDeleted
-                        });
-                    }
+                     if (result.IsSuccess && result.Data != null)
+                     {
+                         Locations.Clear();
+                         foreach (var locationDto in result.Data.Items)
+                         {
+                             Locations.Add(new LocationListItemViewModel
+                             {
+                                 Id = locationDto.Id,
+                                 Title = locationDto.Title,
+                                 Latitude = locationDto.Latitude,
+                                 Longitude = locationDto.Longitude,
+                                 Photo = locationDto.PhotoPath,
+                                 IsDeleted = locationDto.IsDeleted
+                             });
+                         }
 
-                    if (Locations.Count > 0)
-                    {
-                        SelectedLocation = Locations[0];
-                    }
-                }
-                else
-                {
-                    OnSystemError(result.ErrorMessage ?? "Failed to load locations");
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error loading locations: {ex.Message}");
-            }
+                         if (Locations.Count > 0)
+                         {
+                             SelectedLocation = Locations[0];
+                         }
+                     }
+                     else
+                     {
+                         OnSystemError(result.ErrorMessage ?? "Failed to load locations");
+                     }
+                 }
+                 catch (OperationCanceledException)
+                 {
+                 }
+                 catch (Exception ex)
+                 {
+                     OnSystemError($"Error loading locations: {ex.Message}");
+                 }
              });
 
-             await ExecuteAndTrackAsync(command);
+            await ExecuteAndTrackAsync(command);
         }
 
         [RelayCommand]
@@ -559,11 +559,16 @@ namespace Location.Photography.ViewModels
                 };
 
                 var predictions = await _predictiveLightService.GenerateHourlyPredictionsAsync(predictionRequest, _cancellationTokenSource.Token);
-
+                var nowTick = DateTime.Now;
+                
                 _hourlyPredictions.Clear();
                 foreach (var prediction in predictions)
                 {
-                    if (prediction.DateTime >= DateTime.Now)
+                    var predTick = prediction.DateTime;
+
+
+
+                    if (prediction.DateTime > nowTick)
                     {
                         var confidence = CalculateEnhancedConfidence(prediction, WeatherImpact);
 
@@ -682,7 +687,7 @@ namespace Location.Photography.ViewModels
                             LightQuality = window.Description,
                             OptimalFor = string.Join(", ", window.IdealFor),
                             IsCurrentlyActive = DateTime.Now >= window.StartTime && DateTime.Now <= window.EndTime,
-                            
+
                             ConfidenceLevel = window.QualityScore,
                             TimeFormat = TimeFormat
                         });

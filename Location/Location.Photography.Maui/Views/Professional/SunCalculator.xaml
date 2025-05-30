@@ -224,7 +224,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Text="Hourly Light Predictions (Next 48 Hours)" FontSize="16" FontAttributes="Bold" TextColor="#689F38" Margin="0,0,0,10"/>
+                        <Label Grid.Row="0" Text="Hourly Light Predictions" FontSize="16" FontAttributes="Bold" TextColor="#689F38" Margin="0,0,0,10"/>
 
                         <CollectionView Grid.Row="1" ItemsSource="{Binding HourlyPredictions}">
                             <CollectionView.ItemTemplate>
