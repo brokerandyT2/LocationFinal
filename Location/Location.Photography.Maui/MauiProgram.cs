@@ -69,6 +69,7 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<INavigationService, NavigationService>();
             builder.Services.AddSingleton<IErrorDisplayService, ErrorDisplayService>();
             builder.Services.AddSingleton<IImageAnalysisService, ImageAnalysisService>();
+            builder.Services.AddTransient<ITimezoneService, TimezoneService>();
 #if ANDROID
             // Android-specific services
             builder.Services.AddSingleton<Platforms.Android.ILightSensorService, Platforms.Android.LightSensorService>();

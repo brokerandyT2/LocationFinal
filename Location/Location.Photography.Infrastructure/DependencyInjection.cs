@@ -1,4 +1,7 @@
-﻿using Location.Photography.Application.Common.Interfaces;
+﻿using FluentValidation;
+using Location.Core.Application.Common.Interfaces;
+using Location.Core.Infrastructure.UnitOfWork;
+using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure.Repositories;
@@ -6,6 +9,8 @@ using Location.Photography.Infrastructure.Services;
 using Location.Photography.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
+using ISubscriptionRepository = Location.Photography.Application.Common.Interfaces.ISubscriptionRepository;
 
 namespace Location.Photography.Infrastructure
 {
@@ -23,9 +28,10 @@ namespace Location.Photography.Infrastructure
             services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
             services.AddScoped<ISubscriptionStatusService, SubscriptionStatusService>();
             services.AddScoped<ISubscriptionFeatureGuard, SubscriptionFeatureGuardService>();
-
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IPredictiveLightService, PredictiveLightService>();
-
+            services.AddScoped<ITimezoneService, TimezoneService>();
             services.AddScoped<ISceneEvaluationService, SceneEvaluationService>();
 
             services.AddTransient<SunCalculationsViewModel>();

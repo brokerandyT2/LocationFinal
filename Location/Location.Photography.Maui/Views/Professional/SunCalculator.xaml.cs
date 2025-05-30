@@ -1,10 +1,10 @@
-﻿
-using Location.Core.Application.Services;
+﻿using Location.Core.Application.Services;
+using Location.Photography.Application.Services;
+using Location.Photography.Maui.Controls;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
-using Location.Photography.Application.Services;
 using MediatR;
-using Microsoft.Maui.Graphics;
+
 namespace Location.Photography.Maui.Views.Professional
 {
     public partial class SunCalculator : ContentPage
@@ -13,13 +13,16 @@ namespace Location.Photography.Maui.Views.Professional
         private readonly IAlertService _alertService;
         private readonly IMediator _mediator;
         private readonly IExposureCalculatorService _exposureCalculatorService;
-        public SunCalculator()
+        private SunPathDrawable _sunPathDrawable;
+        private bool _isPopupVisible = false;
+
+    /*    public SunCalculator()
         {
             InitializeComponent();
             _viewModel = new EnhancedSunCalculatorViewModel();
             BindingContext = _viewModel;
             InitializeSunPathCanvas();
-        }
+        } */
 
         public SunCalculator(
             EnhancedSunCalculatorViewModel viewModel,
@@ -33,12 +36,34 @@ namespace Location.Photography.Maui.Views.Professional
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
-            _viewModel.LoadLocationsAsync();
-            LocationPicker.SelectedIndex = 0;
-            BindingContext = _viewModel;
-            InitializeSunPathCanvas();
-        }
+             LoadLocations();
+            _viewModel.ErrorOccurred -= OnSystemError;
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
+            InitializeSunPathCanvas();
+
+            if (_viewModel.SelectedLocation != null)
+            {
+                _viewModel.CalculateEnhancedSunDataAsync();
+                UpdateSunPathCanvas();
+            }
+            BindingContext = _viewModel;
+        }
+        private async void LoadLocations()
+        {
+            try
+            {
+                if (_viewModel != null)
+                {
+                    await _viewModel.LoadLocationsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading locations: {ex.Message}");
+                await HandleErrorAsync(ex, "Error loading locations for sun calculator");
+            }
+        }
         protected override async void OnAppearing()
         {
             base.OnAppearing();
@@ -50,7 +75,7 @@ namespace Location.Photography.Maui.Views.Professional
                     _viewModel.ErrorOccurred -= OnSystemError;
                     _viewModel.ErrorOccurred += OnSystemError;
 
-                    await _viewModel.LoadLocationsAsync();
+          
 
                     if (_viewModel.SelectedLocation != null)
                     {
@@ -59,7 +84,7 @@ namespace Location.Photography.Maui.Views.Professional
                     }
 
                     // Subscribe to property changes for sun path updates
-                    _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+                    
                 }
             }
             catch (Exception ex)
@@ -82,9 +107,12 @@ namespace Location.Photography.Maui.Views.Professional
 
         private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            // Update sun path when relevant properties change
             if (e.PropertyName == nameof(_viewModel.SunPathPoints) ||
                 e.PropertyName == nameof(_viewModel.CurrentAzimuth) ||
-                e.PropertyName == nameof(_viewModel.CurrentElevation))
+                e.PropertyName == nameof(_viewModel.CurrentElevation) ||
+                e.PropertyName == nameof(_viewModel.SelectedLocation) ||
+                e.PropertyName == nameof(_viewModel.SelectedDate))
             {
                 MainThread.BeginInvokeOnMainThread(() => UpdateSunPathCanvas());
             }
@@ -92,16 +120,109 @@ namespace Location.Photography.Maui.Views.Professional
 
         private void InitializeSunPathCanvas()
         {
-            SunPathCanvas.Drawable = new SunPathDrawable(_viewModel);
+            try
+            {
+                _sunPathDrawable = new SunPathDrawable(_viewModel);
+                SunPathCanvas.Drawable = _sunPathDrawable;
+
+                // Add tap gesture recognizer for sun event interaction
+                var tapGesture = new TapGestureRecognizer();
+                tapGesture.Tapped += OnSunPathTapped;
+                SunPathCanvas.GestureRecognizers.Add(tapGesture);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error initializing sun path canvas: {ex.Message}");
+            }
         }
 
         private void UpdateSunPathCanvas()
         {
-            if (SunPathCanvas?.Drawable is SunPathDrawable drawable)
+            try
             {
-                drawable.UpdateSunPath(_viewModel);
-                SunPathCanvas.Invalidate();
+                if (_sunPathDrawable != null && _viewModel != null)
+                {
+                    _sunPathDrawable.UpdateViewModel(_viewModel);
+                    SunPathCanvas.Invalidate();
+                }
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating sun path canvas: {ex.Message}");
+            }
+        }
+
+        private async void OnSunPathTapped(object sender, TappedEventArgs e)
+        {
+            try
+            {
+                if (_isPopupVisible || _sunPathDrawable == null || _viewModel == null)
+                    return;
+
+                // Get tap position relative to the canvas
+                var tapPosition = e.GetPosition((View)sender);
+                if (!tapPosition.HasValue)
+                    return;
+
+                var canvasFrame = SunPathCanvas.Frame;
+                var centerX = (float)canvasFrame.Width / 2;
+                var groundY = (float)canvasFrame.Height * 0.75f;
+                var radius = (float)canvasFrame.Width * 0.4f;
+
+                // Check if tap hit any sun event
+                var touchedEvent = _sunPathDrawable.GetTouchedEvent(
+                    new PointF((float)tapPosition.Value.X, (float)tapPosition.Value.Y),
+                    centerX, groundY, radius);
+
+                if (touchedEvent != null)
+                {
+                    await ShowSunEventPopup(touchedEvent);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error handling sun path tap: {ex.Message}");
+            }
+        }
+
+        private async Task ShowSunEventPopup(SunEventPoint sunEvent)
+        {
+            try
+            {
+                _isPopupVisible = true;
+
+                var eventName = GetEventDisplayName(sunEvent.EventType);
+                var message = $"{eventName}\n" +
+                             $"Time: {sunEvent.Time}\n" +
+                             $"Azimuth: {sunEvent.Azimuth:F1}°\n" +
+                             $"Elevation: {sunEvent.Elevation:F1}°";
+
+                await DisplayAlert("Sun Event", message, "OK");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing sun event popup: {ex.Message}");
+            }
+            finally
+            {
+                _isPopupVisible = false;
+            }
+        }
+
+        private string GetEventDisplayName(SunEventType eventType)
+        {
+            return eventType switch
+            {
+                SunEventType.Sunrise => "🌅 Sunrise",
+                SunEventType.Sunset => "🌅 Sunset",
+                SunEventType.SolarNoon => "☀️ Solar Noon",
+                SunEventType.CivilDawn => "🌄 Civil Dawn",
+                SunEventType.CivilDusk => "🌆 Civil Dusk",
+                SunEventType.GoldenHourStart => "✨ Golden Hour Start",
+                SunEventType.GoldenHourEnd => "✨ Golden Hour End",
+                SunEventType.Current => "📍 Current Position",
+                _ => "Sun Event"
+            };
         }
 
         private async void OnSystemError(object sender, OperationErrorEventArgs e)
@@ -243,7 +364,7 @@ namespace Location.Photography.Maui.Views.Professional
                 }
 
                 // Create light meter page with pre-populated values
-                var lightMeterPage = new Professional.LightMeter();// _mediator, _alertService, null, null, _exposureCalculatorService);
+                var lightMeterPage = new Professional.LightMeter();
 
                 // Pre-populate the light meter with prediction values
                 if (lightMeterPage.BindingContext is LightMeterViewModel lightMeterViewModel)
@@ -293,220 +414,24 @@ namespace Location.Photography.Maui.Views.Professional
                 await HandleErrorAsync(ex, "Error opening camera tips");
             }
         }
-    }
 
-    // Custom drawable for sun path canvas
-    public class SunPathDrawable : IDrawable
-    {
-        private EnhancedSunCalculatorViewModel _viewModel;
-        private readonly Color _skyColor = Color.FromRgb(135, 206, 235); // Light blue
-        private readonly Color _arcColor = Color.FromRgb(255, 215, 0); // Gold
-        private readonly Color _sunColor = Color.FromRgb(255, 165, 0); // Orange
-        private readonly Color _markerColor = Color.FromRgb(139, 69, 19); // Brown
-        private readonly Color _nightArcColor = Color.FromRgb(72, 61, 139); // Dark slate blue
-
-        public SunPathDrawable(EnhancedSunCalculatorViewModel viewModel)
+        // Manual refresh method for sun path when data changes
+        public void RefreshSunPath()
         {
-            _viewModel = viewModel;
-        }
-
-        public void UpdateSunPath(EnhancedSunCalculatorViewModel viewModel)
-        {
-            _viewModel = viewModel;
-        }
-
-        public void Draw(ICanvas canvas, RectF dirtyRect)
-        {
-            if (_viewModel == null) return;
-
-            var width = dirtyRect.Width;
-            var height = dirtyRect.Height;
-            var centerX = width / 2;
-            var centerY = height - 20; // Ground level
-            var radius = Math.Min(width, height) * 0.4f;
-
-            // Clear background
-            canvas.FillColor = _skyColor;
-            canvas.FillRectangle(dirtyRect);
-
-            // Draw ground line
-            canvas.StrokeColor = Colors.Green;
-            canvas.StrokeSize = 2;
-            canvas.DrawLine(0, centerY, width, centerY);
-
-            // Draw 24-hour arc (semicircle from east to west)
-            DrawSunArc(canvas, centerX, centerY, radius, true); // Day arc
-            DrawSunArc(canvas, centerX, centerY, radius, false); // Night arc
-
-            // Draw hour markers
-            DrawHourMarkers(canvas, centerX, centerY, radius);
-
-            // Draw major sun event markers
-            DrawSunEventMarkers(canvas, centerX, centerY, radius);
-
-            // Draw current sun position
-            DrawCurrentSunPosition(canvas, centerX, centerY, radius);
-
-            // Draw labels
-            DrawLabels(canvas, centerX, centerY, width, height);
-        }
-
-        private void DrawSunArc(ICanvas canvas, float centerX, float centerY, float radius, bool isDayArc)
-        {
-            canvas.StrokeColor = isDayArc ? _arcColor : _nightArcColor;
-            canvas.StrokeSize = 3;
-
-            if (isDayArc)
+            try
             {
-                // Day arc (above ground)
-                canvas.DrawArc(centerX - radius, centerY - radius, radius * 2, radius * 2, 0, 180, false, false);
+                UpdateSunPathCanvas();
             }
-            else
+            catch (Exception ex)
             {
-                // Night arc (below ground, dashed)
-                canvas.StrokeDashPattern = new float[] { 5, 5 };
-                canvas.DrawArc(centerX - radius, centerY, radius * 2, radius * 2, 0, 180, false, false);
-                canvas.StrokeDashPattern = null;
+                System.Diagnostics.Debug.WriteLine($"Error refreshing sun path: {ex.Message}");
             }
         }
 
-        private void DrawHourMarkers(ICanvas canvas, float centerX, float centerY, float radius)
+        // Helper method to get current sun path drawable for external access
+        public SunPathDrawable GetSunPathDrawable()
         {
-            canvas.StrokeColor = _markerColor;
-            canvas.StrokeSize = 1;
-
-            // Draw hour markers (every 2 hours for clarity)
-            for (int hour = 0; hour <= 24; hour += 2)
-            {
-                var angle = (hour / 24.0) * Math.PI; // 0 to π for 24 hours
-                var x = centerX + (float)(radius * Math.Cos(Math.PI - angle));
-                var y = centerY - (float)(radius * Math.Sin(Math.PI - angle));
-
-                // Draw tick mark
-                var tickLength = (hour % 6 == 0) ? 8 : 4; // Longer ticks for 6AM, 12PM, 6PM, 12AM
-                var outerX = centerX + (float)((radius + tickLength) * Math.Cos(Math.PI - angle));
-                var outerY = centerY - (float)((radius + tickLength) * Math.Sin(Math.PI - angle));
-
-                canvas.DrawLine(x, y, outerX, outerY);
-
-                // Draw hour labels for major times
-                if (hour % 6 == 0)
-                {
-                    var labelX = centerX + (float)((radius + 15) * Math.Cos(Math.PI - angle));
-                    var labelY = centerY - (float)((radius + 15) * Math.Sin(Math.PI - angle));
-
-                    var timeLabel = hour switch
-                    {
-                        0 => "12 AM",
-                        6 => "6 AM",
-                        12 => "12 PM",
-                        18 => "6 PM",
-                        24 => "12 AM",
-                        _ => $"{hour}:00"
-                    };
-
-                    canvas.FontColor = Colors.Black;
-                    canvas.FontSize = 10;
-                    canvas.DrawString(timeLabel, labelX - 15, labelY - 5, 30, 10, HorizontalAlignment.Center, VerticalAlignment.Center);
-                }
-            }
-        }
-
-        private void DrawSunEventMarkers(ICanvas canvas, float centerX, float centerY, float radius)
-        {
-            if (_viewModel.SunPathPoints == null || !_viewModel.SunPathPoints.Any()) return;
-
-            canvas.StrokeColor = Colors.Red;
-            canvas.FillColor = Colors.Red;
-            canvas.StrokeSize = 2;
-
-            // Find key sun events from sun path points
-            var sunrisePoint = _viewModel.SunPathPoints.FirstOrDefault(p => p.Elevation > 0);
-            var sunsetPoint = _viewModel.SunPathPoints.LastOrDefault(p => p.Elevation > 0);
-            var noonPoint = _viewModel.SunPathPoints.OrderByDescending(p => p.Elevation).FirstOrDefault();
-
-            // Draw sunrise marker
-            if (sunrisePoint != null)
-            {
-                DrawEventMarker(canvas, centerX, centerY, radius, sunrisePoint, "SR");
-            }
-
-            // Draw solar noon marker
-            if (noonPoint != null)
-            {
-                DrawEventMarker(canvas, centerX, centerY, radius, noonPoint, "N");
-            }
-
-            // Draw sunset marker
-            if (sunsetPoint != null)
-            {
-                DrawEventMarker(canvas, centerX, centerY, radius, sunsetPoint, "SS");
-            }
-        }
-
-        private void DrawEventMarker(ICanvas canvas, float centerX, float centerY, float radius, SunPathPoint point, string label)
-        {
-            var hour = point.Time.Hour + (point.Time.Minute / 60.0);
-            var angle = (hour / 24.0) * Math.PI;
-            var elevationFactor = Math.Max(0, point.Elevation / 90.0); // Normalize elevation
-            var markerRadius = radius * elevationFactor;
-
-            var x = centerX + (float)(markerRadius * Math.Cos(Math.PI - angle));
-            var y = centerY - (float)(markerRadius * Math.Sin(Math.PI - angle));
-
-            // Draw marker circle
-            canvas.FillCircle(x, y, 4);
-
-            // Draw label
-            canvas.FontColor = Colors.Red;
-            canvas.FontSize = 8;
-            canvas.DrawString(label, x - 10, y - 15, 20, 10, HorizontalAlignment.Center, VerticalAlignment.Center);
-        }
-
-        private void DrawCurrentSunPosition(ICanvas canvas, float centerX, float centerY, float radius)
-        {
-            if (_viewModel.CurrentElevation <= 0) return; // Sun is below horizon
-
-            var currentTime = DateTime.Now;
-            var hour = currentTime.Hour + (currentTime.Minute / 60.0);
-            var angle = (hour / 24.0) * Math.PI;
-            var elevationFactor = Math.Max(0, _viewModel.CurrentElevation / 90.0);
-            var sunRadius = radius * elevationFactor;
-
-            var x = centerX + (float)(sunRadius * Math.Cos(Math.PI - angle));
-            var y = centerY - (float)(sunRadius * Math.Sin(Math.PI - angle));
-
-            // Draw sun
-            canvas.FillColor = _sunColor;
-            canvas.FillCircle(x, y, 8);
-
-            // Draw sun rays
-            canvas.StrokeColor = _sunColor;
-            canvas.StrokeSize = 2;
-            for (int i = 0; i < 8; i++)
-            {
-                var rayAngle = (i * Math.PI * 2) / 8;
-                var rayStartX = x + (float)(10 * Math.Cos(rayAngle));
-                var rayStartY = y + (float)(10 * Math.Sin(rayAngle));
-                var rayEndX = x + (float)(15 * Math.Cos(rayAngle));
-                var rayEndY = y + (float)(15 * Math.Sin(rayAngle));
-                canvas.DrawLine(rayStartX, rayStartY, rayEndX, rayEndY);
-            }
-        }
-
-        private void DrawLabels(ICanvas canvas, float centerX, float centerY, float width, float height)
-        {
-            canvas.FontColor = Colors.Black;
-            canvas.FontSize = 12;
-
-            // Draw compass directions
-            canvas.DrawString("E", 10, centerY - 10, 20, 20, HorizontalAlignment.Center, VerticalAlignment.Center);
-            canvas.DrawString("W", width - 30, centerY - 10, 20, 20, HorizontalAlignment.Center, VerticalAlignment.Center);
-            canvas.DrawString("S", centerX - 10, centerY + 10, 20, 20, HorizontalAlignment.Center, VerticalAlignment.Center);
-
-            // Draw title
-            canvas.FontSize = 14;
-            canvas.DrawString("Sun Path - 24 Hour View", centerX - 60, 10, 120, 20, HorizontalAlignment.Center, VerticalAlignment.Center);
+            return _sunPathDrawable;
         }
     }
 }

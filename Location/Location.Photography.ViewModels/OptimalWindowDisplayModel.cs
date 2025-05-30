@@ -5,6 +5,7 @@
         public string WindowType { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        public bool IsOptimalTime => IsCurrentlyActive || ConfidenceLevel >= 0.7;
         public string FormattedTimeRange => $"{StartTime.ToString(TimeFormat)} - {EndTime.ToString(TimeFormat)}";
         public string TimeFormat { get; set; } = "HH:mm"; // Default time format
         public string StartTimeDisplay { get; set; } = string.Empty;

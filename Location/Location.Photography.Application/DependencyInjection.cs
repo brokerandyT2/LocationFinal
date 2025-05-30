@@ -1,6 +1,8 @@
 ﻿// Location.Photography.Application/DependencyInjection.cs - updated version
 using FluentValidation;
 using Location.Core.Application.Common.Behaviors;
+using Location.Core.Application.Common.Interfaces;
+using Location.Photography.Application.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -18,8 +20,8 @@ namespace Location.Photography.Application
             });
 
             // Register validators
-            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
+            services.AddScoped<ITimezoneService, TimezoneService>();
             return services;
         }
     }

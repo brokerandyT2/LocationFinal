@@ -2,19 +2,20 @@
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Services;
-using Location.Core.Infrastructure.Data.Repositories;
 using Location.Core.Infrastructure.Data;
+using Location.Core.Infrastructure.Data.Repositories;
 using Location.Core.Infrastructure.Events;
 using Location.Core.Infrastructure.External;
 using Location.Core.Infrastructure.Services;
+using Location.Photography.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Location.Core.Infrastructure
 {
@@ -41,7 +42,8 @@ namespace Location.Core.Infrastructure
             // This ensures infrastructure components have a non-circular alerting mechanism
             services.AddScoped<DirectAlertingService>();
             services.TryAddScoped<IAlertService, DirectAlertingService>();
-
+           
+            services.AddScoped<ITimezoneService, TimezoneService>();
             // Register persistence interfaces
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository>(sp =>
                 sp.GetRequiredService<LocationRepository>());

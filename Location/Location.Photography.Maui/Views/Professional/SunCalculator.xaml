@@ -192,13 +192,13 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Text="Optimal Shooting Windows" FontSize="16" FontAttributes="Bold" TextColor="#F57F17" Margin="0,0,0,10"/>
+                        <Label Grid.Row="0" Text="Optimal Future Shooting Windows" FontSize="16" FontAttributes="Bold" TextColor="#F57F17" Margin="0,0,0,10"/>
                         <CollectionView Grid.Row="1" ItemsSource="{Binding OptimalWindows}">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="viewmodels:OptimalWindowDisplayModel">
                                     <Grid Margin="0,5,0,5">
-                                        <Frame BackgroundColor="{Binding IsCurrentlyActive}" 
-                                           CornerRadius="8" Padding="10" HasShadow="False">
+                                        <Frame BackgroundColor="{Binding IsCurrentlyActive, Converter={StaticResource BoolToColorConverterSun}}" 
+       CornerRadius="8" Padding="10" HasShadow="False">
                                             <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto"/>
@@ -218,7 +218,7 @@
                 </Frame>
 
                 <!-- Hourly Light Predictions with Expanders -->
-                <Frame BackgroundColor="#F9FBE7" HasShadow="True" CornerRadius="10" Padding="15">
+                <Frame BackgroundColor="#F9FBE7" HasShadow="True" CornerRadius="10" Padding="15" HeightRequest="300">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -231,7 +231,7 @@
                                 <DataTemplate x:DataType="viewmodels:HourlyPredictionDisplayModel">
                                     <maui:Expander Animated="True" Margin="0,2,0,2">
                                         <maui:Expander.HeaderContent>
-                                            <Grid BackgroundColor="{Binding IsOptimalTime}" Padding="15">
+                                            <Grid BackgroundColor="{Binding IsOptimalTime, Converter={StaticResource BoolToColorConverterSun}}" Padding="15">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>

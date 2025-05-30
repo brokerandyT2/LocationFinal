@@ -26,9 +26,13 @@ namespace Location.Photography.ViewModels
         private readonly ITimezoneService _timezoneService;
         private CancellationTokenSource _cancellationTokenSource = new();
 
-        [ObservableProperty]
-        private ObservableCollection<LocationListItemViewModel> _locations = new();
 
+        private ObservableCollection<LocationListItemViewModel> _locations = new();
+        public ObservableCollection<LocationListItemViewModel> Locations
+        {
+            get => _locations;
+            set { SetProperty(ref _locations, value); OnPropertyChanged(nameof(Locations)); }
+        }
         [ObservableProperty]
         private LocationListItemViewModel? _selectedLocation;
 
@@ -113,18 +117,13 @@ namespace Location.Photography.ViewModels
 
         public new event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
 
-        public EnhancedSunCalculatorViewModel() : base(null, null)
-        {
-            InitializeTimezoneDisplays();
-        }
-
         public EnhancedSunCalculatorViewModel(
-            IMediator mediator,
-            IErrorDisplayService errorDisplayService,
-            IPredictiveLightService predictiveLightService,
-            IUnitOfWork unitOfWork,
-            ITimezoneService timezoneService)
-            : base(null, errorDisplayService)
+      IMediator mediator,
+      IErrorDisplayService errorDisplayService,
+      IPredictiveLightService predictiveLightService,
+      IUnitOfWork unitOfWork,
+      ITimezoneService timezoneService)
+      : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
@@ -138,61 +137,61 @@ namespace Location.Photography.ViewModels
         [RelayCommand]
         public async Task LoadLocationsAsync()
         {
-            var command = new AsyncRelayCommand(async () =>
+             var command = new AsyncRelayCommand(async () =>
+              {
+            try
             {
-                try
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource = new CancellationTokenSource();
+
+                ClearErrors();
+                await LoadUserSettingsAsync();
+
+                var query = new GetLocationsQuery
                 {
-                    _cancellationTokenSource?.Cancel();
-                    _cancellationTokenSource = new CancellationTokenSource();
+                    PageNumber = 1,
+                    PageSize = 100,
+                    IncludeDeleted = false
+                };
 
-                    ClearErrors();
-                    await LoadUserSettingsAsync();
+                var result = await _mediator.Send(query, _cancellationTokenSource.Token);
 
-                    var query = new GetLocationsQuery
+                if (result.IsSuccess && result.Data != null)
+                {
+                    Locations.Clear();
+                    foreach (var locationDto in result.Data.Items)
                     {
-                        PageNumber = 1,
-                        PageSize = 100,
-                        IncludeDeleted = false
-                    };
-
-                    var result = await _mediator.Send(query, _cancellationTokenSource.Token);
-
-                    if (result.IsSuccess && result.Data != null)
-                    {
-                        Locations.Clear();
-                        foreach (var locationDto in result.Data.Items)
+                        Locations.Add(new LocationListItemViewModel
                         {
-                            Locations.Add(new LocationListItemViewModel
-                            {
-                                Id = locationDto.Id,
-                                Title = locationDto.Title,
-                                Latitude = locationDto.Latitude,
-                                Longitude = locationDto.Longitude,
-                                Photo = locationDto.PhotoPath,
-                                IsDeleted = locationDto.IsDeleted
-                            });
-                        }
-
-                        if (Locations.Count > 0)
-                        {
-                            SelectedLocation = Locations[0];
-                        }
+                            Id = locationDto.Id,
+                            Title = locationDto.Title,
+                            Latitude = locationDto.Latitude,
+                            Longitude = locationDto.Longitude,
+                            Photo = locationDto.PhotoPath,
+                            IsDeleted = locationDto.IsDeleted
+                        });
                     }
-                    else
+
+                    if (Locations.Count > 0)
                     {
-                        OnSystemError(result.ErrorMessage ?? "Failed to load locations");
+                        SelectedLocation = Locations[0];
                     }
                 }
-                catch (OperationCanceledException)
+                else
                 {
+                    OnSystemError(result.ErrorMessage ?? "Failed to load locations");
                 }
-                catch (Exception ex)
-                {
-                    OnSystemError($"Error loading locations: {ex.Message}");
-                }
-            });
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error loading locations: {ex.Message}");
+            }
+             });
 
-            await ExecuteAndTrackAsync(command);
+             await ExecuteAndTrackAsync(command);
         }
 
         [RelayCommand]
@@ -671,19 +670,23 @@ namespace Location.Photography.ViewModels
                 OptimalWindows.Clear();
                 foreach (var window in result.Data)
                 {
-                    OptimalWindows.Add(new OptimalWindowDisplayModel
+                    if (window.StartTime > DateTime.Now)
                     {
-                        WindowType = window.LightQuality.ToString(),
-                        StartTime = window.StartTime,
-                        EndTime = window.EndTime,
-                        StartTimeDisplay = FormatTimeForTimezone(window.StartTime, LocationTimeZone),
-                        EndTimeDisplay = FormatTimeForTimezone(window.EndTime, LocationTimeZone),
-                        LightQuality = window.Description,
-                        OptimalFor = string.Join(", ", window.IdealFor),
-                        IsCurrentlyActive = DateTime.Now >= window.StartTime && DateTime.Now <= window.EndTime,
-                        ConfidenceLevel = window.QualityScore,
-                        TimeFormat = TimeFormat
-                    });
+                        OptimalWindows.Add(new OptimalWindowDisplayModel
+                        {
+                            WindowType = window.LightQuality.ToString(),
+                            StartTime = window.StartTime,
+                            EndTime = window.EndTime,
+                            StartTimeDisplay = FormatTimeForTimezone(window.StartTime, LocationTimeZone),
+                            EndTimeDisplay = FormatTimeForTimezone(window.EndTime, LocationTimeZone),
+                            LightQuality = window.Description,
+                            OptimalFor = string.Join(", ", window.IdealFor),
+                            IsCurrentlyActive = DateTime.Now >= window.StartTime && DateTime.Now <= window.EndTime,
+                            
+                            ConfidenceLevel = window.QualityScore,
+                            TimeFormat = TimeFormat
+                        });
+                    }
                 }
             }
         }
