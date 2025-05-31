@@ -13,6 +13,7 @@ namespace Location.Core.Domain.Entities
     public class Weather : AggregateRoot
     {
         private readonly List<WeatherForecast> _forecasts = new();
+        private readonly List<HourlyForecast> _hourlyForecasts = new();
         private Coordinate _coordinate = null!;
         private DateTime _lastUpdate;
         private string _timezone = string.Empty;
@@ -44,6 +45,7 @@ namespace Location.Core.Domain.Entities
         }
 
         public IReadOnlyCollection<WeatherForecast> Forecasts => _forecasts.AsReadOnly();
+        public IReadOnlyCollection<HourlyForecast> HourlyForecasts => _hourlyForecasts.AsReadOnly();
 
         protected Weather() { } // For ORM
 
@@ -68,6 +70,18 @@ namespace Location.Core.Domain.Entities
             AddDomainEvent(new WeatherUpdatedEvent(LocationId, LastUpdate));
         }
 
+        public void UpdateHourlyForecasts(IEnumerable<HourlyForecast> hourlyForecasts)
+        {
+            if (hourlyForecasts == null)
+                throw new ArgumentNullException(nameof(hourlyForecasts));
+
+            _hourlyForecasts.Clear();
+            _hourlyForecasts.AddRange(hourlyForecasts.Take(48)); // Limit to 48-hour forecast
+            LastUpdate = DateTime.UtcNow;
+
+            AddDomainEvent(new WeatherUpdatedEvent(LocationId, LastUpdate));
+        }
+
         public WeatherForecast? GetForecastForDate(DateTime date)
         {
             return _forecasts.FirstOrDefault(f => f.Date.Date == date.Date);
@@ -76,6 +90,22 @@ namespace Location.Core.Domain.Entities
         public WeatherForecast? GetCurrentForecast()
         {
             return GetForecastForDate(DateTime.Today);
+        }
+
+        public IEnumerable<HourlyForecast> GetHourlyForecastsForDate(DateTime date)
+        {
+            return _hourlyForecasts.Where(h => h.DateTime.Date == date.Date);
+        }
+
+        public IEnumerable<HourlyForecast> GetHourlyForecastsForRange(DateTime startTime, DateTime endTime)
+        {
+            return _hourlyForecasts.Where(h => h.DateTime >= startTime && h.DateTime <= endTime);
+        }
+
+        public HourlyForecast? GetCurrentHourlyForecast()
+        {
+            var currentHour = DateTime.UtcNow.Date.AddHours(DateTime.UtcNow.Hour);
+            return _hourlyForecasts.FirstOrDefault(h => h.DateTime >= currentHour);
         }
     }
 }

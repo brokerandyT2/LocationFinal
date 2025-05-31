@@ -1,9 +1,14 @@
 ﻿using Location.Core.Application.Services;
+using Location.Core.Application.Settings.Queries.GetSettingByKey;
+using Location.Core.ViewModels;
 using Location.Photography.Application.Services;
+using Location.Photography.Infrastructure;
 using Location.Photography.Maui.Controls;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
 using MediatR;
+using System.Runtime.CompilerServices;
+using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 
 namespace Location.Photography.Maui.Views.Professional
 {
@@ -16,13 +21,13 @@ namespace Location.Photography.Maui.Views.Professional
         private SunPathDrawable _sunPathDrawable;
         private bool _isPopupVisible = false;
 
-    /*    public SunCalculator()
-        {
-            InitializeComponent();
-            _viewModel = new EnhancedSunCalculatorViewModel();
-            BindingContext = _viewModel;
-            InitializeSunPathCanvas();
-        } */
+        /*    public SunCalculator()
+            {
+                InitializeComponent();
+                _viewModel = new EnhancedSunCalculatorViewModel();
+                BindingContext = _viewModel;
+                InitializeSunPathCanvas();
+            } */
 
         public SunCalculator(
             EnhancedSunCalculatorViewModel viewModel,
@@ -36,17 +41,20 @@ namespace Location.Photography.Maui.Views.Professional
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
-
             BindingContext = _viewModel;
+            _viewModel.IsBusy = true;
+            LoadLocations();
+           _viewModel.IsBusy = false;
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-            
+
         }
 
-       
+
 
         private async void LoadLocations()
         {
-           
+            InitializeSunPathCanvas();
+
             try
             {
                 if (_viewModel != null)
@@ -61,34 +69,11 @@ namespace Location.Photography.Maui.Views.Professional
                         await _viewModel.CalculateEnhancedSunDataAsync();
                         UpdateSunPathCanvas();
                     }
-                }
-            }
-            catch (Exception ex)
-            {
-                await HandleErrorAsync(ex, "Error initializing enhanced sun calculator");
-            }
-        }
-        protected override async void OnAppearing()
-        {
-            base.OnAppearing();
-
-            try
-            {
-                if (_viewModel != null)
-                {
-                    _viewModel.ErrorOccurred -= OnSystemError;
-                    _viewModel.ErrorOccurred += OnSystemError;
-
-          
-
-                    if (_viewModel.SelectedLocation != null)
+                    else
                     {
-                        await _viewModel.CalculateEnhancedSunDataAsync();
-                        UpdateSunPathCanvas();
+                        LocationPicker.SelectedItem = 0;
+                        _viewModel.SelectedLocation = (LocationListItemViewModel)LocationPicker.SelectedItem;
                     }
-
-                    // Subscribe to property changes for sun path updates
-                    
                 }
             }
             catch (Exception ex)
@@ -96,6 +81,23 @@ namespace Location.Photography.Maui.Views.Professional
                 await HandleErrorAsync(ex, "Error initializing enhanced sun calculator");
             }
         }
+
+        
+
+        private bool _isHydrated = false;
+        protected override void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            base.OnPropertyChanged(propertyName);
+            if (!_isHydrated && nameof(IsVisible) == propertyName)
+            {
+                if(!IsVisible)
+                    return;
+
+                LoadLocations();
+                _isHydrated = true;
+            }
+        }
+        
 
         protected override void OnDisappearing()
         {
@@ -140,8 +142,17 @@ namespace Location.Photography.Maui.Views.Professional
             }
         }
 
-        private void UpdateSunPathCanvas()
+        private  void UpdateSunPathCanvas()
         {
+            var time = new GetSettingByKeyQuery() { Key= MagicStrings.TimeFormat };
+            var date = new GetSettingByKeyQuery() { Key = MagicStrings.DateFormat };
+
+         //   var timeFormat =  _mediator.Send(time).Result.Data.Value;
+        //    var dateFormat = _mediator.Send(date).Result.Data.Value;
+         //   _sunPathDrawable.DateFormat = dateFormat ?? "MM/dd/yyyy";
+         //   _sunPathDrawable.TimeFormat = timeFormat ?? "HH:mm:ss";
+
+
             try
             {
                 if (_sunPathDrawable != null && _viewModel != null)
@@ -438,24 +449,5 @@ namespace Location.Photography.Maui.Views.Professional
             return _sunPathDrawable;
         }
 
-        protected override void OnPropertyChanged(string propertyName = null)
-        {
-            base.OnPropertyChanged(propertyName);
-
-
-
-
-
-            if (LocationPicker == null)
-            {
-                LoadLocations();
-            }
-            if (propertyName == nameof(IsVisible) && IsVisible)
-            {
-                // Tab just became visible — refresh or hydrate here
-                
-                BindingContext = _viewModel;
-            }
-        }
     }
 }

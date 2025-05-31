@@ -140,7 +140,7 @@ namespace Location.Photography.Maui
             {
                 if (_serviceProvider != null)
                 {
-                    var mainPage = _serviceProvider.GetService(typeof(MainPage)) as Page;
+                    var mainPage = _serviceProvider.GetService(typeof(App)) as Page;
                     if (mainPage != null)
                     {
                         await Navigation.PushAsync(mainPage);

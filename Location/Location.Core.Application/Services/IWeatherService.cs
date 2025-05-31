@@ -26,6 +26,11 @@ namespace Location.Core.Application.Services
         Task<Result<WeatherForecastDto>> GetForecastAsync(double latitude, double longitude, int days = 7, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets hourly weather forecast for specified coordinates
+        /// </summary>
+        Task<Result<HourlyWeatherForecastDto>> GetHourlyForecastAsync(double latitude, double longitude, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Updates weather for all active locations
         /// </summary>
         Task<Result<int>> UpdateAllWeatherAsync(CancellationToken cancellationToken = default);

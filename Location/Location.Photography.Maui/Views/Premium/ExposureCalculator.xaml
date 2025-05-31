@@ -8,7 +8,6 @@
              Title="Exposure Calculator"
              x:Class="Location.Photography.Maui.Views.Premium.ExposureCalculator">
 
-
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
@@ -19,6 +18,10 @@
     <ScrollView>
         <Grid Padding="10" Margin="5">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -97,47 +100,11 @@
                          CheckedChanged="exposuresteps_CheckedChanged"
                          Margin="5"/>
 
-            <!-- Calculate
-            <Label Text="{x:Static strings:AppResources.calculate}" 
-                   FontSize="14" 
-                   FontAttributes="Bold" 
-                   Grid.Row="3" 
-                   Grid.ColumnSpan="4"
-                   Margin="5"/>
-
-            <RadioButton x:Name="shutter" 
-                         Content="{x:Static strings:AppResources.shutterspeednocolon}" 
-                         GroupName="Calculate" 
-                         Value="0" 
-                         Grid.Row="4" 
-                         Grid.Column="0" 
-                         CheckedChanged="calculate_CheckedChanged"
-                         IsChecked="True"
-                         Margin="5"/>
-
-            <RadioButton x:Name="aperture" 
-                         Content="{x:Static strings:AppResources.aperturenocolon}" 
-                         GroupName="Calculate" 
-                         Value="3" 
-                         Grid.Row="4" 
-                         Grid.Column="1" 
-                         CheckedChanged="calculate_CheckedChanged"
-                         Margin="5"/>
-
-            <RadioButton x:Name="iso" 
-                         Content="{x:Static strings:AppResources.isonocolon}" 
-                         GroupName="Calculate" 
-                         Value="1" 
-                         Grid.Row="4" 
-                         Grid.Column="2" 
-                         CheckedChanged="calculate_CheckedChanged"
-                         Margin="5"/> -->
-
             <!-- EV Setting -->
             <Label Text="EV (Exposure Value)" 
                    FontSize="14" 
                    FontAttributes="Bold" 
-                   Grid.Row="5" 
+                   Grid.Row="3" 
                    Grid.ColumnSpan="4"
                    Margin="5"/>
 
@@ -145,17 +112,36 @@
                     Minimum="-5" 
                     Maximum="5" 
                     Value="0"
-                    Grid.Row="6" 
+                    Grid.Row="4" 
                     Grid.ColumnSpan="4"
                     Margin="15,5,15,5"
                     ValueChanged="EvSlider_ValueChanged"/>
 
             <Label Text="{Binding Source={x:Reference EvSlider}, Path=Value, StringFormat='{0:F0}'}" 
                    HorizontalOptions="Center" 
-                   Grid.Row="6" 
+                   Grid.Row="4" 
                    Grid.ColumnSpan="4" 
                    VerticalOptions="End"
                    Margin="5" />
+
+            <!-- Presets -->
+            <Label Text="Camera Presets" 
+                   FontSize="14" 
+                   FontAttributes="Bold" 
+                   Grid.Row="5" 
+                   Grid.ColumnSpan="4"
+                   Margin="5"/>
+
+            <Picker x:Name="PresetPicker" 
+                    Grid.Row="6" 
+                    Grid.ColumnSpan="4" 
+                    ItemsSource="{Binding AvailablePresets}" 
+                    SelectedItem="{Binding SelectedPreset}"
+                    ItemDisplayBinding="{Binding Name}"
+                    Title="Select a preset..."
+                    SelectedIndexChanged="PresetPicker_SelectedIndexChanged"
+                    FontSize="14"
+                    Margin="5"/>
 
             <!-- Base Exposure -->
             <Label Text="{x:Static strings:AppResources.baseexposure}" 
@@ -165,9 +151,10 @@
                    Grid.ColumnSpan="4"
                    Margin="5"/>
 
+            <!-- Base exposure headers -->
             <Label Text="{x:Static strings:AppResources.shutterspeed}" 
                    TextColor="{StaticResource Primary}" 
-                   FontSize="14" 
+                   FontSize="12" 
                    FontAttributes="Bold" 
                    Grid.Row="8" 
                    Grid.Column="0"
@@ -176,7 +163,7 @@
 
             <Label Text="{x:Static strings:AppResources.fStop}" 
                    TextColor="{StaticResource Primary}" 
-                   FontSize="14" 
+                   FontSize="12" 
                    FontAttributes="Bold" 
                    Grid.Row="8" 
                    Grid.Column="1"
@@ -185,51 +172,86 @@
 
             <Label Text="{x:Static strings:AppResources.iso}" 
                    TextColor="{StaticResource Primary}" 
-                   FontSize="14" 
+                   FontSize="12" 
                    FontAttributes="Bold" 
                    Grid.Row="8" 
                    Grid.Column="2"
                    HorizontalOptions="Center"
                    Margin="5"/>
 
-            <Picker x:Name="ShutterSpeed_Picker" 
-                    Grid.Row="9" 
-                    Grid.Column="0" 
-                    ItemsSource="{Binding ShutterSpeedsForPicker}" 
-                    SelectedItem="{Binding ShutterSpeedSelected}"
-                    SelectedIndexChanged="ShutterSpeed_Picker_SelectedIndexChanged"
-                    FontSize="14"
-                    Margin="5"/>
+            <!-- Base exposure pickers with lock buttons -->
+            <Grid Grid.Row="9" Grid.Column="0" Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="45"/>
+                </Grid.ColumnDefinitions>
+                <Picker x:Name="ShutterSpeed_Picker" 
+                        Grid.Column="0"
+                        ItemsSource="{Binding ShutterSpeedsForPicker}" 
+                        SelectedItem="{Binding ShutterSpeedSelected}"
+                        SelectedIndexChanged="ShutterSpeed_Picker_SelectedIndexChanged"
+                        FontSize="12"/>
+                <Button x:Name="ShutterLockButton"
+                        Grid.Column="1"
+                        WidthRequest="10"
+                        HeightRequest="10"
+                        FontSize="8"
+                        Padding="0"
+                        BackgroundColor="White"/>
+            </Grid>
 
-            <Picker x:Name="fstop_Picker" 
-                    Grid.Row="9" 
-                    Grid.Column="1" 
-                    ItemsSource="{Binding ApeaturesForPicker}" 
-                    SelectedItem="{Binding FStopSelected}"
-                    SelectedIndexChanged="fstop_Picker_SelectedIndexChanged"
-                    FontSize="14"
-                    Margin="5"/>
+            <Grid Grid.Row="9" Grid.Column="1" Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="45"/>
+                </Grid.ColumnDefinitions>
+                <Picker x:Name="fstop_Picker" 
+                        Grid.Column="0"
+                        ItemsSource="{Binding ApeaturesForPicker}" 
+                        SelectedItem="{Binding FStopSelected}"
+                        SelectedIndexChanged="fstop_Picker_SelectedIndexChanged"
+                        FontSize="12"/>
+                <Button x:Name="ApertureLockButton"
+                        Grid.Column="1"
+                        WidthRequest="10"
+                        HeightRequest="10"
+                        FontSize="8"
+                        Padding="0"
+                        BackgroundColor="White"/>
+            </Grid>
 
-            <Picker x:Name="ISO_Picker" 
-                    Grid.Row="9" 
-                    Grid.Column="2" 
-                    ItemsSource="{Binding ISOsForPicker}" 
-                    SelectedItem="{Binding ISOSelected}"
-                    SelectedIndexChanged="ISO_Picker_SelectedIndexChanged"
-                    FontSize="14"
-                    Margin="5"/>
+            <Grid Grid.Row="9" Grid.Column="2" Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="45"/>
+                </Grid.ColumnDefinitions>
+                <Picker x:Name="ISO_Picker" 
+                        Grid.Column="0"
+                        ItemsSource="{Binding ISOsForPicker}" 
+                        SelectedItem="{Binding ISOSelected}"
+                        SelectedIndexChanged="ISO_Picker_SelectedIndexChanged"
+                        FontSize="12"/>
+                <Button x:Name="IsoLockButton"
+                        Grid.Column="1"
+                        WidthRequest="10"
+                        HeightRequest="10"
+                        FontSize="8"
+                        Padding="0"
+                        BackgroundColor="White"/>
+            </Grid>
 
-            <!-- Results -->
-            <Label Text="{x:Static strings:AppResources.results}" 
+            <!-- Target Values Section -->
+            <Label Text="Target Values" 
                    FontSize="14" 
                    FontAttributes="Bold" 
                    Grid.Row="10" 
                    Grid.ColumnSpan="4"
                    Margin="5"/>
 
+            <!-- Target headers -->
             <Label Text="{x:Static strings:AppResources.shutterspeed}" 
-                   TextColor="{StaticResource Primary}" 
-                   FontSize="14" 
+                   TextColor="Black" 
+                   FontSize="12" 
                    FontAttributes="Bold" 
                    Grid.Row="11" 
                    Grid.Column="0"
@@ -237,8 +259,8 @@
                    Margin="5"/>
 
             <Label Text="{x:Static strings:AppResources.fStop}" 
-                   TextColor="{StaticResource Primary}" 
-                   FontSize="14" 
+                   TextColor="Black" 
+                   FontSize="12" 
                    FontAttributes="Bold" 
                    Grid.Row="11" 
                    Grid.Column="1"
@@ -246,41 +268,115 @@
                    Margin="5"/>
 
             <Label Text="{x:Static strings:AppResources.iso}" 
-                   TextColor="{StaticResource Primary}" 
-                   FontSize="14" 
+                   TextColor="Black" 
+                   FontSize="12" 
                    FontAttributes="Bold" 
                    Grid.Row="11" 
                    Grid.Column="2"
                    HorizontalOptions="Center"
                    Margin="5"/>
 
-            <Label Text="{Binding ShutterSpeedResult}" 
-                   x:Name="shutterspeedresult" 
-                   Grid.Row="12" 
+            <!-- Target value pickers -->
+            <Picker x:Name="TargetShutterSpeed_Picker" 
+                    Grid.Row="12" 
+                    Grid.Column="0" 
+                    ItemsSource="{Binding ShutterSpeedsForPicker}" 
+                    SelectedItem="{Binding ShutterSpeedSelected}"
+                    SelectedIndexChanged="TargetShutterSpeed_Picker_SelectedIndexChanged"
+                    FontSize="12"
+                    Margin="5"/>
+
+            <Picker x:Name="TargetFstop_Picker" 
+                    Grid.Row="12" 
+                    Grid.Column="1" 
+                    ItemsSource="{Binding ApeaturesForPicker}" 
+                    SelectedItem="{Binding FStopSelected}"
+                    SelectedIndexChanged="TargetFstop_Picker_SelectedIndexChanged"
+                    FontSize="12"
+                    Margin="5"/>
+
+            <Picker x:Name="TargetISO_Picker" 
+                    Grid.Row="12" 
+                    Grid.Column="2" 
+                    ItemsSource="{Binding ISOsForPicker}" 
+                    SelectedItem="{Binding ISOSelected}"
+                    SelectedIndexChanged="TargetISO_Picker_SelectedIndexChanged"
+                    FontSize="12"
+                    Margin="5"/>
+
+            <!-- Results -->
+            <Label Text="{x:Static strings:AppResources.results}" 
+                   FontSize="14" 
+                   FontAttributes="Bold" 
+                   Grid.Row="13" 
+                   Grid.ColumnSpan="4"
+                   Margin="5"/>
+
+            <!-- Results headers -->
+            <Label Text="{x:Static strings:AppResources.shutterspeed}" 
+                   TextColor="{StaticResource Primary}" 
+                   FontSize="12" 
+                   FontAttributes="Bold" 
+                   Grid.Row="14" 
                    Grid.Column="0"
                    HorizontalOptions="Center"
-                   FontSize="14"
+                   Margin="5"/>
+
+            <Label Text="{x:Static strings:AppResources.fStop}" 
+                   TextColor="{StaticResource Primary}" 
+                   FontSize="12" 
+                   FontAttributes="Bold" 
+                   Grid.Row="14" 
+                   Grid.Column="1"
+                   HorizontalOptions="Center"
+                   Margin="5"/>
+
+            <Label Text="{x:Static strings:AppResources.iso}" 
+                   TextColor="{StaticResource Primary}" 
+                   FontSize="12" 
+                   FontAttributes="Bold" 
+                   Grid.Row="14" 
+                   Grid.Column="2"
+                   HorizontalOptions="Center"
+                   Margin="5"/>
+
+            <!-- Results values -->
+            <Label Text="{Binding ShutterSpeedResult}" 
+                   x:Name="shutterspeedresult" 
+                   Grid.Row="15" 
+                   Grid.Column="0"
+                   HorizontalOptions="Center"
+                   FontSize="12"
                    Margin="5"/>
 
             <Label Text="{Binding FStopResult}" 
                    x:Name="fstopresult" 
-                   Grid.Row="12" 
+                   Grid.Row="15" 
                    Grid.Column="1"
                    HorizontalOptions="Center"
-                   FontSize="14"
+                   FontSize="12"
                    Margin="5"/>
 
             <Label Text="{Binding ISOResult}" 
                    x:Name="isoresult" 
-                   Grid.Row="12" 
+                   Grid.Row="15" 
                    Grid.Column="2"
                    HorizontalOptions="Center"
-                   FontSize="14"
+                   FontSize="12"
                    Margin="5"/>
+
+            <!-- Reset button -->
+            <Button Text="Reset" 
+                    Grid.Row="16" 
+                    Grid.ColumnSpan="4" 
+                    Command="{Binding ResetCommand}"
+                    FontSize="12"
+                    Padding="5"
+                    Margin="5"/>
 
             <!-- Error message -->
             <Grid IsVisible="{Binding ShowError}" 
-                  Grid.Row="13" 
+                  Grid.Row="17" 
                   Grid.ColumnSpan="4" 
                   BackgroundColor="{StaticResource TransparentErrorBrush}" 
                   Padding="10" 
@@ -288,27 +384,27 @@
                 <Label x:Name="errorLabel" 
                        Text="{Binding ErrorMessage}" 
                        TextColor="{StaticResource ErrorRed}"
-                       FontSize="14"
+                       FontSize="12"
                        Margin="5"/>
             </Grid>
 
             <!-- Busy indicator overlay -->
-            <Grid IsVisible="{Binding VmIsBusy}" 
+            <Grid IsVisible="{Binding IsBusy}" 
                   BackgroundColor="{StaticResource TransparentOverlayBrush}"
-                  Grid.RowSpan="14"
+                  Grid.RowSpan="18"
                   Grid.ColumnSpan="4"
                   Padding="10"
                   Margin="5">
                 <VerticalStackLayout VerticalOptions="Center" 
                                      HorizontalOptions="Center"
                                      Spacing="10">
-                    <ActivityIndicator IsRunning="{Binding VmIsBusy}" 
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                        HeightRequest="50" 
                                        WidthRequest="50" 
                                        Color="Blue" />
                     <Label Text="Processing, please wait..." 
                            TextColor="White" 
-                           FontSize="14"
+                           FontSize="12"
                            Margin="5"/>
                 </VerticalStackLayout>
             </Grid>

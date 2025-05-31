@@ -45,7 +45,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         .OrderBy(f => f.Date)
                         .ToListAsync();
 
-                    var weather = MapToDomain(weatherEntity, forecastEntities);
+                    var hourlyForecastEntities = await _context.Table<HourlyForecastEntity>()
+                        .Where(h => h.WeatherId == id)
+                        .OrderBy(h => h.DateTime)
+                        .ToListAsync();
+
+                    var weather = MapToDomain(weatherEntity, forecastEntities, hourlyForecastEntities);
 
                     _logger.LogInformation("Successfully retrieved weather with ID {WeatherId}", id);
                     return weather;
@@ -79,7 +84,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         .OrderBy(f => f.Date)
                         .ToListAsync();
 
-                    var weather = MapToDomain(weatherEntity, forecastEntities);
+                    var hourlyForecastEntities = await _context.Table<HourlyForecastEntity>()
+                        .Where(h => h.WeatherId == weatherEntity.Id)
+                        .OrderBy(h => h.DateTime)
+                        .ToListAsync();
+
+                    var weather = MapToDomain(weatherEntity, forecastEntities, hourlyForecastEntities);
                     return weather;
                 },
                 _exceptionMapper,
@@ -105,6 +115,13 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         SetPrivateProperty(forecast, "Id", forecastEntity.Id);
                     }
 
+                    foreach (var hourlyForecast in weather.HourlyForecasts)
+                    {
+                        var hourlyForecastEntity = MapHourlyForecastToEntity(hourlyForecast, weatherEntity.Id);
+                        await _context.InsertAsync(hourlyForecastEntity);
+                        SetPrivateProperty(hourlyForecast, "Id", hourlyForecastEntity.Id);
+                    }
+
                     _logger.LogInformation("Created weather with ID {WeatherId} for location {LocationId}",
                         weatherEntity.Id, weather.LocationId);
 
@@ -124,6 +141,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     var weatherEntity = MapToEntity(weather);
                     await _context.UpdateAsync(weatherEntity);
 
+                    // Delete existing forecasts
                     var existingForecasts = await _context.Table<WeatherForecastEntity>()
                         .Where(f => f.WeatherId == weather.Id)
                         .ToListAsync();
@@ -133,11 +151,30 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         await _context.DeleteAsync(forecast);
                     }
 
+                    // Delete existing hourly forecasts
+                    var existingHourlyForecasts = await _context.Table<HourlyForecastEntity>()
+                        .Where(h => h.WeatherId == weather.Id)
+                        .ToListAsync();
+
+                    foreach (var hourlyForecast in existingHourlyForecasts)
+                    {
+                        await _context.DeleteAsync(hourlyForecast);
+                    }
+
+                    // Insert new forecasts
                     foreach (var forecast in weather.Forecasts)
                     {
                         var forecastEntity = MapForecastToEntity(forecast, weather.Id);
                         await _context.InsertAsync(forecastEntity);
                         SetPrivateProperty(forecast, "Id", forecastEntity.Id);
+                    }
+
+                    // Insert new hourly forecasts
+                    foreach (var hourlyForecast in weather.HourlyForecasts)
+                    {
+                        var hourlyForecastEntity = MapHourlyForecastToEntity(hourlyForecast, weather.Id);
+                        await _context.InsertAsync(hourlyForecastEntity);
+                        SetPrivateProperty(hourlyForecast, "Id", hourlyForecastEntity.Id);
                     }
 
                     _logger.LogInformation("Updated weather with ID {WeatherId}", weather.Id);
@@ -160,6 +197,15 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     foreach (var forecast in forecasts)
                     {
                         await _context.DeleteAsync(forecast);
+                    }
+
+                    var hourlyForecasts = await _context.Table<HourlyForecastEntity>()
+                        .Where(h => h.WeatherId == weather.Id)
+                        .ToListAsync();
+
+                    foreach (var hourlyForecast in hourlyForecasts)
+                    {
+                        await _context.DeleteAsync(hourlyForecast);
                     }
 
                     var weatherEntity = MapToEntity(weather);
@@ -195,7 +241,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
                             .OrderBy(f => f.Date)
                             .ToListAsync();
 
-                        var weather = MapToDomain(weatherEntity, forecastEntities);
+                        var hourlyForecastEntities = await _context.Table<HourlyForecastEntity>()
+                            .Where(h => h.WeatherId == weatherEntity.Id)
+                            .OrderBy(h => h.DateTime)
+                            .ToListAsync();
+
+                        var weather = MapToDomain(weatherEntity, forecastEntities, hourlyForecastEntities);
                         weatherList.Add(weather);
                     }
 
@@ -227,7 +278,12 @@ namespace Location.Core.Infrastructure.Data.Repositories
                             .OrderBy(f => f.Date)
                             .ToListAsync();
 
-                        var weather = MapToDomain(weatherEntity, forecastEntities);
+                        var hourlyForecastEntities = await _context.Table<HourlyForecastEntity>()
+                            .Where(h => h.WeatherId == weatherEntity.Id)
+                            .OrderBy(h => h.DateTime)
+                            .ToListAsync();
+
+                        var weather = MapToDomain(weatherEntity, forecastEntities, hourlyForecastEntities);
                         weatherList.Add(weather);
                     }
 
@@ -241,7 +297,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         #region Mapping Methods
 
-        private Weather MapToDomain(WeatherEntity entity, List<WeatherForecastEntity> forecastEntities)
+        private Weather MapToDomain(WeatherEntity entity, List<WeatherForecastEntity> forecastEntities, List<HourlyForecastEntity> hourlyForecastEntities)
         {
             var coordinate = new Coordinate(entity.Latitude, entity.Longitude);
             var weather = CreateWeatherViaReflection(entity.LocationId, coordinate, entity.Timezone, entity.TimezoneOffset);
@@ -251,6 +307,9 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
             var forecasts = forecastEntities.Select(f => MapForecastToDomain(f)).ToList();
             weather.UpdateForecasts(forecasts);
+
+            var hourlyForecasts = hourlyForecastEntities.Select(h => MapHourlyForecastToDomain(h)).ToList();
+            weather.UpdateHourlyForecasts(hourlyForecasts);
 
             return weather;
         }
@@ -272,6 +331,20 @@ namespace Location.Core.Infrastructure.Data.Repositories
             forecast.SetMoonData(entity.MoonRise, entity.MoonSet, entity.MoonPhase);
 
             return forecast;
+        }
+
+        private HourlyForecast MapHourlyForecastToDomain(HourlyForecastEntity entity)
+        {
+            var wind = new WindInfo(entity.WindSpeed, entity.WindDirection, entity.WindGust);
+
+            var hourlyForecast = CreateHourlyForecastViaReflection(
+                entity.WeatherId, entity.DateTime, entity.Temperature, entity.FeelsLike,
+                entity.Description, entity.Icon, wind, entity.Humidity, entity.Pressure,
+                entity.Clouds, entity.UvIndex, entity.ProbabilityOfPrecipitation, entity.Visibility, entity.DewPoint);
+
+            SetPrivateProperty(hourlyForecast, "Id", entity.Id);
+
+            return hourlyForecast;
         }
 
         private WeatherEntity MapToEntity(Weather weather)
@@ -316,6 +389,30 @@ namespace Location.Core.Infrastructure.Data.Repositories
             };
         }
 
+        private HourlyForecastEntity MapHourlyForecastToEntity(HourlyForecast hourlyForecast, int weatherId)
+        {
+            return new HourlyForecastEntity
+            {
+                Id = hourlyForecast.Id,
+                WeatherId = weatherId,
+                DateTime = hourlyForecast.DateTime,
+                Temperature = hourlyForecast.Temperature,
+                FeelsLike = hourlyForecast.FeelsLike,
+                Description = hourlyForecast.Description,
+                Icon = hourlyForecast.Icon,
+                WindSpeed = hourlyForecast.Wind.Speed,
+                WindDirection = hourlyForecast.Wind.Direction,
+                WindGust = hourlyForecast.Wind.Gust,
+                Humidity = hourlyForecast.Humidity,
+                Pressure = hourlyForecast.Pressure,
+                Clouds = hourlyForecast.Clouds,
+                UvIndex = hourlyForecast.UvIndex,
+                ProbabilityOfPrecipitation = hourlyForecast.ProbabilityOfPrecipitation,
+                Visibility = hourlyForecast.Visibility,
+                DewPoint = hourlyForecast.DewPoint
+            };
+        }
+
         private Weather CreateWeatherViaReflection(int locationId, Coordinate coordinate, string timezone, int timezoneOffset)
         {
             var type = typeof(Weather);
@@ -343,6 +440,27 @@ namespace Location.Core.Infrastructure.Data.Repositories
             {
                 weatherId, date, sunrise, sunset, temperature, minTemperature, maxTemperature,
                 description, icon, wind, humidity, pressure, clouds, uvIndex
+            });
+        }
+
+        private HourlyForecast CreateHourlyForecastViaReflection(int weatherId, DateTime dateTime, double temperature, double feelsLike,
+            string description, string icon, WindInfo wind, int humidity, int pressure, int clouds, double uvIndex,
+            double probabilityOfPrecipitation, int visibility, double dewPoint)
+        {
+            var type = typeof(HourlyForecast);
+            var constructor = type.GetConstructor(new[]
+            {
+                typeof(int), typeof(DateTime), typeof(double), typeof(double),
+                typeof(string), typeof(string), typeof(WindInfo),
+                typeof(int), typeof(int), typeof(int), typeof(double),
+                typeof(double), typeof(int), typeof(double)
+            });
+            if (constructor == null)
+                throw new InvalidOperationException("Cannot find HourlyForecast constructor");
+            return (HourlyForecast)constructor.Invoke(new object[]
+            {
+                weatherId, dateTime, temperature, feelsLike, description, icon, wind,
+                humidity, pressure, clouds, uvIndex, probabilityOfPrecipitation, visibility, dewPoint
             });
         }
 

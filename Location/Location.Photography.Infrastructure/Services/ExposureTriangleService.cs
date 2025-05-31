@@ -158,8 +158,8 @@ namespace Location.Photography.Infrastructure.Services
             string newIso = FindClosestValue(isoValues, newIsoValue, ValueType.Iso);
 
             // Check for extreme values
-            double maxIsoValue = ParseIso(isoValues[0]); // Highest ISO value
-            double minIsoValue = ParseIso(isoValues[isoValues.Length - 1]); // Lowest ISO value
+            double maxIsoValue = ParseIso(isoValues[isoValues.Length - 1]); // Highest ISO value (last in array)
+            double minIsoValue = ParseIso(isoValues[0]); // Lowest ISO value (first in array)
 
             if (newIsoValue > maxIsoValue * 1.5)
             {

@@ -113,6 +113,14 @@ namespace Location.Photography.ViewModels
         [ObservableProperty]
         private double _calibrationAccuracy;
 
+        [ObservableProperty]
+        private DateTime _sunriseUtc;
+
+        [ObservableProperty]
+        private DateTime _sunsetUtc;
+
+        [ObservableProperty]
+        private DateTime _solarNoonUtc;
         public ObservableCollection<HourlyPredictionDisplayModel> HourlyPredictions { get => _hourlyPredictions; set { _hourlyPredictions = value; OnPropertyChanged(nameof(HourlyPredictions)); } }
 
         public new event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
@@ -405,7 +413,9 @@ namespace Location.Photography.ViewModels
             if (result.IsSuccess && result.Data != null)
             {
                 var sunTimes = result.Data;
-
+                SunriseUtc = sunTimes.Sunrise;
+                SunsetUtc = sunTimes.Sunset;
+                SolarNoonUtc = sunTimes.SolarNoon;
                 SunriseDeviceTime = FormatTimeForTimezone(sunTimes.Sunrise, DeviceTimeZone);
                 SunriseLocationTime = FormatTimeForTimezone(sunTimes.Sunrise, LocationTimeZone);
 
@@ -559,17 +569,21 @@ namespace Location.Photography.ViewModels
                 };
 
                 var predictions = await _predictiveLightService.GenerateHourlyPredictionsAsync(predictionRequest, _cancellationTokenSource.Token);
-                var nowTick = DateTime.Now;
-                
+                var nowUtc = DateTime.UtcNow;
+
                 _hourlyPredictions.Clear();
                 foreach (var prediction in predictions)
                 {
-                    var predTick = prediction.DateTime;
+                    // Ensure prediction.DateTime is treated as UTC for comparison
+                    var predictionUtc = prediction.DateTime.Kind == DateTimeKind.Utc
+                        ? prediction.DateTime
+                        : DateTime.SpecifyKind(prediction.DateTime, DateTimeKind.Utc);
 
-
-
-                    if (prediction.DateTime > nowTick)
+                    // Only show future predictions (at least 1 hour from now)
+                    if (predictionUtc > nowUtc.AddMinutes(30))
                     {
+                        var predTick = prediction.DateTime;
+
                         var confidence = CalculateEnhancedConfidence(prediction, WeatherImpact);
 
                         _hourlyPredictions.Add(new HourlyPredictionDisplayModel
@@ -675,8 +689,9 @@ namespace Location.Photography.ViewModels
                 OptimalWindows.Clear();
                 foreach (var window in result.Data)
                 {
-                    if (window.StartTime > DateTime.Now)
-                    {
+                    var time = window.StartTime;
+                    var tim = window.EndTime;
+
                         OptimalWindows.Add(new OptimalWindowDisplayModel
                         {
                             WindowType = window.LightQuality.ToString(),
@@ -691,7 +706,7 @@ namespace Location.Photography.ViewModels
                             ConfidenceLevel = window.QualityScore,
                             TimeFormat = TimeFormat
                         });
-                    }
+                    
                 }
             }
         }

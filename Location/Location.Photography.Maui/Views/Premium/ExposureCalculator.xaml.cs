@@ -19,6 +19,7 @@ namespace Location.Photography.Maui.Views.Premium
         private const double _thirdStopEV = 0.33;
         private double _currentEVStep = _fullStopEV;
         private IMediator _mediator;
+
         public ExposureCalculator()
         {
             InitializeComponent();
@@ -26,18 +27,21 @@ namespace Location.Photography.Maui.Views.Premium
             _viewModel.CalculateCommand.Execute(_viewModel);
             BindingContext = _viewModel;
             CloseButton.IsVisible = false;
+            AddHandlers();
         }
 
         public ExposureCalculator(
             IExposureCalculatorService exposureCalculatorService,
             IAlertService alertService,
-            IErrorDisplayService errorDisplayService, IMediator mediator)
+            IErrorDisplayService errorDisplayService,
+            IMediator mediator)
         {
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             InitializeComponent();
             InitializeViewModel(exposureCalculatorService);
+            AddHandlers();
         }
 
         public ExposureCalculator(
@@ -53,6 +57,58 @@ namespace Location.Photography.Maui.Views.Premium
             InitializeComponent();
             CloseButton.IsVisible = isFromTips;
             InitializeViewModelFromTip(exposureCalculatorService, tipID);
+            AddHandlers();
+        }
+        private void AddHandlers()
+        {
+            ShutterLockButton.ImageSource = "lockopen.png";
+            IsoLockButton.ImageSource = "lockopen.png";
+            ApertureLockButton.ImageSource = "lockopen.png";
+
+            ShutterLockButton.Pressed += (s, e) => HandleClick("shutter");
+            IsoLockButton.Pressed += (s, e) => HandleClick("iso");
+            ApertureLockButton.Pressed += (s, e) => HandleClick("aperture");
+            _viewModel.IsBusy = false;
+        }
+
+        private void HandleClick(string v)
+        {
+            if (v == "shutter")
+            {
+
+                ShutterSpeed_Picker.IsEnabled = !ShutterSpeed_Picker.IsEnabled;
+                ShutterLockButton.ImageSource = ShutterSpeed_Picker.IsEnabled ? "lockopen.png" : "lock.png";
+
+                IsoLockButton.ImageSource = "lockopen.png";
+                ISO_Picker.IsEnabled = true;
+
+                ApertureLockButton.ImageSource = "lockopen.png";
+                fstop_Picker.IsEnabled = true;
+            }
+            else if (v == "iso")
+            {
+                ShutterLockButton.ImageSource = "lockopen.png";
+                ShutterSpeed_Picker.IsEnabled = true;
+
+
+                ISO_Picker.IsEnabled = !ISO_Picker.IsEnabled;
+                IsoLockButton.ImageSource = ISO_Picker.IsEnabled ? "lockopen.png" : "lock.png";
+
+                ApertureLockButton.ImageSource = "lockopen.png";
+                fstop_Picker.IsEnabled = true;
+            }
+            else if (v == "aperture")
+            {
+                ShutterLockButton.ImageSource = "lockopen.png";
+                ShutterSpeed_Picker.IsEnabled = true;
+
+                IsoLockButton.ImageSource = "lockopen.png";
+                ISO_Picker.IsEnabled = true;
+
+                fstop_Picker.IsEnabled = !fstop_Picker.IsEnabled;
+                ApertureLockButton.ImageSource = fstop_Picker.IsEnabled ? "lockopen.png" : "lock.png";
+
+            }
         }
 
         private void InitializeViewModel(IExposureCalculatorService exposureCalculatorService)
@@ -85,6 +141,12 @@ namespace Location.Photography.Maui.Views.Premium
 
                 _viewModel.ToCalculate = Application.Services.FixedValue.ShutterSpeeds;
                 _viewModel.EVValue = 0;
+
+                // Initialize target pickers to same values
+                SyncTargetPickers();
+
+                // Subscribe to lock state changes
+                _viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
                 _skipCalculations = false;
                 _viewModel.Calculate();
@@ -126,6 +188,12 @@ namespace Location.Photography.Maui.Views.Premium
 
                 _viewModel.ToCalculate = Application.Services.FixedValue.ShutterSpeeds;
                 _viewModel.EVValue = 0;
+
+                // Initialize target pickers to same values
+                SyncTargetPickers();
+
+                // Subscribe to lock state changes
+                _viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
                 _skipCalculations = false;
                 _viewModel.Calculate();
@@ -175,6 +243,36 @@ namespace Location.Photography.Maui.Views.Premium
             }
         }
 
+        private void SyncTargetPickers()
+        {
+            if (_viewModel == null) return;
+
+            try
+            {
+                // Set target pickers to match base exposure values
+                if (TargetShutterSpeed_Picker.ItemsSource != null && !string.IsNullOrEmpty(_viewModel.ShutterSpeedSelected))
+                {
+                    TargetShutterSpeed_Picker.SelectedItem = _viewModel.ShutterSpeedSelected;
+                }
+
+                if (TargetFstop_Picker.ItemsSource != null && !string.IsNullOrEmpty(_viewModel.FStopSelected))
+                {
+                    TargetFstop_Picker.SelectedItem = _viewModel.FStopSelected;
+                }
+
+                if (TargetISO_Picker.ItemsSource != null && !string.IsNullOrEmpty(_viewModel.ISOSelected))
+                {
+                    TargetISO_Picker.SelectedItem = _viewModel.ISOSelected;
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError(ex, "Error syncing target pickers");
+            }
+        }
+
+        #region Event Handlers
+
         private void exposuresteps_CheckedChanged(object sender, CheckedChangedEventArgs e)
         {
             if (_skipCalculations || !e.Value || _viewModel == null)
@@ -193,6 +291,7 @@ namespace Location.Photography.Maui.Views.Premium
 
                 SetupEVSlider();
                 PopulateViewModel();
+                SyncTargetPickers();
                 _viewModel.Calculate();
             }
             catch (Exception ex)
@@ -201,6 +300,25 @@ namespace Location.Photography.Maui.Views.Premium
             }
         }
 
+        private void PresetPicker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (_skipCalculations || _viewModel == null)
+                return;
+
+            try
+            {
+                // Preset application is handled in the ViewModel through binding
+                // Just sync the target pickers after preset is applied
+                SyncTargetPickers();
+            }
+            catch (Exception ex)
+            {
+                HandleError(ex, "Error selecting preset");
+            }
+        }
+
+        #region Base Exposure Picker Events
+
         private void ShutterSpeed_Picker_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (_skipCalculations || _viewModel == null)
@@ -208,13 +326,19 @@ namespace Location.Photography.Maui.Views.Premium
 
             try
             {
-                _viewModel.SkipCalculation = Application.Services.FixedValue.ShutterSpeeds;
                 _viewModel.ShutterSpeedSelected = ShutterSpeed_Picker.SelectedItem?.ToString();
+
+                // Update target picker if shutter is not locked
+                if (!_viewModel.IsShutterLocked)
+                {
+                    TargetShutterSpeed_Picker.SelectedItem = _viewModel.ShutterSpeedSelected;
+                }
+
                 _viewModel.Calculate();
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error selecting shutter speed");
+                HandleError(ex, "Error selecting base shutter speed");
             }
         }
 
@@ -225,13 +349,19 @@ namespace Location.Photography.Maui.Views.Premium
 
             try
             {
-                _viewModel.SkipCalculation = Application.Services.FixedValue.Aperture;
                 _viewModel.FStopSelected = fstop_Picker.SelectedItem?.ToString();
+
+                // Update target picker if aperture is not locked
+                if (!_viewModel.IsApertureLocked)
+                {
+                    TargetFstop_Picker.SelectedItem = _viewModel.FStopSelected;
+                }
+
                 _viewModel.Calculate();
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error selecting aperture");
+                HandleError(ex, "Error selecting base aperture");
             }
         }
 
@@ -242,15 +372,99 @@ namespace Location.Photography.Maui.Views.Premium
 
             try
             {
-                _viewModel.SkipCalculation = Application.Services.FixedValue.ISO;
                 _viewModel.ISOSelected = ISO_Picker.SelectedItem?.ToString();
+
+                // Update target picker if ISO is not locked
+                if (!_viewModel.IsIsoLocked)
+                {
+                    TargetISO_Picker.SelectedItem = _viewModel.ISOSelected;
+                }
+
                 _viewModel.Calculate();
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error selecting ISO");
+                HandleError(ex, "Error selecting base ISO");
             }
         }
+
+        #endregion
+
+        #region Target Picker Events
+
+        private void TargetShutterSpeed_Picker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (_skipCalculations || _viewModel == null)
+                return;
+
+            try
+            {
+                string selectedValue = TargetShutterSpeed_Picker.SelectedItem?.ToString();
+                if (!string.IsNullOrEmpty(selectedValue))
+                {
+                    _viewModel.ShutterSpeedSelected = selectedValue;
+
+                    // Update base picker to match
+                    ShutterSpeed_Picker.SelectedItem = selectedValue;
+
+                    _viewModel.Calculate();
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError(ex, "Error selecting target shutter speed");
+            }
+        }
+
+        private void TargetFstop_Picker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (_skipCalculations || _viewModel == null)
+                return;
+
+            try
+            {
+                string selectedValue = TargetFstop_Picker.SelectedItem?.ToString();
+                if (!string.IsNullOrEmpty(selectedValue))
+                {
+                    _viewModel.FStopSelected = selectedValue;
+
+                    // Update base picker to match
+                    fstop_Picker.SelectedItem = selectedValue;
+
+                    _viewModel.Calculate();
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError(ex, "Error selecting target aperture");
+            }
+        }
+
+        private void TargetISO_Picker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (_skipCalculations || _viewModel == null)
+                return;
+
+            try
+            {
+                string selectedValue = TargetISO_Picker.SelectedItem?.ToString();
+                if (!string.IsNullOrEmpty(selectedValue))
+                {
+                    _viewModel.ISOSelected = selectedValue;
+
+                    // Update base picker to match
+                    ISO_Picker.SelectedItem = selectedValue;
+
+                    _viewModel.Calculate();
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleError(ex, "Error selecting target ISO");
+            }
+        }
+
+        #endregion
 
         private void EvSlider_ValueChanged(object sender, ValueChangedEventArgs e)
         {
@@ -285,27 +499,65 @@ namespace Location.Photography.Maui.Views.Premium
             Navigation.PopModalAsync();
         }
 
+        #endregion
+
+        #region Helper Methods
+
+        private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            // Update lock button text when lock states change
+            switch (e.PropertyName)
+            {
+                case nameof(ExposureCalculatorViewModel.IsShutterLocked):
+                    if (ShutterLockButton != null)
+                        ShutterLockButton.Text = _viewModel.IsShutterLocked ? "LOCK" : "OPEN";
+                    break;
+                case nameof(ExposureCalculatorViewModel.IsApertureLocked):
+                    if (ApertureLockButton != null)
+                        ApertureLockButton.Text = _viewModel.IsApertureLocked ? "LOCK" : "OPEN";
+                    break;
+                case nameof(ExposureCalculatorViewModel.IsIsoLocked):
+                    if (IsoLockButton != null)
+                        IsoLockButton.Text = _viewModel.IsIsoLocked ? "LOCK" : "OPEN";
+                    break;
+            }
+        }
+
         private void PopulateViewModel()
         {
             if (_viewModel == null) return;
 
-            string oldShutter = _viewModel.ShutterSpeedSelected;
-            string oldFStop = _viewModel.FStopSelected;
-            string oldISO = _viewModel.ISOSelected;
+            try
+            {
+                string oldShutter = _viewModel.ShutterSpeedSelected;
+                string oldFStop = _viewModel.FStopSelected;
+                string oldISO = _viewModel.ISOSelected;
 
-            if (ShutterSpeed_Picker.SelectedItem != null)
-                _viewModel.ShutterSpeedSelected = ShutterSpeed_Picker.SelectedItem.ToString();
+                if (ShutterSpeed_Picker.SelectedItem != null)
+                    _viewModel.ShutterSpeedSelected = ShutterSpeed_Picker.SelectedItem.ToString();
 
-            if (fstop_Picker.SelectedItem != null)
-                _viewModel.FStopSelected = fstop_Picker.SelectedItem.ToString();
+                if (fstop_Picker.SelectedItem != null)
+                    _viewModel.FStopSelected = fstop_Picker.SelectedItem.ToString();
 
-            if (ISO_Picker.SelectedItem != null)
-                _viewModel.ISOSelected = ISO_Picker.SelectedItem.ToString();
+                if (ISO_Picker.SelectedItem != null)
+                    _viewModel.ISOSelected = ISO_Picker.SelectedItem.ToString();
 
-            _viewModel.OldShutterSpeed = oldShutter;
-            _viewModel.OldFstop = oldFStop;
-            _viewModel.OldISO = oldISO;
+                _viewModel.OldShutterSpeed = oldShutter;
+                _viewModel.OldFstop = oldFStop;
+                _viewModel.OldISO = oldISO;
+
+                // Sync target pickers
+                SyncTargetPickers();
+            }
+            catch (Exception ex)
+            {
+                HandleError(ex, "Error populating view model");
+            }
         }
+
+        #endregion
+
+        #region Lifecycle Events
 
         protected override void OnAppearing()
         {
@@ -317,6 +569,9 @@ namespace Location.Photography.Maui.Views.Premium
                 {
                     _viewModel.ErrorOccurred -= OnSystemError;
                     _viewModel.ErrorOccurred += OnSystemError;
+
+                    // Load presets when page appears
+                    _viewModel.LoadPresetsCommand.Execute(null);
                 }
             }
             catch (Exception ex)
@@ -332,8 +587,13 @@ namespace Location.Photography.Maui.Views.Premium
             if (_viewModel != null)
             {
                 _viewModel.ErrorOccurred -= OnSystemError;
+                _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
             }
         }
+
+        #endregion
+
+        #region Error Handling
 
         private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
@@ -365,6 +625,13 @@ namespace Location.Photography.Maui.Views.Premium
                 _viewModel.ShowError = true;
                 _viewModel.ErrorMessage = $"{message}: {ex.Message}";
             }
+        }
+
+        #endregion
+
+        private void ShutterLockButton_Pressed(object sender, EventArgs e)
+        {
+
         }
     }
 }

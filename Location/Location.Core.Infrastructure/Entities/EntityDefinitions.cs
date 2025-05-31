@@ -91,6 +91,44 @@ namespace Location.Core.Infrastructure.Data.Entities
         public double MoonPhase { get; set; }
     }
 
+    [Table("HourlyForecastEntity")]
+    public class HourlyForecastEntity
+    {
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
+
+        public int WeatherId { get; set; }
+
+        public DateTime DateTime { get; set; }
+
+        // Temperature in user's preferred unit (from API)
+        public double Temperature { get; set; }
+        public double FeelsLike { get; set; }
+
+        public string Description { get; set; } = string.Empty;
+
+        public string Icon { get; set; } = string.Empty;
+
+        // Wind info (raw direction from API)
+        public double WindSpeed { get; set; }
+        public double WindDirection { get; set; }
+        public double? WindGust { get; set; }
+
+        public int Humidity { get; set; }
+
+        public int Pressure { get; set; }
+
+        public int Clouds { get; set; }
+
+        public double UvIndex { get; set; }
+
+        public double ProbabilityOfPrecipitation { get; set; }
+
+        public int Visibility { get; set; }
+
+        public double DewPoint { get; set; }
+    }
+
     [Table("TipTypeEntity")]
     public class TipTypeEntity
     {

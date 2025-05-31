@@ -69,17 +69,17 @@ namespace Location.Core.Infrastructure.External
                 var location = locationResult.Data;
 
                 // Fetch weather data from API
-                var forecastResult = await GetForecastFromApiAsync(
+                var weatherResult = await GetWeatherFromApiAsync(
                     location.Coordinate.Latitude,
                     location.Coordinate.Longitude,
                     cancellationToken);
 
-                if (!forecastResult.IsSuccess || forecastResult.Data == null)
+                if (!weatherResult.IsSuccess || weatherResult.Data == null)
                 {
-                    return Result<WeatherDto>.Failure(forecastResult.ErrorMessage ?? "Failed to fetch weather");
+                    return Result<WeatherDto>.Failure(weatherResult.ErrorMessage ?? "Failed to fetch weather");
                 }
 
-                var apiData = forecastResult.Data;
+                var apiData = weatherResult.Data;
 
                 // Create or update weather entity
                 var coordinate = new Coordinate(location.Coordinate.Latitude, location.Coordinate.Longitude);
@@ -115,7 +115,7 @@ namespace Location.Core.Infrastructure.External
                         dailyForecast.MaxTemperature,
                         dailyForecast.Description,
                         dailyForecast.Icon,
-                        new WindInfo(dailyForecast.WindSpeed, dailyForecast.WindDirection, dailyForecast.WindGust), // Store raw wind direction
+                        new WindInfo(dailyForecast.WindSpeed, dailyForecast.WindDirection, dailyForecast.WindGust),
                         dailyForecast.Humidity,
                         dailyForecast.Pressure,
                         dailyForecast.Clouds,
@@ -131,8 +131,33 @@ namespace Location.Core.Infrastructure.External
                     forecasts.Add(forecastEntity);
                 }
 
+                // Create hourly forecast entities from API data (store raw wind direction)
+                var hourlyForecasts = new List<Domain.Entities.HourlyForecast>();
+
+                foreach (var hourlyData in apiData.HourlyForecasts.Take(48))
+                {
+                    var hourlyForecast = new Domain.Entities.HourlyForecast(
+                        weather.Id,
+                        hourlyData.DateTime,
+                        hourlyData.Temperature,
+                        hourlyData.FeelsLike,
+                        hourlyData.Description,
+                        hourlyData.Icon,
+                        new WindInfo(hourlyData.WindSpeed, hourlyData.WindDirection, hourlyData.WindGust),
+                        hourlyData.Humidity,
+                        hourlyData.Pressure,
+                        hourlyData.Clouds,
+                        hourlyData.UvIndex,
+                        hourlyData.ProbabilityOfPrecipitation,
+                        hourlyData.Visibility,
+                        hourlyData.DewPoint);
+
+                    hourlyForecasts.Add(hourlyForecast);
+                }
+
                 // Update weather with new forecasts
                 weather.UpdateForecasts(forecasts);
+                weather.UpdateHourlyForecasts(hourlyForecasts);
 
                 // Save to database
                 if (existingWeather != null)
@@ -163,7 +188,43 @@ namespace Location.Core.Infrastructure.External
             int days = 7,
             CancellationToken cancellationToken = default)
         {
-            return await GetForecastFromApiAsync(latitude, longitude, cancellationToken);
+            var result = await GetWeatherFromApiAsync(latitude, longitude, cancellationToken);
+            if (!result.IsSuccess || result.Data == null)
+            {
+                return Result<WeatherForecastDto>.Failure(result.ErrorMessage ?? "Failed to get forecast");
+            }
+
+            var forecastDto = new WeatherForecastDto
+            {
+                Timezone = result.Data.Timezone,
+                TimezoneOffset = result.Data.TimezoneOffset,
+                LastUpdate = DateTime.UtcNow,
+                DailyForecasts = result.Data.DailyForecasts.Take(days).ToList()
+            };
+
+            return Result<WeatherForecastDto>.Success(forecastDto);
+        }
+
+        public async Task<Result<HourlyWeatherForecastDto>> GetHourlyForecastAsync(
+            double latitude,
+            double longitude,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await GetWeatherFromApiAsync(latitude, longitude, cancellationToken);
+            if (!result.IsSuccess || result.Data == null)
+            {
+                return Result<HourlyWeatherForecastDto>.Failure(result.ErrorMessage ?? "Failed to get hourly forecast");
+            }
+
+            var hourlyForecastDto = new HourlyWeatherForecastDto
+            {
+                Timezone = result.Data.Timezone,
+                TimezoneOffset = result.Data.TimezoneOffset,
+                LastUpdate = DateTime.UtcNow,
+                HourlyForecasts = result.Data.HourlyForecasts.Take(48).ToList()
+            };
+
+            return Result<HourlyWeatherForecastDto>.Success(hourlyForecastDto);
         }
 
         public async Task<Result<int>> UpdateAllWeatherAsync(CancellationToken cancellationToken = default)
@@ -204,7 +265,7 @@ namespace Location.Core.Infrastructure.External
             }
         }
 
-        private async Task<Result<WeatherForecastDto>> GetForecastFromApiAsync(
+        private async Task<Result<WeatherApiResponse>> GetWeatherFromApiAsync(
             double latitude,
             double longitude,
             CancellationToken cancellationToken)
@@ -216,13 +277,13 @@ namespace Location.Core.Infrastructure.External
 
                 if (!apiKeyResult.IsSuccess || string.IsNullOrWhiteSpace(apiKeyResult.Data))
                 {
-                    return Result<WeatherForecastDto>.Failure("Weather API key not configured");
+                    return Result<WeatherApiResponse>.Failure("Weather API key not configured");
                 }
 
                 var apiKey = apiKeyResult.Data;
                 var client = _httpClientFactory.CreateClient();
                 var tempS = tempScale.Data?.Value == "F" ? "imperial" : "metric";
-                var requestUrl = $"{BASE_URL}?lat={latitude}&lon={longitude}&appid={apiKey}&units={tempS}&exclude=minutely,hourly";
+                var requestUrl = $"{BASE_URL}?lat={latitude}&lon={longitude}&appid={apiKey}&units={tempS}&exclude=minutely";
 
                 var response = await _retryPolicy.ExecuteAsync(async () =>
                     await client.GetAsync(requestUrl, cancellationToken));
@@ -230,7 +291,7 @@ namespace Location.Core.Infrastructure.External
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError("Weather API request failed with status {StatusCode}", response.StatusCode);
-                    return Result<WeatherForecastDto>.Failure($"Weather API request failed: {response.StatusCode}");
+                    return Result<WeatherApiResponse>.Failure($"Weather API request failed: {response.StatusCode}");
                 }
 
                 var json = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -238,15 +299,15 @@ namespace Location.Core.Infrastructure.External
 
                 if (weatherData == null)
                 {
-                    return Result<WeatherForecastDto>.Failure("Failed to parse weather data");
+                    return Result<WeatherApiResponse>.Failure("Failed to parse weather data");
                 }
 
-                var forecastDto = MapToForecastDto(weatherData, 7);
-                return Result<WeatherForecastDto>.Success(forecastDto);
+                var apiResponse = MapToApiResponse(weatherData);
+                return Result<WeatherApiResponse>.Success(apiResponse);
             }
             catch (Exception ex)
             {
-                var domainException = _exceptionMapper.MapToWeatherDomainException(ex, "GetForecastFromApi");
+                var domainException = _exceptionMapper.MapToWeatherDomainException(ex, "GetWeatherFromApi");
                 throw domainException;
             }
         }
@@ -264,7 +325,7 @@ namespace Location.Core.Infrastructure.External
             return Result<string>.Success(settingResult.Data.Value);
         }
 
-        private async Task<WeatherDto> MapToWeatherDtoAsync(Domain.Entities.Weather weather, WeatherForecastDto apiData, CancellationToken cancellationToken)
+        private async Task<WeatherDto> MapToWeatherDtoAsync(Domain.Entities.Weather weather, WeatherApiResponse apiData, CancellationToken cancellationToken)
         {
             var currentForecast = weather.GetCurrentForecast();
             var currentApiData = apiData.DailyForecasts.FirstOrDefault();
@@ -327,17 +388,18 @@ namespace Location.Core.Infrastructure.External
             }
         }
 
-        private WeatherForecastDto MapToForecastDto(OpenWeatherResponse response, int days)
+        private WeatherApiResponse MapToApiResponse(OpenWeatherResponse response)
         {
-            var forecast = new WeatherForecastDto
+            var apiResponse = new WeatherApiResponse
             {
                 Timezone = response.Timezone,
                 TimezoneOffset = response.TimezoneOffset,
-                LastUpdate = DateTime.UtcNow,
-                DailyForecasts = new List<DailyForecastDto>()
+                DailyForecasts = new List<DailyForecastDto>(),
+                HourlyForecasts = new List<HourlyForecastDto>()
             };
 
-            for (int i = 0; i < Math.Min(response.Daily.Count, days); i++)
+            // Map daily forecasts
+            for (int i = 0; i < Math.Min(response.Daily.Count, 7); i++)
             {
                 var daily = response.Daily[i];
                 var dailyDto = new DailyForecastDto
@@ -351,7 +413,7 @@ namespace Location.Core.Infrastructure.External
                     Description = daily.Weather.FirstOrDefault()?.Description ?? string.Empty,
                     Icon = daily.Weather.FirstOrDefault()?.Icon ?? string.Empty,
                     WindSpeed = daily.WindSpeed,
-                    WindDirection = daily.WindDeg, // Store raw wind direction from API
+                    WindDirection = daily.WindDeg,
                     WindGust = daily.WindGust,
                     Humidity = daily.Humidity,
                     Pressure = daily.Pressure,
@@ -363,15 +425,49 @@ namespace Location.Core.Infrastructure.External
                     MoonPhase = daily.MoonPhase
                 };
 
-                forecast.DailyForecasts.Add(dailyDto);
+                apiResponse.DailyForecasts.Add(dailyDto);
             }
 
-            return forecast;
+            // Map hourly forecasts
+            for (int i = 0; i < Math.Min(response.Hourly.Count, 48); i++)
+            {
+                var hourly = response.Hourly[i];
+                var hourlyDto = new HourlyForecastDto
+                {
+                    DateTime = DateTimeOffset.FromUnixTimeSeconds(hourly.Dt).DateTime,
+                    Temperature = hourly.Temp,
+                    FeelsLike = hourly.FeelsLike,
+                    Description = hourly.Weather.FirstOrDefault()?.Description ?? string.Empty,
+                    Icon = hourly.Weather.FirstOrDefault()?.Icon ?? string.Empty,
+                    WindSpeed = hourly.WindSpeed,
+                    WindDirection = hourly.WindDeg,
+                    WindGust = hourly.WindGust,
+                    Humidity = hourly.Humidity,
+                    Pressure = hourly.Pressure,
+                    Clouds = hourly.Clouds,
+                    UvIndex = hourly.Uvi,
+                    ProbabilityOfPrecipitation = hourly.Pop,
+                    Visibility = hourly.Visibility,
+                    DewPoint = hourly.DewPoint
+                };
+
+                apiResponse.HourlyForecasts.Add(hourlyDto);
+            }
+
+            return apiResponse;
         }
 
         Task<Result<WeatherDto>> IWeatherService.GetWeatherAsync(double latitude, double longitude, CancellationToken cancellationToken)
         {
             throw new NotImplementedException("Use UpdateWeatherForLocationAsync for offline-first persistence");
         }
+    }
+
+    internal class WeatherApiResponse
+    {
+        public string Timezone { get; set; } = string.Empty;
+        public int TimezoneOffset { get; set; }
+        public List<DailyForecastDto> DailyForecasts { get; set; } = new List<DailyForecastDto>();
+        public List<HourlyForecastDto> HourlyForecasts { get; set; } = new List<HourlyForecastDto>();
     }
 }

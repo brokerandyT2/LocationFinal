@@ -21,6 +21,9 @@ namespace Location.Core.Infrastructure.External.Models
         [JsonPropertyName("current")]
         public CurrentWeather Current { get; set; } = new();
 
+        [JsonPropertyName("hourly")]
+        public List<HourlyWeather> Hourly { get; set; } = new();
+
         [JsonPropertyName("daily")]
         public List<DailyForecast> Daily { get; set; } = new();
     }
@@ -71,6 +74,51 @@ namespace Location.Core.Infrastructure.External.Models
 
         [JsonPropertyName("weather")]
         public List<WeatherDescription> Weather { get; set; } = new();
+    }
+
+    public class HourlyWeather
+    {
+        [JsonPropertyName("dt")]
+        public long Dt { get; set; }
+
+        [JsonPropertyName("temp")]
+        public double Temp { get; set; }
+
+        [JsonPropertyName("feels_like")]
+        public double FeelsLike { get; set; }
+
+        [JsonPropertyName("pressure")]
+        public int Pressure { get; set; }
+
+        [JsonPropertyName("humidity")]
+        public int Humidity { get; set; }
+
+        [JsonPropertyName("dew_point")]
+        public double DewPoint { get; set; }
+
+        [JsonPropertyName("uvi")]
+        public double Uvi { get; set; }
+
+        [JsonPropertyName("clouds")]
+        public int Clouds { get; set; }
+
+        [JsonPropertyName("visibility")]
+        public int Visibility { get; set; }
+
+        [JsonPropertyName("wind_speed")]
+        public double WindSpeed { get; set; }
+
+        [JsonPropertyName("wind_deg")]
+        public double WindDeg { get; set; }
+
+        [JsonPropertyName("wind_gust")]
+        public double? WindGust { get; set; }
+
+        [JsonPropertyName("weather")]
+        public List<WeatherDescription> Weather { get; set; } = new();
+
+        [JsonPropertyName("pop")]
+        public double Pop { get; set; }
     }
 
     public class DailyForecast

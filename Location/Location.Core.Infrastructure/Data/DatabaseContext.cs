@@ -84,6 +84,7 @@ namespace Location.Core.Infrastructure.Data
                 await _connection.CreateTableAsync<LocationEntity>();
                 await _connection.CreateTableAsync<WeatherEntity>();
                 await _connection.CreateTableAsync<WeatherForecastEntity>();
+                await _connection.CreateTableAsync<HourlyForecastEntity>();
                 await _connection.CreateTableAsync<TipTypeEntity>();
                 await _connection.CreateTableAsync<TipEntity>();
                 await _connection.CreateTableAsync<SettingEntity>();
@@ -125,6 +126,14 @@ namespace Location.Core.Infrastructure.Data
                 await _connection.ExecuteAsync(
                     "CREATE INDEX IF NOT EXISTS idx_weather_forecast ON WeatherForecastEntity (WeatherId)");
 
+                // Index for hourly forecast lookup
+                await _connection.ExecuteAsync(
+                    "CREATE INDEX IF NOT EXISTS idx_hourly_forecast ON HourlyForecastEntity (WeatherId)");
+
+                // Index for hourly forecast by datetime
+                await _connection.ExecuteAsync(
+                    "CREATE INDEX IF NOT EXISTS idx_hourly_forecast_datetime ON HourlyForecastEntity (WeatherId, DateTime)");
+
                 // Index for tips by type
                 await _connection.ExecuteAsync(
                     "CREATE INDEX IF NOT EXISTS idx_tip_type ON TipEntity (TipTypeId)");
@@ -136,11 +145,11 @@ namespace Location.Core.Infrastructure.Data
                 // Index for logs by timestamp
                 await _connection.ExecuteAsync(
                     "CREATE INDEX IF NOT EXISTS idx_log_timestamp ON Log (Timestamp)");
-              
+
                 // Index for subscription lookup by user
                 await _connection.ExecuteAsync(
                     "CREATE INDEX IF NOT EXISTS idx_subscription_user ON Subscription (UserId, Status, ExpirationDate)");
-               
+
                 _logger.LogDebug("Database indexes created");
             }
             catch (Exception ex)
