@@ -5,112 +5,35 @@ namespace Location.Photography.ViewModels
 {
     public class HourlyPredictionDisplayModel : INotifyPropertyChanged
     {
-        private DateTime _time;
-        private string _deviceTimeDisplay = string.Empty;
-        private string _locationTimeDisplay = string.Empty;
-        private double _predictedEV;
-        private double _evConfidenceMargin;
-        private string _suggestedAperture = string.Empty;
-        private string _suggestedShutterSpeed = string.Empty;
-        private string _suggestedISO = string.Empty;
-        private double _confidenceLevel;
-        private string _lightQuality = string.Empty;
-        private double _colorTemperature;
-        private string _recommendations = string.Empty;
-        private bool _isOptimalTime;
-        private string _timeFormat = "HH:mm";
-        public DateTime Time
-        {
-            get => _time;
-            set => SetProperty(ref _time, value);
-        }
+        public DateTime Time { get; set; }
+        public string DeviceTimeDisplay { get; set; } = string.Empty;
+        public string LocationTimeDisplay { get; set; } = string.Empty;
+        public double PredictedEV { get; set; }
+        public double EVConfidenceMargin { get; set; }
+        public string SuggestedAperture { get; set; } = string.Empty;
+        public string SuggestedShutterSpeed { get; set; } = string.Empty;
+        public string SuggestedISO { get; set; } = string.Empty;
+        public double ConfidenceLevel { get; set; }
+        public string LightQuality { get; set; } = string.Empty;
+        public double ColorTemperature { get; set; }
+        public string Recommendations { get; set; } = string.Empty;
+        public bool IsOptimalTime { get; set; }
+        public string TimeFormat { get; set; } = "HH:mm";
 
-        public string DeviceTimeDisplay
-        {
-            get => _deviceTimeDisplay;
-            set => SetProperty(ref _deviceTimeDisplay, value);
-        }
+        // Enhanced weather integration properties
+        public string WeatherDescription { get; set; } = string.Empty;
+        public int CloudCover { get; set; }
+        public double PrecipitationProbability { get; set; }
+        public string WindInfo { get; set; } = string.Empty;
+        public double UvIndex { get; set; }
+        public int Humidity { get; set; }
 
-        public string LocationTimeDisplay
-        {
-            get => _locationTimeDisplay;
-            set => SetProperty(ref _locationTimeDisplay, value);
-        }
-
-        public double PredictedEV
-        {
-            get => _predictedEV;
-            set => SetProperty(ref _predictedEV, value);
-        }
-
-        public double EVConfidenceMargin
-        {
-            get => _evConfidenceMargin;
-            set => SetProperty(ref _evConfidenceMargin, value);
-        }
-
-        public string SuggestedAperture
-        {
-            get => _suggestedAperture;
-            set => SetProperty(ref _suggestedAperture, value);
-        }
-
-        public string SuggestedShutterSpeed
-        {
-            get => _suggestedShutterSpeed;
-            set => SetProperty(ref _suggestedShutterSpeed, value);
-        }
-
-        public string SuggestedISO
-        {
-            get => _suggestedISO;
-            set => SetProperty(ref _suggestedISO, value);
-        }
-
-        public double ConfidenceLevel
-        {
-            get => _confidenceLevel;
-            set => SetProperty(ref _confidenceLevel, value);
-        }
-
-        public string LightQuality
-        {
-            get => _lightQuality;
-            set => SetProperty(ref _lightQuality, value);
-        }
-
-        public double ColorTemperature
-        {
-            get => _colorTemperature;
-            set => SetProperty(ref _colorTemperature, value);
-        }
-
-        public string Recommendations
-        {
-            get => _recommendations;
-            set => SetProperty(ref _recommendations, value);
-        }
-
-        public bool IsOptimalTime
-        {
-            get => _isOptimalTime;
-            set => SetProperty(ref _isOptimalTime, value);
-        }
-
-        public string TimeFormat
-        {
-            get => _timeFormat;
-            set => SetProperty(ref _timeFormat, value);
-        }
-
-        // Computed properties for display
+        // Display properties
         public string FormattedPrediction => $"EV {PredictedEV:F1} ±{EVConfidenceMargin:F1}";
-
-        public string FormattedSettings => $"f/{SuggestedAperture} @ {SuggestedShutterSpeed} ISO {SuggestedISO}";
-
         public string ConfidenceDisplay => $"{ConfidenceLevel:P0} confidence";
-
-        public string ColorTemperatureDisplay => $"{ColorTemperature:F0}K";
+        public string WeatherSummary => !string.IsNullOrEmpty(WeatherDescription)
+            ? $"{WeatherDescription}, {CloudCover}% clouds"
+            : string.Empty;
 
         // Enhanced confidence color coding
         public string ConfidenceColor

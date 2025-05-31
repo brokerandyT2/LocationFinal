@@ -89,6 +89,8 @@ namespace Location.Photography.Application.Services
         public int AirQualityIndex { get; set; }
         public double WindSpeed { get; set; }
         public string Description { get; set; } = string.Empty;
+
+        public double UvIndex { get; set; }
     }
 
     public class WeatherAlert

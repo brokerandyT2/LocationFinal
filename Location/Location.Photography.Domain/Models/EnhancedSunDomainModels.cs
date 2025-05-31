@@ -109,7 +109,7 @@ namespace Location.Photography.Domain.Models
         BlueHour,
         Overcast,
         Dramatic,
-        Flat
+        Flat, Direct
     }
 
     // Predictive light models
@@ -124,7 +124,8 @@ namespace Location.Photography.Domain.Models
         public LightCharacteristics LightQuality { get; set; } = new();
         public List<string> Recommendations { get; set; } = new();
         public bool IsOptimalForPhotography { get; set; }
-        public SunPosition SunPosition { get; set; } = new();
+        public SunPositionDto SunPosition { get; set; } = new();
+        public bool IsMoonVisible { get; set; } = false;
     }
 
     public class ExposureTriangle

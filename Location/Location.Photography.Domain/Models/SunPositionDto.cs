@@ -10,5 +10,7 @@ namespace Location.Photography.Domain.Models
         public DateTime DateTime { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public bool IsAboveHorizon => Elevation > 0;
+        public double Distance { get; set; }
     }
 }
