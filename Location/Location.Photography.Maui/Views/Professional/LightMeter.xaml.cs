@@ -21,6 +21,7 @@ namespace Location.Photography.Maui.Views.Professional
         private readonly ILightSensorService _lightSensorService;
         private readonly IExposureCalculatorService _exposureCalculatorService;
         private LightMeterViewModel _viewModel;
+        private readonly ISceneEvaluationService _imageAnalysisService;
         private System.Timers.Timer _sensorTimer;
         private int _refreshInterval = 2000; // Default 2 seconds
         private bool _isMonitoring = false;
@@ -39,14 +40,14 @@ namespace Location.Photography.Maui.Views.Professional
             IAlertService alertService,
             ISettingRepository settingRepository,
             ILightSensorService lightSensorService,
-            IExposureCalculatorService exposureCalculatorService)
+            IExposureCalculatorService exposureCalculatorService, ISceneEvaluationService sceneEvaluationService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _settingRepository = settingRepository ?? throw new ArgumentNullException(nameof(settingRepository));
             _lightSensorService = lightSensorService ?? throw new ArgumentNullException(nameof(lightSensorService));
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
-
+            _imageAnalysisService = sceneEvaluationService ?? throw new ArgumentNullException(nameof(sceneEvaluationService));
             InitializeComponent();
             ApertureSlider.ValueChanged += OnApertureChanged;
             IsoSlider.ValueChanged += OnIsoChanged;
@@ -73,16 +74,29 @@ namespace Location.Photography.Maui.Views.Professional
             // DON'T start monitoring automatically
         }
 
+        private bool _disposed = false;
+
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            StopLightSensorMonitoring();
 
-            if (_viewModel != null)
+            try
             {
-                _viewModel.ErrorOccurred -= OnSystemError;
+                _disposed = true;
+                StopLightSensorMonitoring();
+                _isMonitoring = false;
+
+                if (_viewModel != null)
+                {
+                    _viewModel.ErrorOccurred -= OnSystemError;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error during page cleanup: {ex.Message}");
             }
         }
+
 
         private async void InitializeViewModel()
         {
@@ -143,7 +157,6 @@ namespace Location.Photography.Maui.Views.Professional
                 System.Diagnostics.Debug.WriteLine($"Error loading refresh interval: {ex.Message}");
             }
         }
-
         private void StartLightSensorMonitoring()
         {
             try
@@ -151,6 +164,10 @@ namespace Location.Photography.Maui.Views.Professional
                 if (_lightSensorService != null)
                 {
                     _lightSensorService.StartListening();
+
+                    // Dispose existing timer if it exists
+                    _sensorTimer?.Stop();
+                    _sensorTimer?.Dispose();
 
                     // Initialize sensor update timer with interval from settings
                     _sensorTimer = new System.Timers.Timer(_refreshInterval);
@@ -183,11 +200,133 @@ namespace Location.Photography.Maui.Views.Professional
                 });
             }
         }
+        private async void OnSensorTimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                // Early exit if disposed or inactive
+                if (_sensorTimer == null || _lightSensorService == null || _viewModel == null)
+                    return;
 
+                float currentLux = _lightSensorService.GetCurrentLux();
+
+                // Do calculations on background thread to avoid main thread blocking
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        // Perform heavy calculations off UI thread
+                        var calculatedEV = PerformEVCalculation(currentLux);
+
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            try
+                            {
+                                // Check if still active before updating UI
+                                if (_viewModel != null && !_disposed)
+                                {
+                                    // Only update UI properties on main thread
+                                    _viewModel.UpdateLightReading(currentLux);
+                                    _viewModel.SetCalculatedEV(calculatedEV);
+
+                                    System.Diagnostics.Debug.WriteLine($"Timer reading: {currentLux} lux, Calculated EV: {calculatedEV}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Error updating UI from sensor: {ex.Message}");
+                            }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error in background sensor calculation: {ex.Message}");
+                    }
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error reading light sensor: {ex.Message}");
+            }
+        }
+        private double PerformEVCalculation(float lux)
+        {
+            try
+            {
+                if (lux <= 0)
+                {
+                    return 0;
+                }
+
+                // Parse current values (heavy string parsing moved to background)
+                double aperture = ParseAperture(_viewModel.SelectedAperture);
+                int iso = ParseIso(_viewModel.SelectedIso);
+
+                if (aperture <= 0 || iso <= 0)
+                {
+                    return 0;
+                }
+
+                // Calculate EV using standard formula
+                const double CalibrationConstant = 12.5;
+                double ev = Math.Log2((lux * aperture * aperture) / (CalibrationConstant * iso));
+
+                // Round to step precision
+                return RoundToStep(ev);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error calculating EV: {ex.Message}");
+                return 0;
+            }
+        }
+        private double RoundToStep(double ev)
+        {
+            // Round EV to the appropriate step increment
+            double stepSize = _viewModel.CurrentStep switch
+            {
+                ExposureIncrements.Full => 1.0,
+                ExposureIncrements.Half => 0.5,
+                ExposureIncrements.Third => 1.0 / 3.0,
+                _ => 1.0 / 3.0
+            };
+
+            return Math.Round(ev / stepSize) * stepSize;
+        }
+        private int ParseIso(string iso)
+        {
+            if (string.IsNullOrWhiteSpace(iso))
+                return 100;
+
+            if (int.TryParse(iso, out int value))
+            {
+                return value;
+            }
+
+            return 100; // Default fallback
+        }
+        private double ParseAperture(string aperture)
+        {
+            if (string.IsNullOrWhiteSpace(aperture))
+                return 5.6;
+
+            // Handle f-stop format like "f/2.8"
+            if (aperture.StartsWith("f/"))
+            {
+                string value = aperture.Substring(2).Replace(",", ".");
+                if (double.TryParse(value, out double fNumber))
+                {
+                    return fNumber;
+                }
+            }
+
+            return 5.6; // Default fallback
+        }
         private void StopLightSensorMonitoring()
         {
             try
             {
+                // Proper timer cleanup with cancellation
                 if (_sensorTimer != null)
                 {
                     _sensorTimer.Stop();
@@ -196,6 +335,7 @@ namespace Location.Photography.Maui.Views.Professional
                     _sensorTimer = null;
                 }
 
+                // Stop sensor service
                 _lightSensorService?.StopListening();
 
                 System.Diagnostics.Debug.WriteLine("Light sensor monitoring stopped");
@@ -205,42 +345,15 @@ namespace Location.Photography.Maui.Views.Professional
                 System.Diagnostics.Debug.WriteLine($"Error stopping light sensor monitoring: {ex.Message}");
             }
         }
-
-        private async void OnSensorTimerElapsed(object sender, ElapsedEventArgs e)
-        {
-            try
-            {
-                if (_lightSensorService != null && _viewModel != null)
-                {
-                    float currentLux = _lightSensorService.GetCurrentLux();
-
-                    // Do calculations on background thread to avoid main thread blocking
-                    await Task.Run(() =>
-                    {
-                        MainThread.BeginInvokeOnMainThread(() =>
-                        {
-                            // Update ambient light reading
-                            _viewModel.UpdateLightReading(currentLux);
-
-                            // Calculate EV based on current ISO/Shutter/F-stop settings + ambient light
-                            _viewModel.CalculateEV();
-
-                            System.Diagnostics.Debug.WriteLine($"Timer reading: {currentLux} lux, Calculated EV: {_viewModel.CalculatedEV}");
-                        });
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error reading light sensor: {ex.Message}");
-            }
-        }
+       
 
         // Event handler for MEASURE button
         private async void OnMeasurePressed(object sender, EventArgs e)
         {
             try
             {
+                if (_disposed) return; // Don't process if disposed
+
                 if (!_isMonitoring)
                 {
                     // START monitoring
@@ -251,22 +364,42 @@ namespace Location.Photography.Maui.Views.Professional
                     {
                         _viewModel.IsBusy = true;
 
-                        float currentLux = _lightSensorService.GetCurrentLux();
-                        _viewModel.UpdateLightReading(currentLux);
-                        _viewModel.CalculateEV();
-
-                        System.Diagnostics.Debug.WriteLine($"Immediate reading: {currentLux} lux, Calculated EV: {_viewModel.CalculatedEV}");
-
-                        // Provide haptic feedback
-                        try
+                        // Perform immediate reading on background thread
+                        await Task.Run(async () =>
                         {
-                            HapticFeedback.Perform(HapticFeedbackType.Click);
-                        }
-                        catch { } // Ignore haptic errors
+                            try
+                            {
+                                float currentLux = _lightSensorService.GetCurrentLux();
+                                var calculatedEV = PerformEVCalculation(currentLux);
 
-                        // Brief delay for visual feedback
-                        await Task.Delay(200);
-                        _viewModel.IsBusy = false;
+                                await MainThread.InvokeOnMainThreadAsync(() =>
+                                {
+                                    if (!_disposed && _viewModel != null)
+                                    {
+                                        _viewModel.UpdateLightReading(currentLux);
+                                        _viewModel.SetCalculatedEV(calculatedEV);
+
+                                        System.Diagnostics.Debug.WriteLine($"Immediate reading: {currentLux} lux, Calculated EV: {calculatedEV}");
+                                    }
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Error in immediate reading: {ex.Message}");
+                            }
+                        }).ConfigureAwait(false);
+
+                        // Provide haptic feedback on UI thread
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            try
+                            {
+                                HapticFeedback.Perform(HapticFeedbackType.Click);
+                            }
+                            catch { } // Ignore haptic errors
+
+                            _viewModel.IsBusy = false;
+                        });
                     }
 
                     // Start continuous monitoring
@@ -296,7 +429,12 @@ namespace Location.Photography.Maui.Views.Professional
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error toggling monitoring: {ex.Message}");
-                _viewModel.IsBusy = false;
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (_viewModel != null)
+                        _viewModel.IsBusy = false;
+                });
             }
         }
 

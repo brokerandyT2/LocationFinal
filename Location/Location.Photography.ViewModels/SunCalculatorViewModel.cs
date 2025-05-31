@@ -197,7 +197,7 @@ namespace Location.Photography.ViewModels
             await ExecuteAndTrackAsync(command);
         }
 
-        public void CalculateSun()
+        public async void CalculateSun()
         {
             if (SelectedLocation == null)
                 return;
@@ -215,7 +215,7 @@ namespace Location.Photography.ViewModels
                     Date = Dates
                 };
 
-                var result = _mediator.Send(query).GetAwaiter().GetResult();
+                var result = await _mediator.Send(query);
 
                 if (result.IsSuccess && result.Data != null)
                 {

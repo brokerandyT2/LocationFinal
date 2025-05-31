@@ -194,9 +194,10 @@ namespace Location.Photography.Maui
                 var settingRepo = sp.GetRequiredService<ISettingRepository>();
                 var expService = sp.GetRequiredService<IExposureCalculatorService>();
                 var serviceProvider = sp;
+                var sceneEvalService = sp.GetRequiredService<ISceneEvaluationService>();
 #if ANDROID
                 var lightSensorService = sp.GetRequiredService<Platforms.Android.ILightSensorService>();
-                return new Views.Professional.LightMeter(mediator, alertService, settingRepo, lightSensorService, expService);
+                return new Views.Professional.LightMeter(mediator, alertService, settingRepo, lightSensorService, expService, sceneEvalService);
 #else
                 return new Views.Professional.LightMeter();
 #endif

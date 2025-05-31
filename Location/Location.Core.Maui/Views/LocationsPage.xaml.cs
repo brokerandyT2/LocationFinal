@@ -124,7 +124,23 @@ namespace Location.Core.Maui.Views
 
         private void ImageButton_Pressed(object sender, EventArgs e)
         {
-            // Handle map button press if needed
+            var location = ((LocationViewModel)sender);
+            MainThread.BeginInvokeOnMainThread(async () => {
+                try
+                {
+                    var mapLocation = new Microsoft.Maui.Devices.Sensors.Location(location.Latitude, location.Longitude);
+                    var options = new MapLaunchOptions { Name = location.Title };
+
+                    await Map.Default.OpenAsync(mapLocation, options);
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert(AppResources.Error, "No Map Application", AppResources.OK);
+                    location.OnSystemError("No Map Application");
+//                    HandleError(ex, "Error opening map");
+                }
+            });
+
         }
     }
 }

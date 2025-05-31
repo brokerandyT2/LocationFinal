@@ -5,7 +5,7 @@ using System.Linq;
 namespace Location.Core.Application.Common.Models
 {
     /// <summary>
-    /// Represents a paged list of items
+    /// Represents a paged list of items with optimized construction
     /// </summary>
     /// <typeparam name="T">The type of items in the list</typeparam>
     public class PagedList<T>
@@ -46,19 +46,21 @@ namespace Location.Core.Application.Common.Models
         public bool HasNextPage => PageNumber < TotalPages;
 
         /// <summary>
-        /// Creates a new paged list
+        /// Creates a new paged list with pre-calculated count
         /// </summary>
-        public PagedList(IEnumerable<T> items, int count, int pageNumber, int pageSize)
+        public PagedList(IEnumerable<T> items, int totalCount, int pageNumber, int pageSize)
         {
             PageNumber = pageNumber;
             PageSize = pageSize;
-            TotalCount = count;
+            TotalCount = totalCount;
             Items = items.ToList().AsReadOnly();
         }
 
         /// <summary>
-        /// Creates a paged list from a queryable source
+        /// Creates a paged list from a queryable source - PERFORMANCE OPTIMIZED
+        /// This should only be used when the repository cannot provide optimized paging
         /// </summary>
+        [Obsolete("Use repository-level paging with GetPagedAsync for better performance")]
         public static PagedList<T> Create(IQueryable<T> source, int pageNumber, int pageSize)
         {
             var count = source.Count();
@@ -71,8 +73,10 @@ namespace Location.Core.Application.Common.Models
         }
 
         /// <summary>
-        /// Creates a paged list from a list source
+        /// Creates a paged list from a list source - AVOID IN PRODUCTION
+        /// This materializes the entire list in memory before paging
         /// </summary>
+        [Obsolete("Use repository-level paging with GetPagedAsync for better performance")]
         public static PagedList<T> Create(IList<T> source, int pageNumber, int pageSize)
         {
             var count = source.Count;
@@ -82,6 +86,15 @@ namespace Location.Core.Application.Common.Models
                 .ToList();
 
             return new PagedList<T>(items, count, pageNumber, pageSize);
+        }
+
+        /// <summary>
+        /// Creates an optimized paged list when you already have the paged items and total count
+        /// This is the preferred method for repository-level paging
+        /// </summary>
+        public static PagedList<T> CreateOptimized(IEnumerable<T> pagedItems, int totalCount, int pageNumber, int pageSize)
+        {
+            return new PagedList<T>(pagedItems, totalCount, pageNumber, pageSize);
         }
     }
 }

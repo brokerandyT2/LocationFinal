@@ -1,4 +1,5 @@
-﻿using Location.Core.Application.Common.Interfaces;
+﻿using AutoMapper;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using MediatR;
@@ -29,74 +30,35 @@ namespace Location.Core.Application.Locations.Queries.GetLocations
     public class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, Result<PagedList<LocationListDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GetLocationsQueryHandler"/> class.
-        /// </summary>
-        /// <param name="unitOfWork">The unit of work used to access the data layer. This parameter cannot be null.</param>
-        public GetLocationsQueryHandler(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public GetLocationsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
-        /// <summary>
-        /// Handles the retrieval of a paginated list of locations based on the specified query parameters.
-        /// </summary>
-        /// <remarks>This method retrieves locations from the data source, optionally filters them by a
-        /// search term, maps them to DTOs, and returns a paginated result. If an error occurs during the operation, a
-        /// failure result is returned with the corresponding error message.</remarks>
-        /// <param name="request">The query parameters for retrieving locations, including pagination, search term, and whether to include
-        /// deleted locations.</param>
-        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-        /// <returns>A <see cref="Result{T}"/> containing a <see cref="PagedList{T}"/> of <see cref="LocationListDto"/> objects
-        /// if the operation is successful; otherwise, a failure result with an error message.</returns>
+
         public async Task<Result<PagedList<LocationListDto>>> Handle(GetLocationsQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                // Get locations based on query parameters
-                var locations = request.IncludeDeleted
-                    ? await _unitOfWork.Locations.GetAllAsync(cancellationToken)
-                    : await _unitOfWork.Locations.GetActiveAsync(cancellationToken);
+                // Push all filtering and pagination to database level
+                var pagedLocationsResult = await _unitOfWork.Locations.GetPagedAsync(
+                    pageNumber: request.PageNumber,
+                    pageSize: request.PageSize,
+                    searchTerm: request.SearchTerm,
+                    includeDeleted: request.IncludeDeleted,
+                    cancellationToken: cancellationToken);
 
-                if (!locations.IsSuccess || locations.Data == null)
+                if (!pagedLocationsResult.IsSuccess || pagedLocationsResult.Data == null)
                 {
                     return Result<PagedList<LocationListDto>>.Failure(
-                        locations.ErrorMessage ?? "Failed to retrieve locations");
+                        pagedLocationsResult.ErrorMessage ?? "Failed to retrieve locations");
                 }
 
-                var locationList = locations.Data;
+                // Use AutoMapper for efficient bulk mapping
+                var locationDtos = _mapper.Map<PagedList<LocationListDto>>(pagedLocationsResult.Data);
 
-                // Filter by search term if provided
-                if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-                {
-                    locationList = locationList.Where(l =>
-                        l.Title.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        l.Description.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        l.Address.City.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        l.Address.City.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
-                }
-
-                // Map to DTOs
-                var locationDtos = locationList.Select(l => new LocationListDto
-                {
-                    Id = l.Id,
-                    Title = l.Title,
-                    City = l.Address.City,
-                    State = l.Address.City,
-                    PhotoPath = l.PhotoPath,
-                    Timestamp = l.Timestamp,
-                    IsDeleted = l.IsDeleted, 
-                    // Map additional properties from the domain entity to DTO
-                     Latitude = l.Coordinate?.Latitude ?? 0,
-                    Longitude = l.Coordinate?.Longitude ?? 0
-                }).ToList();
-
-                // Create paged result
-                var pagedList = PagedList<LocationListDto>.Create(
-                    locationDtos,
-                    request.PageNumber,
-                    request.PageSize);
-
-                return Result<PagedList<LocationListDto>>.Success(pagedList);
+                return Result<PagedList<LocationListDto>>.Success(locationDtos);
             }
             catch (Exception ex)
             {

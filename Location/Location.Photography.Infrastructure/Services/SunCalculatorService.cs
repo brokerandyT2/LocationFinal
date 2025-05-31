@@ -18,63 +18,72 @@ namespace Location.Photography.Infrastructure.Services
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var sunrise = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "sunrise");
-            return sunrise.PhaseTime.ToLocalTime() != default ? sunrise.PhaseTime.ToLocalTime() : date; // Return date if no sunrise found
+            var x = sunrise.PhaseTime.ToLocalTime() != default ? sunrise.PhaseTime.ToLocalTime() : date; // Return date if no sunrise found
+            return x;
         }
 
         public DateTime GetSunset(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var sunset = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "sunset");
-            return sunset.PhaseTime.ToLocalTime() != default ? sunset.PhaseTime.ToLocalTime() : date; // Return date if no sunset found
+            var x = sunset.PhaseTime.ToLocalTime() != default ? sunset.PhaseTime.ToLocalTime() : date; // Return date if no sunset found
+            return x;
         }
 
         public DateTime GetSolarNoon(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var solarNoon = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "solar noon");
-            return solarNoon.PhaseTime.ToLocalTime() != default ? solarNoon.PhaseTime.ToLocalTime() : date.Date.AddHours(12); // Noon as fallback
+            var x = solarNoon.PhaseTime != default ? solarNoon.PhaseTime.ToLocalTime() : date.Date.AddHours(12);
+            return x; // Return date at noon if no solar noon found
         }
 
         public DateTime GetCivilDawn(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var dawn = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "dawn");
-            return dawn.PhaseTime.ToLocalTime() != default ? dawn.PhaseTime.ToLocalTime() : date; // Return date if not found
+            var x = dawn.PhaseTime.ToLocalTime() != default ? dawn.PhaseTime.ToLocalTime() : date; // Return date if not found
+            return x;
         }
 
         public DateTime GetCivilDusk(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var dusk = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "dusk");
-            return dusk.PhaseTime.ToLocalTime() != default ? dusk.PhaseTime.ToLocalTime() : date; // Return date if not found
+            var x = dusk.PhaseTime.ToLocalTime() != default ? dusk.PhaseTime.ToLocalTime() : date; // Return date if not found
+            return x;
         }
 
         public DateTime GetNauticalDawn(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var nauticalDawn = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "nautical dawn");
-            return nauticalDawn.PhaseTime.ToLocalTime() != default ? nauticalDawn.PhaseTime.ToLocalTime() : date; // Return date if not found
+            var x= nauticalDawn.PhaseTime.ToLocalTime() != default ? nauticalDawn.PhaseTime.ToLocalTime() : date; // Return date if not found
+            return x;
         }
 
         public DateTime GetNauticalDusk(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
             var nauticalDusk = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "nautical dusk");
-            return nauticalDusk.PhaseTime.ToLocalTime() != default ? nauticalDusk.PhaseTime.ToLocalTime() : date; // Return date if not found
+            var x = nauticalDusk.PhaseTime.ToLocalTime() != default ? nauticalDusk.PhaseTime.ToLocalTime() : date; // Return date if not found
+        return x;
         }
 
         public DateTime GetAstronomicalDawn(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
-            var nightEnd = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "night end");
-            return nightEnd.PhaseTime.ToLocalTime() != default ? nightEnd.PhaseTime.ToLocalTime() : date; // Return date if not found
+            var nightEnd = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "sunrise");
+            var x = nightEnd.PhaseTime.AddHours(-2).ToLocalTime() != default ? nightEnd.PhaseTime.ToLocalTime() : date; // Return date if not found
+            return x;
         }
 
         public DateTime GetAstronomicalDusk(DateTime date, double latitude, double longitude, string timezone)
         {
             var phases = SunCalc.GetSunPhases(date, latitude, longitude);
-            var night = phases.FirstOrDefault(p => p.Name.Value == "night");
-            return night.PhaseTime.ToLocalTime() != default ? night.PhaseTime.ToLocalTime() : date; // Return date if not found
+            var night = phases.FirstOrDefault(p => p.Name.Value == "sunset");
+            var x = night.PhaseTime.AddHours(2).ToLocalTime() != default ? night.PhaseTime.ToLocalTime() : date; // Return date if not found
+            return x;
         }
 
         public double GetSolarAzimuth(DateTime dateTime, double latitude, double longitude, string timezone)

@@ -12,12 +12,10 @@ using Location.Core.Application.Common.Models;
 namespace Location.Core.Application.Common.Behaviors
 {
     /// <summary>
-    /// Implements a pipeline behavior that logs the execution of requests and their responses.
+    /// Optimized pipeline behavior that logs the execution of requests and their responses with minimal performance impact.
     /// </summary>
-    /// <remarks>This behavior logs the start and completion of each request, including its execution time. If
-    /// the request takes longer than 500 milliseconds, a warning is logged. If the response implements <see
-    /// cref="IResult"/> and indicates a failure, the errors are logged as warnings. In the event of an exception, the
-    /// behavior logs the error and rethrows the exception.</remarks>
+    /// <remarks>This behavior uses async serialization, size limits, and conditional formatting to minimize
+    /// performance overhead while maintaining useful logging capabilities.</remarks>
     /// <typeparam name="TRequest">The type of the request being handled.</typeparam>
     /// <typeparam name="TResponse">The type of the response returned by the request handler.</typeparam>
     public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
@@ -25,6 +23,22 @@ namespace Location.Core.Application.Common.Behaviors
     {
         private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
         private readonly IMediator _mediator;
+
+        // Optimized JSON options - reused for performance
+        private static readonly JsonSerializerOptions _compactJsonOptions = new()
+        {
+            WriteIndented = false,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        };
+
+        private static readonly JsonSerializerOptions _indentedJsonOptions = new()
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        };
+
+        private const int MaxSerializationLength = 2048; // Limit serialization size
+        private const long SlowRequestThresholdMs = 500;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoggingBehavior{TRequest, TResponse}"/> class.
@@ -37,12 +51,12 @@ namespace Location.Core.Application.Common.Behaviors
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mediator = mediator;
         }
+
         /// <summary>
-        /// Handles a request by invoking the next handler in the pipeline and logging relevant information.
+        /// Handles a request by invoking the next handler in the pipeline and logging relevant information with optimized performance.
         /// </summary>
-        /// <remarks>This method logs the start, completion, and any errors encountered during the
-        /// handling of the request.  It also logs warnings for long-running requests or requests that complete with a
-        /// failure result.</remarks>
+        /// <remarks>This method uses async serialization, size limits, and conditional formatting to minimize
+        /// performance impact while providing useful logging information.</remarks>
         /// <param name="request">The request object to be processed. Cannot be <see langword="null"/>.</param>
         /// <param name="next">The delegate representing the next handler in the pipeline.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
@@ -56,16 +70,23 @@ namespace Location.Core.Application.Common.Behaviors
             var requestName = typeof(TRequest).Name;
             var requestGuid = Guid.NewGuid();
 
-            var requestJson = JsonSerializer.Serialize(request, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
+            // Pre-serialize request for logging (async and size-limited)
+            var requestJson = await SerializeRequestAsync(request);
 
             _logger.LogInformation(
-                "Starting request {RequestGuid} {RequestName} {@Request}",
+                "Starting request {RequestGuid} {RequestName}",
                 requestGuid,
-                requestName,
-                requestJson);
+                requestName);
+
+            // Only log request details if debug level is enabled (performance optimization)
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(
+                    "Request details {RequestGuid} {RequestName}: {RequestJson}",
+                    requestGuid,
+                    requestName,
+                    requestJson);
+            }
 
             TResponse response;
             var stopwatch = Stopwatch.StartNew();
@@ -75,23 +96,25 @@ namespace Location.Core.Application.Common.Behaviors
                 response = await next();
                 stopwatch.Stop();
 
-                if (stopwatch.ElapsedMilliseconds > 500)
-                {
-                    _logger.LogWarning(
-                        "Long running request {RequestGuid} {RequestName} ({ElapsedMilliseconds} milliseconds) {@Request}",
-                        requestGuid,
-                        requestName,
-                        stopwatch.ElapsedMilliseconds,
-                        requestJson);
-                }
+                var elapsedMs = stopwatch.ElapsedMilliseconds;
 
-                if (response is IResult result && !result.IsSuccess)
+                // Log based on performance threshold
+                if (elapsedMs > SlowRequestThresholdMs)
                 {
                     _logger.LogWarning(
-                        "Request completed with failure {RequestGuid} {RequestName} {@Errors}",
+                        "Slow request {RequestGuid} {RequestName} completed in {ElapsedMilliseconds}ms",
                         requestGuid,
                         requestName,
-                        result.Errors);
+                        elapsedMs);
+
+                    // Only include request details for slow requests if debug enabled
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug(
+                            "Slow request details {RequestGuid}: {RequestJson}",
+                            requestGuid,
+                            requestJson);
+                    }
                 }
                 else
                 {
@@ -99,7 +122,31 @@ namespace Location.Core.Application.Common.Behaviors
                         "Completed request {RequestGuid} {RequestName} in {ElapsedMilliseconds}ms",
                         requestGuid,
                         requestName,
-                        stopwatch.ElapsedMilliseconds);
+                        elapsedMs);
+                }
+
+                // Check for failure results efficiently
+                if (response is IResult result && !result.IsSuccess)
+                {
+                    var errorCount = result.Errors?.Count() ?? 0;
+                    _logger.LogWarning(
+                        "Request completed with failure {RequestGuid} {RequestName} - {ErrorCount} errors",
+                        requestGuid,
+                        requestName,
+                        errorCount);
+
+                    // Only log error details if debug level is enabled
+                    if (_logger.IsEnabled(LogLevel.Debug) && result.Errors != null)
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            _logger.LogDebug(
+                                "Request error {RequestGuid} {ErrorCode}: {ErrorMessage}",
+                                requestGuid,
+                                error.Code,
+                                error.Message);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -108,20 +155,55 @@ namespace Location.Core.Application.Common.Behaviors
 
                 _logger.LogError(
                     ex,
-                    "Request failed {RequestGuid} {RequestName} after {ElapsedMilliseconds}ms {@Request}",
+                    "Request failed {RequestGuid} {RequestName} after {ElapsedMilliseconds}ms",
                     requestGuid,
                     requestName,
-                    stopwatch.ElapsedMilliseconds,
-                    requestJson);
+                    stopwatch.ElapsedMilliseconds);
 
-                // Publish error event for unexpected exceptions
+                // Publish error event for unexpected exceptions (async fire-and-forget)
                 var entityType = requestName.Replace("Command", "").Replace("Query", "");
-                await _mediator.Publish(new ValidationErrorEvent(entityType, new[] { Error.Domain(ex.Message) }, $"{requestName}Handler"), cancellationToken);
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _mediator.Publish(new ValidationErrorEvent(entityType, new[] { Error.Domain(ex.Message) }, $"{requestName}Handler"), cancellationToken);
+                    }
+                    catch (Exception publishEx)
+                    {
+                        _logger.LogError(publishEx, "Failed to publish error event for request {RequestGuid}", requestGuid);
+                    }
+                }, CancellationToken.None);
 
                 throw;
             }
 
             return response;
+        }
+
+        /// <summary>
+        /// Efficiently serializes the request with size limits and async operation
+        /// </summary>
+        private async Task<string> SerializeRequestAsync(TRequest request)
+        {
+            try
+            {
+                // Use compact serialization by default for performance
+                var json = await Task.Run(() => JsonSerializer.Serialize(request, _compactJsonOptions));
+
+                // Truncate if too long to prevent memory issues
+                if (json.Length > MaxSerializationLength)
+                {
+                    return json.Substring(0, MaxSerializationLength) + "... (truncated)";
+                }
+
+                return json;
+            }
+            catch (Exception ex)
+            {
+                // Fallback to type name if serialization fails
+                _logger.LogDebug(ex, "Failed to serialize request {RequestType}", typeof(TRequest).Name);
+                return $"<{typeof(TRequest).Name}> (serialization failed)";
+            }
         }
     }
 }

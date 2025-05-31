@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {
-    public class LightMeterViewModel : ViewModelBase, INavigationAware
+    public class LightMeterViewModel : ViewModelBase
     {
         #region Fields
         private readonly IMediator _mediator;
@@ -122,7 +122,10 @@ namespace Location.Photography.ViewModels
         }
 
         public int MaxApertureIndex => ApertureArray?.Length - 1 ?? 0;
-
+        public void SetCalculatedEV(double ev)
+        {
+            CalculatedEV = ev;
+        }
         public string SelectedAperture => ApertureArray?[Math.Min(SelectedApertureIndex, MaxApertureIndex)] ?? "f/5.6";
         public string MinAperture => ApertureArray?[0] ?? "f/1";
         public string MaxAperture => ApertureArray?[MaxApertureIndex] ?? "f/64";

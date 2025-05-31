@@ -478,26 +478,90 @@ namespace Location.Photography.Maui
             {
                 _logger.LogInformation("ConfigureSubscriptionBasedTabsAsync starting");
 
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                var statusResult = await _subscriptionStatusService.CheckSubscriptionStatusAsync();
+                // Move subscription checks to background thread
+                var subscriptionData = await Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // Reasonable timeout
+
+                        // Check email for special access
+                        var email = await SecureStorage.GetAsync(MagicStrings.Email);
+                        bool hasSpecialAccess = !string.IsNullOrEmpty(email) &&
+                            email.ToLower() == "brokerandy25@gmail.com";
 
 #if DEBUG
-                var canAccessPremium = Result<bool>.Success(true);
-                var canAccessPro = Result<bool>.Success(true);
+                        // Debug mode: always enable
+                        return new
+                        {
+                            CanAccessPremium = true,
+                            CanAccessPro = true,
+                            Source = "Debug"
+                        };
 #else
-                var canAccessPremium = await _subscriptionStatusService.CanAccessPremiumFeaturesAsync();
-                var canAccessPro = await _subscriptionStatusService.CanAccessProFeaturesAsync();
-#endif
-                var email = SecureStorage.GetAsync(MagicStrings.Email);
-                if(email.ToString().ToLower() == "brokerandy25@gmail.com")
+                // Production mode: check subscription or special access
+                if (hasSpecialAccess)
                 {
-
+                    return new { 
+                        CanAccessPremium = true, 
+                        CanAccessPro = true,
+                        Source = "SpecialAccess"
+                    };
                 }
+
+                // Normal subscription check
+                var premiumTask = _subscriptionStatusService.CanAccessPremiumFeaturesAsync();
+                var proTask = _subscriptionStatusService.CanAccessProFeaturesAsync();
+                
+                // Wait for both with timeout
+                var completedTask = await Task.WhenAny(
+                    Task.WhenAll(premiumTask, proTask),
+                    Task.Delay(TimeSpan.FromSeconds(5), cts.Token)
+                );
+
+                if (completedTask == Task.WhenAll(premiumTask, proTask))
+                {
+                    // Subscription check completed
+                    var premiumResult = await premiumTask;
+                    var proResult = await proTask;
+                    
+                    return new { 
+                        CanAccessPremium = premiumResult.IsSuccess && premiumResult.Data,
+                        CanAccessPro = proResult.IsSuccess && proResult.Data,
+                        Source = "Subscription"
+                    };
+                }
+                else
+                {
+                    // Timeout - default to enabled to avoid blocking user
+                    _logger.LogWarning("Subscription check timed out, defaulting to enabled");
+                    return new { 
+                        CanAccessPremium = true, 
+                        CanAccessPro = true,
+                        Source = "Timeout"
+                    };
+                }
+#endif
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Subscription check failed, defaulting to enabled");
+                        // On error, default to enabled to avoid blocking user experience
+                        return new
+                        {
+                            CanAccessPremium = true,
+                            CanAccessPro = true,
+                            Source = "Error"
+                        };
+                    }
+                }).ConfigureAwait(false);
+
+                // Quick UI update on main thread
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     try
                     {
-                        _logger.LogInformation("Configuring subscription-based tab visibility");
+                        _logger.LogInformation($"Configuring subscription-based tab visibility (Source: {subscriptionData.Source})");
 
                         var premiumTab = TopTabs.Tabs.FirstOrDefault(t => t.Title == "Premium");
                         var professionalTab = TopTabs.Tabs.FirstOrDefault(t => t.Title == "Professional");
@@ -505,7 +569,7 @@ namespace Location.Photography.Maui
                         // Enable Premium tab and its sub-tabs
                         if (premiumTab != null)
                         {
-                            premiumTab.IsEnabled = canAccessPremium.IsSuccess && canAccessPremium.Data;
+                            premiumTab.IsEnabled = subscriptionData.CanAccessPremium;
                             foreach (var subTab in premiumTab.SubTabs)
                             {
                                 subTab.IsEnabled = premiumTab.IsEnabled;
@@ -516,7 +580,7 @@ namespace Location.Photography.Maui
                         // Enable Professional tab and its sub-tabs
                         if (professionalTab != null)
                         {
-                            professionalTab.IsEnabled = canAccessPro.IsSuccess && canAccessPro.Data;
+                            professionalTab.IsEnabled = subscriptionData.CanAccessPro;
                             foreach (var subTab in professionalTab.SubTabs)
                             {
                                 subTab.IsEnabled = professionalTab.IsEnabled;
@@ -524,14 +588,15 @@ namespace Location.Photography.Maui
                             _logger.LogInformation($"Professional tab enabled: {professionalTab.IsEnabled}");
                         }
 
-                        // If premium is enabled, professional is also enabled
-                        if (canAccessPremium.IsSuccess && canAccessPremium.Data && professionalTab != null)
+                        // If premium is enabled, professional is also enabled (business rule)
+                        if (subscriptionData.CanAccessPremium && professionalTab != null)
                         {
                             professionalTab.IsEnabled = true;
                             foreach (var subTab in professionalTab.SubTabs)
                             {
                                 subTab.IsEnabled = true;
                             }
+                            _logger.LogInformation("Professional tab enabled via Premium access");
                         }
 
                         // Refresh the UI
@@ -548,6 +613,37 @@ namespace Location.Photography.Maui
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in ConfigureSubscriptionBasedTabsAsync");
+
+                // Fallback: ensure tabs are enabled if everything fails
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    try
+                    {
+                        var premiumTab = TopTabs.Tabs.FirstOrDefault(t => t.Title == "Premium");
+                        var professionalTab = TopTabs.Tabs.FirstOrDefault(t => t.Title == "Professional");
+
+                        if (premiumTab != null)
+                        {
+                            premiumTab.IsEnabled = true;
+                            foreach (var subTab in premiumTab.SubTabs)
+                                subTab.IsEnabled = true;
+                        }
+
+                        if (professionalTab != null)
+                        {
+                            professionalTab.IsEnabled = true;
+                            foreach (var subTab in professionalTab.SubTabs)
+                                subTab.IsEnabled = true;
+                        }
+
+                        TopTabs.RefreshTabs();
+                        _logger.LogInformation("Fallback: All tabs enabled due to configuration error");
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        _logger.LogError(fallbackEx, "Critical: Fallback tab configuration failed");
+                    }
+                });
             }
         }
     }

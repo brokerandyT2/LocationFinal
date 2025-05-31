@@ -52,10 +52,30 @@ namespace Location.Core.Infrastructure.External
                         await Task.CompletedTask;
                     });
         }
+        private bool HasCompleteForecastData(Domain.Entities.Weather weather)
+        {
+            if (weather.Forecasts == null || weather.Forecasts.Count == 0)
+                return false;
 
+            var today = DateTime.Today;
+            var requiredDates = Enumerable.Range(0, 5)
+                .Select(i => today.AddDays(i))
+                .ToList();
+
+            // Check if we have forecast data for all required dates
+            foreach (var requiredDate in requiredDates)
+            {
+                if (!weather.Forecasts.Any(f => f.Date.Date == requiredDate.Date))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         public async Task<Result<WeatherDto>> UpdateWeatherForLocationAsync(
-            int locationId,
-            CancellationToken cancellationToken = default)
+           int locationId,
+           CancellationToken cancellationToken = default)
         {
             try
             {
@@ -68,7 +88,19 @@ namespace Location.Core.Infrastructure.External
 
                 var location = locationResult.Data;
 
-                // Fetch weather data from API
+                // Check if existing weather data is fresh (less than 2 days old)
+                var existingWeather = await _unitOfWork.Weather.GetByLocationIdAsync(locationId, cancellationToken);
+
+                if (existingWeather != null &&
+                    existingWeather.LastUpdate >= DateTime.UtcNow.AddDays(-2) &&
+                    HasCompleteForecastData(existingWeather))
+                {
+                    // Data is fresh, return existing data without API call
+                    var existingDto = await MapToWeatherDtoAsync(existingWeather, null, cancellationToken);
+                    return Result<WeatherDto>.Success(existingDto);
+                }
+
+                // Data is stale or missing, fetch from API
                 var weatherResult = await GetWeatherFromApiAsync(
                     location.Coordinate.Latitude,
                     location.Coordinate.Longitude,
@@ -76,6 +108,13 @@ namespace Location.Core.Infrastructure.External
 
                 if (!weatherResult.IsSuccess || weatherResult.Data == null)
                 {
+                    // If API fails but we have existing data, return it
+                    if (existingWeather != null)
+                    {
+                        var fallbackDto = await MapToWeatherDtoAsync(existingWeather, null, cancellationToken);
+                        return Result<WeatherDto>.Success(fallbackDto);
+                    }
+
                     return Result<WeatherDto>.Failure(weatherResult.ErrorMessage ?? "Failed to fetch weather");
                 }
 
@@ -83,16 +122,16 @@ namespace Location.Core.Infrastructure.External
 
                 // Create or update weather entity
                 var coordinate = new Coordinate(location.Coordinate.Latitude, location.Coordinate.Longitude);
-
-                var existingWeather = await _unitOfWork.Weather.GetByLocationIdAsync(locationId, cancellationToken);
                 Domain.Entities.Weather weather;
 
                 if (existingWeather != null)
                 {
+                    // Update existing weather record
                     weather = existingWeather;
                 }
                 else
                 {
+                    // Create new weather record
                     weather = new Domain.Entities.Weather(
                         locationId,
                         coordinate,
@@ -162,16 +201,18 @@ namespace Location.Core.Infrastructure.External
                 // Save to database
                 if (existingWeather != null)
                 {
+                    // Update existing record
                     _unitOfWork.Weather.Update(existingWeather);
                 }
                 else
                 {
+                    // Add new record
                     await _unitOfWork.Weather.AddAsync(weather, cancellationToken);
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                // Map current weather data to DTO and return (with proper async wind direction handling)
+                // Map current weather data to DTO and return
                 var weatherDto = await MapToWeatherDtoAsync(weather, apiData, cancellationToken);
                 return Result<WeatherDto>.Success(weatherDto);
             }
