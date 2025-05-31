@@ -1,11 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
-using Location.Core.Application.Weather.Queries.GetWeatherForecast;
+using Location.Core.Application.Weather.DTOs;
 using Location.Core.Application.Weather.Queries.GetHourlyForecast;
+using Location.Core.Application.Weather.Queries.GetWeatherForecast;
 using Location.Core.ViewModels;
 using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
@@ -14,13 +16,12 @@ using MediatR;
 using System.Collections.ObjectModel;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
-using Location.Core.Application.Weather.DTOs;
 
 namespace Location.Photography.ViewModels
 {
     public partial class EnhancedSunCalculatorViewModel : ViewModelBase
     {
-        public string HourlyPredictionsHeader => $"Hourly Light Predictions (Updated {WeatherLastUpdate.ToString(DateFormat+' '+TimeFormat)})";
+        public string HourlyPredictionsHeader => "Hourly Light Predictions";
         private readonly IMediator _mediator;
         private readonly IErrorDisplayService _errorDisplayService;
         private readonly IPredictiveLightService _predictiveLightService;
@@ -230,6 +231,7 @@ namespace Location.Photography.ViewModels
         {
             var command = new AsyncRelayCommand(async () =>
             {
+              
                 try
                 {
                     if (SelectedLocation == null)
@@ -248,13 +250,16 @@ namespace Location.Photography.ViewModels
                     await CalculateSunTimesAsync();
                     await GenerateSunPathPointsAsync();
 
+                    // FIXED: Ensure weather data is persisted BEFORE reading it
+                    await EnsureWeatherDataAsync();
+
                     // Enhanced: Load hourly weather data first, then generate predictions
                     await LoadHourlyWeatherDataAsync();
                     await GenerateWeatherAwarePredictionsAsync();
                     await CalculateOptimalWindowsAsync();
 
                     UpdateCurrentPredictionDisplay();
-                  
+
                     WeatherDataStatus = $"Updated {WeatherLastUpdate:HH:mm}";
                 }
                 catch (OperationCanceledException)
@@ -266,8 +271,40 @@ namespace Location.Photography.ViewModels
                     OnSystemError($"Error calculating enhanced sun data: {ex.Message}");
                 }
             });
-
+            
             await ExecuteAndTrackAsync(command);
+        }
+        private async Task EnsureWeatherDataAsync()
+        {
+            if (SelectedLocation == null) return;
+
+            try
+            {
+                // STEP 1: Force update weather data (this persists to database)
+                var updateCommand = new UpdateWeatherCommand
+                {
+                    LocationId = SelectedLocation.Id,
+                    ForceUpdate = true
+                };
+
+                var updateResult = await _mediator.Send(updateCommand, _cancellationTokenSource.Token);
+
+                if (updateResult.IsSuccess && updateResult.Data != null)
+                {
+                    WeatherLastUpdate = updateResult.Data.LastUpdate;
+                    WeatherDataStatus = "Weather data updated and cached";
+                }
+                else
+                {
+                    WeatherDataStatus = "Weather update failed - using cached data if available";
+                    OnSystemError($"Weather update failed: {updateResult.ErrorMessage}");
+                }
+            }
+            catch (Exception ex)
+            {
+                WeatherDataStatus = "Weather service unavailable";
+                OnSystemError($"Error updating weather data: {ex.Message}");
+            }
         }
 
         [RelayCommand]
@@ -346,6 +383,7 @@ namespace Location.Photography.ViewModels
 
             try
             {
+                // FIXED: This now reads from database (after EnsureWeatherDataAsync persisted it)
                 var hourlyQuery = new GetHourlyForecastQuery
                 {
                     LocationId = SelectedLocation.Id,
@@ -359,6 +397,7 @@ namespace Location.Photography.ViewModels
                 {
                     HourlyWeatherData = hourlyResult.Data;
                     WeatherLastUpdate = hourlyResult.Data.LastUpdate;
+                    WeatherDataStatus = "Hourly weather data loaded from cache";
                 }
                 else
                 {
@@ -379,20 +418,66 @@ namespace Location.Photography.ViewModels
 
             try
             {
-                var weatherQuery = new GetWeatherForecastQuery
-                {
-                    Latitude = SelectedLocation.Latitude,
-                    Longitude = SelectedLocation.Longitude,
-                    Days = 5 // Business rule alignment
-                };
+                // FIXED: First try to read from database (after persistence)
+                var weather = await _unitOfWork.Weather.GetByLocationIdAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
 
-                var weatherResult = await _mediator.Send(weatherQuery, _cancellationTokenSource.Token);
-
-                if (weatherResult.IsSuccess && weatherResult.Data != null)
+                if (weather != null && weather.Forecasts.Any())
                 {
-                    WeatherLastUpdate = weatherResult.Data.LastUpdate;
-                    // Convert daily forecast to basic weather impact analysis
-                    await GenerateBasicWeatherImpactAsync(weatherResult.Data);
+                    // Use persisted weather data
+                    WeatherLastUpdate = weather.LastUpdate;
+                    WeatherDataStatus = "Using cached weather data";
+
+                    // Convert to WeatherForecastDto for compatibility
+                    var weatherForecastDto = new WeatherForecastDto
+                    {
+                        WeatherId = weather.Id,
+                        LastUpdate = weather.LastUpdate,
+                        Timezone = weather.Timezone,
+                        TimezoneOffset = weather.TimezoneOffset,
+                        DailyForecasts = weather.Forecasts.Take(5).Select(f => new DailyForecastDto
+                        {
+                            Date = f.Date,
+                            Sunrise = f.Sunrise,
+                            Sunset = f.Sunset,
+                            Temperature = f.Temperature,
+                            MinTemperature = f.MinTemperature,
+                            MaxTemperature = f.MaxTemperature,
+                            Description = f.Description,
+                            Icon = f.Icon,
+                            WindSpeed = f.Wind.Speed,
+                            WindDirection = f.Wind.Direction,
+                            WindGust = f.Wind.Gust,
+                            Humidity = f.Humidity,
+                            Pressure = f.Pressure,
+                            Clouds = f.Clouds,
+                            UvIndex = f.UvIndex,
+                            Precipitation = f.Precipitation,
+                            MoonRise = f.MoonRise,
+                            MoonSet = f.MoonSet,
+                            MoonPhase = f.MoonPhase
+                        }).ToList()
+                    };
+
+                    await GenerateBasicWeatherImpactAsync(weatherForecastDto);
+                }
+                else
+                {
+                    // Last resort: API call (but this won't persist - should not happen after EnsureWeatherDataAsync)
+                    var weatherQuery = new GetWeatherForecastQuery
+                    {
+                        Latitude = SelectedLocation.Latitude,
+                        Longitude = SelectedLocation.Longitude,
+                        Days = 5 // Business rule alignment
+                    };
+
+                    var weatherResult = await _mediator.Send(weatherQuery, _cancellationTokenSource.Token);
+
+                    if (weatherResult.IsSuccess && weatherResult.Data != null)
+                    {
+                        WeatherLastUpdate = weatherResult.Data.LastUpdate;
+                        WeatherDataStatus = "Using API weather data (not cached)";
+                        await GenerateBasicWeatherImpactAsync(weatherResult.Data);
+                    }
                 }
             }
             catch (Exception ex)
@@ -916,6 +1001,7 @@ namespace Location.Photography.ViewModels
                 };
 
                 WeatherImpact = await _predictiveLightService.AnalyzeWeatherImpactAsync(analysisRequest, _cancellationTokenSource.Token);
+                WeatherDataStatus = "Weather impact analysis complete";
             }
             catch (Exception ex)
             {

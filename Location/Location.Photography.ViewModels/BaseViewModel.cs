@@ -91,8 +91,10 @@ namespace Location.Photography.ViewModels
         /// </summary>
         public async Task ExecuteAndTrackAsync(IAsyncRelayCommand command, object? parameter = null)
         {
+            IsBusy = true;
             TrackCommand(command, parameter);
             await command.ExecuteAsync(parameter);
+            IsBusy = false;
         }
 
         /// <summary>
@@ -100,10 +102,12 @@ namespace Location.Photography.ViewModels
         /// </summary>
         public async Task RetryLastCommandAsync()
         {
+            IsBusy = true;
             if (_lastCommand?.CanExecute(_lastCommandParameter) == true)
             {
                 await _lastCommand.ExecuteAsync(_lastCommandParameter);
             }
+            IsBusy = false;
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Services;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Photography.Application.Queries.SunLocation;
+using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure;
 using Location.Photography.ViewModels;
@@ -20,6 +21,7 @@ namespace Location.Photography.Maui.Views.Premium
         private readonly ILocationRepository _locationRepository;
         private readonly ISunCalculatorService _sunCalculatorService;
         private readonly ISettingRepository _settingRepository;
+        private readonly ITimezoneService _timezoneService;
         private SunLocationViewModel _viewModel;
 
         public SunLocation()
@@ -35,18 +37,27 @@ namespace Location.Photography.Maui.Views.Premium
             ILocationRepository locationRepository,
             ISunCalculatorService sunCalculatorService,
             ISettingRepository settingRepository,
-            IErrorDisplayService errorDisplayService)
+            IErrorDisplayService errorDisplayService, ITimezoneService timezoneService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _locationRepository = locationRepository ?? throw new ArgumentNullException(nameof(locationRepository));
             _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
             _settingRepository = settingRepository ?? throw new ArgumentNullException(nameof(settingRepository));
-
+            _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
             InitializeComponent();
             InitializeViewModel(errorDisplayService);
         }
-
+        private async void OnTimelineEventTapped(object sender, EventArgs e)
+        {
+            if (sender is StackLayout stackLayout && stackLayout.BindingContext is TimelineEventViewModel timelineEvent)
+            {
+                if (_viewModel != null)
+                {
+                    _viewModel.SelectedDateTime = timelineEvent.EventTime;
+                }
+            }
+        }
         protected override async void OnNavigatedTo(NavigatedToEventArgs args)
         {
             base.OnNavigatedTo(args);
@@ -72,7 +83,7 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                _viewModel = new SunLocationViewModel(_mediator, _sunCalculatorService, errorDisplayService);
+                _viewModel = new SunLocationViewModel(_mediator, _sunCalculatorService, errorDisplayService, _timezoneService);
                 _viewModel.BeginMonitoring = true;
                 _viewModel.StartSensors();
                 _viewModel.UpdateSunPositionCommand.Execute(errorDisplayService);

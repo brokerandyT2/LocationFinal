@@ -183,7 +183,8 @@ namespace Location.Photography.Maui
                 var sunCalcService = sp.GetService<Location.Photography.Domain.Services.ISunCalculatorService>();
                 var settingRepo = sp.GetRequiredService<ISettingRepository>();
                 var errorService = sp.GetRequiredService<IErrorDisplayService>();
-                return new Views.Premium.SunLocation(mediator, alertService, locationRepo, sunCalcService, settingRepo, errorService);
+                var timezoneService = sp.GetRequiredService<ITimezoneService>();
+                return new Views.Premium.SunLocation(mediator, alertService, locationRepo, sunCalcService, settingRepo, errorService, timezoneService);
             });
 
             builder.Services.AddTransient<Views.Professional.LightMeter>(sp =>
