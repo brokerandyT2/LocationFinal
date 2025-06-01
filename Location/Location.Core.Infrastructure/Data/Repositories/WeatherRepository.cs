@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
@@ -18,12 +20,36 @@ namespace Location.Core.Infrastructure.Data.Repositories
         private readonly ILogger<WeatherRepository> _logger;
         private readonly IInfrastructureExceptionMappingService _exceptionMapper;
 
+        // Compiled mapping delegates for performance
+        private static readonly Func<WeatherEntity, Weather> _compiledWeatherEntityToDomain;
+        private static readonly Func<Weather, WeatherEntity> _compiledWeatherDomainToEntity;
+        private static readonly Func<WeatherForecastEntity, WeatherForecast> _compiledForecastEntityToDomain;
+        private static readonly Func<WeatherForecast, WeatherForecastEntity> _compiledForecastDomainToEntity;
+        private static readonly Func<HourlyForecastEntity, HourlyForecast> _compiledHourlyEntityToDomain;
+        private static readonly Func<HourlyForecast, HourlyForecastEntity> _compiledHourlyDomainToEntity;
+
+        // Cached property setters for reflection performance
+        private static readonly Dictionary<string, Action<object, object>> _propertySetters;
+
+        static WeatherRepository()
+        {
+            _compiledWeatherEntityToDomain = CompileWeatherEntityToDomainMapper();
+            _compiledWeatherDomainToEntity = CompileWeatherDomainToEntityMapper();
+            _compiledForecastEntityToDomain = CompileForecastEntityToDomainMapper();
+            _compiledForecastDomainToEntity = CompileForecastDomainToEntityMapper();
+            _compiledHourlyEntityToDomain = CompileHourlyEntityToDomainMapper();
+            _compiledHourlyDomainToEntity = CompileHourlyDomainToEntityMapper();
+            _propertySetters = CreatePropertySetters();
+        }
+
         public WeatherRepository(IDatabaseContext context, ILogger<WeatherRepository> logger, IInfrastructureExceptionMappingService exceptionMapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _exceptionMapper = exceptionMapper ?? throw new ArgumentNullException(nameof(exceptionMapper));
         }
+
+        #region Core Operations (Optimized)
 
         public async Task<Weather?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
@@ -32,25 +58,26 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 {
                     _logger.LogInformation("Retrieving weather with ID {WeatherId}", id);
 
+                    // Get weather entity
                     var weatherEntity = await _context.GetAsync<WeatherEntity>(id);
-
                     if (weatherEntity == null)
                     {
                         _logger.LogInformation("Weather with ID {WeatherId} not found", id);
                         return null;
                     }
 
-                    var forecastEntities = await _context.Table<WeatherForecastEntity>()
-                        .Where(f => f.WeatherId == id)
-                        .OrderBy(f => f.Date)
-                        .ToListAsync();
+                    // Get related entities concurrently for better performance
+                    var forecastTask = _context.QueryAsync<WeatherForecastEntity>(
+                        "SELECT * FROM WeatherForecastEntity WHERE WeatherId = ? ORDER BY Date", id);
+                    var hourlyTask = _context.QueryAsync<HourlyForecastEntity>(
+                        "SELECT * FROM HourlyForecastEntity WHERE WeatherId = ? ORDER BY DateTime", id);
 
-                    var hourlyForecastEntities = await _context.Table<HourlyForecastEntity>()
-                        .Where(h => h.WeatherId == id)
-                        .OrderBy(h => h.DateTime)
-                        .ToListAsync();
+                    await Task.WhenAll(forecastTask, hourlyTask);
 
-                    var weather = MapToDomain(weatherEntity, forecastEntities, hourlyForecastEntities);
+                    var forecastEntities = await forecastTask;
+                    var hourlyForecastEntities = await hourlyTask;
+
+                    var weather = MapToDomainWithRelations(weatherEntity, forecastEntities, hourlyForecastEntities);
 
                     _logger.LogInformation("Successfully retrieved weather with ID {WeatherId}", id);
                     return weather;
@@ -66,31 +93,29 @@ namespace Location.Core.Infrastructure.Data.Repositories
             return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
-                    var weatherEntities = await _context.Table<WeatherEntity>()
-                        .Where(w => w.LocationId == locationId)
-                        .ToListAsync();
+                    // Get most recent weather for location
+                    var weatherEntities = await _context.QueryAsync<WeatherEntity>(
+                        "SELECT * FROM WeatherEntity WHERE LocationId = ? ORDER BY LastUpdate DESC LIMIT 1", locationId);
 
                     if (!weatherEntities.Any())
                     {
                         return null;
                     }
 
-                    var weatherEntity = weatherEntities
-                        .OrderByDescending(w => w.LastUpdate)
-                        .First();
+                    var weatherEntity = weatherEntities.First();
 
-                    var forecastEntities = await _context.Table<WeatherForecastEntity>()
-                        .Where(f => f.WeatherId == weatherEntity.Id)
-                        .OrderBy(f => f.Date)
-                        .ToListAsync();
+                    // Get related entities concurrently
+                    var forecastTask = _context.QueryAsync<WeatherForecastEntity>(
+                        "SELECT * FROM WeatherForecastEntity WHERE WeatherId = ? ORDER BY Date", weatherEntity.Id);
+                    var hourlyTask = _context.QueryAsync<HourlyForecastEntity>(
+                        "SELECT * FROM HourlyForecastEntity WHERE WeatherId = ? ORDER BY DateTime", weatherEntity.Id);
 
-                    var hourlyForecastEntities = await _context.Table<HourlyForecastEntity>()
-                        .Where(h => h.WeatherId == weatherEntity.Id)
-                        .OrderBy(h => h.DateTime)
-                        .ToListAsync();
+                    await Task.WhenAll(forecastTask, hourlyTask);
 
-                    var weather = MapToDomain(weatherEntity, forecastEntities, hourlyForecastEntities);
-                    return weather;
+                    var forecastEntities = await forecastTask;
+                    var hourlyForecastEntities = await hourlyTask;
+
+                    return MapToDomainWithRelations(weatherEntity, forecastEntities, hourlyForecastEntities);
                 },
                 _exceptionMapper,
                 "GetByLocationId",
@@ -103,29 +128,56 @@ namespace Location.Core.Infrastructure.Data.Repositories
             return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
-                    var weatherEntity = MapToEntity(weather);
-                    await _context.InsertAsync(weatherEntity);
-
-                    SetPrivateProperty(weather, "Id", weatherEntity.Id);
-
-                    foreach (var forecast in weather.Forecasts)
+                    return await _context.ExecuteInTransactionAsync(async () =>
                     {
-                        var forecastEntity = MapForecastToEntity(forecast, weatherEntity.Id);
-                        await _context.InsertAsync(forecastEntity);
-                        SetPrivateProperty(forecast, "Id", forecastEntity.Id);
-                    }
+                        // Insert main weather entity
+                        var weatherEntity = _compiledWeatherDomainToEntity(weather);
+                        await _context.InsertAsync(weatherEntity);
+                        SetOptimizedProperty(weather, "Id", weatherEntity.Id);
 
-                    foreach (var hourlyForecast in weather.HourlyForecasts)
-                    {
-                        var hourlyForecastEntity = MapHourlyForecastToEntity(hourlyForecast, weatherEntity.Id);
-                        await _context.InsertAsync(hourlyForecastEntity);
-                        SetPrivateProperty(hourlyForecast, "Id", hourlyForecastEntity.Id);
-                    }
+                        // Bulk insert forecasts
+                        if (weather.Forecasts.Any())
+                        {
+                            var forecastEntities = weather.Forecasts.Select(f =>
+                            {
+                                var entity = _compiledForecastDomainToEntity(f);
+                                entity.WeatherId = weatherEntity.Id;
+                                return entity;
+                            }).ToList();
 
-                    _logger.LogInformation("Created weather with ID {WeatherId} for location {LocationId}",
-                        weatherEntity.Id, weather.LocationId);
+                            await _context.BulkInsertAsync(forecastEntities, 50);
 
-                    return weather;
+                            // Update forecast IDs
+                            for (int i = 0; i < weather.Forecasts.Count; i++)
+                            {
+                                SetOptimizedProperty(weather.Forecasts.ElementAt(i), "Id", forecastEntities[i].Id);
+                            }
+                        }
+
+                        // Bulk insert hourly forecasts
+                        if (weather.HourlyForecasts.Any())
+                        {
+                            var hourlyEntities = weather.HourlyForecasts.Select(h =>
+                            {
+                                var entity = _compiledHourlyDomainToEntity(h);
+                                entity.WeatherId = weatherEntity.Id;
+                                return entity;
+                            }).ToList();
+
+                            await _context.BulkInsertAsync(hourlyEntities, 100);
+
+                            // Update hourly forecast IDs
+                            for (int i = 0; i < weather.HourlyForecasts.Count; i++)
+                            {
+                                SetOptimizedProperty(weather.HourlyForecasts.ElementAt(i), "Id", hourlyEntities[i].Id);
+                            }
+                        }
+
+                        _logger.LogInformation("Created weather with ID {WeatherId} for location {LocationId}",
+                            weatherEntity.Id, weather.LocationId);
+
+                        return weather;
+                    });
                 },
                 _exceptionMapper,
                 "Add",
@@ -138,46 +190,58 @@ namespace Location.Core.Infrastructure.Data.Repositories
             await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
-                    var weatherEntity = MapToEntity(weather);
-                    await _context.UpdateAsync(weatherEntity);
-
-                    // Delete existing forecasts
-                    var existingForecasts = await _context.Table<WeatherForecastEntity>()
-                        .Where(f => f.WeatherId == weather.Id)
-                        .ToListAsync();
-
-                    foreach (var forecast in existingForecasts)
+                    await _context.ExecuteInTransactionAsync(async () =>
                     {
-                        await _context.DeleteAsync(forecast);
-                    }
+                        // Update main weather entity
+                        var weatherEntity = _compiledWeatherDomainToEntity(weather);
+                        await _context.UpdateAsync(weatherEntity);
 
-                    // Delete existing hourly forecasts
-                    var existingHourlyForecasts = await _context.Table<HourlyForecastEntity>()
-                        .Where(h => h.WeatherId == weather.Id)
-                        .ToListAsync();
+                        // Delete existing related entities efficiently
+                        await _context.ExecuteAsync("DELETE FROM WeatherForecastEntity WHERE WeatherId = ?", weather.Id);
+                        await _context.ExecuteAsync("DELETE FROM HourlyForecastEntity WHERE WeatherId = ?", weather.Id);
 
-                    foreach (var hourlyForecast in existingHourlyForecasts)
-                    {
-                        await _context.DeleteAsync(hourlyForecast);
-                    }
+                        // Bulk insert new forecasts
+                        if (weather.Forecasts.Any())
+                        {
+                            var forecastEntities = weather.Forecasts.Select(f =>
+                            {
+                                var entity = _compiledForecastDomainToEntity(f);
+                                entity.WeatherId = weather.Id;
+                                entity.Id = 0; // Reset ID for insert
+                                return entity;
+                            }).ToList();
 
-                    // Insert new forecasts
-                    foreach (var forecast in weather.Forecasts)
-                    {
-                        var forecastEntity = MapForecastToEntity(forecast, weather.Id);
-                        await _context.InsertAsync(forecastEntity);
-                        SetPrivateProperty(forecast, "Id", forecastEntity.Id);
-                    }
+                            await _context.BulkInsertAsync(forecastEntities, 50);
 
-                    // Insert new hourly forecasts
-                    foreach (var hourlyForecast in weather.HourlyForecasts)
-                    {
-                        var hourlyForecastEntity = MapHourlyForecastToEntity(hourlyForecast, weather.Id);
-                        await _context.InsertAsync(hourlyForecastEntity);
-                        SetPrivateProperty(hourlyForecast, "Id", hourlyForecastEntity.Id);
-                    }
+                            // Update forecast IDs
+                            for (int i = 0; i < weather.Forecasts.Count; i++)
+                            {
+                                SetOptimizedProperty(weather.Forecasts.ElementAt(i), "Id", forecastEntities[i].Id);
+                            }
+                        }
 
-                    _logger.LogInformation("Updated weather with ID {WeatherId}", weather.Id);
+                        // Bulk insert new hourly forecasts
+                        if (weather.HourlyForecasts.Any())
+                        {
+                            var hourlyEntities = weather.HourlyForecasts.Select(h =>
+                            {
+                                var entity = _compiledHourlyDomainToEntity(h);
+                                entity.WeatherId = weather.Id;
+                                entity.Id = 0; // Reset ID for insert
+                                return entity;
+                            }).ToList();
+
+                            await _context.BulkInsertAsync(hourlyEntities, 100);
+
+                            // Update hourly forecast IDs
+                            for (int i = 0; i < weather.HourlyForecasts.Count; i++)
+                            {
+                                SetOptimizedProperty(weather.HourlyForecasts.ElementAt(i), "Id", hourlyEntities[i].Id);
+                            }
+                        }
+
+                        _logger.LogInformation("Updated weather with ID {WeatherId}", weather.Id);
+                    });
                 },
                 _exceptionMapper,
                 "Update",
@@ -190,28 +254,18 @@ namespace Location.Core.Infrastructure.Data.Repositories
             await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
-                    var forecasts = await _context.Table<WeatherForecastEntity>()
-                        .Where(f => f.WeatherId == weather.Id)
-                        .ToListAsync();
-
-                    foreach (var forecast in forecasts)
+                    await _context.ExecuteInTransactionAsync(async () =>
                     {
-                        await _context.DeleteAsync(forecast);
-                    }
+                        // Delete related entities first (foreign key constraints)
+                        await _context.ExecuteAsync("DELETE FROM HourlyForecastEntity WHERE WeatherId = ?", weather.Id);
+                        await _context.ExecuteAsync("DELETE FROM WeatherForecastEntity WHERE WeatherId = ?", weather.Id);
 
-                    var hourlyForecasts = await _context.Table<HourlyForecastEntity>()
-                        .Where(h => h.WeatherId == weather.Id)
-                        .ToListAsync();
+                        // Delete main weather entity
+                        var weatherEntity = _compiledWeatherDomainToEntity(weather);
+                        await _context.DeleteAsync(weatherEntity);
 
-                    foreach (var hourlyForecast in hourlyForecasts)
-                    {
-                        await _context.DeleteAsync(hourlyForecast);
-                    }
-
-                    var weatherEntity = MapToEntity(weather);
-                    await _context.DeleteAsync(weatherEntity);
-
-                    _logger.LogInformation("Deleted weather with ID {WeatherId}", weather.Id);
+                        _logger.LogInformation("Deleted weather with ID {WeatherId}", weather.Id);
+                    });
                 },
                 _exceptionMapper,
                 "Delete",
@@ -219,34 +273,36 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 _logger);
         }
 
+        #endregion
+
+        #region Query Operations (Optimized)
+
         public async Task<IEnumerable<Weather>> GetRecentAsync(int count = 10, CancellationToken cancellationToken = default)
         {
             return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
-                    var allWeatherEntities = await _context.Table<WeatherEntity>()
-                        .ToListAsync();
-
-                    var weatherEntities = allWeatherEntities
-                        .OrderByDescending(w => w.LastUpdate)
-                        .Take(count)
-                        .ToList();
+                    // Use optimized query to get recent weather with minimal data transfer
+                    var weatherEntities = await _context.QueryAsync<WeatherEntity>(
+                        "SELECT * FROM WeatherEntity ORDER BY LastUpdate DESC LIMIT ?", count);
 
                     var weatherList = new List<Weather>();
 
+                    // Process each weather entity
                     foreach (var weatherEntity in weatherEntities)
                     {
-                        var forecastEntities = await _context.Table<WeatherForecastEntity>()
-                            .Where(f => f.WeatherId == weatherEntity.Id)
-                            .OrderBy(f => f.Date)
-                            .ToListAsync();
+                        // Get related entities concurrently for each weather record
+                        var forecastTask = _context.QueryAsync<WeatherForecastEntity>(
+                            "SELECT * FROM WeatherForecastEntity WHERE WeatherId = ? ORDER BY Date", weatherEntity.Id);
+                        var hourlyTask = _context.QueryAsync<HourlyForecastEntity>(
+                            "SELECT * FROM HourlyForecastEntity WHERE WeatherId = ? ORDER BY DateTime LIMIT 24", weatherEntity.Id);
 
-                        var hourlyForecastEntities = await _context.Table<HourlyForecastEntity>()
-                            .Where(h => h.WeatherId == weatherEntity.Id)
-                            .OrderBy(h => h.DateTime)
-                            .ToListAsync();
+                        await Task.WhenAll(forecastTask, hourlyTask);
 
-                        var weather = MapToDomain(weatherEntity, forecastEntities, hourlyForecastEntities);
+                        var forecastEntities = await forecastTask;
+                        var hourlyForecastEntities = await hourlyTask;
+
+                        var weather = MapToDomainWithRelations(weatherEntity, forecastEntities, hourlyForecastEntities);
                         weatherList.Add(weather);
                     }
 
@@ -264,27 +320,38 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 async () =>
                 {
                     var cutoffDate = DateTime.UtcNow - maxAge;
+                    var cutoffTicks = cutoffDate.Ticks;
 
-                    var weatherEntities = await _context.Table<WeatherEntity>()
-                        .Where(w => w.LastUpdate < cutoffDate)
-                        .ToListAsync();
+                    // Use parameterized query for better performance
+                    var weatherEntities = await _context.QueryAsync<WeatherEntity>(
+                        "SELECT * FROM WeatherEntity WHERE LastUpdate < ?", cutoffTicks);
 
                     var weatherList = new List<Weather>();
 
-                    foreach (var weatherEntity in weatherEntities)
+                    // Process in batches to avoid memory issues with large datasets
+                    const int batchSize = 10;
+                    var batches = weatherEntities.Chunk(batchSize);
+
+                    foreach (var batch in batches)
                     {
-                        var forecastEntities = await _context.Table<WeatherForecastEntity>()
-                            .Where(f => f.WeatherId == weatherEntity.Id)
-                            .OrderBy(f => f.Date)
-                            .ToListAsync();
+                        var batchTasks = batch.Select(async weatherEntity =>
+                        {
+                            // Get related entities concurrently
+                            var forecastTask = _context.QueryAsync<WeatherForecastEntity>(
+                                "SELECT * FROM WeatherForecastEntity WHERE WeatherId = ? ORDER BY Date", weatherEntity.Id);
+                            var hourlyTask = _context.QueryAsync<HourlyForecastEntity>(
+                                "SELECT * FROM HourlyForecastEntity WHERE WeatherId = ? ORDER BY DateTime", weatherEntity.Id);
 
-                        var hourlyForecastEntities = await _context.Table<HourlyForecastEntity>()
-                            .Where(h => h.WeatherId == weatherEntity.Id)
-                            .OrderBy(h => h.DateTime)
-                            .ToListAsync();
+                            await Task.WhenAll(forecastTask, hourlyTask);
 
-                        var weather = MapToDomain(weatherEntity, forecastEntities, hourlyForecastEntities);
-                        weatherList.Add(weather);
+                            var forecastEntities = await forecastTask;
+                            var hourlyForecastEntities = await hourlyTask;
+
+                            return MapToDomainWithRelations(weatherEntity, forecastEntities, hourlyForecastEntities);
+                        });
+
+                        var batchResults = await Task.WhenAll(batchTasks);
+                        weatherList.AddRange(batchResults);
                     }
 
                     return weatherList;
@@ -295,35 +362,495 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 _logger);
         }
 
-        #region Mapping Methods
+        #endregion
 
-        private Weather MapToDomain(WeatherEntity entity, List<WeatherForecastEntity> forecastEntities, List<HourlyForecastEntity> hourlyForecastEntities)
+        #region Bulk Operations
+
+        public async Task<IEnumerable<Weather>> CreateBulkAsync(IEnumerable<Weather> weatherRecords, CancellationToken cancellationToken = default)
         {
-            var coordinate = new Coordinate(entity.Latitude, entity.Longitude);
-            var weather = CreateWeatherViaReflection(entity.LocationId, coordinate, entity.Timezone, entity.TimezoneOffset);
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var weatherList = weatherRecords.ToList();
+                    if (!weatherList.Any()) return weatherList;
 
-            SetPrivateProperty(weather, "Id", entity.Id);
-            SetPrivateProperty(weather, "_lastUpdate", entity.LastUpdate);
+                    return await _context.ExecuteInTransactionAsync(async () =>
+                    {
+                        // Bulk insert weather entities
+                        var weatherEntities = weatherList.Select(_compiledWeatherDomainToEntity).ToList();
+                        await _context.BulkInsertAsync(weatherEntities, 50);
 
-            var forecasts = forecastEntities.Select(f => MapForecastToDomain(f)).ToList();
+                        // Update weather IDs
+                        for (int i = 0; i < weatherList.Count; i++)
+                        {
+                            SetOptimizedProperty(weatherList[i], "Id", weatherEntities[i].Id);
+                        }
+
+                        // Bulk insert all forecasts
+                        var allForecasts = new List<WeatherForecastEntity>();
+                        var allHourlyForecasts = new List<HourlyForecastEntity>();
+
+                        for (int i = 0; i < weatherList.Count; i++)
+                        {
+                            var weather = weatherList[i];
+                            var weatherId = weatherEntities[i].Id;
+
+                            // Prepare forecast entities
+                            var forecastEntities = weather.Forecasts.Select(f =>
+                            {
+                                var entity = _compiledForecastDomainToEntity(f);
+                                entity.WeatherId = weatherId;
+                                return entity;
+                            });
+                            allForecasts.AddRange(forecastEntities);
+
+                            // Prepare hourly forecast entities
+                            var hourlyEntities = weather.HourlyForecasts.Select(h =>
+                            {
+                                var entity = _compiledHourlyDomainToEntity(h);
+                                entity.WeatherId = weatherId;
+                                return entity;
+                            });
+                            allHourlyForecasts.AddRange(hourlyEntities);
+                        }
+
+                        // Bulk insert all forecasts and hourly forecasts
+                        if (allForecasts.Any())
+                        {
+                            await _context.BulkInsertAsync(allForecasts, 100);
+                        }
+
+                        if (allHourlyForecasts.Any())
+                        {
+                            await _context.BulkInsertAsync(allHourlyForecasts, 200);
+                        }
+
+                        _logger.LogInformation("Bulk created {Count} weather records with forecasts", weatherList.Count);
+                        return weatherList;
+                    });
+                },
+                _exceptionMapper,
+                "CreateBulk",
+                "weather",
+                _logger);
+        }
+
+        public async Task<int> DeleteExpiredAsync(TimeSpan maxAge, CancellationToken cancellationToken = default)
+        {
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var cutoffDate = DateTime.UtcNow - maxAge;
+                    var cutoffTicks = cutoffDate.Ticks;
+
+                    return await _context.ExecuteInTransactionAsync(async () =>
+                    {
+                        // Get weather IDs to delete
+                        var weatherIds = await _context.QueryAsync<int>(
+                            "SELECT Id FROM WeatherEntity WHERE LastUpdate < ?", cutoffTicks);
+
+                        if (!weatherIds.Any()) return 0;
+
+                        // Delete related entities first (in batches for large datasets)
+                        const int batchSize = 100;
+                        var idBatches = weatherIds.Chunk(batchSize);
+
+                        foreach (var batch in idBatches)
+                        {
+                            var placeholders = string.Join(",", batch.Select(_ => "?"));
+                            var batchArray = batch.Cast<object>().ToArray();
+
+                            await _context.ExecuteAsync(
+                                $"DELETE FROM HourlyForecastEntity WHERE WeatherId IN ({placeholders})", batchArray);
+                            await _context.ExecuteAsync(
+                                $"DELETE FROM WeatherForecastEntity WHERE WeatherId IN ({placeholders})", batchArray);
+                        }
+
+                        // Delete weather entities
+                        var deletedCount = await _context.ExecuteAsync(
+                            "DELETE FROM WeatherEntity WHERE LastUpdate < ?", cutoffTicks);
+
+                        _logger.LogInformation("Deleted {Count} expired weather records", deletedCount);
+                        return deletedCount;
+                    });
+                },
+                _exceptionMapper,
+                "DeleteExpired",
+                "weather",
+                _logger);
+        }
+
+        #endregion
+
+        #region Compiled Mapping Methods
+
+        private static Func<WeatherEntity, Weather> CompileWeatherEntityToDomainMapper()
+        {
+            var entityParam = Expression.Parameter(typeof(WeatherEntity), "entity");
+
+            // Create Coordinate
+            var coordinateConstructor = typeof(Coordinate).GetConstructor(new[] { typeof(double), typeof(double) });
+            var coordinateNew = Expression.New(coordinateConstructor!,
+                Expression.Property(entityParam, nameof(WeatherEntity.Latitude)),
+                Expression.Property(entityParam, nameof(WeatherEntity.Longitude)));
+
+            // Create Weather using constructor
+            var weatherConstructor = typeof(Weather).GetConstructor(
+                new[] { typeof(int), typeof(Coordinate), typeof(string), typeof(int) });
+
+            var weatherNew = Expression.New(weatherConstructor!,
+                Expression.Property(entityParam, nameof(WeatherEntity.LocationId)),
+                coordinateNew,
+                Expression.Property(entityParam, nameof(WeatherEntity.Timezone)),
+                Expression.Property(entityParam, nameof(WeatherEntity.TimezoneOffset)));
+
+            // Create block to set additional properties
+            var weatherVar = Expression.Variable(typeof(Weather), "weather");
+            var initExpressions = new List<Expression>
+           {
+               Expression.Assign(weatherVar, weatherNew),
+               weatherVar
+           };
+
+            var body = Expression.Block(new[] { weatherVar }, initExpressions);
+            return Expression.Lambda<Func<WeatherEntity, Weather>>(body, entityParam).Compile();
+        }
+
+        private static Func<Weather, WeatherEntity> CompileWeatherDomainToEntityMapper()
+        {
+            var weatherParam = Expression.Parameter(typeof(Weather), "weather");
+
+            var entityNew = Expression.MemberInit(
+                Expression.New(typeof(WeatherEntity)),
+                Expression.Bind(typeof(WeatherEntity).GetProperty(nameof(WeatherEntity.Id))!,
+                    Expression.Property(weatherParam, "Id")),
+                Expression.Bind(typeof(WeatherEntity).GetProperty(nameof(WeatherEntity.LocationId))!,
+                    Expression.Property(weatherParam, "LocationId")),
+                Expression.Bind(typeof(WeatherEntity).GetProperty(nameof(WeatherEntity.Latitude))!,
+                    Expression.Property(Expression.Property(weatherParam, "Coordinate"), "Latitude")),
+                Expression.Bind(typeof(WeatherEntity).GetProperty(nameof(WeatherEntity.Longitude))!,
+                    Expression.Property(Expression.Property(weatherParam, "Coordinate"), "Longitude")),
+                Expression.Bind(typeof(WeatherEntity).GetProperty(nameof(WeatherEntity.Timezone))!,
+                    Expression.Property(weatherParam, "Timezone")),
+                Expression.Bind(typeof(WeatherEntity).GetProperty(nameof(WeatherEntity.TimezoneOffset))!,
+                    Expression.Property(weatherParam, "TimezoneOffset")),
+                Expression.Bind(typeof(WeatherEntity).GetProperty(nameof(WeatherEntity.LastUpdate))!,
+                    Expression.Property(weatherParam, "LastUpdate"))
+            );
+
+            return Expression.Lambda<Func<Weather, WeatherEntity>>(entityNew, weatherParam).Compile();
+        }
+
+        private static Func<WeatherForecastEntity, WeatherForecast> CompileForecastEntityToDomainMapper()
+        {
+            var entityParam = Expression.Parameter(typeof(WeatherForecastEntity), "entity");
+
+            // Create WindInfo
+            var windConstructor = typeof(WindInfo).GetConstructor(new[] { typeof(double), typeof(double), typeof(double?) });
+            var windNew = Expression.New(windConstructor!,
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.WindSpeed)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.WindDirection)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.WindGust)));
+
+            // Create WeatherForecast using constructor
+            var forecastConstructor = typeof(WeatherForecast).GetConstructor(new[]
+            {
+               typeof(int), typeof(DateTime), typeof(DateTime), typeof(DateTime),
+               typeof(double), typeof(double), typeof(double),
+               typeof(string), typeof(string), typeof(WindInfo),
+               typeof(int), typeof(int), typeof(int), typeof(double)
+           });
+
+            var forecastNew = Expression.New(forecastConstructor!,
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.WeatherId)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.Date)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.Sunrise)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.Sunset)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.Temperature)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.MinTemperature)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.MaxTemperature)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.Description)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.Icon)),
+                windNew,
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.Humidity)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.Pressure)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.Clouds)),
+                Expression.Property(entityParam, nameof(WeatherForecastEntity.UvIndex)));
+
+            return Expression.Lambda<Func<WeatherForecastEntity, WeatherForecast>>(forecastNew, entityParam).Compile();
+        }
+
+        private static Func<WeatherForecast, WeatherForecastEntity> CompileForecastDomainToEntityMapper()
+        {
+            var forecastParam = Expression.Parameter(typeof(WeatherForecast), "forecast");
+
+            var entityNew = Expression.MemberInit(
+                Expression.New(typeof(WeatherForecastEntity)),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Id))!,
+                    Expression.Property(forecastParam, "Id")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.WeatherId))!,
+                    Expression.Property(forecastParam, "WeatherId")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Date))!,
+                    Expression.Property(forecastParam, "Date")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Sunrise))!,
+                    Expression.Property(forecastParam, "Sunrise")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Sunset))!,
+                    Expression.Property(forecastParam, "Sunset")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Temperature))!,
+                    Expression.Property(forecastParam, "Temperature")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.MinTemperature))!,
+                    Expression.Property(forecastParam, "MinTemperature")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.MaxTemperature))!,
+                    Expression.Property(forecastParam, "MaxTemperature")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Description))!,
+                    Expression.Property(forecastParam, "Description")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Icon))!,
+                    Expression.Property(forecastParam, "Icon")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.WindSpeed))!,
+                    Expression.Property(Expression.Property(forecastParam, "Wind"), "Speed")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.WindDirection))!,
+                    Expression.Property(Expression.Property(forecastParam, "Wind"), "Direction")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.WindGust))!,
+                    Expression.Property(Expression.Property(forecastParam, "Wind"), "Gust")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Humidity))!,
+                    Expression.Property(forecastParam, "Humidity")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Pressure))!,
+                    Expression.Property(forecastParam, "Pressure")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Clouds))!,
+                    Expression.Property(forecastParam, "Clouds")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.UvIndex))!,
+                    Expression.Property(forecastParam, "UvIndex")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.Precipitation))!,
+                    Expression.Property(forecastParam, "Precipitation")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.MoonRise))!,
+                    Expression.Property(forecastParam, "MoonRise")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.MoonSet))!,
+                    Expression.Property(forecastParam, "MoonSet")),
+                Expression.Bind(typeof(WeatherForecastEntity).GetProperty(nameof(WeatherForecastEntity.MoonPhase))!,
+                    Expression.Property(forecastParam, "MoonPhase"))
+            );
+
+            return Expression.Lambda<Func<WeatherForecast, WeatherForecastEntity>>(entityNew, forecastParam).Compile();
+        }
+
+        private static Func<HourlyForecastEntity, HourlyForecast> CompileHourlyEntityToDomainMapper()
+        {
+            var entityParam = Expression.Parameter(typeof(HourlyForecastEntity), "entity");
+
+            // Create WindInfo
+            var windConstructor = typeof(WindInfo).GetConstructor(new[] { typeof(double), typeof(double), typeof(double?) });
+            var windNew = Expression.New(windConstructor!,
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.WindSpeed)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.WindDirection)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.WindGust)));
+
+            // Create HourlyForecast using constructor
+            var hourlyConstructor = typeof(HourlyForecast).GetConstructor(new[]
+            {
+               typeof(int), typeof(DateTime), typeof(double), typeof(double),
+               typeof(string), typeof(string), typeof(WindInfo),
+               typeof(int), typeof(int), typeof(int), typeof(double),
+               typeof(double), typeof(int), typeof(double)
+           });
+
+            var hourlyNew = Expression.New(hourlyConstructor!,
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.WeatherId)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.DateTime)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.Temperature)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.FeelsLike)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.Description)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.Icon)),
+                windNew,
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.Humidity)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.Pressure)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.Clouds)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.UvIndex)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.ProbabilityOfPrecipitation)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.Visibility)),
+                Expression.Property(entityParam, nameof(HourlyForecastEntity.DewPoint)));
+
+            return Expression.Lambda<Func<HourlyForecastEntity, HourlyForecast>>(hourlyNew, entityParam).Compile();
+        }
+
+        private static Func<HourlyForecast, HourlyForecastEntity> CompileHourlyDomainToEntityMapper()
+        {
+            var hourlyParam = Expression.Parameter(typeof(HourlyForecast), "hourly");
+
+            var entityNew = Expression.MemberInit(
+                Expression.New(typeof(HourlyForecastEntity)),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.Id))!,
+                    Expression.Property(hourlyParam, "Id")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.WeatherId))!,
+                    Expression.Property(hourlyParam, "WeatherId")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.DateTime))!,
+                    Expression.Property(hourlyParam, "DateTime")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.Temperature))!,
+                    Expression.Property(hourlyParam, "Temperature")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.FeelsLike))!,
+                    Expression.Property(hourlyParam, "FeelsLike")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.Description))!,
+                    Expression.Property(hourlyParam, "Description")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.Icon))!,
+                    Expression.Property(hourlyParam, "Icon")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.WindSpeed))!,
+                    Expression.Property(Expression.Property(hourlyParam, "Wind"), "Speed")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.WindDirection))!,
+                    Expression.Property(Expression.Property(hourlyParam, "Wind"), "Direction")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.WindGust))!,
+                    Expression.Property(Expression.Property(hourlyParam, "Wind"), "Gust")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.Humidity))!,
+                    Expression.Property(hourlyParam, "Humidity")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.Pressure))!,
+                    Expression.Property(hourlyParam, "Pressure")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.Clouds))!,
+                    Expression.Property(hourlyParam, "Clouds")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.UvIndex))!,
+                    Expression.Property(hourlyParam, "UvIndex")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.ProbabilityOfPrecipitation))!,
+                    Expression.Property(hourlyParam, "ProbabilityOfPrecipitation")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.Visibility))!,
+                    Expression.Property(hourlyParam, "Visibility")),
+                Expression.Bind(typeof(HourlyForecastEntity).GetProperty(nameof(HourlyForecastEntity.DewPoint))!,
+                    Expression.Property(hourlyParam, "DewPoint"))
+            );
+
+            return Expression.Lambda<Func<HourlyForecast, HourlyForecastEntity>>(entityNew, hourlyParam).Compile();
+        }
+
+        private static Dictionary<string, Action<object, object>> CreatePropertySetters()
+        {
+            var setters = new Dictionary<string, Action<object, object>>();
+
+            // Weather property setters
+            var weatherProps = typeof(Weather).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var prop in weatherProps.Where(p => p.CanWrite))
+            {
+                var objParam = Expression.Parameter(typeof(object), "obj");
+                var valueParam = Expression.Parameter(typeof(object), "value");
+
+                var castObj = Expression.Convert(objParam, typeof(Weather));
+                var castValue = Expression.Convert(valueParam, prop.PropertyType);
+                var setProp = Expression.Call(castObj, prop.GetSetMethod(true)!, castValue);
+
+                var lambda = Expression.Lambda<Action<object, object>>(setProp, objParam, valueParam);
+                setters[$"Weather.{prop.Name}"] = lambda.Compile();
+            }
+
+            // WeatherForecast property setters
+            var forecastProps = typeof(WeatherForecast).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var prop in forecastProps.Where(p => p.CanWrite))
+            {
+                var objParam = Expression.Parameter(typeof(object), "obj");
+                var valueParam = Expression.Parameter(typeof(object), "value");
+
+                var castObj = Expression.Convert(objParam, typeof(WeatherForecast));
+                var castValue = Expression.Convert(valueParam, prop.PropertyType);
+                var setProp = Expression.Call(castObj, prop.GetSetMethod(true)!, castValue);
+
+                var lambda = Expression.Lambda<Action<object, object>>(setProp, objParam, valueParam);
+                setters[$"WeatherForecast.{prop.Name}"] = lambda.Compile();
+            }
+
+            // HourlyForecast property setters
+            var hourlyProps = typeof(HourlyForecast).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var prop in hourlyProps.Where(p => p.CanWrite))
+            {
+                var objParam = Expression.Parameter(typeof(object), "obj");
+                var valueParam = Expression.Parameter(typeof(object), "value");
+
+                var castObj = Expression.Convert(objParam, typeof(HourlyForecast));
+                var castValue = Expression.Convert(valueParam, prop.PropertyType);
+                var setProp = Expression.Call(castObj, prop.GetSetMethod(true)!, castValue);
+
+                var lambda = Expression.Lambda<Action<object, object>>(setProp, objParam, valueParam);
+                setters[$"HourlyForecast.{prop.Name}"] = lambda.Compile();
+            }
+
+            return setters;
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private Weather MapToDomainWithRelations(WeatherEntity weatherEntity, IEnumerable<WeatherForecastEntity> forecastEntities, IEnumerable<HourlyForecastEntity> hourlyEntities)
+        {
+            // Map main weather entity
+            var weather = _compiledWeatherEntityToDomain(weatherEntity);
+            SetOptimizedProperty(weather, "Id", weatherEntity.Id);
+            SetOptimizedProperty(weather, "_lastUpdate", weatherEntity.LastUpdate);
+
+            // Map forecasts
+            var forecasts = forecastEntities.Select(f =>
+            {
+                var forecast = _compiledForecastEntityToDomain(f);
+                SetOptimizedProperty(forecast, "Id", f.Id);
+
+                // Set optional properties if they exist
+                if (f.Precipitation.HasValue)
+                {
+                    forecast.SetPrecipitation(f.Precipitation.Value);
+                }
+                forecast.SetMoonData(f.MoonRise, f.MoonSet, f.MoonPhase);
+
+                return forecast;
+            }).ToList();
+
+            // Map hourly forecasts
+            var hourlyForecasts = hourlyEntities.Select(h =>
+            {
+                var hourly = _compiledHourlyEntityToDomain(h);
+                SetOptimizedProperty(hourly, "Id", h.Id);
+                return hourly;
+            }).ToList();
+
+            // Update weather with forecasts
             weather.UpdateForecasts(forecasts);
-
-            var hourlyForecasts = hourlyForecastEntities.Select(h => MapHourlyForecastToDomain(h)).ToList();
             weather.UpdateHourlyForecasts(hourlyForecasts);
 
             return weather;
         }
 
+        private static void SetOptimizedProperty(object obj, string propertyName, object value)
+        {
+            var key = $"{obj.GetType().Name}.{propertyName}";
+
+            if (_propertySetters.TryGetValue(key, out var setter))
+            {
+                setter(obj, value);
+            }
+            else
+            {
+                // Fallback to reflection for properties not in cache
+                var property = obj.GetType().GetProperty(propertyName);
+                if (property != null && property.CanWrite)
+                {
+                    property.SetValue(obj, value);
+                }
+                else
+                {
+                    // Try private field access as last resort
+                    var field = obj.GetType().GetField($"_{propertyName.ToLowerInvariant()}",
+                        BindingFlags.NonPublic | BindingFlags.Instance);
+                    field?.SetValue(obj, value);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Legacy Mapping Methods (Kept for Backward Compatibility)
+
+        private Weather MapToDomain(WeatherEntity entity, List<WeatherForecastEntity> forecastEntities, List<HourlyForecastEntity> hourlyForecastEntities)
+        {
+            return MapToDomainWithRelations(entity, forecastEntities, hourlyForecastEntities);
+        }
+
         private WeatherForecast MapForecastToDomain(WeatherForecastEntity entity)
         {
-            var wind = new WindInfo(entity.WindSpeed, entity.WindDirection, entity.WindGust);
+            var forecast = _compiledForecastEntityToDomain(entity);
+            SetOptimizedProperty(forecast, "Id", entity.Id);
 
-            var forecast = CreateWeatherForecastViaReflection(
-                entity.WeatherId, entity.Date, entity.Sunrise, entity.Sunset,
-                entity.Temperature, entity.MinTemperature, entity.MaxTemperature, entity.Description, entity.Icon,
-                wind, entity.Humidity, entity.Pressure, entity.Clouds, entity.UvIndex);
-
-            SetPrivateProperty(forecast, "Id", entity.Id);
             if (entity.Precipitation.HasValue)
             {
                 forecast.SetPrecipitation(entity.Precipitation.Value);
@@ -335,82 +862,28 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         private HourlyForecast MapHourlyForecastToDomain(HourlyForecastEntity entity)
         {
-            var wind = new WindInfo(entity.WindSpeed, entity.WindDirection, entity.WindGust);
-
-            var hourlyForecast = CreateHourlyForecastViaReflection(
-                entity.WeatherId, entity.DateTime, entity.Temperature, entity.FeelsLike,
-                entity.Description, entity.Icon, wind, entity.Humidity, entity.Pressure,
-                entity.Clouds, entity.UvIndex, entity.ProbabilityOfPrecipitation, entity.Visibility, entity.DewPoint);
-
-            SetPrivateProperty(hourlyForecast, "Id", entity.Id);
-
-            return hourlyForecast;
+            var hourly = _compiledHourlyEntityToDomain(entity);
+            SetOptimizedProperty(hourly, "Id", entity.Id);
+            return hourly;
         }
 
         private WeatherEntity MapToEntity(Weather weather)
         {
-            return new WeatherEntity
-            {
-                Id = weather.Id,
-                LocationId = weather.LocationId,
-                Latitude = weather.Coordinate.Latitude,
-                Longitude = weather.Coordinate.Longitude,
-                Timezone = weather.Timezone,
-                TimezoneOffset = weather.TimezoneOffset,
-                LastUpdate = weather.LastUpdate
-            };
+            return _compiledWeatherDomainToEntity(weather);
         }
 
         private WeatherForecastEntity MapForecastToEntity(WeatherForecast forecast, int weatherId)
         {
-            return new WeatherForecastEntity
-            {
-                Id = forecast.Id,
-                WeatherId = weatherId,
-                Date = forecast.Date,
-                Sunrise = forecast.Sunrise,
-                Sunset = forecast.Sunset,
-                Temperature = forecast.Temperature,
-                MinTemperature = forecast.MinTemperature,
-                MaxTemperature = forecast.MaxTemperature,
-                Description = forecast.Description,
-                Icon = forecast.Icon,
-                WindSpeed = forecast.Wind.Speed,
-                WindDirection = forecast.Wind.Direction,
-                WindGust = forecast.Wind.Gust,
-                Humidity = forecast.Humidity,
-                Pressure = forecast.Pressure,
-                Clouds = forecast.Clouds,
-                UvIndex = forecast.UvIndex,
-                Precipitation = forecast.Precipitation,
-                MoonRise = forecast.MoonRise,
-                MoonSet = forecast.MoonSet,
-                MoonPhase = forecast.MoonPhase
-            };
+            var entity = _compiledForecastDomainToEntity(forecast);
+            entity.WeatherId = weatherId;
+            return entity;
         }
 
         private HourlyForecastEntity MapHourlyForecastToEntity(HourlyForecast hourlyForecast, int weatherId)
         {
-            return new HourlyForecastEntity
-            {
-                Id = hourlyForecast.Id,
-                WeatherId = weatherId,
-                DateTime = hourlyForecast.DateTime,
-                Temperature = hourlyForecast.Temperature,
-                FeelsLike = hourlyForecast.FeelsLike,
-                Description = hourlyForecast.Description,
-                Icon = hourlyForecast.Icon,
-                WindSpeed = hourlyForecast.Wind.Speed,
-                WindDirection = hourlyForecast.Wind.Direction,
-                WindGust = hourlyForecast.Wind.Gust,
-                Humidity = hourlyForecast.Humidity,
-                Pressure = hourlyForecast.Pressure,
-                Clouds = hourlyForecast.Clouds,
-                UvIndex = hourlyForecast.UvIndex,
-                ProbabilityOfPrecipitation = hourlyForecast.ProbabilityOfPrecipitation,
-                Visibility = hourlyForecast.Visibility,
-                DewPoint = hourlyForecast.DewPoint
-            };
+            var entity = _compiledHourlyDomainToEntity(hourlyForecast);
+            entity.WeatherId = weatherId;
+            return entity;
         }
 
         private Weather CreateWeatherViaReflection(int locationId, Coordinate coordinate, string timezone, int timezoneOffset)
@@ -429,17 +902,17 @@ namespace Location.Core.Infrastructure.Data.Repositories
             var type = typeof(WeatherForecast);
             var constructor = type.GetConstructor(new[]
             {
-                typeof(int), typeof(DateTime), typeof(DateTime), typeof(DateTime),
-                typeof(double), typeof(double), typeof(double),
-                typeof(string), typeof(string), typeof(WindInfo),
-                typeof(int), typeof(int), typeof(int), typeof(double)
-            });
+               typeof(int), typeof(DateTime), typeof(DateTime), typeof(DateTime),
+               typeof(double), typeof(double), typeof(double),
+               typeof(string), typeof(string), typeof(WindInfo),
+               typeof(int), typeof(int), typeof(int), typeof(double)
+           });
             if (constructor == null)
                 throw new InvalidOperationException("Cannot find WeatherForecast constructor");
             return (WeatherForecast)constructor.Invoke(new object[]
             {
-                weatherId, date, sunrise, sunset, temperature, minTemperature, maxTemperature,
-                description, icon, wind, humidity, pressure, clouds, uvIndex
+               weatherId, date, sunrise, sunset, temperature, minTemperature, maxTemperature,
+               description, icon, wind, humidity, pressure, clouds, uvIndex
             });
         }
 
@@ -450,33 +923,23 @@ namespace Location.Core.Infrastructure.Data.Repositories
             var type = typeof(HourlyForecast);
             var constructor = type.GetConstructor(new[]
             {
-                typeof(int), typeof(DateTime), typeof(double), typeof(double),
-                typeof(string), typeof(string), typeof(WindInfo),
-                typeof(int), typeof(int), typeof(int), typeof(double),
-                typeof(double), typeof(int), typeof(double)
-            });
+               typeof(int), typeof(DateTime), typeof(double), typeof(double),
+               typeof(string), typeof(string), typeof(WindInfo),
+               typeof(int), typeof(int), typeof(int), typeof(double),
+               typeof(double), typeof(int), typeof(double)
+           });
             if (constructor == null)
                 throw new InvalidOperationException("Cannot find HourlyForecast constructor");
             return (HourlyForecast)constructor.Invoke(new object[]
             {
-                weatherId, dateTime, temperature, feelsLike, description, icon, wind,
-                humidity, pressure, clouds, uvIndex, probabilityOfPrecipitation, visibility, dewPoint
+               weatherId, dateTime, temperature, feelsLike, description, icon, wind,
+               humidity, pressure, clouds, uvIndex, probabilityOfPrecipitation, visibility, dewPoint
             });
         }
 
         private void SetPrivateProperty(object obj, string propertyName, object value)
         {
-            var property = obj.GetType().GetProperty(propertyName);
-            if (property == null)
-            {
-                var field = obj.GetType().GetField(propertyName,
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                field?.SetValue(obj, value);
-            }
-            else
-            {
-                property.SetValue(obj, value);
-            }
+            SetOptimizedProperty(obj, propertyName, value);
         }
 
         #endregion

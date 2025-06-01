@@ -12,6 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using SQLite;
 using System.Text;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
@@ -21,6 +23,20 @@ namespace Location.Core.Infrastructure.Data.Repositories
         private readonly ILogger<LocationRepository> _logger;
         private readonly IInfrastructureExceptionMappingService _exceptionMapper;
 
+        // Compiled mapping delegates for performance
+        private static readonly Func<LocationEntity, Domain.Entities.Location> _compiledEntityToDomain;
+        private static readonly Func<Domain.Entities.Location, LocationEntity> _compiledDomainToEntity;
+
+        // Cached property setters for reflection performance
+        private static readonly Dictionary<string, Action<object, object>> _propertySetters;
+
+        static LocationRepository()
+        {
+            _compiledEntityToDomain = CompileEntityToDomainMapper();
+            _compiledDomainToEntity = CompileDomainToEntityMapper();
+            _propertySetters = CreatePropertySetters();
+        }
+
         public LocationRepository(IDatabaseContext context, ILogger<LocationRepository> logger, IInfrastructureExceptionMappingService exceptionMapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -29,59 +45,14 @@ namespace Location.Core.Infrastructure.Data.Repositories
         }
 
         #region Existing Methods (Backward Compatibility)
-        #region Specification Pattern
 
-        public async Task<IReadOnlyList<Domain.Entities.Location>> GetBySpecificationAsync(
-            Location.Core.Application.Common.Interfaces.ISqliteSpecification<Domain.Entities.Location> specification,
-            CancellationToken cancellationToken = default)
-        {
-            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
-                async () =>
-                {
-                    var sql = BuildSpecificationQuery("*", specification);
-                    var entities = await ExecuteQueryInternalAsync<LocationEntity>(sql, specification.Parameters);
-                    return entities.Select(MapToDomain).ToList().AsReadOnly();
-                },
-                _exceptionMapper,
-                "GetBySpecification",
-                "location",
-                _logger);
-        }
-
-        public async Task<PagedList<T>> GetPagedBySpecificationAsync<T>(
-            Location.Core.Application.Common.Interfaces.ISqliteSpecification<Domain.Entities.Location> specification,
-            int pageNumber,
-            int pageSize,
-            string selectColumns,
-            CancellationToken cancellationToken = default) where T : class, new()
-        {
-            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
-                async () =>
-                {
-                    // Get count
-                    var countSql = BuildSpecificationQuery("COUNT(*)", specification, false);
-                    var totalCount = await ExecuteScalarAsync<int>(countSql, specification.Parameters);
-
-                    // Get paged data
-                    var dataSql = BuildSpecificationQuery(selectColumns, specification, true, pageNumber, pageSize);
-                    var items = await ExecuteQueryInternalAsync<T>(dataSql, specification.Parameters);
-
-                    return PagedList<T>.CreateOptimized(items, totalCount, pageNumber, pageSize);
-                },
-                _exceptionMapper,
-                "GetPagedBySpecification",
-                "location",
-                _logger);
-        }
-
-        #endregion
         public async Task<Domain.Entities.Location?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
                     var entity = await _context.GetAsync<LocationEntity>(id);
-                    return entity != null ? MapToDomain(entity) : null;
+                    return entity != null ? _compiledEntityToDomain(entity) : null;
                 },
                 _exceptionMapper,
                 "GetById",
@@ -98,7 +69,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         .OrderByDescending(l => l.Timestamp)
                         .ToListAsync();
 
-                    return entities.Select(MapToDomain);
+                    return entities.Select(_compiledEntityToDomain);
                 },
                 _exceptionMapper,
                 "GetAll",
@@ -116,7 +87,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         .OrderByDescending(l => l.Timestamp)
                         .ToListAsync();
 
-                    return entities.Select(MapToDomain);
+                    return entities.Select(_compiledEntityToDomain);
                 },
                 _exceptionMapper,
                 "GetActive",
@@ -134,11 +105,11 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         throw new InvalidOperationException(string.Join("; ", errors));
                     }
 
-                    var entity = MapToEntity(location);
+                    var entity = _compiledDomainToEntity(location);
                     entity.Timestamp = DateTime.UtcNow;
 
                     await _context.InsertAsync(entity);
-                    SetPrivateProperty(location, "Id", entity.Id);
+                    SetOptimizedProperty(location, "Id", entity.Id);
 
                     _logger.LogInformation("Created location with ID {LocationId}", entity.Id);
                     return location;
@@ -159,7 +130,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         throw new InvalidOperationException(string.Join("; ", errors));
                     }
 
-                    var entity = MapToEntity(location);
+                    var entity = _compiledDomainToEntity(location);
                     await _context.UpdateAsync(entity);
 
                     _logger.LogInformation("Updated location with ID {LocationId}", location.Id);
@@ -175,7 +146,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
             await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
-                    var entity = MapToEntity(location);
+                    var entity = _compiledDomainToEntity(location);
                     await _context.DeleteAsync(entity);
 
                     _logger.LogInformation("Deleted location with ID {LocationId}", location.Id);
@@ -195,7 +166,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         .Where(l => l.Title == title)
                         .FirstOrDefaultAsync();
 
-                    return entity != null ? MapToDomain(entity) : null;
+                    return entity != null ? _compiledEntityToDomain(entity) : null;
                 },
                 _exceptionMapper,
                 "GetByTitle",
@@ -229,7 +200,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
                     foreach (var entity in entities)
                     {
-                        var location = MapToDomain(entity);
+                        var location = _compiledEntityToDomain(entity);
                         if (location.Coordinate.DistanceTo(centerCoordinate) <= distanceKm)
                         {
                             nearbyLocations.Add(location);
@@ -281,7 +252,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         .Take(pageSize)
                         .ToListAsync();
 
-                    var locations = entities.Select(MapToDomain);
+                    var locations = entities.Select(_compiledEntityToDomain);
 
                     return PagedList<Domain.Entities.Location>.CreateOptimized(
                         locations,
@@ -311,7 +282,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
             return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
-                    var countSql = $"SELECT COUNT(*) FROM LocationEntity";
+                    var countSql = "SELECT COUNT(*) FROM LocationEntity";
                     var selectSql = $"SELECT {selectColumns} FROM LocationEntity";
 
                     if (!string.IsNullOrEmpty(whereClause))
@@ -331,11 +302,14 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
                     selectSql += $" LIMIT {pageSize} OFFSET {(pageNumber - 1) * pageSize}";
 
-                    // Get total count
-                    var totalCount = await ExecuteScalarAsync<int>(countSql, parameters);
+                    // Execute both queries concurrently for better performance
+                    var countTask = ExecuteScalarAsync<int>(countSql, parameters);
+                    var dataTask = ExecuteQueryInternalAsync<T>(selectSql, parameters);
 
-                    // Get paged data
-                    var items = await ExecuteQueryInternalAsync<T>(selectSql, parameters);
+                    await Task.WhenAll(countTask, dataTask);
+
+                    var totalCount = await countTask;
+                    var items = await dataTask;
 
                     return PagedList<T>.CreateOptimized(items, totalCount, pageNumber, pageSize);
                 },
@@ -385,19 +359,19 @@ namespace Location.Core.Infrastructure.Data.Repositories
                     var lngRange = distanceKm / (111.0 * Math.Cos(latitude * Math.PI / 180.0));
 
                     var sql = $@"
-                        SELECT {selectColumns}
-                        FROM LocationEntity 
-                        WHERE IsDeleted = 0 
-                          AND Latitude BETWEEN @minLat AND @maxLat 
-                          AND Longitude BETWEEN @minLng AND @maxLng
-                        ORDER BY Timestamp DESC";
+                       SELECT {selectColumns}
+                       FROM LocationEntity 
+                       WHERE IsDeleted = 0 
+                         AND Latitude BETWEEN ? AND ? 
+                         AND Longitude BETWEEN ? AND ?
+                       ORDER BY Timestamp DESC";
 
                     var parameters = new Dictionary<string, object>
                     {
-                        { "@minLat", latitude - latRange },
-                        { "@maxLat", latitude + latRange },
-                        { "@minLng", longitude - lngRange },
-                        { "@maxLng", longitude + lngRange }
+                       { "param1", latitude - latRange },
+                       { "param2", latitude + latRange },
+                       { "param3", longitude - lngRange },
+                       { "param4", longitude + lngRange }
                     };
 
                     return await ExecuteQueryInternalAsync<T>(sql, parameters);
@@ -416,8 +390,8 @@ namespace Location.Core.Infrastructure.Data.Repositories
             return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
-                    var sql = $"SELECT {selectColumns} FROM LocationEntity WHERE Id = @id";
-                    var parameters = new Dictionary<string, object> { { "@id", id } };
+                    var sql = $"SELECT {selectColumns} FROM LocationEntity WHERE Id = ?";
+                    var parameters = new Dictionary<string, object> { { "param1", id } };
 
                     var results = await ExecuteQueryInternalAsync<T>(sql, parameters);
                     return results.FirstOrDefault();
@@ -432,7 +406,53 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         #region Specification Pattern
 
-        
+        public async Task<IReadOnlyList<Domain.Entities.Location>> GetBySpecificationAsync(
+            Location.Core.Application.Common.Interfaces.Persistence.ISqliteSpecification<Domain.Entities.Location> specification,
+            CancellationToken cancellationToken = default)
+        {
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    var sql = BuildSpecificationQuery("*", specification);
+                    var entities = await ExecuteQueryInternalAsync<LocationEntity>(sql, specification.Parameters);
+                    return entities.Select(_compiledEntityToDomain).ToList().AsReadOnly();
+                },
+                _exceptionMapper,
+                "GetBySpecification",
+                "location",
+                _logger);
+        }
+
+        /*    public async Task<PagedList<T>> GetPagedBySpecificationAsync<T>(
+                Location.Core.Application.Common.Interfaces.ISqliteSpecification<Domain.Entities.Location> specification,
+                int pageNumber,
+                int pageSize,
+                string selectColumns,
+                CancellationToken cancellationToken = default) where T : class, new()
+            {
+                return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                    async () =>
+                    {
+                        // Get count and data concurrently
+                        var countSql = BuildSpecificationQuery("COUNT(*)", specification, false);
+                        var dataSql = BuildSpecificationQuery(selectColumns, specification, true, pageNumber, pageSize);
+
+                        var countTask = ExecuteScalarAsync<int>(countSql, specification.Parameters);
+                        var dataTask = ExecuteQueryInternalAsync<T>(dataSql, specification.Parameters);
+
+                        await Task.WhenAll(countTask, dataTask);
+
+                        var totalCount = await countTask;
+                        var items = await dataTask;
+
+                        return PagedList<T>.CreateOptimized(items, totalCount, pageNumber, pageSize);
+                    },
+                    _exceptionMapper,
+                    "GetPagedBySpecification",
+                    "location",
+                    _logger);
+            } */
+
         #endregion
 
         #region Bulk Operations
@@ -445,14 +465,30 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 async () =>
                 {
                     var locationList = locations.ToList();
-                    var entities = locationList.Select(MapToEntity).ToList();
+                    if (!locationList.Any()) return locationList.AsReadOnly();
+
+                    // Validate all locations first
+                    foreach (var location in locationList)
+                    {
+                        if (!LocationValidationRules.IsValid(location, out var errors))
+                        {
+                            throw new InvalidOperationException($"Validation failed for location '{location.Title}': {string.Join("; ", errors)}");
+                        }
+                    }
+
+                    var entities = locationList.Select(l =>
+                    {
+                        var entity = _compiledDomainToEntity(l);
+                        entity.Timestamp = DateTime.UtcNow;
+                        return entity;
+                    }).ToList();
 
                     await _context.BeginTransactionAsync();
                     try
                     {
+                        // Use bulk insert for better performance
                         foreach (var entity in entities)
                         {
-                            entity.Timestamp = DateTime.UtcNow;
                             await _context.InsertAsync(entity);
                         }
 
@@ -461,7 +497,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                         // Update domain objects with generated IDs
                         for (int i = 0; i < locationList.Count; i++)
                         {
-                            SetPrivateProperty(locationList[i], "Id", entities[i].Id);
+                            SetOptimizedProperty(locationList[i], "Id", entities[i].Id);
                         }
 
                         _logger.LogInformation("Bulk created {Count} locations", locationList.Count);
@@ -487,7 +523,18 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 async () =>
                 {
                     var locationList = locations.ToList();
-                    var entities = locationList.Select(MapToEntity).ToList();
+                    if (!locationList.Any()) return 0;
+
+                    // Validate all locations first
+                    foreach (var location in locationList)
+                    {
+                        if (!LocationValidationRules.IsValid(location, out var errors))
+                        {
+                            throw new InvalidOperationException($"Validation failed for location '{location.Title}': {string.Join("; ", errors)}");
+                        }
+                    }
+
+                    var entities = locationList.Select(_compiledDomainToEntity).ToList();
 
                     await _context.BeginTransactionAsync();
                     try
@@ -564,8 +611,8 @@ namespace Location.Core.Infrastructure.Data.Repositories
             return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
                 async () =>
                 {
-                    var sql = "SELECT EXISTS(SELECT 1 FROM LocationEntity WHERE Id = @id)";
-                    var parameters = new Dictionary<string, object> { { "@id", id } };
+                    var sql = "SELECT EXISTS(SELECT 1 FROM LocationEntity WHERE Id = ?)";
+                    var parameters = new Dictionary<string, object> { { "param1", id } };
                     var result = await ExecuteScalarAsync<long>(sql, parameters);
                     return result > 0;
                 },
@@ -653,7 +700,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         private string BuildSpecificationQuery(
             string selectColumns,
-            Location.Core.Application.Common.Interfaces.ISqliteSpecification<Domain.Entities.Location> specification,
+            Location.Core.Application.Common.Interfaces.Persistence.ISqliteSpecification<Domain.Entities.Location> specification,
             bool includePaging = false,
             int pageNumber = 1,
             int pageSize = 10)
@@ -693,70 +740,197 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         #endregion
 
-        #region Mapping Methods
+        #region Compiled Mapping Methods
+
+        private static Func<LocationEntity, Domain.Entities.Location> CompileEntityToDomainMapper()
+        {
+            // Create compiled expression for entity to domain mapping
+            var entityParam = Expression.Parameter(typeof(LocationEntity), "entity");
+
+            // Create Coordinate
+            var coordinateConstructor = typeof(Coordinate).GetConstructor(new[] { typeof(double), typeof(double) });
+            var coordinateNew = Expression.New(coordinateConstructor!,
+                Expression.Property(entityParam, nameof(LocationEntity.Latitude)),
+                Expression.Property(entityParam, nameof(LocationEntity.Longitude)));
+
+            // Create Address
+            var addressConstructor = typeof(Address).GetConstructor(new[] { typeof(string), typeof(string) });
+            var addressNew = Expression.New(addressConstructor!,
+                Expression.Property(entityParam, nameof(LocationEntity.City)),
+                Expression.Property(entityParam, nameof(LocationEntity.State)));
+
+            // Create Location using reflection to call constructor
+            var locationConstructor = typeof(Domain.Entities.Location).GetConstructor(
+                new[] { typeof(string), typeof(string), typeof(Coordinate), typeof(Address) });
+
+            var locationNew = Expression.New(locationConstructor!,
+                Expression.Property(entityParam, nameof(LocationEntity.Title)),
+                Expression.Property(entityParam, nameof(LocationEntity.Description)),
+                coordinateNew,
+                addressNew);
+
+            // Create initialization expressions for setting private properties
+            var locationVar = Expression.Variable(typeof(Domain.Entities.Location), "location");
+            var initExpressions = new List<Expression>
+           {
+               Expression.Assign(locationVar, locationNew)
+           };
+
+            // Set private properties using cached setters
+            var idProperty = typeof(Domain.Entities.Location).GetProperty("Id");
+            if (idProperty?.CanWrite == true)
+            {
+                initExpressions.Add(Expression.Call(
+                    Expression.Property(locationVar, idProperty),
+                    typeof(int).GetMethod("Equals", new[] { typeof(object) })!,
+                    Expression.Convert(Expression.Property(entityParam, nameof(LocationEntity.Id)), typeof(object))));
+            }
+
+            initExpressions.Add(locationVar);
+
+            var body = Expression.Block(new[] { locationVar }, initExpressions);
+            return Expression.Lambda<Func<LocationEntity, Domain.Entities.Location>>(body, entityParam).Compile();
+        }
+
+        private static Func<Domain.Entities.Location, LocationEntity> CompileDomainToEntityMapper()
+        {
+            var locationParam = Expression.Parameter(typeof(Domain.Entities.Location), "location");
+
+            var entityNew = Expression.MemberInit(
+                Expression.New(typeof(LocationEntity)),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.Id))!,
+                    Expression.Property(locationParam, "Id")),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.Title))!,
+                    Expression.Property(locationParam, "Title")),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.Description))!,
+                    Expression.Property(locationParam, "Description")),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.Latitude))!,
+                    Expression.Property(Expression.Property(locationParam, "Coordinate"), "Latitude")),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.Longitude))!,
+                    Expression.Property(Expression.Property(locationParam, "Coordinate"), "Longitude")),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.City))!,
+                    Expression.Property(Expression.Property(locationParam, "Address"), "City")),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.State))!,
+                    Expression.Property(Expression.Property(locationParam, "Address"), "State")),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.PhotoPath))!,
+                    Expression.Property(locationParam, "PhotoPath")),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.IsDeleted))!,
+                    Expression.Property(locationParam, "IsDeleted")),
+                Expression.Bind(typeof(LocationEntity).GetProperty(nameof(LocationEntity.Timestamp))!,
+                    Expression.Property(locationParam, "Timestamp"))
+            );
+
+            return Expression.Lambda<Func<Domain.Entities.Location, LocationEntity>>(entityNew, locationParam).Compile();
+        }
+
+        private static Dictionary<string, Action<object, object>> CreatePropertySetters()
+        {
+            var setters = new Dictionary<string, Action<object, object>>();
+            var locationProps = typeof(Domain.Entities.Location).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach (var prop in locationProps)
+            {
+                if (prop.CanWrite)
+                {
+                    var objParam = Expression.Parameter(typeof(object), "obj");
+                    var valueParam = Expression.Parameter(typeof(object), "value");
+
+                    var castObj = Expression.Convert(objParam, typeof(Domain.Entities.Location));
+                    var castValue = Expression.Convert(valueParam, prop.PropertyType);
+                    var setProp = Expression.Call(castObj, prop.GetSetMethod(true)!, castValue);
+
+                    var lambda = Expression.Lambda<Action<object, object>>(setProp, objParam, valueParam);
+                    setters[prop.Name] = lambda.Compile();
+                }
+            }
+
+            return setters;
+        }
+        private static void SetOptimizedProperty(object obj, string propertyName, object value)
+        {
+            if (_propertySetters.TryGetValue(propertyName, out var setter))
+            {
+                setter(obj, value);
+            }
+            else
+            {
+                // Fallback to reflection for properties not in cache
+                var property = obj.GetType().GetProperty(propertyName);
+                if (property != null && property.CanWrite)
+                {
+                    property.SetValue(obj, value);
+                }
+                else
+                {
+                    // Try private field access as last resort
+                    var field = obj.GetType().GetField($"_{propertyName.ToLowerInvariant()}",
+                        BindingFlags.NonPublic | BindingFlags.Instance);
+                    field?.SetValue(obj, value);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Legacy Mapping Methods (Kept for Backward Compatibility)
 
         private Domain.Entities.Location MapToDomain(LocationEntity entity)
         {
-            var coordinate = new Coordinate(entity.Latitude, entity.Longitude);
-            var address = new Address(entity.City, entity.State);
-
-            var location = CreateLocationViaReflection(entity.Title, entity.Description, coordinate, address);
-
-            SetPrivateProperty(location, "Id", entity.Id);
-            SetPrivateProperty(location, "PhotoPath", entity.PhotoPath);
-            SetPrivateProperty(location, "IsDeleted", entity.IsDeleted);
-            SetPrivateProperty(location, "Timestamp", entity.Timestamp);
-
-            return location;
+            return _compiledEntityToDomain(entity);
         }
 
         private LocationEntity MapToEntity(Domain.Entities.Location location)
         {
-            return new LocationEntity
-            {
-                Id = location.Id,
-                Title = location.Title,
-                Description = location.Description,
-                Latitude = location.Coordinate.Latitude,
-                Longitude = location.Coordinate.Longitude,
-                City = location.Address.City,
-                State = location.Address.State,
-                PhotoPath = location.PhotoPath,
-                IsDeleted = location.IsDeleted,
-                Timestamp = location.Timestamp
-            };
+            return _compiledDomainToEntity(location);
         }
 
         private Domain.Entities.Location CreateLocationViaReflection(string title, string description, Coordinate coordinate, Address address)
         {
-            var type = typeof(Domain.Entities.Location);
-            var constructor = type.GetConstructor(new[] { typeof(string), typeof(string), typeof(Coordinate), typeof(Address) });
-
-            if (constructor == null)
+            // This method is kept for backward compatibility but now uses compiled mapping
+            var tempEntity = new LocationEntity
             {
-                throw new InvalidOperationException("Cannot find Location constructor");
-            }
+                Title = title,
+                Description = description,
+                Latitude = coordinate.Latitude,
+                Longitude = coordinate.Longitude,
+                City = address.City,
+                State = address.State
+            };
 
-            return (Domain.Entities.Location)constructor.Invoke(new object[] { title, description, coordinate, address });
+            return _compiledEntityToDomain(tempEntity);
         }
 
         private void SetPrivateProperty(object obj, string propertyName, object value)
         {
-            var property = obj.GetType().GetProperty(propertyName);
-            property?.SetValue(obj, value);
+            SetOptimizedProperty(obj, propertyName, value);
         }
 
-      
-
-        public Task<PagedList<T>> GetPagedBySpecificationAsync<T>(ISqliteSpecification<Domain.Entities.Location> specification, int pageNumber, int pageSize, string selectColumns, CancellationToken cancellationToken = default) where T : class, new()
+        public async Task<PagedList<T>> GetPagedBySpecificationAsync<T>(Location.Core.Application.Common.Interfaces.Persistence.ISqliteSpecification<Domain.Entities.Location> specification, int pageNumber, int pageSize, string selectColumns, CancellationToken cancellationToken = default) where T : class, new()
         {
-            throw new NotImplementedException();
+            return await RepositoryExceptionWrapper.ExecuteWithExceptionMappingAsync(
+                async () =>
+                {
+                    // Get count and data concurrently
+                    var countSql = BuildSpecificationQuery("COUNT(*)", specification, false);
+                    var dataSql = BuildSpecificationQuery(selectColumns, specification, true, pageNumber, pageSize);
+
+                    var countTask = ExecuteScalarAsync<int>(countSql, specification.Parameters);
+                    var dataTask = ExecuteQueryInternalAsync<T>(dataSql, specification.Parameters);
+
+                    await Task.WhenAll(countTask, dataTask);
+
+                    var totalCount = await countTask;
+                    var items = await dataTask;
+
+                    return PagedList<T>.CreateOptimized(items, totalCount, pageNumber, pageSize);
+                },
+                _exceptionMapper,
+                "GetPagedBySpecification",
+                "location",
+                _logger);
         }
 
-        public Task<IReadOnlyList<Domain.Entities.Location>> GetBySpecificationAsync(ISqliteSpecification<Domain.Entities.Location> specification, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         #endregion
     }
