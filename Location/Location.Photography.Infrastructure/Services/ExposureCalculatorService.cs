@@ -33,22 +33,32 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
-                var scale = GetIncrementScale(increments);
-                var shutterSpeed = _exposureTriangleService.CalculateShutterSpeed(
-                    baseExposure.ShutterSpeed,
-                    baseExposure.Aperture,
-                    baseExposure.Iso,
-                    targetAperture,
-                    targetIso,
-                    scale,
-                    evCompensation);
-
-                return Result<ExposureSettingsDto>.Success(new ExposureSettingsDto
+                // Move intensive calculations to background thread to prevent UI blocking
+                var result = await Task.Run(() =>
                 {
-                    ShutterSpeed = shutterSpeed,
-                    Aperture = targetAperture,
-                    Iso = targetIso
-                });
+                    var scale = GetIncrementScale(increments);
+                    var shutterSpeed = _exposureTriangleService.CalculateShutterSpeed(
+                        baseExposure.ShutterSpeed,
+                        baseExposure.Aperture,
+                        baseExposure.Iso,
+                        targetAperture,
+                        targetIso,
+                        scale,
+                        evCompensation);
+
+                    return new ExposureSettingsDto
+                    {
+                        ShutterSpeed = shutterSpeed,
+                        Aperture = targetAperture,
+                        Iso = targetIso
+                    };
+                }, cancellationToken).ConfigureAwait(false);
+
+                return Result<ExposureSettingsDto>.Success(result);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (ExposureError ex)
             {
@@ -74,22 +84,32 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
-                var scale = GetIncrementScale(increments);
-                var aperture = _exposureTriangleService.CalculateAperture(
-                    baseExposure.ShutterSpeed,
-                    baseExposure.Aperture,
-                    baseExposure.Iso,
-                    targetShutterSpeed,
-                    targetIso,
-                    scale,
-                    evCompensation);
-
-                return Result<ExposureSettingsDto>.Success(new ExposureSettingsDto
+                // Move intensive calculations to background thread to prevent UI blocking
+                var result = await Task.Run(() =>
                 {
-                    ShutterSpeed = targetShutterSpeed,
-                    Aperture = aperture,
-                    Iso = targetIso
-                });
+                    var scale = GetIncrementScale(increments);
+                    var aperture = _exposureTriangleService.CalculateAperture(
+                        baseExposure.ShutterSpeed,
+                        baseExposure.Aperture,
+                        baseExposure.Iso,
+                        targetShutterSpeed,
+                        targetIso,
+                        scale,
+                        evCompensation);
+
+                    return new ExposureSettingsDto
+                    {
+                        ShutterSpeed = targetShutterSpeed,
+                        Aperture = aperture,
+                        Iso = targetIso
+                    };
+                }, cancellationToken).ConfigureAwait(false);
+
+                return Result<ExposureSettingsDto>.Success(result);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (ExposureError ex)
             {
@@ -115,22 +135,32 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
-                var scale = GetIncrementScale(increments);
-                var iso = _exposureTriangleService.CalculateIso(
-                    baseExposure.ShutterSpeed,
-                    baseExposure.Aperture,
-                    baseExposure.Iso,
-                    targetShutterSpeed,
-                    targetAperture,
-                    scale,
-                    evCompensation);
-
-                return Result<ExposureSettingsDto>.Success(new ExposureSettingsDto
+                // Move intensive calculations to background thread to prevent UI blocking
+                var result = await Task.Run(() =>
                 {
-                    ShutterSpeed = targetShutterSpeed,
-                    Aperture = targetAperture,
-                    Iso = iso
-                });
+                    var scale = GetIncrementScale(increments);
+                    var iso = _exposureTriangleService.CalculateIso(
+                        baseExposure.ShutterSpeed,
+                        baseExposure.Aperture,
+                        baseExposure.Iso,
+                        targetShutterSpeed,
+                        targetAperture,
+                        scale,
+                        evCompensation);
+
+                    return new ExposureSettingsDto
+                    {
+                        ShutterSpeed = targetShutterSpeed,
+                        Aperture = targetAperture,
+                        Iso = iso
+                    };
+                }, cancellationToken).ConfigureAwait(false);
+
+                return Result<ExposureSettingsDto>.Success(result);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (ExposureError ex)
             {
@@ -150,8 +180,18 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
-                string step = increments.ToString();
-                return Result<string[]>.Success(ShutterSpeeds.GetScale(step));
+                // Move array retrieval to background thread for consistency and prevent potential blocking
+                var shutterSpeeds = await Task.Run(() =>
+                {
+                    string step = increments.ToString();
+                    return ShutterSpeeds.GetScale(step);
+                }, cancellationToken).ConfigureAwait(false);
+
+                return Result<string[]>.Success(shutterSpeeds);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -166,8 +206,18 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
-                string step = increments.ToString();
-                return Result<string[]>.Success(Apetures.GetScale(step));
+                // Move array retrieval to background thread for consistency and prevent potential blocking
+                var apertures = await Task.Run(() =>
+                {
+                    string step = increments.ToString();
+                    return Apetures.GetScale(step);
+                }, cancellationToken).ConfigureAwait(false);
+
+                return Result<string[]>.Success(apertures);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -182,9 +232,18 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
-                string step = increments.ToString();
-                return Result<string[]>.Success(ISOs.GetScale(step));
-               
+                // Move array retrieval to background thread for consistency and prevent potential blocking
+                var isos = await Task.Run(() =>
+                {
+                    string step = increments.ToString();
+                    return ISOs.GetScale(step);
+                }, cancellationToken).ConfigureAwait(false);
+
+                return Result<string[]>.Success(isos);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {

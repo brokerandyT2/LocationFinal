@@ -1,15 +1,14 @@
 ﻿// Location.Photography.Infrastructure/Services/SubscriptionStatusService.cs
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
-using Location.Photography.Application.Commands.Subscription;
 using Location.Photography.Application.Common.Constants;
 using Location.Photography.Application.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Networking;
-using Plugin.InAppBilling;
 using Polly;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,6 +20,11 @@ namespace Location.Photography.Infrastructure.Services
         private readonly IMediator _mediator;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IAsyncPolicy _retryPolicy;
+
+        // Cache for subscription info to reduce database calls
+        private LocalSubscriptionInfo? _cachedSubscriptionInfo;
+        private DateTime _cacheExpiry = DateTime.MinValue;
+        private readonly TimeSpan _cacheTimeout = TimeSpan.FromMinutes(5);
 
         public SubscriptionStatusService(
             ILogger<SubscriptionStatusService> logger,
@@ -48,20 +52,20 @@ namespace Location.Photography.Infrastructure.Services
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var localInfo = await GetLocalSubscriptionInfoAsync(cancellationToken);
+                var localInfo = await GetLocalSubscriptionInfoAsync(cancellationToken).ConfigureAwait(false);
                 if (!localInfo.IsSuccess)
                 {
                     return Result<SubscriptionStatusResult>.Failure("Failed to retrieve local subscription info");
                 }
 
-                var hasNetwork = await HasNetworkConnectivityAsync();
+                var hasNetwork = await HasNetworkConnectivityAsync().ConfigureAwait(false);
 
                 if (!hasNetwork)
                 {
-                    return await ProcessOfflineStatusAsync(localInfo.Data, cancellationToken);
+                    return await ProcessOfflineStatusAsync(localInfo.Data, cancellationToken).ConfigureAwait(false);
                 }
 
-                return await ProcessOnlineStatusAsync(localInfo.Data, cancellationToken);
+                return await ProcessOnlineStatusAsync(localInfo.Data, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -76,7 +80,7 @@ namespace Location.Photography.Infrastructure.Services
 
         public async Task<Result<bool>> CanAccessPremiumFeaturesAsync(CancellationToken cancellationToken = default)
         {
-            var statusResult = await CheckSubscriptionStatusAsync(cancellationToken);
+            var statusResult = await CheckSubscriptionStatusAsync(cancellationToken).ConfigureAwait(false);
             if (!statusResult.IsSuccess)
             {
                 return Result<bool>.Success(false);
@@ -90,7 +94,7 @@ namespace Location.Photography.Infrastructure.Services
 
         public async Task<Result<bool>> CanAccessProFeaturesAsync(CancellationToken cancellationToken = default)
         {
-            var statusResult = await CheckSubscriptionStatusAsync(cancellationToken);
+            var statusResult = await CheckSubscriptionStatusAsync(cancellationToken).ConfigureAwait(false);
             if (!statusResult.IsSuccess)
             {
                 return Result<bool>.Success(false);
@@ -104,7 +108,7 @@ namespace Location.Photography.Infrastructure.Services
 
         public async Task<Result<bool>> IsInGracePeriodAsync(CancellationToken cancellationToken = default)
         {
-            var localInfo = await GetLocalSubscriptionInfoAsync(cancellationToken);
+            var localInfo = await GetLocalSubscriptionInfoAsync(cancellationToken).ConfigureAwait(false);
             if (!localInfo.IsSuccess || !localInfo.Data.ExpirationDate.HasValue)
             {
                 return Result<bool>.Success(false);
@@ -118,37 +122,74 @@ namespace Location.Photography.Infrastructure.Services
 
         public async Task<Result<LocalSubscriptionInfo>> GetLocalSubscriptionInfoAsync(CancellationToken cancellationToken = default)
         {
+            // Check cache first to reduce database calls
+            if (_cachedSubscriptionInfo != null && DateTime.UtcNow < _cacheExpiry)
+            {
+                return Result<LocalSubscriptionInfo>.Success(_cachedSubscriptionInfo);
+            }
+
             try
             {
-                var subscriptionTypeQuery = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionType };
-                var expirationQuery = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionExpiration };
-                var productIdQuery = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionProductId };
-                var purchaseDateQuery = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionPurchaseDate };
-                var transactionIdQuery = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionTransactionId };
+                // Batch all subscription-related queries into a single operation to reduce database round trips
+                var subscriptionQueries = new Dictionary<string, GetSettingByKeyQuery>
+                {
+                    [SubscriptionConstants.SubscriptionType] = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionType },
+                    [SubscriptionConstants.SubscriptionExpiration] = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionExpiration },
+                    [SubscriptionConstants.SubscriptionProductId] = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionProductId },
+                    [SubscriptionConstants.SubscriptionPurchaseDate] = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionPurchaseDate },
+                    [SubscriptionConstants.SubscriptionTransactionId] = new GetSettingByKeyQuery { Key = SubscriptionConstants.SubscriptionTransactionId }
+                };
 
-                var subscriptionTypeResult = await _mediator.Send(subscriptionTypeQuery, cancellationToken);
-                var expirationResult = await _mediator.Send(expirationQuery, cancellationToken);
-                var productIdResult = await _mediator.Send(productIdQuery, cancellationToken);
-                var purchaseDateResult = await _mediator.Send(purchaseDateQuery, cancellationToken);
-                var transactionIdResult = await _mediator.Send(transactionIdQuery, cancellationToken);
+                // Execute all queries in parallel to minimize database access time
+                var queryTasks = new List<Task<(string key, Result<GetSettingByKeyQueryResponse> result)>>();
+
+                foreach (var kvp in subscriptionQueries)
+                {
+                    var key = kvp.Key;
+                    var query = kvp.Value;
+                    queryTasks.Add(Task.Run(async () =>
+                    {
+                        var result = await _mediator.Send(query, cancellationToken).ConfigureAwait(false);
+                        return (key, result);
+                    }, cancellationToken));
+                }
+
+                var results = await Task.WhenAll(queryTasks).ConfigureAwait(false);
+
+                // Process results into a dictionary for efficient lookup
+                var settingsDict = new Dictionary<string, string>();
+                foreach (var (key, result) in results)
+                {
+                    if (result.IsSuccess && result.Data != null)
+                    {
+                        settingsDict[key] = result.Data.Value;
+                    }
+                }
 
                 var info = new LocalSubscriptionInfo
                 {
-                    SubscriptionType = subscriptionTypeResult.IsSuccess ? subscriptionTypeResult.Data.Value : SubscriptionConstants.Free,
-                    ProductId = productIdResult.IsSuccess ? productIdResult.Data.Value : string.Empty,
-                    TransactionId = transactionIdResult.IsSuccess ? transactionIdResult.Data.Value : string.Empty,
-                    HasValidData = subscriptionTypeResult.IsSuccess
+                    SubscriptionType = settingsDict.GetValueOrDefault(SubscriptionConstants.SubscriptionType, SubscriptionConstants.Free),
+                    ProductId = settingsDict.GetValueOrDefault(SubscriptionConstants.SubscriptionProductId, string.Empty),
+                    TransactionId = settingsDict.GetValueOrDefault(SubscriptionConstants.SubscriptionTransactionId, string.Empty),
+                    HasValidData = settingsDict.ContainsKey(SubscriptionConstants.SubscriptionType)
                 };
 
-                if (expirationResult.IsSuccess && DateTime.TryParse(expirationResult.Data.Value, out var expiration))
+                // Parse dates with error handling
+                if (settingsDict.TryGetValue(SubscriptionConstants.SubscriptionExpiration, out var expirationStr) &&
+                    DateTime.TryParse(expirationStr, out var expiration))
                 {
                     info.ExpirationDate = expiration;
                 }
 
-                if (purchaseDateResult.IsSuccess && DateTime.TryParse(purchaseDateResult.Data.Value, out var purchase))
+                if (settingsDict.TryGetValue(SubscriptionConstants.SubscriptionPurchaseDate, out var purchaseStr) &&
+                    DateTime.TryParse(purchaseStr, out var purchase))
                 {
                     info.PurchaseDate = purchase;
                 }
+
+                // Cache the result to avoid repeated database calls
+                _cachedSubscriptionInfo = info;
+                _cacheExpiry = DateTime.UtcNow.Add(_cacheTimeout);
 
                 return Result<LocalSubscriptionInfo>.Success(info);
             }
@@ -161,7 +202,7 @@ namespace Location.Photography.Infrastructure.Services
 
         private async Task<Result<SubscriptionStatusResult>> ProcessOfflineStatusAsync(LocalSubscriptionInfo localInfo, CancellationToken cancellationToken)
         {
-            var isInGracePeriod = await IsInGracePeriodAsync(cancellationToken);
+            var isInGracePeriod = await IsInGracePeriodAsync(cancellationToken).ConfigureAwait(false);
             var hasActiveSubscription = IsSubscriptionActive(localInfo) || (isInGracePeriod.IsSuccess && isInGracePeriod.Data);
 
             return Result<SubscriptionStatusResult>.Success(new SubscriptionStatusResult
@@ -181,8 +222,8 @@ namespace Location.Photography.Infrastructure.Services
             {
                 var validationResult = await _retryPolicy.ExecuteAsync(async () =>
                 {
-                    return await _subscriptionService.ValidateAndUpdateSubscriptionAsync(cancellationToken);
-                });
+                    return await _subscriptionService.ValidateAndUpdateSubscriptionAsync(cancellationToken).ConfigureAwait(false);
+                }).ConfigureAwait(false);
 
                 if (!validationResult.IsSuccess)
                 {
@@ -196,14 +237,18 @@ namespace Location.Photography.Infrastructure.Services
                     });
                 }
 
+                // Clear cache to force refresh after validation
+                _cachedSubscriptionInfo = null;
+                _cacheExpiry = DateTime.MinValue;
+
                 // After successful validation, get updated local info
-                var updatedLocalInfo = await GetLocalSubscriptionInfoAsync(cancellationToken);
+                var updatedLocalInfo = await GetLocalSubscriptionInfoAsync(cancellationToken).ConfigureAwait(false);
                 if (!updatedLocalInfo.IsSuccess)
                 {
                     updatedLocalInfo = Result<LocalSubscriptionInfo>.Success(localInfo);
                 }
 
-                var isInGracePeriod = await IsInGracePeriodAsync(cancellationToken);
+                var isInGracePeriod = await IsInGracePeriodAsync(cancellationToken).ConfigureAwait(false);
                 var hasActiveSubscription = IsSubscriptionActive(updatedLocalInfo.Data) || (isInGracePeriod.IsSuccess && isInGracePeriod.Data);
 
                 return Result<SubscriptionStatusResult>.Success(new SubscriptionStatusResult
@@ -245,7 +290,7 @@ namespace Location.Photography.Infrastructure.Services
         {
             try
             {
-                return Connectivity.NetworkAccess == NetworkAccess.Internet;
+                return await Task.Run(() => Connectivity.NetworkAccess == NetworkAccess.Internet).ConfigureAwait(false);
             }
             catch
             {

@@ -42,14 +42,14 @@ namespace Location.Photography.Infrastructure.Services
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Capture image using media service
-                var captureResult = await _mediaService.CapturePhotoAsync(cancellationToken);
+                var captureResult = await _mediaService.CapturePhotoAsync(cancellationToken).ConfigureAwait(false);
                 if (!captureResult.IsSuccess)
                 {
                     return Result<SceneEvaluationResultDto>.Failure($"Failed to capture image: {captureResult.ErrorMessage}");
                 }
 
                 // Analyze the captured image
-                return await AnalyzeImageAsync(captureResult.Data, cancellationToken);
+                return await AnalyzeImageAsync(captureResult.Data, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -73,39 +73,53 @@ namespace Location.Photography.Infrastructure.Services
                     return Result<SceneEvaluationResultDto>.Failure("File not found");
                 }
 
-                // Load the image into memory
-                using SKBitmap bitmap = SKBitmap.Decode(imagePath);
-                if (bitmap == null)
+                // Move heavy image processing to background thread to prevent UI blocking
+                var analysisResult = await Task.Run(async () =>
                 {
-                    return Result<SceneEvaluationResultDto>.Failure("Failed to decode image");
-                }
+                    // Load the image into memory
+                    using SKBitmap bitmap = SKBitmap.Decode(imagePath);
+                    if (bitmap == null)
+                    {
+                        return Result<SceneEvaluationResultDto>.Failure("Failed to decode image");
+                    }
 
-                // Initialize arrays for histogram data
-                int[] redHistogram = new int[HistogramBuckets];
-                int[] greenHistogram = new int[HistogramBuckets];
-                int[] blueHistogram = new int[HistogramBuckets];
-                int[] contrastHistogram = new int[HistogramBuckets];
+                    // Initialize arrays for histogram data
+                    int[] redHistogram = new int[HistogramBuckets];
+                    int[] greenHistogram = new int[HistogramBuckets];
+                    int[] blueHistogram = new int[HistogramBuckets];
+                    int[] contrastHistogram = new int[HistogramBuckets];
 
-                // Calculate histogram data and statistics
-                var stats = CalculateHistograms(bitmap, redHistogram, greenHistogram, blueHistogram, contrastHistogram);
+                    // Calculate histogram data and statistics with optimized processing
+                    var stats = await CalculateHistogramsAsync(bitmap, redHistogram, greenHistogram, blueHistogram, contrastHistogram, cancellationToken).ConfigureAwait(false);
 
-                // Save histograms as images
-                string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
-                string redHistogramPath = await SaveHistogramAsync(redHistogram, "red", timestamp, SKColors.Red, cancellationToken);
-                string greenHistogramPath = await SaveHistogramAsync(greenHistogram, "green", timestamp, SKColors.Green, cancellationToken);
-                string blueHistogramPath = await SaveHistogramAsync(blueHistogram, "blue", timestamp, SKColors.Blue, cancellationToken);
-                string contrastHistogramPath = await SaveHistogramAsync(contrastHistogram, "contrast", timestamp, SKColors.Gray, cancellationToken);
+                    // Save histograms as images
+                    string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
 
-                // Return the result
-                return Result<SceneEvaluationResultDto>.Success(new SceneEvaluationResultDto
-                {
-                    RedHistogramPath = redHistogramPath,
-                    GreenHistogramPath = greenHistogramPath,
-                    BlueHistogramPath = blueHistogramPath,
-                    ContrastHistogramPath = contrastHistogramPath,
-                    ImagePath = imagePath,
-                    Stats = stats
-                });
+                    // Parallelize histogram image generation
+                    var histogramTasks = new[]
+                    {
+                       SaveHistogramAsync(redHistogram, "red", timestamp, SKColors.Red, cancellationToken),
+                       SaveHistogramAsync(greenHistogram, "green", timestamp, SKColors.Green, cancellationToken),
+                       SaveHistogramAsync(blueHistogram, "blue", timestamp, SKColors.Blue, cancellationToken),
+                       SaveHistogramAsync(contrastHistogram, "contrast", timestamp, SKColors.Gray, cancellationToken)
+                   };
+
+                    var histogramPaths = await Task.WhenAll(histogramTasks).ConfigureAwait(false);
+
+                    // Return the result
+                    return Result<SceneEvaluationResultDto>.Success(new SceneEvaluationResultDto
+                    {
+                        RedHistogramPath = histogramPaths[0],
+                        GreenHistogramPath = histogramPaths[1],
+                        BlueHistogramPath = histogramPaths[2],
+                        ContrastHistogramPath = histogramPaths[3],
+                        ImagePath = imagePath,
+                        Stats = stats
+                    });
+
+                }, cancellationToken).ConfigureAwait(false);
+
+                return analysisResult;
             }
             catch (OperationCanceledException)
             {
@@ -118,12 +132,13 @@ namespace Location.Photography.Infrastructure.Services
             }
         }
 
-        private SceneEvaluationStatsDto CalculateHistograms(
+        private async Task<SceneEvaluationStatsDto> CalculateHistogramsAsync(
             SKBitmap bitmap,
             int[] redHistogram,
             int[] greenHistogram,
             int[] blueHistogram,
-            int[] contrastHistogram)
+            int[] contrastHistogram,
+            CancellationToken cancellationToken)
         {
             // Initialize statistics values
             long redSum = 0;
@@ -135,12 +150,27 @@ namespace Location.Photography.Infrastructure.Services
             long blueSumSquared = 0;
             long contrastSumSquared = 0;
 
-            // Process each pixel in the image
             int totalPixels = bitmap.Width * bitmap.Height;
+            const int batchSize = 1000; // Process pixels in batches to allow for cancellation
+            int processedPixels = 0;
+
+            // Process pixels in batches with cancellation support
             for (int y = 0; y < bitmap.Height; y++)
             {
                 for (int x = 0; x < bitmap.Width; x++)
                 {
+                    // Check for cancellation periodically
+                    if (processedPixels % batchSize == 0)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        // Yield control to prevent UI blocking
+                        if (processedPixels > 0)
+                        {
+                            await Task.Yield();
+                        }
+                    }
+
                     SKColor pixel = bitmap.GetPixel(x, y);
 
                     // Calculate contrast value (grayscale)
@@ -163,6 +193,8 @@ namespace Location.Photography.Infrastructure.Services
                     greenSumSquared += pixel.Green * pixel.Green;
                     blueSumSquared += pixel.Blue * pixel.Blue;
                     contrastSumSquared += contrast * contrast;
+
+                    processedPixels++;
                 }
             }
 
@@ -200,46 +232,52 @@ namespace Location.Photography.Infrastructure.Services
             SKColor color,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            int width = HistogramBuckets;
-            int height = 200;
-
-            // Find maximum value for scaling
-            int maxValue = 1; // Avoid division by zero
-            foreach (int value in histogram)
+            // Move histogram image generation to background thread
+            return await Task.Run(() =>
             {
-                maxValue = Math.Max(maxValue, value);
-            }
+                cancellationToken.ThrowIfCancellationRequested();
 
-            // Create the histogram image
-            using SKBitmap histogramBitmap = new SKBitmap(width, height);
-            using SKCanvas canvas = new SKCanvas(histogramBitmap);
+                int width = HistogramBuckets;
+                int height = 200;
 
-            // Clear the canvas
-            canvas.Clear(SKColors.White);
+                // Find maximum value for scaling
+                int maxValue = 1; // Avoid division by zero
+                foreach (int value in histogram)
+                {
+                    maxValue = Math.Max(maxValue, value);
+                }
 
-            // Draw the histogram
-            using SKPaint paint = new SKPaint
-            {
-                Color = color,
-                StrokeWidth = 1
-            };
+                // Create the histogram image
+                using SKBitmap histogramBitmap = new SKBitmap(width, height);
+                using SKCanvas canvas = new SKCanvas(histogramBitmap);
 
-            for (int i = 0; i < HistogramBuckets; i++)
-            {
-                float barHeight = (float)histogram[i] / maxValue * height;
-                canvas.DrawLine(i, height, i, height - barHeight, paint);
-            }
+                // Clear the canvas
+                canvas.Clear(SKColors.White);
 
-            // Save the histogram image
-            string fileName = $"histogram_{channel}_{timestamp}.png";
-            string filePath = Path.Combine(_cacheDirectory, fileName);
+                // Draw the histogram
+                using SKPaint paint = new SKPaint
+                {
+                    Color = color,
+                    StrokeWidth = 1,
+                    IsAntialias = true
+                };
 
-            using SKFileWStream fileStream = new SKFileWStream(filePath);
-            histogramBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
+                for (int i = 0; i < HistogramBuckets; i++)
+                {
+                    float barHeight = (float)histogram[i] / maxValue * height;
+                    canvas.DrawLine(i, height, i, height - barHeight, paint);
+                }
 
-            return filePath;
+                // Save the histogram image
+                string fileName = $"histogram_{channel}_{timestamp}.png";
+                string filePath = Path.Combine(_cacheDirectory, fileName);
+
+                using SKFileWStream fileStream = new SKFileWStream(filePath);
+                histogramBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
+
+                return filePath;
+
+            }, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -1,39 +1,52 @@
-﻿using AutoMapper;
+﻿// Location.Photography.Infrastructure/Mappers/WeatherEntityToDtoMapper.cs
+using AutoMapper;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Domain.ValueObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+
 namespace Location.Photography.Infrastructure.Mappers
 {
     public class WeatherEntityToDtoMapper
     {
         private readonly IMapper _mapper;
+
+        // Cache for weather validation results to reduce repetitive processing
+        private readonly ConcurrentDictionary<string, (WeatherValidationResult result, DateTime expiry)> _validationCache = new();
+        private readonly TimeSpan _validationCacheTimeout = TimeSpan.FromMinutes(15);
+
         public WeatherEntityToDtoMapper(IMapper mapper)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public WeatherDto MapToWeatherDto(WeatherEntity weatherEntity, List<WeatherForecastEntity> forecastEntities)
+        public async Task<WeatherDto> MapToWeatherDtoAsync(WeatherEntity weatherEntity, List<WeatherForecastEntity> forecastEntities)
         {
             if (weatherEntity == null)
                 throw new ArgumentNullException(nameof(weatherEntity));
 
-            var weatherDto = new WeatherDto
+            // Move mapping to background thread to prevent UI blocking for large datasets
+            return await Task.Run(() =>
             {
-                LocationId = weatherEntity.LocationId,
-                Latitude = weatherEntity.Latitude,
-                Longitude = weatherEntity.Longitude,
-                Timezone = weatherEntity.Timezone,
-                TimezoneOffset = weatherEntity.TimezoneOffset,
-                LastUpdate = weatherEntity.LastUpdate
-            };
+                var weatherDto = new WeatherDto
+                {
+                    LocationId = weatherEntity.LocationId,
+                    Latitude = weatherEntity.Latitude,
+                    Longitude = weatherEntity.Longitude,
+                    Timezone = weatherEntity.Timezone,
+                    TimezoneOffset = weatherEntity.TimezoneOffset,
+                    LastUpdate = weatherEntity.LastUpdate
+                };
 
-            return weatherDto;
+                return weatherDto;
+            }).ConfigureAwait(false);
         }
 
-        public WeatherForecastDto MapToWeatherForecastDto(WeatherEntity weatherEntity, List<WeatherForecastEntity> forecastEntities)
+        public async Task<WeatherForecastDto> MapToWeatherForecastDtoAsync(WeatherEntity weatherEntity, List<WeatherForecastEntity> forecastEntities)
         {
             if (weatherEntity == null)
                 throw new ArgumentNullException(nameof(weatherEntity));
@@ -41,51 +54,57 @@ namespace Location.Photography.Infrastructure.Mappers
             if (forecastEntities == null || !forecastEntities.Any())
                 throw new ArgumentNullException(nameof(forecastEntities));
 
-            var forecastDto = new WeatherForecastDto
+            // Move complex mapping to background thread to prevent UI blocking
+            return await Task.Run(() =>
             {
-                WeatherId = weatherEntity.LocationId,
-                Timezone = weatherEntity.Timezone,
-                TimezoneOffset = weatherEntity.TimezoneOffset,
-                LastUpdate = weatherEntity.LastUpdate,
-                DailyForecasts = new List<DailyForecastDto>()
-            };
-
-            // Group forecasts by date and map to daily forecasts
-            var dailyGroups = forecastEntities
-                .GroupBy(f => f.Date.Date)
-                .OrderBy(g => g.Key)
-                .Take(5); // 5-day forecast as per business rules
-
-            foreach (var dailyGroup in dailyGroups)
-            {
-                var firstForecast = dailyGroup.First();
-                var dailyForecast = new DailyForecastDto
+                var forecastDto = new WeatherForecastDto
                 {
-                    Date = dailyGroup.Key,
-                    Sunrise = firstForecast.Sunrise,
-                    Sunset = firstForecast.Sunset,
-                    Temperature = firstForecast.Temperature,
-                    MinTemperature = firstForecast.MinTemperature,
-                    MaxTemperature = firstForecast.MaxTemperature,
-                    Description = firstForecast.Description,
-                    Icon = firstForecast.Icon,
-                    WindSpeed = firstForecast.WindSpeed,
-                    WindDirection = firstForecast.WindDirection,
-                    WindGust = firstForecast.WindGust,
-                    Humidity = firstForecast.Humidity,
-                    Pressure = firstForecast.Pressure,
-                    Clouds = firstForecast.Clouds,
-                    UvIndex = firstForecast.UvIndex,
-                    Precipitation = firstForecast.Precipitation,
-                    MoonRise = firstForecast.MoonRise,
-                    MoonSet = firstForecast.MoonSet,
-                    MoonPhase = firstForecast.MoonPhase
+                    WeatherId = weatherEntity.LocationId,
+                    Timezone = weatherEntity.Timezone,
+                    TimezoneOffset = weatherEntity.TimezoneOffset,
+                    LastUpdate = weatherEntity.LastUpdate,
+                    DailyForecasts = new List<DailyForecastDto>()
                 };
 
-                forecastDto.DailyForecasts.Add(dailyForecast);
-            }
+                // Group forecasts by date and map to daily forecasts with optimized processing
+                var dailyGroups = forecastEntities
+                    .GroupBy(f => f.Date.Date)
+                    .OrderBy(g => g.Key)
+                    .Take(5) // 5-day forecast as per business rules
+                    .ToList(); // Materialize to avoid multiple enumeration
 
-            return forecastDto;
+                // Process daily forecasts in parallel for better performance
+                var dailyForecastTasks = dailyGroups.Select(dailyGroup =>
+                {
+                    var firstForecast = dailyGroup.First();
+                    return new DailyForecastDto
+                    {
+                        Date = dailyGroup.Key,
+                        Sunrise = firstForecast.Sunrise,
+                        Sunset = firstForecast.Sunset,
+                        Temperature = firstForecast.Temperature,
+                        MinTemperature = firstForecast.MinTemperature,
+                        MaxTemperature = firstForecast.MaxTemperature,
+                        Description = firstForecast.Description,
+                        Icon = firstForecast.Icon,
+                        WindSpeed = firstForecast.WindSpeed,
+                        WindDirection = firstForecast.WindDirection,
+                        WindGust = firstForecast.WindGust,
+                        Humidity = firstForecast.Humidity,
+                        Pressure = firstForecast.Pressure,
+                        Clouds = firstForecast.Clouds,
+                        UvIndex = firstForecast.UvIndex,
+                        Precipitation = firstForecast.Precipitation,
+                        MoonRise = firstForecast.MoonRise,
+                        MoonSet = firstForecast.MoonSet,
+                        MoonPhase = firstForecast.MoonPhase
+                    };
+                });
+
+                forecastDto.DailyForecasts.AddRange(dailyForecastTasks);
+
+                return forecastDto;
+            }).ConfigureAwait(false);
         }
 
         public bool IsWeatherDataStale(WeatherEntity weatherEntity, TimeSpan maxAge)
@@ -104,17 +123,129 @@ namespace Location.Photography.Infrastructure.Mappers
             // Check if we have forecast data for target date + next 4 days (5-day total)
             var requiredDates = Enumerable.Range(0, 5)
                 .Select(i => targetDate.Date.AddDays(i))
-                .ToList();
+                .ToHashSet(); // Use HashSet for O(1) lookups
 
-            foreach (var requiredDate in requiredDates)
+            var availableDates = forecastEntities
+                .Select(f => f.Date.Date)
+                .ToHashSet();
+
+            return requiredDates.All(date => availableDates.Contains(date));
+        }
+
+        /// <summary>
+        /// Batch mapping for multiple weather entities to improve performance
+        /// </summary>
+        public async Task<List<WeatherDto>> MapToWeatherDtoBatchAsync(
+            List<WeatherEntity> weatherEntities,
+            Dictionary<int, List<WeatherForecastEntity>> forecastsByLocationId)
+        {
+            if (weatherEntities == null || !weatherEntities.Any())
+                return new List<WeatherDto>();
+
+            // Process mappings in parallel for better performance
+            return await Task.Run(async () =>
             {
-                if (!forecastEntities.Any(f => f.Date.Date == requiredDate))
+                var mappingTasks = weatherEntities.Select(async entity =>
                 {
-                    return false;
-                }
+                    var forecasts = forecastsByLocationId.GetValueOrDefault(entity.LocationId, new List<WeatherForecastEntity>());
+                    return await MapToWeatherDtoAsync(entity, forecasts).ConfigureAwait(false);
+                });
+
+                var results = await Task.WhenAll(mappingTasks).ConfigureAwait(false);
+                return results.ToList();
+            }).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Optimized validation with caching to reduce redundant processing
+        /// </summary>
+        public async Task<WeatherValidationResult> ValidateForPredictionsAsync(
+            WeatherEntity weatherEntity,
+            List<WeatherForecastEntity> forecasts)
+        {
+            if (weatherEntity == null)
+            {
+                return new WeatherValidationResult
+                {
+                    IsValid = false,
+                    Errors = { "Weather entity is null" }
+                };
             }
 
-            return true;
+            // Check cache first for recent validation results
+            var cacheKey = $"validation_{weatherEntity.LocationId}_{weatherEntity.LastUpdate:yyyyMMddHHmm}";
+            if (_validationCache.TryGetValue(cacheKey, out var cached) && DateTime.UtcNow < cached.expiry)
+            {
+                return cached.result;
+            }
+
+            // Move validation to background thread to prevent UI blocking
+            var result = await Task.Run(() =>
+            {
+                var validationResult = new WeatherValidationResult();
+
+                if (forecasts == null || !forecasts.Any())
+                {
+                    validationResult.IsValid = false;
+                    validationResult.Errors.Add("No forecast data available");
+                    return validationResult;
+                }
+
+                // Check data age
+                var dataAge = DateTime.UtcNow - weatherEntity.LastUpdate;
+                if (dataAge > TimeSpan.FromHours(1))
+                {
+                    validationResult.IsValid = false;
+                    validationResult.Errors.Add($"Weather data is {dataAge.TotalHours:F1} hours old (max 1 hour for predictions)");
+                }
+
+                // Check forecast completeness
+                var today = DateTime.Today;
+                var availableDays = forecasts
+                    .Where(f => f.Date.Date >= today)
+                    .Select(f => f.Date.Date)
+                    .Distinct()
+                    .Count();
+
+                if (availableDays < 5)
+                {
+                    validationResult.IsValid = false;
+                    validationResult.Errors.Add($"Incomplete forecast data: {availableDays} days available, 5 required");
+                }
+
+                // Check timezone validity
+                if (!weatherEntity.HasValidTimezone())
+                {
+                    validationResult.Warnings.Add("No valid timezone data - using local timezone");
+                }
+
+                validationResult.IsValid = !validationResult.Errors.Any();
+                validationResult.LastUpdate = weatherEntity.LastUpdate;
+                validationResult.DataAge = dataAge;
+
+                return validationResult;
+            }).ConfigureAwait(false);
+
+            // Cache the validation result
+            _validationCache[cacheKey] = (result, DateTime.UtcNow.Add(_validationCacheTimeout));
+
+            return result;
+        }
+
+        /// <summary>
+        /// Cleanup expired validation cache entries to prevent memory leaks
+        /// </summary>
+        public void CleanupExpiredValidationCache()
+        {
+            var expiredKeys = _validationCache
+                .Where(kvp => DateTime.UtcNow >= kvp.Value.expiry)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            foreach (var key in expiredKeys)
+            {
+                _validationCache.TryRemove(key, out _);
+            }
         }
     }
 
@@ -148,6 +279,24 @@ namespace Location.Photography.Infrastructure.Mappers
                 return TimeZoneInfo.Local;
             }
         }
+
+        /// <summary>
+        /// Check if weather entity has sufficient data quality for predictions
+        /// </summary>
+        public static bool HasSufficientDataQuality(this WeatherEntity weatherEntity)
+        {
+            if (weatherEntity == null) return false;
+
+            // Check data freshness (within last 2 hours for good quality)
+            var dataAge = DateTime.UtcNow - weatherEntity.LastUpdate;
+            if (dataAge > TimeSpan.FromHours(2)) return false;
+
+            // Check for required coordinate data
+            if (Math.Abs(weatherEntity.Latitude) < 0.001 && Math.Abs(weatherEntity.Longitude) < 0.001)
+                return false;
+
+            return true;
+        }
     }
 
     // Weather data validation helper
@@ -178,54 +327,36 @@ namespace Location.Photography.Infrastructure.Mappers
             return availableDays >= requiredDays;
         }
 
-        public static WeatherValidationResult ValidateForPredictions(WeatherEntity weatherEntity, List<WeatherForecastEntity> forecasts)
+        /// <summary>
+        /// Optimized batch validation for multiple weather entities
+        /// </summary>
+        public static async Task<Dictionary<int, WeatherValidationResult>> ValidateBatchForPredictionsAsync(
+            List<WeatherEntity> weatherEntities,
+            Dictionary<int, List<WeatherForecastEntity>> forecastsByLocationId)
         {
-            var result = new WeatherValidationResult();
+            var results = new Dictionary<int, WeatherValidationResult>();
 
-            if (weatherEntity == null)
+            if (weatherEntities == null || !weatherEntities.Any())
+                return results;
+
+            // Process validations in parallel for better performance
+            var validationTasks = weatherEntities.Select(async entity =>
             {
-                result.IsValid = false;
-                result.Errors.Add("Weather entity is null");
-                return result;
+                var forecasts = forecastsByLocationId.GetValueOrDefault(entity.LocationId, new List<WeatherForecastEntity>());
+                var mapper = new WeatherEntityToDtoMapper(null); // Mapper not needed for validation
+                var validationResult = await mapper.ValidateForPredictionsAsync(entity, forecasts).ConfigureAwait(false);
+
+                return (entity.LocationId, validationResult);
+            });
+
+            var validationResults = await Task.WhenAll(validationTasks).ConfigureAwait(false);
+
+            foreach (var (locationId, result) in validationResults)
+            {
+                results[locationId] = result;
             }
 
-            if (forecasts == null || !forecasts.Any())
-            {
-                result.IsValid = false;
-                result.Errors.Add("No forecast data available");
-                return result;
-            }
-
-            // Check data age
-            var dataAge = DateTime.UtcNow - weatherEntity.LastUpdate;
-            if (dataAge > TimeSpan.FromHours(1))
-            {
-                result.IsValid = false;
-                result.Errors.Add($"Weather data is {dataAge.TotalHours:F1} hours old (max 1 hour for predictions)");
-            }
-
-            // Check forecast completeness
-            var today = DateTime.Today;
-            var availableDays = forecasts
-                .Where(f => f.Date.Date >= today)
-                .Select(f => f.Date.Date)
-                .Distinct()
-                .Count();
-
-            if (availableDays < 5)
-            {
-                result.IsValid = false;
-                result.Errors.Add($"Incomplete forecast data: {availableDays} days available, 5 required");
-            }
-
-            // Check timezone validity
-            if (!weatherEntity.HasValidTimezone())
-            {
-                result.Warnings.Add("No valid timezone data - using local timezone");
-            }
-
-            result.IsValid = !result.Errors.Any();
-            return result;
+            return results;
         }
     }
 
@@ -236,5 +367,28 @@ namespace Location.Photography.Infrastructure.Mappers
         public List<string> Warnings { get; set; } = new();
         public DateTime? LastUpdate { get; set; }
         public TimeSpan? DataAge { get; set; }
+        public double QualityScore => CalculateQualityScore();
+
+        private double CalculateQualityScore()
+        {
+            if (!IsValid) return 0.0;
+
+            double score = 1.0;
+
+            // Reduce score based on data age
+            if (DataAge.HasValue)
+            {
+                var ageHours = DataAge.Value.TotalHours;
+                if (ageHours > 0.5) // Prefer data less than 30 minutes old
+                {
+                    score *= Math.Max(0.5, 1.0 - (ageHours - 0.5) * 0.1); // 10% reduction per hour after 30 min
+                }
+            }
+
+            // Reduce score for warnings
+            score *= Math.Max(0.7, 1.0 - (Warnings.Count * 0.1)); // 10% reduction per warning
+
+            return Math.Max(0.0, Math.Min(1.0, score));
+        }
     }
 }

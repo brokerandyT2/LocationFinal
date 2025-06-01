@@ -16,25 +16,67 @@ namespace Location.Photography.ViewModels
 {
     public partial class SubscriptionSignUpViewModel : ViewModelBase, INavigationAware
     {
+        #region Fields
         private readonly IMediator _mediator;
         private readonly IErrorDisplayService _errorDisplayService;
 
-        [ObservableProperty]
+        // PERFORMANCE: Threading and state management
+        private readonly SemaphoreSlim _operationLock = new(1, 1);
+        private CancellationTokenSource _cancellationTokenSource = new();
+
+        // Core properties
         private ObservableCollection<SubscriptionProductViewModel> _subscriptionProducts = new();
-
-        [ObservableProperty]
         private SubscriptionProductViewModel _selectedProduct;
-
-        [ObservableProperty]
         private bool _isInitialized;
+        private bool _hasError;
+        #endregion
+
+        #region Properties
+        [ObservableProperty]
+        private ObservableCollection<SubscriptionProductViewModel> _subscriptionProductsProp = new();
 
         [ObservableProperty]
-        private bool _hasError;
+        private SubscriptionProductViewModel _selectedProductProp;
 
+        [ObservableProperty]
+        private bool _isInitializedProp;
+
+        [ObservableProperty]
+        private bool _hasErrorProp;
+
+        // Legacy property mappings for compatibility
+        public ObservableCollection<SubscriptionProductViewModel> SubscriptionProducts
+        {
+            get => _subscriptionProducts;
+            set => SetProperty(ref _subscriptionProducts, value);
+        }
+
+        public SubscriptionProductViewModel SelectedProduct
+        {
+            get => _selectedProduct;
+            set => SetProperty(ref _selectedProduct, value);
+        }
+
+        public bool IsInitialized
+        {
+            get => _isInitialized;
+            set => SetProperty(ref _isInitialized, value);
+        }
+
+        public bool HasError
+        {
+            get => _hasError;
+            set => SetProperty(ref _hasError, value);
+        }
+        #endregion
+
+        #region Events
         public event EventHandler<OperationErrorEventArgs> ErrorOccurred;
         public event EventHandler SubscriptionCompleted;
         public event EventHandler NotNowSelected;
+        #endregion
 
+        #region Constructors
         public SubscriptionSignUpViewModel() : base(null, null)
         {
             // Design-time constructor
@@ -46,49 +88,99 @@ namespace Location.Photography.ViewModels
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
         }
+        #endregion
+
+        #region PERFORMANCE OPTIMIZED COMMANDS
 
         [RelayCommand]
         public async Task InitializeAsync()
         {
+            if (!await _operationLock.WaitAsync(100))
+            {
+                return; // Skip if another operation is in progress
+            }
+
             var command = new AsyncRelayCommand(async () =>
             {
                 try
                 {
-                    HasError = false;
-                    ClearErrors();
+                    _cancellationTokenSource?.Cancel();
+                    _cancellationTokenSource = new CancellationTokenSource();
 
-                    var initCommand = new InitializeSubscriptionCommand();
-                    var result = await _mediator.Send(initCommand);
-
-                    if (!result.IsSuccess)
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        OnSystemError(result.ErrorMessage ?? "Failed to initialize subscription service");
+                        HasError = false;
+                        ClearErrors();
+                    });
+
+                    // Perform initialization on background thread
+                    var initResult = await Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var initCommand = new InitializeSubscriptionCommand();
+                            return await _mediator.Send(initCommand, _cancellationTokenSource.Token);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new InvalidOperationException($"Subscription initialization failed: {ex.Message}", ex);
+                        }
+                    }, _cancellationTokenSource.Token);
+
+                    if (!initResult.IsSuccess)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            OnSystemError(initResult.ErrorMessage ?? "Failed to initialize subscription service");
+                        });
                         return;
                     }
 
-                    SubscriptionProducts.Clear();
-                    foreach (var product in result.Data.Products)
+                    // Update UI on main thread with batch operations
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        SubscriptionProducts.Add(new SubscriptionProductViewModel
-                        {
-                            ProductId = product.ProductId,
-                            Title = product.Title,
-                            Description = product.Description,
-                            Price = product.Price,
-                            Period = product.Period,
-                            IsSelected = false
-                        });
-                    }
+                        BeginPropertyChangeBatch();
 
-                    IsInitialized = true;
+                        SubscriptionProducts.Clear();
+                        foreach (var product in initResult.Data.Products)
+                        {
+                            SubscriptionProducts.Add(new SubscriptionProductViewModel
+                            {
+                                ProductId = product.ProductId,
+                                Title = product.Title,
+                                Description = product.Description,
+                                Price = product.Price,
+                                Period = product.Period,
+                                IsSelected = false
+                            });
+                        }
+
+                        IsInitialized = true;
+
+                        _ = EndPropertyChangeBatchAsync();
+                    });
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when cancellation occurs
                 }
                 catch (Exception ex)
                 {
-                    OnSystemError($"Error initializing subscription: {ex.Message}");
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        OnSystemError($"Error initializing subscription: {ex.Message}");
+                    });
                 }
             });
 
-            await ExecuteAndTrackAsync(command);
+            try
+            {
+                await ExecuteAndTrackAsync(command);
+            }
+            finally
+            {
+                _operationLock.Release();
+            }
         }
 
         [RelayCommand]
@@ -100,43 +192,82 @@ namespace Location.Photography.ViewModels
                 return;
             }
 
+            if (!await _operationLock.WaitAsync(100))
+            {
+                return; // Skip if another operation is in progress
+            }
+
             var command = new AsyncRelayCommand(async () =>
             {
                 try
                 {
-                    HasError = false;
-                    ClearErrors();
+                    _cancellationTokenSource?.Cancel();
+                    _cancellationTokenSource = new CancellationTokenSource();
 
-                    var purchaseCommand = new ProcessSubscriptionCommand
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        ProductId = SelectedProduct.ProductId,
-                        Period = SelectedProduct.Period
-                    };
+                        HasError = false;
+                        ClearErrors();
+                    });
 
-                    var result = await _mediator.Send(purchaseCommand);
+                    // Perform purchase on background thread
+                    var purchaseResult = await Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var purchaseCommand = new ProcessSubscriptionCommand
+                            {
+                                ProductId = SelectedProduct.ProductId,
+                                Period = SelectedProduct.Period
+                            };
 
-                    if (!result.IsSuccess)
-                    {
-                        OnSystemError(result.ErrorMessage ?? "Failed to process subscription");
-                        return;
-                    }
+                            return await _mediator.Send(purchaseCommand, _cancellationTokenSource.Token);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new InvalidOperationException($"Subscription purchase failed: {ex.Message}", ex);
+                        }
+                    }, _cancellationTokenSource.Token);
 
-                    if (result.Data.IsSuccessful)
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        OnSubscriptionCompleted();
-                    }
-                    else
-                    {
-                        OnSystemError("There was an error processing your request, please try again");
-                    }
+                        if (!purchaseResult.IsSuccess)
+                        {
+                            OnSystemError(purchaseResult.ErrorMessage ?? "Failed to process subscription");
+                            return;
+                        }
+
+                        if (purchaseResult.Data.IsSuccessful)
+                        {
+                            OnSubscriptionCompleted();
+                        }
+                        else
+                        {
+                            OnSystemError("There was an error processing your request, please try again");
+                        }
+                    });
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when cancellation occurs
                 }
                 catch (Exception ex)
                 {
-                    OnSystemError($"Error processing subscription: {ex.Message}");
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        OnSystemError($"Error processing subscription: {ex.Message}");
+                    });
                 }
             });
 
-            await ExecuteAndTrackAsync(command);
+            try
+            {
+                await ExecuteAndTrackAsync(command);
+            }
+            finally
+            {
+                _operationLock.Release();
+            }
         }
 
         [RelayCommand]
@@ -144,15 +275,27 @@ namespace Location.Photography.ViewModels
         {
             if (product == null) return;
 
-            // Clear previous selection
-            foreach (var p in SubscriptionProducts)
+            try
             {
-                p.IsSelected = false;
-            }
+                BeginPropertyChangeBatch();
 
-            // Select new product
-            product.IsSelected = true;
-            SelectedProduct = product;
+                // Clear previous selection
+                foreach (var p in SubscriptionProducts)
+                {
+                    p.IsSelected = false;
+                }
+
+                // Select new product
+                product.IsSelected = true;
+                SelectedProduct = product;
+
+                _ = EndPropertyChangeBatchAsync();
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error selecting product: {ex.Message}");
+                _ = EndPropertyChangeBatchAsync();
+            }
         }
 
         [RelayCommand]
@@ -160,6 +303,10 @@ namespace Location.Photography.ViewModels
         {
             OnNotNowSelected();
         }
+
+        #endregion
+
+        #region Methods
 
         protected override void OnErrorOccurred(string message)
         {
@@ -179,12 +326,26 @@ namespace Location.Photography.ViewModels
 
         public void OnNavigatedToAsync()
         {
+            // Reset state when navigating to the page
+            IsInitialized = false;
+            HasError = false;
+            ClearErrors();
         }
 
         public void OnNavigatedFromAsync()
         {
-
+            _cancellationTokenSource?.Cancel();
         }
+
+        public override void Dispose()
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _operationLock?.Dispose();
+            base.Dispose();
+        }
+
+        #endregion
     }
 
     public partial class SubscriptionProductViewModel : ObservableObject

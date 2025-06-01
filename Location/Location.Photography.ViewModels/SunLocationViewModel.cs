@@ -4,10 +4,8 @@ using Location.Core.Application.Services;
 using Location.Core.ViewModels;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
-using Location.Photography.ViewModels.Interfaces;
 using MediatR;
 using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 
@@ -19,7 +17,15 @@ namespace Location.Photography.ViewModels
         private readonly IMediator _mediator;
         private readonly ISunCalculatorService _sunCalculatorService;
         private readonly IErrorDisplayService _errorDisplayService;
+        private readonly ITimezoneService _timezoneService;
 
+        // PERFORMANCE: Cancellation and threading
+        private CancellationTokenSource _cancellationTokenSource = new();
+        private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
+        private DateTime _lastUpdateTime = DateTime.MinValue;
+        private const int UPDATE_THROTTLE_MS = 500;
+
+        // Core properties
         private ObservableCollection<LocationViewModel> _locations;
         private DateTime _selectedDate;
         private TimeSpan _selectedTime;
@@ -45,9 +51,12 @@ namespace Location.Photography.ViewModels
         private string _recommendations = string.Empty;
         private string _nextOptimalTime = string.Empty;
 
-
         [ObservableProperty]
-        private string _locationPhoto = string.Empty; // FIXED: Changed from Lattitude to Latitude
+        private string _locationPhoto = string.Empty;
+
+        // PERFORMANCE: Cache for timeline calculations
+        private readonly Dictionary<string, List<TimelineEventViewModel>> _timelineCache = new();
+        private string GetTimelineCacheKey() => $"{_latitude:F4}_{_longitude:F4}_{_selectedDate:yyyyMMdd}";
         #endregion
 
         #region Properties
@@ -131,7 +140,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _selectedDate, value))
                 {
-                    UpdateSelectedDateTime();
+                    _ = UpdateSelectedDateTimeOptimizedAsync();
                 }
             }
         }
@@ -143,7 +152,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _selectedTime, value))
                 {
-                    UpdateSelectedDateTime();
+                    _ = UpdateSelectedDateTimeOptimizedAsync();
                 }
             }
         }
@@ -170,7 +179,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _latitude, value))
                 {
-                    UpdateSunPosition();
+                    _ = UpdateSunPositionOptimizedAsync();
                 }
             }
         }
@@ -182,7 +191,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _longitude, value))
                 {
-                    UpdateSunPosition();
+                    _ = UpdateSunPositionOptimizedAsync();
                 }
             }
         }
@@ -252,7 +261,7 @@ namespace Location.Photography.ViewModels
         #region Events
         public new event EventHandler<OperationErrorEventArgs> ErrorOccurred;
         #endregion
-        private ITimezoneService _timezoneService;
+
         #region Commands
         public IRelayCommand UpdateSunPositionCommand { get; internal set; }
         #endregion
@@ -263,9 +272,9 @@ namespace Location.Photography.ViewModels
             // Design-time constructor
             _selectedDate = DateTime.Today;
             _selectedTime = DateTime.Now.TimeOfDay;
-            UpdateSelectedDateTime();
+            _selectedDateTime = _selectedDate.Add(_selectedTime);
 
-            UpdateSunPositionCommand = new RelayCommand(UpdateSunPosition);
+            UpdateSunPositionCommand = new RelayCommand(() => _ = UpdateSunPositionOptimizedAsync());
             SelectTimelineEventCommand = new RelayCommand<TimelineEventViewModel>(OnSelectTimelineEvent);
 
             // Initialize collections
@@ -275,15 +284,16 @@ namespace Location.Photography.ViewModels
             InitializeMockData();
         }
 
-        public SunLocationViewModel(IMediator mediator, ISunCalculatorService sunCalculatorService, IErrorDisplayService errorDisplayService, ITimezoneService timezoneserv)
-    : base(null, errorDisplayService)
+        public SunLocationViewModel(IMediator mediator, ISunCalculatorService sunCalculatorService, IErrorDisplayService errorDisplayService, ITimezoneService timezoneService)
+            : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
-            _timezoneService = timezoneserv ?? throw new ArgumentNullException(nameof(timezoneserv));
+            _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
+
             // Initialize commands
-            UpdateSunPositionCommand = new RelayCommand(UpdateSunPosition);
+            UpdateSunPositionCommand = new RelayCommand(() => _ = UpdateSunPositionOptimizedAsync());
             SelectTimelineEventCommand = new RelayCommand<TimelineEventViewModel>(OnSelectTimelineEvent);
 
             // Initialize collections
@@ -292,7 +302,7 @@ namespace Location.Photography.ViewModels
             // Set default values
             _selectedDate = DateTime.Today;
             _selectedTime = DateTime.Now.TimeOfDay;
-            UpdateSelectedDateTime();
+            _selectedDateTime = _selectedDate.Add(_selectedTime);
 
             // Initialize mock data for design time
             InitializeMockData();
@@ -313,135 +323,177 @@ namespace Location.Photography.ViewModels
         }
         #endregion
 
-        #region Methods
-        private bool _isUpdating = false;
+        #region PERFORMANCE OPTIMIZED METHODS
 
-        private async void UpdateSelectedDateTime()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Throttled and optimized date/time updates
+        /// </summary>
+        private async Task UpdateSelectedDateTimeOptimizedAsync()
         {
-            if (_isUpdating) return;
+            // Throttle rapid updates
+            var now = DateTime.Now;
+            if ((now - _lastUpdateTime).TotalMilliseconds < UPDATE_THROTTLE_MS)
+            {
+                return;
+            }
+            _lastUpdateTime = now;
+
+            if (!await _updateSemaphore.WaitAsync(100))
+            {
+                return; // Skip if another update is in progress
+            }
 
             try
             {
-                _isUpdating = true;
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource = new CancellationTokenSource();
 
-                // Batch property updates
+                // Batch property updates to reduce UI notifications
+                BeginPropertyChangeBatch();
+
+                // Update core datetime property
                 _selectedDateTime = _selectedDate.Date.Add(_selectedTime);
 
-                // Defer expensive operations to background
-                await Task.Run(async () =>
+                // Perform heavy operations on background thread
+                var backgroundTask = Task.Run(async () =>
                 {
                     try
                     {
-                        // Calculate sun position off UI thread
-                        await UpdateSunPositionBackground();
+                        var sunPositionTask = UpdateSunPositionBackgroundAsync();
+                        var timelineTask = GenerateTimelineEventsBackgroundAsync();
 
-                        // Generate timeline events off UI thread  
-                        var timelineEvents = await GenerateTimelineEventsBackground();
+                        await Task.WhenAll(sunPositionTask, timelineTask);
 
-                        // Single UI update with all changes
-                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        return new
                         {
-                            if (!_isUpdating) return; // Check if still valid
-
-                            // Suppress notifications during batch update
-                            SetPropertyWithoutNotification(ref _selectedDateTime, _selectedDateTime);
-
-                            // Update timeline in batch
-                            TimelineEvents.Clear();
-                            foreach (var evt in timelineEvents)
-                            {
-                                TimelineEvents.Add(evt);
-                            }
-
-                            // Single notification for all changes
-                            OnPropertyChanged(nameof(SelectedDateTime));
-                            OnPropertyChanged(nameof(TimelineEvents));
-                        });
+                            SunData = await sunPositionTask,
+                            TimelineEvents = await timelineTask
+                        };
                     }
                     catch (Exception ex)
                     {
-                        await MainThread.InvokeOnMainThreadAsync(() =>
-                        {
-                            OnSystemError($"Error updating date/time: {ex.Message}");
-                        });
+                        throw new InvalidOperationException($"Background calculation failed: {ex.Message}", ex);
                     }
-                }).ConfigureAwait(false);
-            }
-            finally
-            {
-                _isUpdating = false;
-            }
-        }
+                }, _cancellationTokenSource.Token);
 
-        private bool SetPropertyWithoutNotification<T>(ref T backingStore, T value, [CallerMemberName] string propertyName = "")
-        {
-            if (EqualityComparer<T>.Default.Equals(backingStore, value))
-                return false;
+                var results = await backgroundTask;
 
-            backingStore = value;
-            return true;
-        }
-
-        public void OnSelectedLocationChanged(LocationListItemViewModel value)
-        {
-            if (value != null && !_isUpdating)
-            {
-                // Batch location-related updates
-                _ = Task.Run(async () =>
+                // Single UI update with all changes
+                await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     try
                     {
-                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        if (_cancellationTokenSource.Token.IsCancellationRequested) return;
+
+                        // Update sun position data
+                        if (results.SunData.HasValue)
                         {
-                            _isUpdating = true;
+                            var (azimuth, elevation) = results.SunData.Value;
+                            _sunDirection = azimuth;
+                            _sunElevation = elevation;
+                            UpdateElevationMatch();
+                        }
 
-                            // Batch property updates without individual notifications - FIXED property names
-                            SetPropertyWithoutNotification(ref _locationPhoto, value.Photo);
-                            SetPropertyWithoutNotification(ref _latitude, value.Latitude);  // FIXED: Latitude not Lattitude
-                            SetPropertyWithoutNotification(ref _longitude, value.Longitude);
+                        // Update timeline events in batch
+                        TimelineEvents.Clear();
+                        foreach (var evt in results.TimelineEvents)
+                        {
+                            TimelineEvents.Add(evt);
+                        }
 
-                            // Single notification for all location changes
-                            OnPropertyChanged(nameof(LocationPhoto));  // This property exists in the ViewModel
-                            OnPropertyChanged(nameof(Latitude));
-                            OnPropertyChanged(nameof(Longitude));
-
-                            _isUpdating = false;
-                        });
-
-                        // Heavy calculations in background - FIXED method name
-                        await UpdateSunPositionBackground();
-
+                        // End batch and fire all notifications at once
+                        _ = EndPropertyChangeBatchAsync();
                     }
                     catch (Exception ex)
                     {
-                        await MainThread.InvokeOnMainThreadAsync(() =>
-                        {
-                            _isUpdating = false;
-                            OnSystemError($"Error updating location: {ex.Message}");
-                        });
+                        OnSystemError($"Error updating UI: {ex.Message}");
                     }
                 });
             }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancellation occurs
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error updating date/time: {ex.Message}");
+                    _ = EndPropertyChangeBatchAsync(); // Ensure batch is ended
+                });
+            }
+            finally
+            {
+                _updateSemaphore.Release();
+            }
         }
 
-        private async Task UpdateSunPositionBackground()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Location change with batched updates
+        /// </summary>
+        public async Task OnSelectedLocationChangedOptimizedAsync(LocationListItemViewModel value)
         {
-            // Move sun position calculations to background thread
-            if (_latitude == 0 && _longitude == 0) return;
+            if (value == null) return;
+
+            if (!await _updateSemaphore.WaitAsync(100))
+            {
+                return; // Skip if another update is in progress
+            }
+
+            try
+            {
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource = new CancellationTokenSource();
+
+                // Batch property updates
+                BeginPropertyChangeBatch();
+
+                // Update location properties immediately
+                _locationPhoto = value.Photo;
+                _latitude = value.Latitude;
+                _longitude = value.Longitude;
+
+                // Heavy calculations in background
+                await Task.Run(async () =>
+                {
+                    await UpdateSunPositionBackgroundAsync();
+                    await GenerateTimelineEventsBackgroundAsync();
+                }, _cancellationTokenSource.Token);
+
+                // End batch and update UI
+                await EndPropertyChangeBatchAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancellation occurs
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error updating location: {ex.Message}");
+                    _ = EndPropertyChangeBatchAsync();
+                });
+            }
+            finally
+            {
+                _updateSemaphore.Release();
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Sun position calculation on background thread
+        /// </summary>
+        private async Task<(double azimuth, double elevation)?> UpdateSunPositionBackgroundAsync()
+        {
+            if (_latitude == 0 && _longitude == 0) return null;
 
             try
             {
                 var azimuth = _sunCalculatorService.GetSolarAzimuth(SelectedDateTime, Latitude, Longitude, TimeZoneInfo.Local.ToString());
                 var elevation = _sunCalculatorService.GetSolarElevation(SelectedDateTime, Latitude, Longitude, TimeZoneInfo.Local.ToString());
 
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    if (!_isUpdating) return;
-
-                    SetPropertyWithoutNotification(ref _sunDirection, azimuth);
-                    SetPropertyWithoutNotification(ref _sunElevation, elevation);
-                    UpdateElevationMatch();
-                });
+                return (azimuth, elevation);
             }
             catch (Exception ex)
             {
@@ -449,126 +501,100 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        private async Task<List<TimelineEventViewModel>> GenerateTimelineEventsBackground()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Timeline generation with caching
+        /// </summary>
+        private async Task<List<TimelineEventViewModel>> GenerateTimelineEventsBackgroundAsync()
         {
-            // Move timeline generation to background thread
+            var cacheKey = GetTimelineCacheKey();
+
+            // Check cache first
+            if (_timelineCache.TryGetValue(cacheKey, out var cachedEvents))
+            {
+                return cachedEvents;
+            }
+
             return await Task.Run(() =>
             {
                 try
                 {
                     var events = new List<TimelineEventViewModel>();
 
-                    // All the existing timeline generation logic here
-                    // (moving the entire GenerateTimelineEvents implementation to background)
-
-                    return events.OrderBy(e => e.EventTime).ToList();
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidOperationException($"Timeline generation failed: {ex.Message}", ex);
-                }
-            });
-        }
-        private async void GenerateTimelineEvents()
-        {
-            try
-            {
-                // Show loading state immediately
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    // Could add loading indicator here if needed
-                });
-
-                // Perform heavy calculations on background thread
-                var timelineEvents = await Task.Run(() =>
-                {
-                    if (_timelineEvents == null)
-                        return new List<TimelineEventViewModel>();
+                    if (_latitude == 0 && _longitude == 0) return events;
 
                     var baseDate = SelectedDateTime.Date;
-                    var events = new List<TimelineEventViewModel>();
 
-                    // Get location timezone - use TimezoneService from the project
+                    // Get location timezone
                     var timezoneResult = _timezoneService.GetTimezoneFromCoordinatesAsync(Latitude, Longitude).GetAwaiter().GetResult();
                     var locationTimezone = timezoneResult.IsSuccess ?
                         _timezoneService.GetTimeZoneInfo(timezoneResult.Data) :
                         TimeZoneInfo.Local;
 
-                    // Convert local DateTime.Now to location timezone
                     var localNow = DateTime.Now;
                     var locationNow = TimeZoneInfo.ConvertTime(localNow, TimeZoneInfo.Local, locationTimezone);
                     var endTime = locationNow.AddHours(24);
 
-                    // Calculate all sun times for the selected date using location timezone
                     var timezone = locationTimezone.Id;
-                    var astronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(baseDate, Latitude, Longitude, timezone);
-                    var nauticalDawn = _sunCalculatorService.GetNauticalDawn(baseDate, Latitude, Longitude, timezone);
-                    var civilDawn = _sunCalculatorService.GetCivilDawn(baseDate, Latitude, Longitude, timezone);
-                    var sunrise = _sunCalculatorService.GetSunrise(baseDate, Latitude, Longitude, timezone);
-                    var solarNoon = _sunCalculatorService.GetSolarNoon(baseDate, Latitude, Longitude, timezone);
-                    var sunset = _sunCalculatorService.GetSunset(baseDate, Latitude, Longitude, timezone);
-                    var civilDusk = _sunCalculatorService.GetCivilDusk(baseDate, Latitude, Longitude, timezone);
-                    var nauticalDusk = _sunCalculatorService.GetNauticalDusk(baseDate, Latitude, Longitude, timezone);
-                    var astronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(baseDate, Latitude, Longitude, timezone);
 
-                    // Calculate derived events
-                    var goldenHourMorningStart = sunrise.AddMinutes(-30);
-                    var goldenHourMorningEnd = sunrise.AddHours(1);
-                    var goldenHourEveningStart = sunset.AddHours(-1);
-                    var goldenHourEveningEnd = sunset.AddMinutes(30);
-
-                    // Create list of all events with their types
-                    var allEvents = new List<(DateTime time, string name, string icon, string eventType)>
-            {
-                (astronomicalDawn, "Astro Dawn", "⭐", "astronomicalDawn"),
-                (nauticalDawn, "Nautical Dawn", "🌊", "nauticalDawn"),
-                (civilDawn, "Civil Dawn", "🌅", "civilDawn"),
-                (civilDawn, "Blue Hour Start", "🔵", "blueHourStart"),
-                (goldenHourMorningStart, "Golden Start", "🌄", "goldenMorningStart"),
-                (sunrise, "Sunrise", "🌅", "sunrise"),
-                (goldenHourMorningEnd, "Golden End", "☀️", "goldenMorningEnd"),
-                (solarNoon, "Solar Noon", "🌞", "solarNoon"),
-                (goldenHourEveningStart, "Golden Start", "🌇", "goldenEveningStart"),
-                (sunset, "Sunset", "🌇", "sunset"),
-                (goldenHourEveningEnd, "Golden End", "🌆", "goldenEveningEnd"),
-                (sunset, "Blue Hour Start", "🔵", "blueHourEveningStart"),
-                (civilDusk, "Civil Dusk", "🌃", "civilDusk"),
-                (nauticalDusk, "Nautical Dusk", "🌊", "nauticalDusk"),
-                (astronomicalDusk, "Astro Dusk", "⭐", "astronomicalDusk")
-            };
-
-                    // Process each event
-                    foreach (var (time, name, icon, eventType) in allEvents)
+                    // Calculate all sun times efficiently
+                    var sunTimes = new Dictionary<string, DateTime>
                     {
-                        DateTime eventTime = time;
+                        ["astronomicalDawn"] = _sunCalculatorService.GetAstronomicalDawn(baseDate, Latitude, Longitude, timezone),
+                        ["nauticalDawn"] = _sunCalculatorService.GetNauticalDawn(baseDate, Latitude, Longitude, timezone),
+                        ["civilDawn"] = _sunCalculatorService.GetCivilDawn(baseDate, Latitude, Longitude, timezone),
+                        ["sunrise"] = _sunCalculatorService.GetSunrise(baseDate, Latitude, Longitude, timezone),
+                        ["solarNoon"] = _sunCalculatorService.GetSolarNoon(baseDate, Latitude, Longitude, timezone),
+                        ["sunset"] = _sunCalculatorService.GetSunset(baseDate, Latitude, Longitude, timezone),
+                        ["civilDusk"] = _sunCalculatorService.GetCivilDusk(baseDate, Latitude, Longitude, timezone),
+                        ["nauticalDusk"] = _sunCalculatorService.GetNauticalDusk(baseDate, Latitude, Longitude, timezone),
+                        ["astronomicalDusk"] = _sunCalculatorService.GetAstronomicalDusk(baseDate, Latitude, Longitude, timezone)
+                    };
 
-                        // If event has passed in location time, recalculate for next day
+                    // Create event definitions
+                    var eventDefinitions = new List<(string key, string name, string icon, Func<DateTime, DateTime> timeCalc)>
+                    {
+                        ("astronomicalDawn", "Astro Dawn", "⭐", t => t),
+                        ("nauticalDawn", "Nautical Dawn", "🌊", t => t),
+                        ("civilDawn", "Civil Dawn", "🌅", t => t),
+                        ("civilDawn", "Blue Hour Start", "🔵", t => t),
+                        ("sunrise", "Golden Start", "🌄", t => t.AddMinutes(-30)),
+                        ("sunrise", "Sunrise", "🌅", t => t),
+                        ("sunrise", "Golden End", "☀️", t => t.AddHours(1)),
+                        ("solarNoon", "Solar Noon", "🌞", t => t),
+                        ("sunset", "Golden Start", "🌇", t => t.AddHours(-1)),
+                        ("sunset", "Sunset", "🌇", t => t),
+                        ("sunset", "Golden End", "🌆", t => t.AddMinutes(30)),
+                        ("sunset", "Blue Hour Start", "🔵", t => t),
+                        ("civilDusk", "Civil Dusk", "🌃", t => t),
+                        ("nauticalDusk", "Nautical Dusk", "🌊", t => t),
+                        ("astronomicalDusk", "Astro Dusk", "⭐", t => t)
+                    };
+
+                    foreach (var (key, name, icon, timeCalc) in eventDefinitions)
+                    {
+                        if (!sunTimes.TryGetValue(key, out var baseTime)) continue;
+
+                        var eventTime = timeCalc(baseTime);
+
+                        // Handle next day events if needed
                         if (eventTime <= locationNow)
                         {
-                            var nextDay = baseDate.AddDays(1);
-
-                            eventTime = eventType switch
+                            var nextDayBaseTime = key switch
                             {
-                                "astronomicalDawn" => _sunCalculatorService.GetAstronomicalDawn(nextDay, Latitude, Longitude, timezone),
-                                "nauticalDawn" => _sunCalculatorService.GetNauticalDawn(nextDay, Latitude, Longitude, timezone),
-                                "civilDawn" => _sunCalculatorService.GetCivilDawn(nextDay, Latitude, Longitude, timezone),
-                                "blueHourStart" => _sunCalculatorService.GetCivilDawn(nextDay, Latitude, Longitude, timezone),
-                                "goldenMorningStart" => _sunCalculatorService.GetSunrise(nextDay, Latitude, Longitude, timezone).AddMinutes(-30),
-                                "sunrise" => _sunCalculatorService.GetSunrise(nextDay, Latitude, Longitude, timezone),
-                                "goldenMorningEnd" => _sunCalculatorService.GetSunrise(nextDay, Latitude, Longitude, timezone).AddHours(1),
-                                "solarNoon" => _sunCalculatorService.GetSolarNoon(nextDay, Latitude, Longitude, timezone),
-                                "goldenEveningStart" => _sunCalculatorService.GetSunset(nextDay, Latitude, Longitude, timezone).AddHours(-1),
-                                "sunset" => _sunCalculatorService.GetSunset(nextDay, Latitude, Longitude, timezone),
-                                "goldenEveningEnd" => _sunCalculatorService.GetSunset(nextDay, Latitude, Longitude, timezone).AddMinutes(30),
-                                "blueHourEveningStart" => _sunCalculatorService.GetSunset(nextDay, Latitude, Longitude, timezone),
-                                "civilDusk" => _sunCalculatorService.GetCivilDusk(nextDay, Latitude, Longitude, timezone),
-                                "nauticalDusk" => _sunCalculatorService.GetNauticalDusk(nextDay, Latitude, Longitude, timezone),
-                                "astronomicalDusk" => _sunCalculatorService.GetAstronomicalDusk(nextDay, Latitude, Longitude, timezone),
+                                "astronomicalDawn" => _sunCalculatorService.GetAstronomicalDawn(baseDate.AddDays(1), Latitude, Longitude, timezone),
+                                "nauticalDawn" => _sunCalculatorService.GetNauticalDawn(baseDate.AddDays(1), Latitude, Longitude, timezone),
+                                "civilDawn" => _sunCalculatorService.GetCivilDawn(baseDate.AddDays(1), Latitude, Longitude, timezone),
+                                "sunrise" => _sunCalculatorService.GetSunrise(baseDate.AddDays(1), Latitude, Longitude, timezone),
+                                "solarNoon" => _sunCalculatorService.GetSolarNoon(baseDate.AddDays(1), Latitude, Longitude, timezone),
+                                "sunset" => _sunCalculatorService.GetSunset(baseDate.AddDays(1), Latitude, Longitude, timezone),
+                                "civilDusk" => _sunCalculatorService.GetCivilDusk(baseDate.AddDays(1), Latitude, Longitude, timezone),
+                                "nauticalDusk" => _sunCalculatorService.GetNauticalDusk(baseDate.AddDays(1), Latitude, Longitude, timezone),
+                                "astronomicalDusk" => _sunCalculatorService.GetAstronomicalDusk(baseDate.AddDays(1), Latitude, Longitude, timezone),
                                 _ => eventTime
                             };
+                            eventTime = timeCalc(nextDayBaseTime);
                         }
 
-                        // Add event if it's within the next 24 hours in location time
                         if (eventTime > locationNow && eventTime <= endTime)
                         {
                             events.Add(new TimelineEventViewModel
@@ -580,37 +606,67 @@ namespace Location.Photography.ViewModels
                         }
                     }
 
-                    // Sort events by time
-                    return events.OrderBy(e => e.EventTime).ToList();
-                }).ConfigureAwait(false);
+                    var sortedEvents = events.OrderBy(e => e.EventTime).ToList();
 
-                // Update UI on main thread with batch operation
-                await MainThread.InvokeOnMainThreadAsync(() =>
+                    // Cache the results
+                    _timelineCache[cacheKey] = sortedEvents;
+
+                    // Cleanup old cache entries (keep only last 5)
+                    if (_timelineCache.Count > 5)
+                    {
+                        var oldestKey = _timelineCache.Keys.First();
+                        _timelineCache.Remove(oldestKey);
+                    }
+
+                    return sortedEvents;
+                }
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        TimelineEvents.Clear();
-                        foreach (var evt in timelineEvents)
-                        {
-                            TimelineEvents.Add(evt);
-                        }
+                    throw new InvalidOperationException($"Timeline generation failed: {ex.Message}", ex);
+                }
+            });
+        }
 
-                        OnPropertyChanged(nameof(TimelineEvents));
-                    }
-                    catch (Exception ex)
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Throttled sun position updates
+        /// </summary>
+        private async Task UpdateSunPositionOptimizedAsync()
+        {
+            if (!await _updateSemaphore.WaitAsync(50))
+            {
+                return; // Skip if busy
+            }
+
+            try
+            {
+                var result = await UpdateSunPositionBackgroundAsync();
+                if (result.HasValue)
+                {
+                    var (azimuth, elevation) = result.Value;
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        OnSystemError($"Error updating timeline UI: {ex.Message}");
-                    }
-                });
+                        SunDirection = azimuth;
+                        SunElevation = elevation;
+                        UpdateElevationMatch();
+                    });
+                }
             }
             catch (Exception ex)
             {
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    OnSystemError($"Error generating timeline events: {ex.Message}");
+                    OnSystemError($"Error updating sun position: {ex.Message}");
                 });
             }
+            finally
+            {
+                _updateSemaphore.Release();
+            }
         }
+
+        #endregion
+
+        #region Methods
         private void OnSelectTimelineEvent(TimelineEventViewModel timelineEvent)
         {
             if (timelineEvent?.EventTime != null)
@@ -618,30 +674,10 @@ namespace Location.Photography.ViewModels
                 SelectedDateTime = timelineEvent.EventTime;
             }
         }
+
         public void UpdateSunPosition()
         {
-            try
-            {
-                if (_latitude == 0 && _longitude == 0)
-                    return;
-
-                // Use the SunCalculatorService to get the current sun position
-                var azimuth = _sunCalculatorService.GetSolarAzimuth(SelectedDateTime, Latitude, Longitude, TimeZoneInfo.Local.ToString());
-                var elevation = _sunCalculatorService.GetSolarElevation(SelectedDateTime, Latitude, Longitude, TimeZoneInfo.Local.ToString());
-
-                // Update the sun direction (azimuth)
-                SunDirection = azimuth;
-
-                // Update the sun elevation
-                SunElevation = elevation;
-
-                // Update whether the device is matching the sun elevation
-                UpdateElevationMatch();
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error updating sun position: {ex.Message}");
-            }
+            _ = UpdateSunPositionOptimizedAsync();
         }
 
         public void StartSensors()
@@ -758,20 +794,31 @@ namespace Location.Photography.ViewModels
 
         public void OnNavigatedToAsync()
         {
-            UpdateSunPositionCommand = new RelayCommand(UpdateSunPosition);
+            UpdateSunPositionCommand = new RelayCommand(() => _ = UpdateSunPositionOptimizedAsync());
             SelectTimelineEventCommand = new RelayCommand<TimelineEventViewModel>(OnSelectTimelineEvent);
 
             // Set default values
             _selectedDate = DateTime.Today;
             _selectedTime = DateTime.Now.TimeOfDay;
-            UpdateSelectedDateTime();
+            _selectedDateTime = _selectedDate.Add(_selectedTime);
+            _ = UpdateSelectedDateTimeOptimizedAsync();
             StartSensors();
         }
 
         public void OnNavigatedFromAsync()
         {
             StopSensors();
-            //throw new NotImplementedException();
+            _cancellationTokenSource?.Cancel();
+        }
+
+        public override void Dispose()
+        {
+            StopSensors();
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _updateSemaphore?.Dispose();
+            _timelineCache.Clear();
+            base.Dispose();
         }
         #endregion
     }

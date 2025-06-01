@@ -1,11 +1,9 @@
 ﻿// Location.Photography.ViewModels/BaseViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Services;
-using Location.Core.Application.Events;
-using System;
-using System.Threading.Tasks;
 using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Events;
+using Location.Core.Application.Services;
 using Location.Photography.ViewModels.Events;
 
 namespace Location.Photography.ViewModels
@@ -23,6 +21,11 @@ namespace Location.Photography.ViewModels
         // Command tracking for retry functionality
         private IAsyncRelayCommand? _lastCommand;
         private object? _lastCommandParameter;
+
+        // PERFORMANCE OPTIMIZATION: Property change batching
+        private readonly Dictionary<string, object> _pendingPropertyChanges = new();
+        private readonly object _batchLock = new object();
+        private bool _isBatchingPropertyChanges = false;
 
         // Add the ErrorOccurred event for system errors (MediatR failures)
         public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
@@ -75,6 +78,71 @@ namespace Location.Photography.ViewModels
             {
                 _errorDisplayService.ErrorsReady += OnErrorsReady;
             }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Batch property change notifications to reduce UI updates
+        /// </summary>
+        protected void BeginPropertyChangeBatch()
+        {
+            lock (_batchLock)
+            {
+                _isBatchingPropertyChanges = true;
+                _pendingPropertyChanges.Clear();
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: End batching and fire all pending notifications at once
+        /// </summary>
+        protected async Task EndPropertyChangeBatchAsync()
+        {
+            Dictionary<string, object> pendingChanges;
+
+            lock (_batchLock)
+            {
+                if (!_isBatchingPropertyChanges) return;
+
+                pendingChanges = new Dictionary<string, object>(_pendingPropertyChanges);
+                _pendingPropertyChanges.Clear();
+                _isBatchingPropertyChanges = false;
+            }
+
+            // Fire all notifications on UI thread
+            if (pendingChanges.Count > 0)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    foreach (var propertyName in pendingChanges.Keys)
+                    {
+                        OnPropertyChanged(propertyName);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Override SetProperty to support batching
+        /// </summary>
+        protected new bool SetProperty<T>(ref T field, T value, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value))
+                return false;
+
+            field = value;
+
+            lock (_batchLock)
+            {
+                if (_isBatchingPropertyChanges && !string.IsNullOrEmpty(propertyName))
+                {
+                    _pendingPropertyChanges[propertyName] = value!;
+                    return true;
+                }
+            }
+
+            // Normal immediate notification if not batching
+            OnPropertyChanged(propertyName);
+            return true;
         }
 
         /// <summary>

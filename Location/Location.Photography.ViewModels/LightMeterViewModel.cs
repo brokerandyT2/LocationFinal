@@ -20,6 +20,12 @@ namespace Location.Photography.ViewModels
         private readonly IExposureCalculatorService _exposureCalculatorService;
         private readonly IErrorDisplayService _errorDisplayService;
 
+        // PERFORMANCE: Threading and caching
+        private readonly SemaphoreSlim _calculationLock = new(1, 1);
+        private readonly Dictionary<ExposureIncrements, ExposureArrays> _arrayCache = new();
+        private DateTime _lastCalculationTime = DateTime.MinValue;
+        private const int CALCULATION_THROTTLE_MS = 100;
+
         // Current exposure values
         private float _currentLux;
         private double _calculatedEV;
@@ -56,7 +62,13 @@ namespace Location.Photography.ViewModels
         public double SelectedEV
         {
             get => _selectedEV;
-            set => SetProperty(ref _selectedEV, value);
+            set
+            {
+                if (SetProperty(ref _selectedEV, value))
+                {
+                    _ = CalculateFromEVOptimizedAsync();
+                }
+            }
         }
 
         public float CurrentLux
@@ -66,7 +78,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _currentLux, value))
                 {
-                    CalculateEV();
+                    _ = CalculateEVOptimizedAsync();
                 }
             }
         }
@@ -75,19 +87,37 @@ namespace Location.Photography.ViewModels
         public bool IsFullStep
         {
             get => _isFullStep;
-            set => SetProperty(ref _isFullStep, value);
+            set
+            {
+                if (SetProperty(ref _isFullStep, value) && value)
+                {
+                    CurrentStep = ExposureIncrements.Full;
+                }
+            }
         }
 
         public bool IsHalfStep
         {
             get => _isHalfStep;
-            set => SetProperty(ref _isHalfStep, value);
+            set
+            {
+                if (SetProperty(ref _isHalfStep, value) && value)
+                {
+                    CurrentStep = ExposureIncrements.Half;
+                }
+            }
         }
 
         public bool IsThirdStep
         {
             get => _isThirdStep;
-            set => SetProperty(ref _isThirdStep, value);
+            set
+            {
+                if (SetProperty(ref _isThirdStep, value) && value)
+                {
+                    CurrentStep = ExposureIncrements.Third;
+                }
+            }
         }
 
         public ExposureIncrements CurrentStep
@@ -97,7 +127,8 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _currentStep, value))
                 {
-                    UpdateStepFlags();
+                    UpdateStepFlagsOptimized();
+                    _ = LoadExposureArraysOptimizedAsync();
                 }
             }
         }
@@ -117,15 +148,18 @@ namespace Location.Photography.ViewModels
                 if (SetProperty(ref _selectedApertureIndex, value))
                 {
                     OnPropertyChanged(nameof(SelectedAperture));
+                    _ = CalculateEVOptimizedAsync();
                 }
             }
         }
 
         public int MaxApertureIndex => ApertureArray?.Length - 1 ?? 0;
+
         public void SetCalculatedEV(double ev)
         {
             CalculatedEV = ev;
         }
+
         public string SelectedAperture => ApertureArray?[Math.Min(SelectedApertureIndex, MaxApertureIndex)] ?? "f/5.6";
         public string MinAperture => ApertureArray?[0] ?? "f/1";
         public string MaxAperture => ApertureArray?[MaxApertureIndex] ?? "f/64";
@@ -145,6 +179,7 @@ namespace Location.Photography.ViewModels
                 if (SetProperty(ref _selectedIsoIndex, value))
                 {
                     OnPropertyChanged(nameof(SelectedIso));
+                    _ = CalculateEVOptimizedAsync();
                 }
             }
         }
@@ -170,6 +205,7 @@ namespace Location.Photography.ViewModels
                 if (SetProperty(ref _selectedShutterSpeedIndex, value))
                 {
                     OnPropertyChanged(nameof(SelectedShutterSpeed));
+                    _ = CalculateEVOptimizedAsync();
                 }
             }
         }
@@ -190,7 +226,7 @@ namespace Location.Photography.ViewModels
         public LightMeterViewModel() : base(null, null)
         {
             // Design-time constructor
-            LoadDefaultArrays();
+            LoadDefaultArraysOptimized();
             InitializeCommands();
         }
 
@@ -207,87 +243,289 @@ namespace Location.Photography.ViewModels
             _errorDisplayService = errorDisplayService;
 
             InitializeCommands();
-            LoadDefaultArrays();
+            LoadDefaultArraysOptimized();
         }
         #endregion
 
-        #region Methods
+        #region PERFORMANCE OPTIMIZED METHODS
 
-        private void InitializeCommands()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Throttled EV calculation
+        /// </summary>
+        private async Task CalculateEVOptimizedAsync()
         {
-            ResetCommand = new RelayCommand(Reset);
+            // Throttle rapid updates
+            var now = DateTime.Now;
+            if ((now - _lastCalculationTime).TotalMilliseconds < CALCULATION_THROTTLE_MS)
+            {
+                return;
+            }
+            _lastCalculationTime = now;
+
+            if (!await _calculationLock.WaitAsync(50))
+            {
+                return; // Skip if another calculation is in progress
+            }
+
+            try
+            {
+                await Task.Run(() => CalculateEVCore());
+            }
+            finally
+            {
+                _calculationLock.Release();
+            }
         }
 
-        private void LoadDefaultArrays()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Core EV calculation on background thread
+        /// </summary>
+        private async Task CalculateEVCore()
         {
-            // Load default arrays (Third step)
-            ApertureArray = Apetures.Thirds;
-            IsoArray = ISOs.Thirds;
-            ShutterSpeedArray = ShutterSpeeds.Thirds;
+            try
+            {
+                if (CurrentLux <= 0)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        CalculatedEV = 0;
+                    });
+                    return;
+                }
 
-            // Set default selections to middle values
-            SelectedApertureIndex = ApertureArray.Length / 2;
-            SelectedIsoIndex = IsoArray.Length / 2;
-            SelectedShutterSpeedIndex = ShutterSpeedArray.Length / 2;
+                // Parse current values on background thread
+                double aperture = ParseApertureOptimized(SelectedAperture);
+                int iso = ParseIsoOptimized(SelectedIso);
+
+                if (aperture <= 0 || iso <= 0)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        CalculatedEV = 0;
+                    });
+                    return;
+                }
+
+                // Calculate EV using standard formula
+                const double CalibrationConstant = 12.5;
+                double ev = Math.Log2((CurrentLux * aperture * aperture) / (CalibrationConstant * iso));
+
+                // Round to step precision
+                double roundedEV = RoundToStepOptimized(ev);
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    CalculatedEV = roundedEV;
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error calculating EV: {ex.Message}");
+                    CalculatedEV = 0;
+                });
+            }
         }
 
-        public async Task LoadExposureArraysAsync()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized EV-based calculation
+        /// </summary>
+        private async Task CalculateFromEVOptimizedAsync()
+        {
+            try
+            {
+                // This would adjust other settings based on EV change
+                double roundedEV = RoundToStepOptimized(SelectedEV);
+                CalculatedEV = roundedEV;
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error calculating from EV: {ex.Message}");
+                });
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized array loading with caching
+        /// </summary>
+        public async Task LoadExposureArraysOptimizedAsync()
         {
             try
             {
                 IsBusy = true;
                 ClearErrors();
 
-                if (_exposureCalculatorService != null)
+                // Check cache first
+                if (_arrayCache.TryGetValue(CurrentStep, out var cachedArrays))
                 {
-                    // Load arrays from service based on current step
-                    var apertureResult = await _exposureCalculatorService.GetAperturesAsync(CurrentStep);
-                    var isoResult = await _exposureCalculatorService.GetIsosAsync(CurrentStep);
-                    var shutterResult = await _exposureCalculatorService.GetShutterSpeedsAsync(CurrentStep);
-
-                    if (apertureResult.IsSuccess)
-                        ApertureArray = apertureResult.Data;
-
-                    if (isoResult.IsSuccess)
-                        IsoArray = isoResult.Data;
-
-                    if (shutterResult.IsSuccess)
-                        ShutterSpeedArray = shutterResult.Data;
-                }
-                else
-                {
-                    // Fallback to utility classes
-                    string stepString = GetStepString();
-                    ApertureArray = Apetures.GetScale(stepString);
-                    IsoArray = ISOs.GetScale(stepString);
-                    ShutterSpeedArray = ShutterSpeeds.GetScale(stepString);
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        ApplyCachedArraysOptimized(cachedArrays);
+                    });
+                    return;
                 }
 
-                // Ensure valid indices after array change
-                EnsureValidIndices();
+                // Load arrays on background thread
+                var arrays = await Task.Run(async () =>
+                {
+                    try
+                    {
+                        ExposureArrays result;
 
-                // Notify UI of array changes
-                OnPropertyChanged(nameof(MaxApertureIndex));
-                OnPropertyChanged(nameof(MaxIsoIndex));
-                OnPropertyChanged(nameof(MaxShutterSpeedIndex));
-                OnPropertyChanged(nameof(MinAperture));
-                OnPropertyChanged(nameof(MaxAperture));
-                OnPropertyChanged(nameof(MinIso));
-                OnPropertyChanged(nameof(MaxIso));
-                OnPropertyChanged(nameof(MinShutterSpeed));
-                OnPropertyChanged(nameof(MaxShutterSpeed));
+                        if (_exposureCalculatorService != null)
+                        {
+                            // Load arrays from service based on current step
+                            var apertureTask = _exposureCalculatorService.GetAperturesAsync(CurrentStep);
+                            var isoTask = _exposureCalculatorService.GetIsosAsync(CurrentStep);
+                            var shutterTask = _exposureCalculatorService.GetShutterSpeedsAsync(CurrentStep);
+
+                            var results = await Task.WhenAll(apertureTask, isoTask, shutterTask);
+
+                            result = new ExposureArrays
+                            {
+                                Apertures = results[0].IsSuccess ? results[0].Data : GetFallbackApertures(),
+                                ISOs = results[1].IsSuccess ? results[1].Data : GetFallbackISOs(),
+                                ShutterSpeeds = results[2].IsSuccess ? results[2].Data : GetFallbackShutterSpeeds()
+                            };
+                        }
+                        else
+                        {
+                            // Fallback to utility classes
+                            string stepString = GetStepStringOptimized();
+                            result = new ExposureArrays
+                            {
+                                Apertures = Apetures.GetScale(stepString),
+                                ISOs = ISOs.GetScale(stepString),
+                                ShutterSpeeds = ShutterSpeeds.GetScale(stepString)
+                            };
+                        }
+
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"Error loading exposure arrays: {ex.Message}", ex);
+                    }
+                });
+
+                // Cache the results
+                _arrayCache[CurrentStep] = arrays;
+
+                // Update UI on main thread
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    ApplyCachedArraysOptimized(arrays);
+                    EnsureValidIndicesOptimized();
+                    UpdatePropertyNotificationsOptimized();
+                });
             }
             catch (Exception ex)
             {
-                OnSystemError($"Error loading exposure arrays: {ex.Message}");
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error loading exposure arrays: {ex.Message}");
+                });
             }
             finally
             {
-                IsBusy = false;
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsBusy = false;
+                });
             }
         }
 
-        private string GetStepString()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Batch apply cached arrays
+        /// </summary>
+        private void ApplyCachedArraysOptimized(ExposureArrays arrays)
+        {
+            BeginPropertyChangeBatch();
+
+            ApertureArray = arrays.Apertures;
+            IsoArray = arrays.ISOs;
+            ShutterSpeedArray = arrays.ShutterSpeeds;
+
+            _ = EndPropertyChangeBatchAsync();
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized light reading update
+        /// </summary>
+        public void UpdateLightReadingOptimized(float lux)
+        {
+            try
+            {
+                CurrentLux = lux;
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error updating light reading: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized reset with batch updates
+        /// </summary>
+        private void ResetOptimized()
+        {
+            try
+            {
+                BeginPropertyChangeBatch();
+
+                // Reset to middle values
+                SelectedApertureIndex = ApertureArray?.Length / 2 ?? 0;
+                SelectedIsoIndex = IsoArray?.Length / 2 ?? 0;
+                SelectedShutterSpeedIndex = ShutterSpeedArray?.Length / 2 ?? 0;
+
+                CurrentLux = 0;
+                CalculatedEV = 0;
+                SelectedEV = 0;
+                CurrentStep = ExposureIncrements.Third;
+
+                ClearErrors();
+
+                _ = EndPropertyChangeBatchAsync();
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error resetting light meter: {ex.Message}");
+                _ = EndPropertyChangeBatchAsync();
+            }
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private void InitializeCommands()
+        {
+            ResetCommand = new RelayCommand(ResetOptimized);
+        }
+
+        private void LoadDefaultArraysOptimized()
+        {
+            // Load default arrays (Third step) with caching
+            var defaultArrays = new ExposureArrays
+            {
+                Apertures = Apetures.Thirds,
+                ISOs = ISOs.Thirds,
+                ShutterSpeeds = ShutterSpeeds.Thirds
+            };
+
+            _arrayCache[ExposureIncrements.Third] = defaultArrays;
+            ApplyCachedArraysOptimized(defaultArrays);
+
+            // Set default selections to middle values
+            SelectedApertureIndex = ApertureArray?.Length / 2 ?? 0;
+            SelectedIsoIndex = IsoArray?.Length / 2 ?? 0;
+            SelectedShutterSpeedIndex = ShutterSpeedArray?.Length / 2 ?? 0;
+        }
+
+        private string GetStepStringOptimized()
         {
             return CurrentStep switch
             {
@@ -298,7 +536,7 @@ namespace Location.Photography.ViewModels
             };
         }
 
-        private void EnsureValidIndices()
+        private void EnsureValidIndicesOptimized()
         {
             // Ensure indices are within valid ranges
             if (ApertureArray != null && SelectedApertureIndex >= ApertureArray.Length)
@@ -311,75 +549,36 @@ namespace Location.Photography.ViewModels
                 SelectedShutterSpeedIndex = ShutterSpeedArray.Length / 2;
         }
 
-        private void UpdateStepFlags()
+        private void UpdateStepFlagsOptimized()
         {
-            IsFullStep = (CurrentStep == ExposureIncrements.Full);
-            IsHalfStep = (CurrentStep == ExposureIncrements.Half);
-            IsThirdStep = (CurrentStep == ExposureIncrements.Third);
+            BeginPropertyChangeBatch();
+
+            _isFullStep = (CurrentStep == ExposureIncrements.Full);
+            _isHalfStep = (CurrentStep == ExposureIncrements.Half);
+            _isThirdStep = (CurrentStep == ExposureIncrements.Third);
+
+            _ = EndPropertyChangeBatchAsync();
         }
 
-        public void UpdateLightReading(float lux)
+        private void UpdatePropertyNotificationsOptimized()
         {
-            try
-            {
-                CurrentLux = lux;
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error updating light reading: {ex.Message}");
-            }
+            // Batch notify UI of property changes
+            BeginPropertyChangeBatch();
+
+            OnPropertyChanged(nameof(MaxApertureIndex));
+            OnPropertyChanged(nameof(MaxIsoIndex));
+            OnPropertyChanged(nameof(MaxShutterSpeedIndex));
+            OnPropertyChanged(nameof(MinAperture));
+            OnPropertyChanged(nameof(MaxAperture));
+            OnPropertyChanged(nameof(MinIso));
+            OnPropertyChanged(nameof(MaxIso));
+            OnPropertyChanged(nameof(MinShutterSpeed));
+            OnPropertyChanged(nameof(MaxShutterSpeed));
+
+            _ = EndPropertyChangeBatchAsync();
         }
 
-        public void CalculateEV()
-        {
-            try
-            {
-                if (CurrentLux <= 0)
-                {
-                    CalculatedEV = 0;
-                    return;
-                }
-
-                // Parse current values
-                double aperture = ParseAperture(SelectedAperture);
-                int iso = ParseIso(SelectedIso);
-
-                if (aperture <= 0 || iso <= 0)
-                {
-                    CalculatedEV = 0;
-                    return;
-                }
-
-                // Calculate EV using standard formula
-                // EV = log2((Lux * Aperture²) / (Calibration_Constant * ISO))
-                const double CalibrationConstant = 12.5;
-                double ev = Math.Log2((CurrentLux * aperture * aperture) / (CalibrationConstant * iso));
-
-                // Round to step precision
-                CalculatedEV = RoundToStep(ev);
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error calculating EV: {ex.Message}");
-                CalculatedEV = 0;
-            }
-        }
-
-        public void CalculateFromEV()
-        {
-            try
-            {
-                // This would adjust other settings based on EV change
-                // For now, just update the calculated EV
-                CalculatedEV = RoundToStep(SelectedEV);
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error calculating from EV: {ex.Message}");
-            }
-        }
-
-        private double RoundToStep(double ev)
+        private double RoundToStepOptimized(double ev)
         {
             // Round EV to the appropriate step increment
             double stepSize = CurrentStep switch
@@ -393,7 +592,7 @@ namespace Location.Photography.ViewModels
             return Math.Round(ev / stepSize) * stepSize;
         }
 
-        private double ParseAperture(string aperture)
+        private double ParseApertureOptimized(string aperture)
         {
             if (string.IsNullOrWhiteSpace(aperture))
                 return 5.6;
@@ -411,7 +610,7 @@ namespace Location.Photography.ViewModels
             return 5.6; // Default fallback
         }
 
-        private int ParseIso(string iso)
+        private int ParseIsoOptimized(string iso)
         {
             if (string.IsNullOrWhiteSpace(iso))
                 return 100;
@@ -424,26 +623,34 @@ namespace Location.Photography.ViewModels
             return 100; // Default fallback
         }
 
-        private void Reset()
+        private string[] GetFallbackApertures()
         {
-            try
-            {
-                // Reset to middle values
-                SelectedApertureIndex = ApertureArray?.Length / 2 ?? 0;
-                SelectedIsoIndex = IsoArray?.Length / 2 ?? 0;
-                SelectedShutterSpeedIndex = ShutterSpeedArray?.Length / 2 ?? 0;
+            return Apetures.GetScale(GetStepStringOptimized());
+        }
 
-                CurrentLux = 0;
-                CalculatedEV = 0;
-                SelectedEV = 0;
-                CurrentStep = ExposureIncrements.Third;
+        private string[] GetFallbackISOs()
+        {
+            return ISOs.GetScale(GetStepStringOptimized());
+        }
 
-                ClearErrors();
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error resetting light meter: {ex.Message}");
-            }
+        private string[] GetFallbackShutterSpeeds()
+        {
+            return ShutterSpeeds.GetScale(GetStepStringOptimized());
+        }
+
+        public void UpdateLightReading(float lux)
+        {
+            UpdateLightReadingOptimized(lux);
+        }
+
+        public void CalculateEV()
+        {
+            _ = CalculateEVOptimizedAsync();
+        }
+
+        public void CalculateFromEV()
+        {
+            _ = CalculateFromEVOptimizedAsync();
         }
 
         protected override void OnErrorOccurred(string message)
@@ -454,12 +661,30 @@ namespace Location.Photography.ViewModels
         public void OnNavigatedToAsync()
         {
             InitializeCommands();
-            LoadDefaultArrays();
+            LoadDefaultArraysOptimized();
         }
 
         public void OnNavigatedFromAsync()
         {
-            throw new NotImplementedException();
+            // Cleanup not required for this implementation
+        }
+
+        public override void Dispose()
+        {
+            _calculationLock?.Dispose();
+            _arrayCache.Clear();
+            base.Dispose();
+        }
+
+        #endregion
+
+        #region Helper Classes
+
+        private class ExposureArrays
+        {
+            public string[] Apertures { get; set; } = Array.Empty<string>();
+            public string[] ISOs { get; set; } = Array.Empty<string>();
+            public string[] ShutterSpeeds { get; set; } = Array.Empty<string>();
         }
 
         #endregion

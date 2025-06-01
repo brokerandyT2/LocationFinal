@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Location.Photography.Infrastructure/Services/PredictiveLightService.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -55,7 +56,7 @@ namespace Location.Photography.Infrastructure.Services
                     analysis.CurrentConditions = MapToWeatherConditions(currentForecast);
 
                     analysis.HourlyImpacts = await CalculateHourlyWeatherImpactsAsync(
-                        request.WeatherForecast, request.SunTimes, cancellationToken);
+                        request.WeatherForecast, request.SunTimes, cancellationToken).ConfigureAwait(false);
 
                     analysis.OverallLightReductionFactor = CalculateOverallLightReduction(analysis.HourlyImpacts);
 
@@ -85,12 +86,18 @@ namespace Location.Photography.Infrastructure.Services
                 var predictions = new List<HourlyLightPrediction>();
                 var startTime = request.TargetDate.Date.ToLocalTime();
 
+                // Parallelize prediction generation to improve performance
+                var predictionTasks = new List<Task<HourlyLightPrediction>>();
+
                 for (int hour = 0; hour < request.PredictionWindowHours; hour++)
                 {
                     var targetTime = startTime.AddHours(hour);
-                    var prediction = await GenerateSingleHourPredictionAsync(request, targetTime, cancellationToken);
-                    predictions.Add(prediction);
+                    predictionTasks.Add(GenerateSingleHourPredictionAsync(request, targetTime, cancellationToken));
                 }
+
+                // Process all predictions in parallel
+                var allPredictions = await Task.WhenAll(predictionTasks).ConfigureAwait(false);
+                predictions.AddRange(allPredictions);
 
                 return predictions.OrderBy(x => x.DateTime).ToList();
             }
@@ -107,7 +114,7 @@ namespace Location.Photography.Infrastructure.Services
         {
             try
             {
-                var hourlyPredictions = await GenerateHourlyPredictionsAsync(request, cancellationToken);
+                var hourlyPredictions = await GenerateHourlyPredictionsAsync(request, cancellationToken).ConfigureAwait(false);
 
                 var recommendation = new PredictiveLightRecommendation
                 {
@@ -439,77 +446,82 @@ namespace Location.Photography.Infrastructure.Services
                DateTime targetTime,
                CancellationToken cancellationToken)
         {
-            var prediction = new HourlyLightPrediction { DateTime = targetTime };
-
-            prediction.SunPosition = GetSunPosition(targetTime, request.Latitude, request.Longitude);
-
-            // Enhanced: Use lux-based calculation instead of simple theoretical EV
-            var weatherConditions = GetWeatherConditionsForHour(request.WeatherImpact, targetTime);
-            var calculatedLux = CalculateLuxFromConditions(prediction.SunPosition, weatherConditions);
-
-            // Validate with UV Index if available
-            if (weatherConditions?.UvIndex > 0)
+            // Move intensive calculations to background thread to prevent UI blocking
+            return await Task.Run(async () =>
             {
-                calculatedLux = ValidateWithUVIndex(calculatedLux, weatherConditions.UvIndex, prediction.SunPosition);
-            }
+                var prediction = new HourlyLightPrediction { DateTime = targetTime };
 
-            var calculatedEV = ConvertLuxToEV(calculatedLux);
+                prediction.SunPosition = GetSunPosition(targetTime, request.Latitude, request.Longitude);
 
-            // Enhanced confidence calculation with time decay
-            bool hasCalibration = _locationCalibrations.TryGetValue(request.LocationId, out var calibration) &&
-                                 request.LastCalibrationReading.HasValue;
+                // Enhanced: Use lux-based calculation instead of simple theoretical EV
+                var weatherConditions = GetWeatherConditionsForHour(request.WeatherImpact, targetTime);
+                var calculatedLux = CalculateLuxFromConditions(prediction.SunPosition, weatherConditions);
 
-            // Base confidence
-            var baseConfidence = hasCalibration ? 0.95 : 0.85;
+                // Validate with UV Index if available
+                if (weatherConditions?.UvIndex > 0)
+                {
+                    calculatedLux = ValidateWithUVIndex(calculatedLux, weatherConditions.UvIndex, prediction.SunPosition);
+                }
 
-            // Time decay: 0.5% per hour
-            var hoursFromNow = (targetTime - DateTime.Now).TotalHours;
-            var timeDecayFactor = Math.Max(0.2, 1.0 - (hoursFromNow * 0.005)); // 0.5% per hour
+                var calculatedEV = ConvertLuxToEV(calculatedLux);
 
-            // Weather data freshness factor
-            var weatherFreshnessFactor = CalculateWeatherFreshnessFactor(weatherConditions, hoursFromNow);
+                // Enhanced confidence calculation with time decay
+                bool hasCalibration = _locationCalibrations.TryGetValue(request.LocationId, out var calibration) &&
+                                     request.LastCalibrationReading.HasValue;
 
-            // Apply calibration if available
-            if (hasCalibration)
-            {
-                calculatedEV += calibration.CurrentOffset;
-                prediction.ConfidenceReason = $"based on recent light meter calibration and environmental data ({hoursFromNow:F1}h forecast)";
-            }
-            else
-            {
-                prediction.ConfidenceReason = $"based on lux calculations from sun position and weather conditions ({hoursFromNow:F1}h forecast)";
-            }
+                // Base confidence
+                var baseConfidence = hasCalibration ? 0.95 : 0.85;
 
-            // Final confidence calculation
-            var finalConfidence = baseConfidence * timeDecayFactor * weatherFreshnessFactor;
-            prediction.ConfidenceLevel = Math.Max(0.2, Math.Min(0.95, finalConfidence));
+                // Time decay: 0.5% per hour
+                var hoursFromNow = (targetTime - DateTime.Now).TotalHours;
+                var timeDecayFactor = Math.Max(0.2, 1.0 - (hoursFromNow * 0.005)); // 0.5% per hour
 
-            // Add time decay information to confidence reason
-            if (hoursFromNow > 48)
-            {
-                prediction.ConfidenceReason += " - long-range forecast has increased uncertainty";
-            }
-            else if (hoursFromNow > 24)
-            {
-                prediction.ConfidenceReason += " - medium-range forecast";
-            }
+                // Weather data freshness factor
+                var weatherFreshnessFactor = CalculateWeatherFreshnessFactor(weatherConditions, hoursFromNow);
 
-            prediction.PredictedEV = Math.Round(calculatedEV, 1);
-            prediction.EVConfidenceMargin = CalculateConfidenceMargin(prediction.ConfidenceLevel);
+                // Apply calibration if available
+                if (hasCalibration)
+                {
+                    calculatedEV += calibration.CurrentOffset;
+                    prediction.ConfidenceReason = $"based on recent light meter calibration and environmental data ({hoursFromNow:F1}h forecast)";
+                }
+                else
+                {
+                    prediction.ConfidenceReason = $"based on lux calculations from sun position and weather conditions ({hoursFromNow:F1}h forecast)";
+                }
 
-            // Enhanced: Use new exposure calculation method
-            prediction.SuggestedSettings = await GenerateEnhancedExposureSettingsAsync(calculatedEV, cancellationToken);
+                // Final confidence calculation
+                var finalConfidence = baseConfidence * timeDecayFactor * weatherFreshnessFactor;
+                prediction.ConfidenceLevel = Math.Max(0.2, Math.Min(0.95, finalConfidence));
 
-            prediction.LightQuality = CalculateLightCharacteristics(
-                prediction.SunPosition, calculatedLux, targetTime, request.SunTimes, weatherConditions);
+                // Add time decay information to confidence reason
+                if (hoursFromNow > 48)
+                {
+                    prediction.ConfidenceReason += " - long-range forecast has increased uncertainty";
+                }
+                else if (hoursFromNow > 24)
+                {
+                    prediction.ConfidenceReason += " - medium-range forecast";
+                }
 
-            prediction.Recommendations = GenerateHourlyRecommendations(
-                prediction.LightQuality, prediction.SunPosition, calculatedLux, weatherConditions);
+                prediction.PredictedEV = Math.Round(calculatedEV, 1);
+                prediction.EVConfidenceMargin = CalculateConfidenceMargin(prediction.ConfidenceLevel);
 
-            prediction.IsOptimalForPhotography = IsOptimalForPhotography(
-                prediction.LightQuality, prediction.SunPosition, calculatedLux, weatherConditions);
+                // Enhanced: Use new exposure calculation method
+                prediction.SuggestedSettings = await GenerateEnhancedExposureSettingsAsync(calculatedEV, cancellationToken).ConfigureAwait(false);
 
-            return prediction;
+                prediction.LightQuality = CalculateLightCharacteristics(
+                    prediction.SunPosition, calculatedLux, targetTime, request.SunTimes, weatherConditions);
+
+                prediction.Recommendations = GenerateHourlyRecommendations(
+                    prediction.LightQuality, prediction.SunPosition, calculatedLux, weatherConditions);
+
+                prediction.IsOptimalForPhotography = IsOptimalForPhotography(
+                    prediction.LightQuality, prediction.SunPosition, calculatedLux, weatherConditions);
+
+                return prediction;
+
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -556,12 +568,17 @@ namespace Location.Photography.Infrastructure.Services
                 var dailyForecast = forecast.DailyForecasts.First();
                 var baseDate = dailyForecast.Date.Date;
 
+                // Parallelize weather impact calculations to improve performance
+                var impactTasks = new List<Task<HourlyWeatherImpact>>();
+
                 for (int hour = 0; hour < 24; hour++)
                 {
                     var hourTime = baseDate.AddHours(hour);
-                    var impact = CalculateHourlyWeatherImpact(dailyForecast, hourTime, sunTimes);
-                    impacts.Add(impact);
+                    impactTasks.Add(Task.Run(() => CalculateHourlyWeatherImpact(dailyForecast, hourTime, sunTimes), cancellationToken));
                 }
+
+                var hourlyImpacts = await Task.WhenAll(impactTasks).ConfigureAwait(false);
+                impacts.AddRange(hourlyImpacts);
             }
 
             return impacts;

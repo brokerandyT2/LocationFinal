@@ -12,13 +12,21 @@ using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErr
 
 namespace Location.Photography.ViewModels
 {
-    public partial class SceneEvaluationViewModel : ViewModelBase, INavigationAware, IDisposable
+    public partial class SceneEvaluationViewModel : ViewModelBase,  IDisposable
     {
         #region Fields
         private readonly IImageAnalysisService _imageAnalysisService;
         private readonly IErrorDisplayService _errorDisplayService;
-        private CancellationTokenSource _cancellationTokenSource;
+
+        // PERFORMANCE: Threading and resource management
+        private CancellationTokenSource _cancellationTokenSource = new();
+        private readonly SemaphoreSlim _processingLock = new(1, 1);
         private bool _disposed = false;
+
+        // PERFORMANCE: Caching for repeated operations
+        private readonly Dictionary<string, ImageAnalysisResult> _analysisCache = new();
+        private readonly Dictionary<HistogramDisplayMode, string> _histogramImageCache = new();
+        private string _lastAnalyzedImageHash = string.Empty;
         #endregion
 
         #region Events
@@ -84,6 +92,13 @@ namespace Location.Photography.ViewModels
 
         [ObservableProperty]
         private bool _isLuminanceHistogramVisible = false;
+
+        // PERFORMANCE: Progress tracking
+        [ObservableProperty]
+        private string _processingStatus = string.Empty;
+
+        [ObservableProperty]
+        private double _processingProgress = 0.0;
         #endregion
 
         #region Constructor
@@ -91,6 +106,7 @@ namespace Location.Photography.ViewModels
         {
             _imageAnalysisService = new ImageAnalysisService();
             _errorDisplayService = null;
+            InitializeCommands();
         }
 
         public SceneEvaluationViewModel(IImageAnalysisService imageAnalysisService, IErrorDisplayService errorDisplayService)
@@ -98,6 +114,12 @@ namespace Location.Photography.ViewModels
         {
             _imageAnalysisService = imageAnalysisService ?? throw new ArgumentNullException(nameof(imageAnalysisService));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
+            InitializeCommands();
+        }
+
+        private void InitializeCommands()
+        {
+            // Commands are initialized in the RelayCommand attributes
         }
         #endregion
 
@@ -105,117 +127,25 @@ namespace Location.Photography.ViewModels
         [RelayCommand]
         private async Task EvaluateSceneAsync()
         {
+            // Prevent concurrent processing
+            if (!await _processingLock.WaitAsync(100))
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    SetValidationError("Analysis already in progress. Please wait.");
+                });
+                return;
+            }
+
             try
             {
-                _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource = new CancellationTokenSource();
-
-                // Update UI immediately
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    IsProcessing = true;
-                    ClearErrors();
-                });
-
-                // Capture photo (already optimized above)
-                var photo = await CapturePhotoAsync();
-                if (photo == null)
-                {
-                    await MainThread.InvokeOnMainThreadAsync(() =>
-                    {
-                        IsProcessing = false;
-                    });
-                    return;
-                }
-
-                // Perform heavy image analysis on background thread
-                var analysisResult = await Task.Run(async () =>
-                {
-                    try
-                    {
-                        using var stream = await photo.OpenReadAsync();
-
-                        // Perform image analysis off the UI thread
-                        return await _imageAnalysisService.AnalyzeImageAsync(stream, _cancellationTokenSource.Token)
-                            .ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new InvalidOperationException($"Image analysis failed: {ex.Message}", ex);
-                    }
-                }).ConfigureAwait(false);
-
-                // Update UI with results on main thread
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    try
-                    {
-                        AnalysisResult = analysisResult;
-                    }
-                    catch (Exception ex)
-                    {
-                        OnSystemError($"Error updating analysis results: {ex.Message}");
-                    }
-                });
-
-                // Generate additional data on background thread
-                await Task.Run(async () =>
-                {
-                    try
-                    {
-                        // Generate recommendations off UI thread
-                        var recommendations = GenerateRecommendationsBackground();
-
-                        // Generate histogram images off UI thread
-                        await GenerateHistogramImagesBackgroundAsync().ConfigureAwait(false);
-
-                        // Update display on UI thread
-                        await MainThread.InvokeOnMainThreadAsync(() =>
-                        {
-                            try
-                            {
-                                ExposureRecommendation = recommendations;
-                                _ = UpdateDisplayAsync();
-                            }
-                            catch (Exception ex)
-                            {
-                                OnSystemError($"Error updating display: {ex.Message}");
-                            }
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        await MainThread.InvokeOnMainThreadAsync(() =>
-                        {
-                            OnSystemError($"Error in background processing: {ex.Message}");
-                        });
-                    }
-                }).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    IsProcessing = false;
-                });
-            }
-            catch (Exception ex)
-            {
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    OnSystemError($"Analysis failed: {ex.Message}");
-                    IsProcessing = false;
-                });
+                await ExecuteSceneEvaluationOptimizedAsync();
             }
             finally
             {
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    IsProcessing = false;
-                });
+                _processingLock.Release();
             }
         }
-
 
         [RelayCommand]
         private async Task ChangeHistogramModeAsync(string mode)
@@ -223,109 +153,386 @@ namespace Location.Photography.ViewModels
             if (Enum.TryParse<HistogramDisplayMode>(mode, out var histogramMode))
             {
                 SelectedHistogramMode = histogramMode;
-                await UpdateDisplayAsync();
+                await UpdateDisplayOptimizedAsync();
                 UpdateHistogramVisibility();
             }
         }
         #endregion
 
-        #region Methods
-        private async Task<FileResult> CapturePhotoAsync()
+        #region PERFORMANCE OPTIMIZED METHODS
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Streamlined scene evaluation with progress tracking
+        /// </summary>
+        private async Task ExecuteSceneEvaluationOptimizedAsync()
         {
-            if (MediaPicker.Default.IsCaptureSupported)
+            try
             {
-                try
+                // Cancel any existing operation
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource = new CancellationTokenSource();
+
+                // Start progress tracking on UI thread
+                await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    // Show loading state immediately
+                    IsProcessing = true;
+                    _processingProgress = 0.0;
+                    _processingStatus = "Initializing camera...";
+                    ClearErrors();
+                });
+
+                // Phase 1: Capture photo with timeout and progress
+                var progress = new Progress<string>(status =>
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        _processingStatus = status;
+                    });
+                });
+
+                var photo = await CapturePhotoOptimizedAsync(progress);
+                if (photo == null)
+                {
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        IsProcessing = true;
+                        IsProcessing = false;
+                        ProcessingStatus = "Photo capture cancelled";
                     });
-
-                    // Capture photo on background thread to avoid UI blocking
-                    var photoTask = Task.Run(async () =>
-                    {
-                        return await MediaPicker.Default.CapturePhotoAsync();
-                    });
-
-                    // Add timeout to prevent indefinite blocking
-                    var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30), _cancellationTokenSource.Token);
-                    var completedTask = await Task.WhenAny(photoTask, timeoutTask);
-
-                    if (completedTask == timeoutTask)
-                    {
-                        await MainThread.InvokeOnMainThreadAsync(() =>
-                        {
-                            SetValidationError("Photo capture timed out. Please try again.");
-                            IsProcessing = false;
-                        });
-                        return null;
-                    }
-
-                    return await photoTask;
+                    return;
                 }
-                catch (Exception ex)
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    ProcessingProgress = 25.0;
+                    ProcessingStatus = "Processing image...";
+                });
+
+                // Phase 2: Generate image hash for caching
+                var imageHash = await GenerateImageHashAsync(photo);
+
+                // Check cache first
+                if (!string.IsNullOrEmpty(imageHash) && _analysisCache.TryGetValue(imageHash, out var cachedResult))
                 {
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        SetValidationError($"Error capturing photo: {ex.Message}");
+                        ProcessingProgress = 90.0;
+                        ProcessingStatus = "Loading cached analysis...";
+                        AnalysisResult = cachedResult;
+                        _ = UpdateDisplayOptimizedAsync();
+                        ProcessingProgress = 100.0;
+                        ProcessingStatus = "Analysis complete (cached)";
                         IsProcessing = false;
                     });
-                    return null;
+                    return;
                 }
+
+                // Phase 3: Perform image analysis on background thread with chunked progress
+                var analysisTask = Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var stream = await photo.OpenReadAsync();
+
+                        // Create progress reporter for analysis phases
+                        var analysisProgress = new Progress<double>(progressValue =>
+                        {
+                            var overallProgress = 25.0 + (progressValue * 0.5); // 25-75%
+                            MainThread.BeginInvokeOnMainThread(() =>
+                            {
+                                _processingProgress = overallProgress;
+                            });
+                        });
+
+                        var result = await _imageAnalysisService.AnalyzeImageAsync(
+                            stream,
+                            _cancellationTokenSource.Token,
+                            analysisProgress);
+
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"Image analysis failed: {ex.Message}", ex);
+                    }
+                }, _cancellationTokenSource.Token);
+
+                var analysisResult = await analysisTask;
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    _processingProgress = 75.0;
+                    _processingStatus = "Generating recommendations...";
+                });
+
+                // Phase 4: Process additional data on background thread
+                var enhancedData = await Task.Run(async () =>
+                {
+                    try
+                    {
+                        var recommendations = GenerateRecommendationsOptimized(analysisResult);
+                        var histogramImages = await GenerateHistogramImagesBatchAsync(analysisResult);
+
+                        return new
+                        {
+                            Recommendations = recommendations,
+                            HistogramImages = histogramImages
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"Enhancement processing failed: {ex.Message}", ex);
+                    }
+                }, _cancellationTokenSource.Token);
+
+                // Phase 5: Update UI with all results in single batch
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    try
+                    {
+                        BeginPropertyChangeBatch();
+
+                        // Store in cache
+                        if (!string.IsNullOrEmpty(imageHash))
+                        {
+                            _analysisCache[imageHash] = analysisResult;
+                            _lastAnalyzedImageHash = imageHash;
+
+                            // Cleanup old cache entries (keep only last 3)
+                            if (_analysisCache.Count > 3)
+                            {
+                                var oldestKey = _analysisCache.Keys.First();
+                                _analysisCache.Remove(oldestKey);
+                            }
+                        }
+
+                        // Update all properties
+                        AnalysisResult = analysisResult;
+                        ExposureRecommendation = enhancedData.Recommendations;
+
+                        // Cache histogram images
+                        foreach (var kvp in enhancedData.HistogramImages)
+                        {
+                            _histogramImageCache[kvp.Key] = kvp.Value;
+                        }
+
+                        _processingProgress = 90.0;
+                        _processingStatus = "Finalizing display...";
+
+                        _ = UpdateDisplayOptimizedAsync();
+
+                        _processingProgress = 100.0;
+                        _processingStatus = "Analysis complete";
+
+                        _ = EndPropertyChangeBatchAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        OnSystemError($"Error updating analysis results: {ex.Message}");
+                    }
+                    finally
+                    {
+                        IsProcessing = false;
+                    }
+                });
+
+                // Cleanup: Delay before clearing status
+                _ = Task.Delay(2000, _cancellationTokenSource.Token).ContinueWith(_ =>
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        _processingStatus = string.Empty;
+                        _processingProgress = 0.0;
+                    });
+                }, TaskScheduler.Default);
+
             }
-            else
+            catch (OperationCanceledException)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsProcessing = false;
+                    _processingStatus = "Analysis cancelled";
+                    _processingProgress = 0.0;
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Scene evaluation failed: {ex.Message}");
+                    IsProcessing = false;
+                    _processingStatus = "Analysis failed";
+                    _processingProgress = 0.0;
+                });
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Photo capture with timeout and progress
+        /// </summary>
+        private async Task<FileResult> CapturePhotoOptimizedAsync(IProgress<string> progress)
+        {
+            if (!MediaPicker.Default.IsCaptureSupported)
             {
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     SetValidationError("Camera capture is not supported on this device.");
-                    IsProcessing = false;
+                });
+                return null;
+            }
+
+            try
+            {
+                progress?.Report("Opening camera...");
+
+                // Capture photo with timeout
+                var captureTask = Task.Run(async () =>
+                {
+                    return await MediaPicker.Default.CapturePhotoAsync();
+                });
+
+                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(60), _cancellationTokenSource.Token);
+                var completedTask = await Task.WhenAny(captureTask, timeoutTask);
+
+                if (completedTask == timeoutTask)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        SetValidationError("Photo capture timed out. Please try again.");
+                    });
+                    return null;
+                }
+
+                progress?.Report("Photo captured successfully");
+                return await captureTask;
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    SetValidationError($"Error capturing photo: {ex.Message}");
                 });
                 return null;
             }
         }
 
-        private async Task UpdateDisplayAsync()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Generate image hash for caching
+        /// </summary>
+        private async Task<string> GenerateImageHashAsync(FileResult photo)
         {
-            if (AnalysisResult == null) return;
-
-            var histogram = SelectedHistogramMode switch
+            try
             {
-                HistogramDisplayMode.Red => AnalysisResult.RedHistogram,
-                HistogramDisplayMode.Green => AnalysisResult.GreenHistogram,
-                HistogramDisplayMode.Blue => AnalysisResult.BlueHistogram,
-                HistogramDisplayMode.Luminance => AnalysisResult.LuminanceHistogram,
-                _ => AnalysisResult.RedHistogram
-            };
+                using var stream = await photo.OpenReadAsync();
+                using var buffer = new MemoryStream();
+                await stream.CopyToAsync(buffer);
 
-            CurrentHistogramImage = histogram.ImagePath;
-            UpdateAnalysisMetrics(histogram);
-        }
-
-        private void UpdateAnalysisMetrics(HistogramData histogram)
-        {
-            if (histogram?.Statistics == null || AnalysisResult == null) return;
-
-            // Update display properties from analysis results
-            ColorTemperature = AnalysisResult.WhiteBalance.Temperature;
-            TintValue = AnalysisResult.WhiteBalance.Tint;
-            DynamicRange = histogram.Statistics.DynamicRange;
-            RmsContrast = AnalysisResult.Contrast.RMSContrast;
-            RedMean = AnalysisResult.RedHistogram.Statistics.Mean;
-            GreenMean = AnalysisResult.GreenHistogram.Statistics.Mean;
-            BlueMean = AnalysisResult.BlueHistogram.Statistics.Mean;
-
-            HasClippingWarning = histogram.Statistics.ShadowClipping || histogram.Statistics.HighlightClipping;
-
-            if (HasClippingWarning)
+                var bytes = buffer.ToArray();
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                var hash = sha256.ComputeHash(bytes);
+                return Convert.ToHexString(hash);
+            }
+            catch
             {
-                ClippingWarningMessage = GenerateClippingWarning(histogram.Statistics);
+                return string.Empty; // Return empty string if hashing fails
             }
         }
 
-        private string GenerateClippingWarning(HistogramStatistics statistics)
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized display updates with caching
+        /// </summary>
+        private async Task UpdateDisplayOptimizedAsync()
         {
-            var warnings = new System.Collections.Generic.List<string>();
+            if (AnalysisResult == null) return;
+
+            try
+            {
+                // Check histogram cache first
+                if (_histogramImageCache.TryGetValue(SelectedHistogramMode, out var cachedImagePath))
+                {
+                    CurrentHistogramImage = cachedImagePath;
+                    UpdateAnalysisMetricsOptimized();
+                    return;
+                }
+
+                // Generate on demand if not cached
+                var histogram = SelectedHistogramMode switch
+                {
+                    HistogramDisplayMode.Red => AnalysisResult.RedHistogram,
+                    HistogramDisplayMode.Green => AnalysisResult.GreenHistogram,
+                    HistogramDisplayMode.Blue => AnalysisResult.BlueHistogram,
+                    HistogramDisplayMode.Luminance => AnalysisResult.LuminanceHistogram,
+                    _ => AnalysisResult.RedHistogram
+                };
+
+                if (histogram?.ImagePath != null)
+                {
+                    CurrentHistogramImage = histogram.ImagePath;
+                    _histogramImageCache[SelectedHistogramMode] = histogram.ImagePath;
+                }
+
+                UpdateAnalysisMetricsOptimized();
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error updating display: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Batch metric updates
+        /// </summary>
+        private void UpdateAnalysisMetricsOptimized()
+        {
+            if (AnalysisResult == null) return;
+
+            try
+            {
+                BeginPropertyChangeBatch();
+
+                var histogram = SelectedHistogramMode switch
+                {
+                    HistogramDisplayMode.Red => AnalysisResult.RedHistogram,
+                    HistogramDisplayMode.Green => AnalysisResult.GreenHistogram,
+                    HistogramDisplayMode.Blue => AnalysisResult.BlueHistogram,
+                    HistogramDisplayMode.Luminance => AnalysisResult.LuminanceHistogram,
+                    _ => AnalysisResult.RedHistogram
+                };
+
+                if (histogram?.Statistics != null)
+                {
+                    // Update display properties from analysis results
+                    _colorTemperature = AnalysisResult.WhiteBalance.Temperature;
+                    _tintValue = AnalysisResult.WhiteBalance.Tint;
+                    _dynamicRange = histogram.Statistics.DynamicRange;
+                    _rmsContrast = AnalysisResult.Contrast.RMSContrast;
+                    _redMean = AnalysisResult.RedHistogram.Statistics.Mean;
+                    _greenMean = AnalysisResult.GreenHistogram.Statistics.Mean;
+                    _blueMean = AnalysisResult.BlueHistogram.Statistics.Mean;
+
+                    _hasClippingWarning = histogram.Statistics.ShadowClipping || histogram.Statistics.HighlightClipping;
+
+                    if (_hasClippingWarning)
+                    {
+                        _clippingWarningMessage = GenerateClippingWarningOptimized(histogram.Statistics);
+                    }
+                }
+
+                _ = EndPropertyChangeBatchAsync();
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error updating metrics: {ex.Message}");
+                _ = EndPropertyChangeBatchAsync();
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized clipping warning generation
+        /// </summary>
+        private string GenerateClippingWarningOptimized(HistogramStatistics statistics)
+        {
+            var warnings = new List<string>(2); // Pre-size for expected capacity
 
             if (statistics.ShadowClipping)
                 warnings.Add("Shadow clipping detected in dark areas");
@@ -333,151 +540,122 @@ namespace Location.Photography.ViewModels
             if (statistics.HighlightClipping)
                 warnings.Add("Highlight clipping detected in bright areas");
 
-            return string.Join(". ", warnings);
+            return warnings.Count > 0 ? string.Join(". ", warnings) : string.Empty;
         }
-        private string GenerateRecommendationsBackground()
-        {
-            if (AnalysisResult?.Exposure == null) return string.Empty;
 
-            var recommendations = new System.Collections.Generic.List<string>();
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized recommendations generation
+        /// </summary>
+        private string GenerateRecommendationsOptimized(ImageAnalysisResult analysisResult)
+        {
+            if (analysisResult?.Exposure == null) return string.Empty;
+
+            var recommendations = new List<string>(6); // Pre-size for expected capacity
 
             // Use the recommendation from the analysis service
-            if (!string.IsNullOrEmpty(AnalysisResult.Exposure.RecommendedSettings))
+            if (!string.IsNullOrEmpty(analysisResult.Exposure.RecommendedSettings))
             {
-                recommendations.Add(AnalysisResult.Exposure.RecommendedSettings);
+                recommendations.Add(analysisResult.Exposure.RecommendedSettings);
             }
 
             // Additional exposure recommendations
-            if (AnalysisResult.Exposure.IsUnderexposed)
+            if (analysisResult.Exposure.IsUnderexposed)
                 recommendations.Add("Consider increasing exposure (+1 to +2 stops)");
-            else if (AnalysisResult.Exposure.IsOverexposed)
+            else if (analysisResult.Exposure.IsOverexposed)
                 recommendations.Add("Consider decreasing exposure (-1 to -2 stops)");
 
             // Dynamic range recommendations
-            if (DynamicRange > 10)
+            var dynamicRange = DynamicRange;
+            if (dynamicRange > 10)
                 recommendations.Add("High dynamic range scene - consider HDR or graduated filters");
-            else if (DynamicRange < 4)
+            else if (dynamicRange < 4)
                 recommendations.Add("Low contrast scene - consider increasing contrast in post");
 
             // White balance recommendations
-            if (ColorTemperature < 3000)
+            var colorTemp = ColorTemperature;
+            if (colorTemp < 3000)
                 recommendations.Add("Very warm light detected - check white balance");
-            else if (ColorTemperature > 8000)
+            else if (colorTemp > 8000)
                 recommendations.Add("Very cool light detected - check white balance");
 
-            return string.Join("\n• ", recommendations);
+            return recommendations.Count > 0 ? string.Join("\n• ", recommendations) : string.Empty;
         }
-        private async Task GenerateHistogramImagesBackgroundAsync()
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Batch histogram image generation
+        /// </summary>
+        private async Task<Dictionary<HistogramDisplayMode, string>> GenerateHistogramImagesBatchAsync(ImageAnalysisResult analysisResult)
         {
-            if (AnalysisResult == null) return;
+            if (analysisResult == null) return new Dictionary<HistogramDisplayMode, string>();
 
             try
             {
-                // Generate histogram images for all channels on background thread
-                var redHistogramTask = _imageAnalysisService.GenerateHistogramImageAsync(
-                    AnalysisResult.RedHistogram.Values, SkiaSharp.SKColors.Red, "red_histogram.png");
+                // Generate all histogram images in parallel
+                var tasks = new[]
+                {
+                    Task.Run(async () =>
+                    {
+                        var path = await _imageAnalysisService.GenerateHistogramImageAsync(
+                            analysisResult.RedHistogram.Values, SkiaSharp.SKColors.Red, "red_histogram.png");
+                        return (HistogramDisplayMode.Red, path);
+                    }),
+                    Task.Run(async () =>
+                    {
+                        var path = await _imageAnalysisService.GenerateHistogramImageAsync(
+                            analysisResult.GreenHistogram.Values, SkiaSharp.SKColors.Green, "green_histogram.png");
+                        return (HistogramDisplayMode.Green, path);
+                    }),
+                    Task.Run(async () =>
+                    {
+                        var path = await _imageAnalysisService.GenerateHistogramImageAsync(
+                            analysisResult.BlueHistogram.Values, SkiaSharp.SKColors.Blue, "blue_histogram.png");
+                        return (HistogramDisplayMode.Blue, path);
+                    }),
+                    Task.Run(async () =>
+                    {
+                        var path = await _imageAnalysisService.GenerateHistogramImageAsync(
+                            analysisResult.LuminanceHistogram.Values, SkiaSharp.SKColors.Black, "luminance_histogram.png");
+                        return (HistogramDisplayMode.Luminance, path);
+                    })
+                };
 
-                var greenHistogramTask = _imageAnalysisService.GenerateHistogramImageAsync(
-                    AnalysisResult.GreenHistogram.Values, SkiaSharp.SKColors.Green, "green_histogram.png");
+                var results = await Task.WhenAll(tasks);
 
-                var blueHistogramTask = _imageAnalysisService.GenerateHistogramImageAsync(
-                    AnalysisResult.BlueHistogram.Values, SkiaSharp.SKColors.Blue, "blue_histogram.png");
+                // Update analysis result with paths
+                analysisResult.RedHistogram.ImagePath = results[0].Item2;
+                analysisResult.GreenHistogram.ImagePath = results[1].Item2;
+                analysisResult.BlueHistogram.ImagePath = results[2].Item2;
+                analysisResult.LuminanceHistogram.ImagePath = results[3].Item2;
 
-                var luminanceHistogramTask = _imageAnalysisService.GenerateHistogramImageAsync(
-                    AnalysisResult.LuminanceHistogram.Values, SkiaSharp.SKColors.Black, "luminance_histogram.png");
-
-                // Wait for all histogram generation to complete
-                var results = await Task.WhenAll(
-                    redHistogramTask,
-                    greenHistogramTask,
-                    blueHistogramTask,
-                    luminanceHistogramTask).ConfigureAwait(false);
-
-                // Update results
-                AnalysisResult.RedHistogram.ImagePath = results[0];
-                AnalysisResult.GreenHistogram.ImagePath = results[1];
-                AnalysisResult.BlueHistogram.ImagePath = results[2];
-                AnalysisResult.LuminanceHistogram.ImagePath = results[3];
+                return results.ToDictionary(r => r.Item1, r => r.Item2);
             }
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"Error generating histogram images: {ex.Message}", ex);
             }
         }
-        private void GenerateRecommendations()
-        {
-            if (AnalysisResult?.Exposure == null) return;
 
-            var recommendations = new System.Collections.Generic.List<string>();
+        #endregion
 
-            // Use the recommendation from the analysis service
-            if (!string.IsNullOrEmpty(AnalysisResult.Exposure.RecommendedSettings))
-            {
-                recommendations.Add(AnalysisResult.Exposure.RecommendedSettings);
-            }
-
-            // Additional exposure recommendations
-            if (AnalysisResult.Exposure.IsUnderexposed)
-                recommendations.Add("Consider increasing exposure (+1 to +2 stops)");
-            else if (AnalysisResult.Exposure.IsOverexposed)
-                recommendations.Add("Consider decreasing exposure (-1 to -2 stops)");
-
-            // Dynamic range recommendations
-            if (DynamicRange > 10)
-                recommendations.Add("High dynamic range scene - consider HDR or graduated filters");
-            else if (DynamicRange < 4)
-                recommendations.Add("Low contrast scene - consider increasing contrast in post");
-
-            // White balance recommendations
-            if (ColorTemperature < 3000)
-                recommendations.Add("Very warm light detected - check white balance");
-            else if (ColorTemperature > 8000)
-                recommendations.Add("Very cool light detected - check white balance");
-
-            ExposureRecommendation = string.Join("\n• ", recommendations);
-        }
-
-        private async Task GenerateHistogramImagesAsync()
-        {
-            if (AnalysisResult == null) return;
-
-            try
-            {
-                // Generate histogram images for all channels
-                AnalysisResult.RedHistogram.ImagePath = await _imageAnalysisService.GenerateHistogramImageAsync(
-                    AnalysisResult.RedHistogram.Values, SkiaSharp.SKColors.Red, "red_histogram.png");
-
-                AnalysisResult.GreenHistogram.ImagePath = await _imageAnalysisService.GenerateHistogramImageAsync(
-                    AnalysisResult.GreenHistogram.Values, SkiaSharp.SKColors.Green, "green_histogram.png");
-
-                AnalysisResult.BlueHistogram.ImagePath = await _imageAnalysisService.GenerateHistogramImageAsync(
-                    AnalysisResult.BlueHistogram.Values, SkiaSharp.SKColors.Blue, "blue_histogram.png");
-
-                AnalysisResult.LuminanceHistogram.ImagePath = await _imageAnalysisService.GenerateHistogramImageAsync(
-                    AnalysisResult.LuminanceHistogram.Values, SkiaSharp.SKColors.Black, "luminance_histogram.png");
-
-                // Update current display
-                await UpdateDisplayAsync();
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error generating histogram images: {ex.Message}");
-            }
-        }
+        #region Methods
 
         private void UpdateHistogramVisibility()
         {
-            IsRedHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Red;
-            IsGreenHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Green;
-            IsBlueHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Blue;
-            IsLuminanceHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Luminance;
+            BeginPropertyChangeBatch();
+
+            _isRedHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Red;
+            _isGreenHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Green;
+            _isBlueHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Blue;
+            _isLuminanceHistogramVisible = SelectedHistogramMode == HistogramDisplayMode.Luminance;
+
+            _ = EndPropertyChangeBatchAsync();
         }
 
         public void SetHistogramMode(HistogramDisplayMode mode)
         {
             SelectedHistogramMode = mode;
             UpdateHistogramVisibility();
-            _ = UpdateDisplayAsync();
+            _ = UpdateDisplayOptimizedAsync();
         }
 
         protected override void OnErrorOccurred(string message)
@@ -490,6 +668,11 @@ namespace Location.Photography.ViewModels
             // Initialize default state
             SelectedHistogramMode = HistogramDisplayMode.Red;
             UpdateHistogramVisibility();
+
+            // Clear any processing state
+            IsProcessing = false;
+            _processingStatus = string.Empty;
+            _processingProgress = 0.0;
         }
 
         public void OnNavigatedFromAsync()
@@ -510,6 +693,12 @@ namespace Location.Photography.ViewModels
             {
                 _cancellationTokenSource?.Cancel();
                 _cancellationTokenSource?.Dispose();
+                _processingLock?.Dispose();
+
+                // Clear caches
+                _analysisCache.Clear();
+                _histogramImageCache.Clear();
+
                 _disposed = true;
             }
         }
@@ -519,14 +708,14 @@ namespace Location.Photography.ViewModels
         partial void OnSelectedHistogramModeChanged(HistogramDisplayMode value)
         {
             UpdateHistogramVisibility();
-            _ = UpdateDisplayAsync();
+            _ = UpdateDisplayOptimizedAsync();
         }
 
         partial void OnAnalysisResultChanged(ImageAnalysisResult value)
         {
             if (value != null)
             {
-                _ = UpdateDisplayAsync();
+                _ = UpdateDisplayOptimizedAsync();
             }
         }
         #endregion

@@ -12,17 +12,47 @@ namespace Location.Photography.ViewModels
 {
     public partial class SubscriptionAwareViewModelBase : ViewModelBase, INavigationAware
     {
+        #region Fields
         protected readonly ISubscriptionFeatureGuard _featureGuard;
         private readonly IErrorDisplayService _errorDisplayService;
 
-        [ObservableProperty]
+        // PERFORMANCE: Threading and caching
+        private readonly SemaphoreSlim _subscriptionCheckLock = new(1, 1);
+        private readonly Dictionary<string, CachedFeatureAccessResult> _accessCache = new();
+        private DateTime _lastCacheCleanup = DateTime.MinValue;
+        private const int CACHE_DURATION_MINUTES = 5;
+        private const int CACHE_CLEANUP_INTERVAL_MINUTES = 10;
+
         private bool _hasSubscriptionError;
+        private string _subscriptionErrorMessage = string.Empty;
+        #endregion
+
+        #region Properties
+        [ObservableProperty]
+        private bool _hasSubscriptionErrorProp;
 
         [ObservableProperty]
-        private string _subscriptionErrorMessage = string.Empty;
+        private string _subscriptionErrorMessageProp = string.Empty;
 
+        // Legacy property mappings for compatibility
+        public bool HasSubscriptionError
+        {
+            get => _hasSubscriptionError;
+            set => SetProperty(ref _hasSubscriptionError, value);
+        }
+
+        public string SubscriptionErrorMessage
+        {
+            get => _subscriptionErrorMessage;
+            set => SetProperty(ref _subscriptionErrorMessage, value);
+        }
+        #endregion
+
+        #region Events
         public event EventHandler<SubscriptionUpgradeRequestedEventArgs> SubscriptionUpgradeRequested;
+        #endregion
 
+        #region Constructor
         protected SubscriptionAwareViewModelBase(
             ISubscriptionFeatureGuard featureGuard,
             IErrorDisplayService errorDisplayService)
@@ -31,138 +61,219 @@ namespace Location.Photography.ViewModels
             _featureGuard = featureGuard ?? throw new ArgumentNullException(nameof(featureGuard));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
         }
+        #endregion
+
+        #region PERFORMANCE OPTIMIZED METHODS
 
         /// <summary>
-        /// Checks premium feature access and handles UI accordingly
+        /// PERFORMANCE OPTIMIZATION: Cached premium feature access check
         /// </summary>
         protected async Task<bool> CheckPremiumFeatureAccessAsync()
         {
-            try
-            {
-                var result = await _featureGuard.CheckPremiumFeatureAccessAsync();
-
-                if (!result.IsSuccess)
-                {
-                    HasSubscriptionError = true;
-                    SubscriptionErrorMessage = "Unable to verify subscription status";
-                    return false;
-                }
-
-                var accessResult = result.Data;
-
-                if (accessResult.HasAccess)
-                {
-                    HasSubscriptionError = false;
-                    SubscriptionErrorMessage = string.Empty;
-                    return true;
-                }
-
-                await HandleFeatureAccessDenied(accessResult);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                HasSubscriptionError = true;
-                SubscriptionErrorMessage = "Error checking subscription status";
-                OnSystemError($"There was an error processing your request, please try again: {ex.Message}");
-                return false;
-            }
+            return await CheckFeatureAccessOptimizedAsync("Premium", async () => await _featureGuard.CheckPremiumFeatureAccessAsync());
         }
 
         /// <summary>
-        /// Checks professional feature access and handles UI accordingly
+        /// PERFORMANCE OPTIMIZATION: Cached professional feature access check
         /// </summary>
         protected async Task<bool> CheckProFeatureAccessAsync()
         {
+            return await CheckFeatureAccessOptimizedAsync("Pro", async () => await _featureGuard.CheckProFeatureAccessAsync());
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Cached paid feature access check
+        /// </summary>
+        protected async Task<bool> CheckPaidFeatureAccessOptimizedAsync()
+        {
+            return await CheckFeatureAccessOptimizedAsync("Paid", async () => await _featureGuard.CheckPaidFeatureAccessAsync());
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Generic feature access check with caching
+        /// </summary>
+        private async Task<bool> CheckFeatureAccessOptimizedAsync(string featureType, Func<Task<Location.Core.Application.Common.Models.Result<FeatureAccessResult>>> checkFunction)
+        {
+            if (!await _subscriptionCheckLock.WaitAsync(100))
+            {
+                // If we can't get the lock quickly, return cached result or false
+                return GetCachedAccessResult(featureType)?.HasAccess ?? false;
+            }
+
             try
             {
-                var result = await _featureGuard.CheckProFeatureAccessAsync();
+                // Cleanup old cache entries periodically
+                await CleanupCacheIfNeededAsync();
 
-                if (!result.IsSuccess)
+                // Check cache first
+                var cachedResult = GetCachedAccessResult(featureType);
+                if (cachedResult != null)
                 {
-                    HasSubscriptionError = true;
-                    SubscriptionErrorMessage = "Unable to verify subscription status";
-                    return false;
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        ApplyAccessResultOptimized(cachedResult.AccessResult);
+                    });
+                    return cachedResult.HasAccess;
                 }
 
-                var accessResult = result.Data;
-
-                if (accessResult.HasAccess)
+                // Perform actual check on background thread
+                var result = await Task.Run(async () =>
                 {
-                    HasSubscriptionError = false;
-                    SubscriptionErrorMessage = string.Empty;
-                    return true;
-                }
+                    try
+                    {
+                        return await checkFunction();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"Feature access check failed: {ex.Message}", ex);
+                    }
+                });
 
-                await HandleFeatureAccessDenied(accessResult);
-                return false;
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (!result.IsSuccess)
+                    {
+                        HasSubscriptionError = true;
+                        SubscriptionErrorMessage = "Unable to verify subscription status";
+                        return;
+                    }
+
+                    var accessResult = result.Data;
+
+                    // Cache the result
+                    _accessCache[featureType] = new CachedFeatureAccessResult
+                    {
+                        AccessResult = accessResult,
+                        HasAccess = accessResult.HasAccess,
+                        Timestamp = DateTime.Now
+                    };
+
+                    ApplyAccessResultOptimized(accessResult);
+                });
+
+                return result.IsSuccess && result.Data.HasAccess;
             }
             catch (Exception ex)
             {
-                HasSubscriptionError = true;
-                SubscriptionErrorMessage = "Error checking subscription status";
-                OnSystemError($"There was an error processing your request, please try again: {ex.Message}");
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HasSubscriptionError = true;
+                    SubscriptionErrorMessage = "Error checking subscription status";
+                    OnSystemError($"There was an error processing your request, please try again: {ex.Message}");
+                });
                 return false;
+            }
+            finally
+            {
+                _subscriptionCheckLock.Release();
             }
         }
 
         /// <summary>
-        /// Checks any paid feature access and handles UI accordingly
+        /// PERFORMANCE OPTIMIZATION: Apply access result with batch updates
         /// </summary>
-        protected async Task<bool> CheckPaidFeatureAccessAsync()
+        private void ApplyAccessResultOptimized(FeatureAccessResult accessResult)
+        {
+            BeginPropertyChangeBatch();
+
+            if (accessResult.HasAccess)
+            {
+                HasSubscriptionError = false;
+                SubscriptionErrorMessage = string.Empty;
+            }
+            else
+            {
+                _ = HandleFeatureAccessDeniedAsync(accessResult);
+            }
+
+            _ = EndPropertyChangeBatchAsync();
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized feature access denial handling
+        /// </summary>
+        private async Task HandleFeatureAccessDeniedAsync(FeatureAccessResult accessResult)
         {
             try
             {
-                var result = await _featureGuard.CheckPaidFeatureAccessAsync();
-
-                if (!result.IsSuccess)
+                switch (accessResult.Action)
                 {
-                    HasSubscriptionError = true;
-                    SubscriptionErrorMessage = "Unable to verify subscription status";
-                    return false;
+                    case FeatureAccessAction.ShowUpgradePrompt:
+                        OnSubscriptionUpgradeRequested(new SubscriptionUpgradeRequestedEventArgs
+                        {
+                            RequiredSubscription = accessResult.RequiredSubscription,
+                            Message = accessResult.Message
+                        });
+                        break;
+
+                    case FeatureAccessAction.ShowError:
+                        HasSubscriptionError = true;
+                        SubscriptionErrorMessage = accessResult.Message;
+                        SetValidationError(accessResult.Message);
+                        break;
                 }
-
-                var accessResult = result.Data;
-
-                if (accessResult.HasAccess)
-                {
-                    HasSubscriptionError = false;
-                    SubscriptionErrorMessage = string.Empty;
-                    return true;
-                }
-
-                await HandleFeatureAccessDenied(accessResult);
-                return false;
             }
             catch (Exception ex)
             {
-                HasSubscriptionError = true;
-                SubscriptionErrorMessage = "Error checking subscription status";
-                OnSystemError($"There was an error processing your request, please try again: {ex.Message}");
-                return false;
+                OnSystemError($"Error handling feature access denial: {ex.Message}");
             }
         }
 
-        private async Task HandleFeatureAccessDenied(FeatureAccessResult accessResult)
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Get cached access result if valid
+        /// </summary>
+        private CachedFeatureAccessResult GetCachedAccessResult(string featureType)
         {
-            switch (accessResult.Action)
+            if (_accessCache.TryGetValue(featureType, out var cachedResult))
             {
-                case FeatureAccessAction.ShowUpgradePrompt:
-                    OnSubscriptionUpgradeRequested(new SubscriptionUpgradeRequestedEventArgs
-                    {
-                        RequiredSubscription = accessResult.RequiredSubscription,
-                        Message = accessResult.Message
-                    });
-                    break;
-
-                case FeatureAccessAction.ShowError:
-                    HasSubscriptionError = true;
-                    SubscriptionErrorMessage = accessResult.Message;
-                    SetValidationError(accessResult.Message);
-                    break;
+                var age = DateTime.Now - cachedResult.Timestamp;
+                if (age.TotalMinutes < CACHE_DURATION_MINUTES)
+                {
+                    return cachedResult;
+                }
+                else
+                {
+                    // Remove expired cache entry
+                    _accessCache.Remove(featureType);
+                }
             }
-            await Task.CompletedTask;
+            return null;
         }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Periodic cache cleanup
+        /// </summary>
+        private async Task CleanupCacheIfNeededAsync()
+        {
+            var now = DateTime.Now;
+            if ((now - _lastCacheCleanup).TotalMinutes >= CACHE_CLEANUP_INTERVAL_MINUTES)
+            {
+                _lastCacheCleanup = now;
+
+                await Task.Run(() =>
+                {
+                    var expiredKeys = new List<string>();
+                    var cutoffTime = now.AddMinutes(-CACHE_DURATION_MINUTES);
+
+                    foreach (var kvp in _accessCache)
+                    {
+                        if (kvp.Value.Timestamp < cutoffTime)
+                        {
+                            expiredKeys.Add(kvp.Key);
+                        }
+                    }
+
+                    foreach (var key in expiredKeys)
+                    {
+                        _accessCache.Remove(key);
+                    }
+                });
+            }
+        }
+
+        #endregion
+
+        #region Methods
 
         protected virtual void OnSubscriptionUpgradeRequested(SubscriptionUpgradeRequestedEventArgs e)
         {
@@ -180,14 +291,50 @@ namespace Location.Photography.ViewModels
             await Task.CompletedTask;
         }
 
-        public void OnNavigatedToAsync()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Clear subscription cache
+        /// </summary>
+        protected void ClearSubscriptionCache()
         {
-            //throw new NotImplementedException();
+            _accessCache.Clear();
         }
 
-        public void OnNavigatedFromAsync()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Clear specific feature cache
+        /// </summary>
+        protected void ClearFeatureCache(string featureType)
         {
-            //throw new NotImplementedException();
+            _accessCache.Remove(featureType);
         }
+
+        public virtual void OnNavigatedToAsync()
+        {
+            // Default implementation - can be overridden by derived classes
+        }
+
+        public virtual void OnNavigatedFromAsync()
+        {
+            // Default implementation - can be overridden by derived classes
+        }
+
+        public override void Dispose()
+        {
+            _subscriptionCheckLock?.Dispose();
+            _accessCache.Clear();
+            base.Dispose();
+        }
+
+        #endregion
+
+        #region Helper Classes
+
+        private class CachedFeatureAccessResult
+        {
+            public FeatureAccessResult AccessResult { get; set; }
+            public bool HasAccess { get; set; }
+            public DateTime Timestamp { get; set; }
+        }
+
+        #endregion
     }
 }

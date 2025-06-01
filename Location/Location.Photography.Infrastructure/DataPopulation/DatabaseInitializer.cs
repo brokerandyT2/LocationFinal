@@ -6,6 +6,7 @@ using Location.Core.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -40,126 +41,180 @@ namespace Location.Photography.Infrastructure
         {
             try
             {
-                var databaseContext = (_unitOfWork as Location.Core.Infrastructure.UnitOfWork.UnitOfWork)?.GetDatabaseContext();
-                if (databaseContext != null)
+                // Move entire database initialization to background thread to prevent UI blocking
+                await Task.Run(async () =>
                 {
-                    await databaseContext.InitializeDatabaseAsync();
-                }
-                else
-                {
-                    _logger.LogWarning("DatabaseContext not available through UnitOfWork");
-                }
+                    var databaseContext = (_unitOfWork as Location.Core.Infrastructure.UnitOfWork.UnitOfWork)?.GetDatabaseContext();
+                    if (databaseContext != null)
+                    {
+                        await databaseContext.InitializeDatabaseAsync().ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("DatabaseContext not available through UnitOfWork");
+                    }
 
+                    _logger.LogInformation("Starting database population");
 
-                _logger.LogInformation("Starting database population");
+                    // Parallelize independent database operations to improve performance
+                    var initializationTasks = new List<Task>
+                   {
+                       CreateTipTypesAsync(ctx),
+                       CreateSampleLocationsAsync(ctx),
+                       CreateSettingsAsync(hemisphere, tempFormat, dateFormat, timeFormat, windDirection, email, ctx)
+                   };
 
-                await CreateTipTypesAsync();
-                await CreateSampleLocationsAsync();
-                await CreateSettingsAsync(hemisphere, tempFormat, dateFormat, timeFormat, windDirection, email);
+                    await Task.WhenAll(initializationTasks).ConfigureAwait(false);
 
-                _logger.LogInformation("Database population completed successfully");
+                    _logger.LogInformation("Database population completed successfully");
+
+                }, ctx).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Database initialization was cancelled");
+                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during database population");
-                await _alertService.ShowErrorAlertAsync("Failed to initialize database: " + ex.Message, "Error");
+                await _alertService.ShowErrorAlertAsync("Failed to initialize database: " + ex.Message, "Error").ConfigureAwait(false);
                 throw;
             }
         }
 
-        private async Task CreateTipTypesAsync()
+        private async Task CreateTipTypesAsync(CancellationToken cancellationToken = default)
         {
-            var tipTypeNames = new[]
+            try
             {
-                "Landscape", "Silouette", "Building", "Person", "Baby", "Animals",
-                "Blury Water", "Night", "Blue Hour", "Golden Hour", "Sunset"
-            };
-
-            foreach (var name in tipTypeNames)
-            {
-                var tipType = new TipType(name);
-                tipType.SetLocalization("en-US");
-
-                // Create tip type in repository
-                var typeResult = await _unitOfWork.TipTypes.CreateEntityAsync(tipType);
-
-                if (!typeResult.IsSuccess || typeResult.Data == null)
+                var tipTypeNames = new[]
                 {
-                    _logger.LogWarning("Failed to create tip type: {Name}", name);
-                    continue;
+                   "Landscape", "Silouette", "Building", "Person", "Baby", "Animals",
+                   "Blury Water", "Night", "Blue Hour", "Golden Hour", "Sunset"
+               };
+
+                // Process tip types in batches to improve performance and reduce database contention
+                const int batchSize = 3;
+                for (int i = 0; i < tipTypeNames.Length; i += batchSize)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var batch = tipTypeNames.Skip(i).Take(batchSize);
+                    var batchTasks = batch.Select(async name =>
+                    {
+                        var tipType = new TipType(name);
+                        tipType.SetLocalization("en-US");
+
+                        // Create tip type in repository
+                        var typeResult = await _unitOfWork.TipTypes.CreateEntityAsync(tipType).ConfigureAwait(false);
+
+                        if (!typeResult.IsSuccess || typeResult.Data == null)
+                        {
+                            _logger.LogWarning("Failed to create tip type: {Name}", name);
+                            return;
+                        }
+
+                        // Create a sample tip for each type
+                        var tip = new Tip(
+                            typeResult.Data.Id,
+                            $"How to Take Great {name} Photos",
+                            "Text of the tip would appear here. Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit​​, morbo vel maleficia? De apocalypsi gorger omero undead survivor dictum mauris."
+                        );
+                        tip.UpdatePhotographySettings("f/1", "1/125", "50");
+                        tip.SetLocalization("en-US");
+
+                        var tipResult = await _unitOfWork.Tips.CreateAsync(tip).ConfigureAwait(false);
+                        if (!tipResult.IsSuccess)
+                        {
+                            _logger.LogWarning("Failed to create tip for type {Name}: {Error}", name, tipResult.ErrorMessage);
+                        }
+                    });
+
+                    await Task.WhenAll(batchTasks).ConfigureAwait(false);
                 }
 
-                // Create a sample tip for each type
-                var tip = new Tip(
-                    typeResult.Data.Id,
-                    $"How to Take Great {name} Photos",
-                    "Text of the tip would appear here. Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit​​, morbo vel maleficia? De apocalypsi gorger omero undead survivor dictum mauris."
-                );
-                tip.UpdatePhotographySettings("f/1", "1/125", "50");
-                tip.SetLocalization("en-US");
-
-                var tipResult = await _unitOfWork.Tips.CreateAsync(tip);
-                if (!tipResult.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to create tip for type {Name}: {Error}", name, tipResult.ErrorMessage);
-                }
+                _logger.LogInformation("Created {Count} tip types with sample tips", tipTypeNames.Length);
             }
-
-            _logger.LogInformation("Created {Count} tip types with sample tips", tipTypeNames.Length);
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating tip types");
+                throw;
+            }
         }
 
-        private async Task CreateSampleLocationsAsync()
+        private async Task CreateSampleLocationsAsync(CancellationToken cancellationToken = default)
         {
-            var sampleLocations = new List<(string Title, string Description, double Latitude, double Longitude, string Photo)>
+            try
             {
-                (
-                    "Soldiers and Sailors Monument",
-                    "Located in the heart of downtown in Monument Circle, it was originally designed to honor Indiana's Civil War veterans. It now commemorates the valor of Hoosier veterans who served in all wars prior to WWI, including the Revolutionary War, the War of 1812, the Mexican War, the Civil War, the Frontier Wars and the Spanish-American War. One of the most popular parts of the monument is the observation deck with a 360-degree view of the city skyline from 275 feet up.",
-                    39.7685, -86.1580,
-                    "Resources/Images/s_and_sm_new.jpg"
-                ),
-                (
-                    "The Bean",
-                    "What is The Bean?\r\nThe Bean is a work of public art in the heart of Chicago. The sculpture, which is officially titled Cloud Gate, is one of the world's largest permanent outdoor art installations. The monumental work was unveiled in 2004 and quickly became of the Chicago's most iconic sights.",
-                    41.8827, -87.6233,
-                    "Resources/Images/chicagobean.jpg"
-                ),
-                (
-                    "Golden Gate Bridge",
-                    "The Golden Gate Bridge is a suspension bridge spanning the Golden Gate strait, the one-mile-wide (1.6 km) channel between San Francisco Bay and the Pacific Ocean. The strait is the entrance to San Francisco Bay from the Pacific Ocean. The bridge connects the city of San Francisco, California, to Marin County, carrying both U.S. Route 101 and California State Route 1 across the strait.",
-                    37.8199, -122.4783,
-                    "Resources/Images/ggbridge.jpg"
-                ),
-                (
-                    "Gateway Arch",
-                    "The Gateway Arch is a 630-foot (192 m) monument in St. Louis, Missouri, that commemorates Thomas Jefferson and the westward expansion of the United States. The arch is the centerpiece of the Gateway Arch National Park and is the tallest arch in the world.",
-                    38.6247, -90.1848,
-                    "Resources/Images/stlarch.jpg"
-                )
-            };
+                var sampleLocations = new List<(string Title, string Description, double Latitude, double Longitude, string Photo)>
+               {
+                   (
+                       "Soldiers and Sailors Monument",
+                       "Located in the heart of downtown in Monument Circle, it was originally designed to honor Indiana's Civil War veterans. It now commemorates the valor of Hoosier veterans who served in all wars prior to WWI, including the Revolutionary War, the War of 1812, the Mexican War, the Civil War, the Frontier Wars and the Spanish-American War. One of the most popular parts of the monument is the observation deck with a 360-degree view of the city skyline from 275 feet up.",
+                       39.7685, -86.1580,
+                       "Resources/Images/s_and_sm_new.jpg"
+                   ),
+                   (
+                       "The Bean",
+                       "What is The Bean?\r\nThe Bean is a work of public art in the heart of Chicago. The sculpture, which is officially titled Cloud Gate, is one of the world's largest permanent outdoor art installations. The monumental work was unveiled in 2004 and quickly became of the Chicago's most iconic sights.",
+                       41.8827, -87.6233,
+                       "Resources/Images/chicagobean.jpg"
+                   ),
+                   (
+                       "Golden Gate Bridge",
+                       "The Golden Gate Bridge is a suspension bridge spanning the Golden Gate strait, the one-mile-wide (1.6 km) channel between San Francisco Bay and the Pacific Ocean. The strait is the entrance to San Francisco Bay from the Pacific Ocean. The bridge connects the city of San Francisco, California, to Marin County, carrying both U.S. Route 101 and California State Route 1 across the strait.",
+                       37.8199, -122.4783,
+                       "Resources/Images/ggbridge.jpg"
+                   ),
+                   (
+                       "Gateway Arch",
+                       "The Gateway Arch is a 630-foot (192 m) monument in St. Louis, Missouri, that commemorates Thomas Jefferson and the westward expansion of the United States. The arch is the centerpiece of the Gateway Arch National Park and is the tallest arch in the world.",
+                       38.6247, -90.1848,
+                       "Resources/Images/stlarch.jpg"
+                   )
+               };
 
-            foreach (var (title, description, latitude, longitude, photo) in sampleLocations)
-            {
-                var location = new Core.Domain.Entities.Location(
-                    title,
-                    description,
-                    new Core.Domain.ValueObjects.Coordinate(latitude, longitude),
-                    new Core.Domain.ValueObjects.Address("", "")
-                );
-
-                if (!string.IsNullOrEmpty(photo))
+                // Process locations in parallel to improve performance
+                var locationTasks = sampleLocations.Select(async locationData =>
                 {
-                    location.AttachPhoto(photo);
-                }
+                    var (title, description, latitude, longitude, photo) = locationData;
 
-                var result = await _unitOfWork.Locations.CreateAsync(location);
-                if (!result.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to create location {Title}: {Error}", title, result.ErrorMessage);
-                }
+                    var location = new Core.Domain.Entities.Location(
+                        title,
+                        description,
+                        new Core.Domain.ValueObjects.Coordinate(latitude, longitude),
+                        new Core.Domain.ValueObjects.Address("", "")
+                    );
+
+                    if (!string.IsNullOrEmpty(photo))
+                    {
+                        location.AttachPhoto(photo);
+                    }
+
+                    var result = await _unitOfWork.Locations.CreateAsync(location).ConfigureAwait(false);
+                    if (!result.IsSuccess)
+                    {
+                        _logger.LogWarning("Failed to create location {Title}: {Error}", title, result.ErrorMessage);
+                    }
+                });
+
+                await Task.WhenAll(locationTasks).ConfigureAwait(false);
+
+                _logger.LogInformation("Created {Count} sample locations", sampleLocations.Count);
             }
-
-            _logger.LogInformation("Created {Count} sample locations", sampleLocations.Count);
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating sample locations");
+                throw;
+            }
         }
 
         private async Task CreateSettingsAsync(
@@ -168,106 +223,131 @@ namespace Location.Photography.Infrastructure
             string dateFormat,
             string timeFormat,
             string windDirection,
-            string email)
+            string email,
+            CancellationToken cancellationToken = default)
         {
-            var guid = Guid.NewGuid().ToString();
-
-            var settings = new List<(string Key, string Value, string Description)>
+            try
             {
-                // Core settings
-                (MagicStrings.Hemisphere, hemisphere, "User's hemisphere (north/south)"),
-                (MagicStrings.FirstName, "", "User's first name"),
-                (MagicStrings.LastName, "", "User's last name"),
-                (MagicStrings.UniqueID, guid, "Unique identifier for the installation"),
-                (MagicStrings.LastBulkWeatherUpdate, DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
-                (MagicStrings.DefaultLanguage, "en-US", "Default language setting"),
-                (MagicStrings.WindDirection, windDirection, "Wind direction setting (towardsWind/withWind)"),
-                (MagicStrings.CameraRefresh, "500", "Camera refresh rate in milliseconds"),
-                (MagicStrings.AppOpenCounter, "1", "Number of times the app has been opened"),
-                (MagicStrings.TimeFormat, timeFormat, "Time format (12h/24h)"),
-                (MagicStrings.DateFormat, dateFormat, "Date format (US/International)"),
-                (MagicStrings.WeatherURL, "https://api.openweathermap.org/data/3.0/onecall", "Weather API URL"),
-                (MagicStrings.Weather_API_Key, "aa24f449cced50c0491032b2f955d610", "Weather API key"),
-                (MagicStrings.FreePremiumAdSupported, "false", "Whether the app is running in ad-supported mode"),
-                (MagicStrings.TemperatureType, tempFormat, "Temperature format (F/C)"),
-                (MagicStrings.DeviceInfo, "", "Device information"),
-                (MagicStrings.Email, email, "User's email address"),
-            };
+                var guid = Guid.NewGuid().ToString();
 
-            // Add additional settings based on the build configuration
+                var settings = new List<(string Key, string Value, string Description)>
+               {
+                   // Core settings
+                   (MagicStrings.Hemisphere, hemisphere, "User's hemisphere (north/south)"),
+                   (MagicStrings.FirstName, "", "User's first name"),
+                   (MagicStrings.LastName, "", "User's last name"),
+                   (MagicStrings.UniqueID, guid, "Unique identifier for the installation"),
+                   (MagicStrings.LastBulkWeatherUpdate, DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
+                   (MagicStrings.DefaultLanguage, "en-US", "Default language setting"),
+                   (MagicStrings.WindDirection, windDirection, "Wind direction setting (towardsWind/withWind)"),
+                   (MagicStrings.CameraRefresh, "500", "Camera refresh rate in milliseconds"),
+                   (MagicStrings.AppOpenCounter, "1", "Number of times the app has been opened"),
+                   (MagicStrings.TimeFormat, timeFormat, "Time format (12h/24h)"),
+                   (MagicStrings.DateFormat, dateFormat, "Date format (US/International)"),
+                   (MagicStrings.WeatherURL, "https://api.openweathermap.org/data/3.0/onecall", "Weather API URL"),
+                   (MagicStrings.Weather_API_Key, "aa24f449cced50c0491032b2f955d610", "Weather API key"),
+                   (MagicStrings.FreePremiumAdSupported, "false", "Whether the app is running in ad-supported mode"),
+                   (MagicStrings.TemperatureType, tempFormat, "Temperature format (F/C)"),
+                   (MagicStrings.DeviceInfo, "", "Device information"),
+                   (MagicStrings.Email, email, "User's email address"),
+               };
+
+                // Add additional settings based on the build configuration
 #if DEBUG
-            // Debug mode settings - features already viewed and premium subscription
-            var debugSettings = new List<(string Key, string Value, string Description)>
-            {
-                (MagicStrings.SettingsViewed, MagicStrings.True_string, "Whether the settings page has been viewed"),
-                (MagicStrings.HomePageViewed, MagicStrings.True_string, "Whether the home page has been viewed"),
-                (MagicStrings.LocationListViewed, MagicStrings.True_string, "Whether the location list has been viewed"),
-                (MagicStrings.TipsViewed, MagicStrings.True_string, "Whether the tips page has been viewed"),
-                (MagicStrings.ExposureCalcViewed, MagicStrings.True_string, "Whether the exposure calculator has been viewed"),
-                (MagicStrings.LightMeterViewed, MagicStrings.True_string, "Whether the light meter has been viewed"),
-                (MagicStrings.SceneEvaluationViewed, MagicStrings.True_string, "Whether the scene evaluation has been viewed"),
-                (MagicStrings.AddLocationViewed, MagicStrings.True_string, "Whether the add location page has been viewed"),
-                (MagicStrings.WeatherDisplayViewed, MagicStrings.True_string, "Whether the weather display has been viewed"),
-                (MagicStrings.SunCalculatorViewed, MagicStrings.True_string, "Whether the sun calculator has been viewed"),
-                (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last exposure calculator ad view"),
-                (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last light meter ad view"),
-                (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last scene evaluation ad view"),
-                (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun calculator ad view"),
-                (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun location ad view"),
-                (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last weather display ad view"),
-                (MagicStrings.SubscriptionType, MagicStrings.Premium, "Subscription type (Free/Premium)"),
-                (MagicStrings.SubscriptionExpiration, DateTime.Now.AddYears(1).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
-                (MagicStrings.SubscriptionProductId, "premium_yearly_subscription", "Subscription product ID"),
-                (MagicStrings.SubscriptionPurchaseDate, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "Subscription purchase date"),
-                (MagicStrings.SubscriptionTransactionId, $"debug_transaction_{Guid.NewGuid():N}", "Subscription transaction ID"),
-                (MagicStrings.AdGivesHours, "24", "Hours of premium access granted per ad view"),
-                (MagicStrings.SunLocationViewed, MagicStrings.True_string, "Whether the SunLocation Page has been viewed." ),
-                (MagicStrings.LastUploadTimeStamp, DateTime.Now.ToString(), "Last Time that data was backed up to cloud")
-            };
-            settings.AddRange(debugSettings);
+                // Debug mode settings - features already viewed and premium subscription
+                var debugSettings = new List<(string Key, string Value, string Description)>
+               {
+                   (MagicStrings.SettingsViewed, MagicStrings.True_string, "Whether the settings page has been viewed"),
+                   (MagicStrings.HomePageViewed, MagicStrings.True_string, "Whether the home page has been viewed"),
+                   (MagicStrings.LocationListViewed, MagicStrings.True_string, "Whether the location list has been viewed"),
+                   (MagicStrings.TipsViewed, MagicStrings.True_string, "Whether the tips page has been viewed"),
+                   (MagicStrings.ExposureCalcViewed, MagicStrings.True_string, "Whether the exposure calculator has been viewed"),
+                   (MagicStrings.LightMeterViewed, MagicStrings.True_string, "Whether the light meter has been viewed"),
+                   (MagicStrings.SceneEvaluationViewed, MagicStrings.True_string, "Whether the scene evaluation has been viewed"),
+                   (MagicStrings.AddLocationViewed, MagicStrings.True_string, "Whether the add location page has been viewed"),
+                   (MagicStrings.WeatherDisplayViewed, MagicStrings.True_string, "Whether the weather display has been viewed"),
+                   (MagicStrings.SunCalculatorViewed, MagicStrings.True_string, "Whether the sun calculator has been viewed"),
+                   (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last exposure calculator ad view"),
+                   (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last light meter ad view"),
+                   (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last scene evaluation ad view"),
+                   (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun calculator ad view"),
+                   (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun location ad view"),
+                   (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last weather display ad view"),
+                   (MagicStrings.SubscriptionType, MagicStrings.Premium, "Subscription type (Free/Premium)"),
+                   (MagicStrings.SubscriptionExpiration, DateTime.Now.AddYears(1).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
+                   (MagicStrings.SubscriptionProductId, "premium_yearly_subscription", "Subscription product ID"),
+                   (MagicStrings.SubscriptionPurchaseDate, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "Subscription purchase date"),
+                   (MagicStrings.SubscriptionTransactionId, $"debug_transaction_{Guid.NewGuid():N}", "Subscription transaction ID"),
+                   (MagicStrings.AdGivesHours, "24", "Hours of premium access granted per ad view"),
+                   (MagicStrings.SunLocationViewed, MagicStrings.True_string, "Whether the SunLocation Page has been viewed." ),
+                   (MagicStrings.LastUploadTimeStamp, DateTime.Now.ToString(), "Last Time that data was backed up to cloud")
+               };
+                settings.AddRange(debugSettings);
 #else
-            // Release mode settings - features not viewed and expired subscription
-            var releaseSettings = new List<(string Key, string Value, string Description)>
-            {
-                (MagicStrings.SettingsViewed, MagicStrings.False_string, "Whether the settings page has been viewed"),
-                (MagicStrings.HomePageViewed, MagicStrings.False_string, "Whether the home page has been viewed"),
-                (MagicStrings.LocationListViewed, MagicStrings.False_string, "Whether the location list has been viewed"),
-                (MagicStrings.TipsViewed, MagicStrings.False_string, "Whether the tips page has been viewed"),
-                (MagicStrings.ExposureCalcViewed, MagicStrings.False_string, "Whether the exposure calculator has been viewed"),
-                (MagicStrings.LightMeterViewed, MagicStrings.False_string, "Whether the light meter has been viewed"),
-                (MagicStrings.SceneEvaluationViewed, MagicStrings.False_string, "Whether the scene evaluation has been viewed"),
-                (MagicStrings.AddLocationViewed, MagicStrings.False_string, "Whether the add location page has been viewed"),
-                (MagicStrings.WeatherDisplayViewed, MagicStrings.False_string, "Whether the weather display has been viewed"),
-                (MagicStrings.SunCalculatorViewed, MagicStrings.False_string, "Whether the sun calculator has been viewed"),
-                (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last exposure calculator ad view"),
-                (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last light meter ad view"),
-                (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last scene evaluation ad view"),
-                (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun calculator ad view"),
-                (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun location ad view"),
-                (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last weather display ad view"),
-                (MagicStrings.SubscriptionType, MagicStrings.Free, "Subscription type (Free/Premium)"),
-                (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(-3).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
-                ("SubscriptionProductId", "", "Subscription product ID"),
-                ("SubscriptionPurchaseDate", "", "Subscription purchase date"),
-                ("SubscriptionTransactionId", "", "Subscription transaction ID"),
-                (MagicStrings.AdGivesHours, "12", "Hours of premium access granted per ad view"),
-                (MagicStrings.SunLocationViewed, MagicStrings.False_string, "Whether the SunLocation Page has been viewed." ),
-                (MagicStrings.LastUploadTimeStamp, DateTime.Now.AddDays(-1).ToString(), "Last Time that data was backed up to cloud")
-            };
-            settings.AddRange(releaseSettings);
+               // Release mode settings - features not viewed and expired subscription
+               var releaseSettings = new List<(string Key, string Value, string Description)>
+               {
+                   (MagicStrings.SettingsViewed, MagicStrings.False_string, "Whether the settings page has been viewed"),
+                   (MagicStrings.HomePageViewed, MagicStrings.False_string, "Whether the home page has been viewed"),
+                   (MagicStrings.LocationListViewed, MagicStrings.False_string, "Whether the location list has been viewed"),
+                   (MagicStrings.TipsViewed, MagicStrings.False_string, "Whether the tips page has been viewed"),
+                   (MagicStrings.ExposureCalcViewed, MagicStrings.False_string, "Whether the exposure calculator has been viewed"),
+                   (MagicStrings.LightMeterViewed, MagicStrings.False_string, "Whether the light meter has been viewed"),
+                   (MagicStrings.SceneEvaluationViewed, MagicStrings.False_string, "Whether the scene evaluation has been viewed"),
+                   (MagicStrings.AddLocationViewed, MagicStrings.False_string, "Whether the add location page has been viewed"),
+                   (MagicStrings.WeatherDisplayViewed, MagicStrings.False_string, "Whether the weather display has been viewed"),
+                   (MagicStrings.SunCalculatorViewed, MagicStrings.False_string, "Whether the sun calculator has been viewed"),
+                   (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last exposure calculator ad view"),
+                   (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last light meter ad view"),
+                   (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last scene evaluation ad view"),
+                   (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun calculator ad view"),
+                   (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun location ad view"),
+                   (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last weather display ad view"),
+                   (MagicStrings.SubscriptionType, MagicStrings.Free, "Subscription type (Free/Premium)"),
+                   (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(-3).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
+                   ("SubscriptionProductId", "", "Subscription product ID"),
+                   ("SubscriptionPurchaseDate", "", "Subscription purchase date"),
+                   ("SubscriptionTransactionId", "", "Subscription transaction ID"),
+                   (MagicStrings.AdGivesHours, "12", "Hours of premium access granted per ad view"),
+                   (MagicStrings.SunLocationViewed, MagicStrings.False_string, "Whether the SunLocation Page has been viewed." ),
+                   (MagicStrings.LastUploadTimeStamp, DateTime.Now.AddDays(-1).ToString(), "Last Time that data was backed up to cloud")
+               };
+               settings.AddRange(releaseSettings);
 #endif
 
-            foreach (var (key, value, description) in settings)
-            {
-                var setting = new Setting(key, value, description);
-                var result = await _unitOfWork.Settings.CreateAsync(setting);
-                if (!result.IsSuccess)
+                // Process settings in batches to improve performance and reduce database contention
+                const int batchSize = 10;
+                for (int i = 0; i < settings.Count; i += batchSize)
                 {
-                    //_logger.LogWarning("Failed to create setting {Key}: {Error}", key, result.ErrorMessage);
-                }
-            }
+                    cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogInformation("Created {Count} settings", settings.Count);
+                    var batch = settings.Skip(i).Take(batchSize);
+                    var settingTasks = batch.Select(async settingData =>
+                    {
+                        var (key, value, description) = settingData;
+                        var setting = new Setting(key, value, description);
+                        var result = await _unitOfWork.Settings.CreateAsync(setting).ConfigureAwait(false);
+
+                        if (!result.IsSuccess)
+                        {
+                            _logger.LogWarning("Failed to create setting {Key}: {Error}", key, result.ErrorMessage);
+                        }
+                    });
+
+                    await Task.WhenAll(settingTasks).ConfigureAwait(false);
+                }
+
+                _logger.LogInformation("Created {Count} settings", settings.Count);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating settings");
+                throw;
+            }
         }
     }
 }

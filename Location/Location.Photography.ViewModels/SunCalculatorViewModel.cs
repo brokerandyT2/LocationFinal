@@ -19,7 +19,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 
@@ -27,54 +26,192 @@ namespace Location.Photography.ViewModels
 {
     public partial class SunCalculatorViewModel : ViewModelBase, Interfaces.INavigationAware
     {
+        #region Fields
         private readonly IMediator _mediator;
         private readonly IErrorDisplayService _errorDisplayService;
 
-        [ObservableProperty]
+        // PERFORMANCE: Threading and caching
+        private readonly SemaphoreSlim _operationLock = new(1, 1);
+        private readonly Dictionary<string, CachedSunCalculation> _calculationCache = new();
+        private CancellationTokenSource _cancellationTokenSource = new();
+        private DateTime _lastCalculationTime = DateTime.MinValue;
+        private const int CALCULATION_THROTTLE_MS = 250;
+
+        // Core properties
         private ObservableCollection<LocationListItemViewModel> _locations = new();
-
-        [ObservableProperty]
         private LocationListItemViewModel _selectedLocation;
-
-        [ObservableProperty]
         private DateTime _dates = DateTime.Today;
-
-        [ObservableProperty]
         private string _locationPhoto = string.Empty;
-
-        [ObservableProperty]
         private string _dateFormat = "MM/dd/yyyy";
-
-        [ObservableProperty]
         private string _timeFormat = "hh:mm tt";
 
         // Sun Times properties
-        [ObservableProperty]
         private DateTime _sunrise = DateTime.Now;
-
-        [ObservableProperty]
         private DateTime _sunset = DateTime.Now;
-
-        [ObservableProperty]
         private DateTime _solarNoon = DateTime.Now;
-
-        [ObservableProperty]
         private DateTime _astronomicalDawn = DateTime.Now;
-
-        [ObservableProperty]
         private DateTime _nauticalDawn = DateTime.Now;
-
-        [ObservableProperty]
         private DateTime _nauticalDusk = DateTime.Now;
-
-        [ObservableProperty]
         private DateTime _astronomicalDusk = DateTime.Now;
-
-        [ObservableProperty]
         private DateTime _civilDawn = DateTime.Now;
+        private DateTime _civilDusk = DateTime.Now;
+        #endregion
+
+        #region Properties
+        [ObservableProperty]
+        private ObservableCollection<LocationListItemViewModel> _locationsProp = new();
 
         [ObservableProperty]
-        private DateTime _civilDusk = DateTime.Now;
+        private LocationListItemViewModel _selectedLocationProp;
+
+        [ObservableProperty]
+        private DateTime _datesProp = DateTime.Today;
+
+        [ObservableProperty]
+        private string _locationPhotoProp = string.Empty;
+
+        [ObservableProperty]
+        private string _dateFormatProp = "MM/dd/yyyy";
+
+        [ObservableProperty]
+        private string _timeFormatProp = "hh:mm tt";
+
+        // Sun Times properties
+        [ObservableProperty]
+        private DateTime _sunriseProp = DateTime.Now;
+
+        [ObservableProperty]
+        private DateTime _sunsetProp = DateTime.Now;
+
+        [ObservableProperty]
+        private DateTime _solarNoonProp = DateTime.Now;
+
+        [ObservableProperty]
+        private DateTime _astronomicalDawnProp = DateTime.Now;
+
+        [ObservableProperty]
+        private DateTime _nauticalDawnProp = DateTime.Now;
+
+        [ObservableProperty]
+        private DateTime _nauticalDuskProp = DateTime.Now;
+
+        [ObservableProperty]
+        private DateTime _astronomicalDuskProp = DateTime.Now;
+
+        [ObservableProperty]
+        private DateTime _civilDawnProp = DateTime.Now;
+
+        [ObservableProperty]
+        private DateTime _civilDuskProp = DateTime.Now;
+
+        // Legacy property mappings for compatibility
+        public ObservableCollection<LocationListItemViewModel> Locations
+        {
+            get => _locations;
+            set => SetProperty(ref _locations, value);
+        }
+
+        public LocationListItemViewModel SelectedLocation
+        {
+            get => _selectedLocation;
+            set
+            {
+                if (SetProperty(ref _selectedLocation, value))
+                {
+                    OnSelectedLocationChangedOptimized(value);
+                }
+            }
+        }
+
+        public DateTime Dates
+        {
+            get => _dates;
+            set
+            {
+                if (SetProperty(ref _dates, value))
+                {
+                    OnDateChangedOptimized(value);
+                }
+            }
+        }
+
+        public string LocationPhoto
+        {
+            get => _locationPhoto;
+            set => SetProperty(ref _locationPhoto, value);
+        }
+
+        public string DateFormat
+        {
+            get => _dateFormat;
+            set => SetProperty(ref _dateFormat, value);
+        }
+
+        public string TimeFormat
+        {
+            get => _timeFormat;
+            set
+            {
+                if (SetProperty(ref _timeFormat, value))
+                {
+                    OnTimeFormatChangedOptimized(value);
+                }
+            }
+        }
+
+        public DateTime Sunrise
+        {
+            get => _sunrise;
+            set => SetProperty(ref _sunrise, value);
+        }
+
+        public DateTime Sunset
+        {
+            get => _sunset;
+            set => SetProperty(ref _sunset, value);
+        }
+
+        public DateTime SolarNoon
+        {
+            get => _solarNoon;
+            set => SetProperty(ref _solarNoon, value);
+        }
+
+        public DateTime AstronomicalDawn
+        {
+            get => _astronomicalDawn;
+            set => SetProperty(ref _astronomicalDawn, value);
+        }
+
+        public DateTime NauticalDawn
+        {
+            get => _nauticalDawn;
+            set => SetProperty(ref _nauticalDawn, value);
+        }
+
+        public DateTime NauticalDusk
+        {
+            get => _nauticalDusk;
+            set => SetProperty(ref _nauticalDusk, value);
+        }
+
+        public DateTime AstronomicalDusk
+        {
+            get => _astronomicalDusk;
+            set => SetProperty(ref _astronomicalDusk, value);
+        }
+
+        public DateTime CivilDawn
+        {
+            get => _civilDawn;
+            set => SetProperty(ref _civilDawn, value);
+        }
+
+        public DateTime CivilDusk
+        {
+            get => _civilDusk;
+            set => SetProperty(ref _civilDusk, value);
+        }
 
         // Formatted string properties for display
         public string SunRiseFormatted => Sunrise.ToString(TimeFormat);
@@ -88,23 +225,38 @@ namespace Location.Photography.ViewModels
         public string NauticalDuskFormatted => NauticalDusk.ToString(TimeFormat);
         public string CivilDawnFormatted => CivilDawn.ToString(TimeFormat);
         public string CivilDuskFormatted => CivilDusk.ToString(TimeFormat);
+        #endregion
 
+        #region Events
         public new event EventHandler<OperationErrorEventArgs> ErrorOccurred;
+        #endregion
 
+        #region Constructor
         public SunCalculatorViewModel(IMediator mediator, IErrorDisplayService errorDisplayService)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
         }
+        #endregion
+
+        #region PERFORMANCE OPTIMIZED COMMANDS
 
         [RelayCommand]
         public async Task LoadLocationsAsync()
         {
+            if (!await _operationLock.WaitAsync(100))
+            {
+                return; // Skip if another operation is in progress
+            }
+
             var command = new AsyncRelayCommand(async () =>
             {
                 try
                 {
+                    _cancellationTokenSource?.Cancel();
+                    _cancellationTokenSource = new CancellationTokenSource();
+
                     ClearErrors();
 
                     // Create query to get locations
@@ -116,37 +268,48 @@ namespace Location.Photography.ViewModels
                     };
 
                     // Send the query through MediatR
-                    var result = await _mediator.Send(query, CancellationToken.None);
+                    var result = await _mediator.Send(query, _cancellationTokenSource.Token);
 
                     if (result.IsSuccess && result.Data != null)
                     {
-                        // Clear current collection
-                        Locations.Clear();
-
-                        // Add locations to collection
-                        foreach (var locationDto in result.Data.Items)
+                        await MainThread.InvokeOnMainThreadAsync(() =>
                         {
-                            Locations.Add(new LocationListItemViewModel
+                            BeginPropertyChangeBatch();
+
+                            // Clear current collection
+                            Locations.Clear();
+
+                            // Add locations to collection
+                            foreach (var locationDto in result.Data.Items)
                             {
-                                Id = locationDto.Id,
-                                Title = locationDto.Title,
-                                Latitude = locationDto.Latitude,
-                                Longitude = locationDto.Longitude,
-                                Photo = locationDto.PhotoPath,
-                                IsDeleted = locationDto.IsDeleted
-                            });
-                        }
+                                Locations.Add(new LocationListItemViewModel
+                                {
+                                    Id = locationDto.Id,
+                                    Title = locationDto.Title,
+                                    Latitude = locationDto.Latitude,
+                                    Longitude = locationDto.Longitude,
+                                    Photo = locationDto.PhotoPath,
+                                    IsDeleted = locationDto.IsDeleted
+                                });
+                            }
 
-                        // Select the first location by default
-                        if (Locations.Count > 0)
-                        {
-                            SelectedLocation = Locations[0];
-                        }
+                            // Select the first location by default
+                            if (Locations.Count > 0)
+                            {
+                                SelectedLocation = Locations[0];
+                            }
+
+                            _ = EndPropertyChangeBatchAsync();
+                        });
                     }
                     else
                     {
                         OnSystemError(result.ErrorMessage ?? "Failed to load locations");
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when cancellation occurs
                 }
                 catch (Exception ex)
                 {
@@ -154,25 +317,193 @@ namespace Location.Photography.ViewModels
                 }
             });
 
-            await ExecuteAndTrackAsync(command);
-        }
-
-        partial void OnSelectedLocationChanged(LocationListItemViewModel value)
-        {
-            if (value != null)
+            try
             {
-                LocationPhoto = value.Photo;
-                CalculateSun();
+                await ExecuteAndTrackAsync(command);
+            }
+            finally
+            {
+                _operationLock.Release();
             }
         }
 
-        public void OnDateChanged(DateTime value)
+        [RelayCommand]
+        public async Task CalculateSunAsync()
         {
-            CalculateSun();
+            if (!await _operationLock.WaitAsync(50))
+            {
+                return; // Skip if another operation is in progress
+            }
+
+            var command = new AsyncRelayCommand(async () =>
+            {
+                await CalculateSunOptimizedAsync();
+            });
+
+            try
+            {
+                await ExecuteAndTrackAsync(command);
+            }
+            finally
+            {
+                _operationLock.Release();
+            }
         }
 
-        partial void OnTimeFormatChanged(string value)
+        #endregion
+
+        #region PERFORMANCE OPTIMIZED METHODS
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Throttled and cached sun calculations
+        /// </summary>
+        private async Task CalculateSunOptimizedAsync()
         {
+            // Throttle rapid updates
+            var now = DateTime.Now;
+            if ((now - _lastCalculationTime).TotalMilliseconds < CALCULATION_THROTTLE_MS)
+            {
+                return;
+            }
+            _lastCalculationTime = now;
+
+            if (SelectedLocation == null)
+                return;
+
+            try
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsBusy = true;
+                    ClearErrors();
+                });
+
+                // Generate cache key
+                var cacheKey = GenerateCacheKey();
+
+                // Check cache first
+                if (_calculationCache.TryGetValue(cacheKey, out var cachedResult))
+                {
+                    var cacheAge = DateTime.Now - cachedResult.Timestamp;
+                    if (cacheAge.TotalMinutes < 30) // Cache valid for 30 minutes
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            ApplyCachedSunTimesOptimized(cachedResult.SunTimes);
+                            IsBusy = false;
+                        });
+                        return;
+                    }
+                    else
+                    {
+                        // Remove expired cache entry
+                        _calculationCache.Remove(cacheKey);
+                    }
+                }
+
+                // Perform calculation on background thread
+                var sunTimesResult = await Task.Run(async () =>
+                {
+                    try
+                    {
+                        // Use MediatR to get sun times
+                        var query = new GetSunTimesQuery
+                        {
+                            Latitude = SelectedLocation.Latitude,
+                            Longitude = SelectedLocation.Longitude,
+                            Date = Dates
+                        };
+
+                        var result = await _mediator.Send(query, _cancellationTokenSource.Token);
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"Sun times calculation failed: {ex.Message}", ex);
+                    }
+                }, _cancellationTokenSource.Token);
+
+                if (sunTimesResult.IsSuccess && sunTimesResult.Data != null)
+                {
+                    var sunTimes = sunTimesResult.Data;
+
+                    // Cache the results
+                    _calculationCache[cacheKey] = new CachedSunCalculation
+                    {
+                        SunTimes = sunTimes,
+                        Timestamp = DateTime.Now
+                    };
+
+                    // Cleanup old cache entries (keep only last 10)
+                    if (_calculationCache.Count > 10)
+                    {
+                        var oldestKey = _calculationCache.Keys.First();
+                        _calculationCache.Remove(oldestKey);
+                    }
+
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        ApplyCachedSunTimesOptimized(sunTimes);
+                        IsBusy = false;
+                    });
+                }
+                else
+                {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        OnSystemError(sunTimesResult.ErrorMessage ?? "Failed to calculate sun times");
+                        IsBusy = false;
+                    });
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsBusy = false;
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error calculating sun times: {ex.Message}");
+                    IsBusy = false;
+                });
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Apply cached sun times with batch updates
+        /// </summary>
+        private void ApplyCachedSunTimesOptimized(SunTimesDto sunTimes)
+        {
+            BeginPropertyChangeBatch();
+
+            // Update all the time properties
+            Sunrise = sunTimes.Sunrise;
+            Sunset = sunTimes.Sunset;
+            SolarNoon = sunTimes.SolarNoon;
+            AstronomicalDawn = sunTimes.AstronomicalDawn;
+            AstronomicalDusk = sunTimes.AstronomicalDusk;
+            NauticalDawn = sunTimes.NauticalDawn;
+            NauticalDusk = sunTimes.NauticalDusk;
+            CivilDawn = sunTimes.CivilDawn;
+            CivilDusk = sunTimes.CivilDusk;
+
+            _ = EndPropertyChangeBatchAsync();
+
+            // Update the formatted string properties
+            UpdateFormattedPropertiesOptimized();
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Batch update formatted properties
+        /// </summary>
+        private void UpdateFormattedPropertiesOptimized()
+        {
+            BeginPropertyChangeBatch();
+
             OnPropertyChanged(nameof(SunRiseFormatted));
             OnPropertyChanged(nameof(SunSetFormatted));
             OnPropertyChanged(nameof(SolarNoonFormatted));
@@ -184,80 +515,55 @@ namespace Location.Photography.ViewModels
             OnPropertyChanged(nameof(NauticalDuskFormatted));
             OnPropertyChanged(nameof(CivilDawnFormatted));
             OnPropertyChanged(nameof(CivilDuskFormatted));
+
+            _ = EndPropertyChangeBatchAsync();
         }
 
-        [RelayCommand]
-        public async Task CalculateSunAsync()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized location change handler
+        /// </summary>
+        private void OnSelectedLocationChangedOptimized(LocationListItemViewModel value)
         {
-            var command = new AsyncRelayCommand(async () =>
+            if (value != null)
             {
-                await Task.Run(() => CalculateSun());
-            });
-
-            await ExecuteAndTrackAsync(command);
+                LocationPhoto = value.Photo;
+                _ = CalculateSunOptimizedAsync();
+            }
         }
 
-        public async void CalculateSun()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized date change handler
+        /// </summary>
+        private void OnDateChangedOptimized(DateTime value)
         {
-            if (SelectedLocation == null)
-                return;
+            _ = CalculateSunOptimizedAsync();
+        }
 
-            try
-            {
-                IsBusy = true;
-                ClearErrors();
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized time format change handler
+        /// </summary>
+        private void OnTimeFormatChangedOptimized(string value)
+        {
+            UpdateFormattedPropertiesOptimized();
+        }
 
-                // Use MediatR to get sun times
-                var query = new GetSunTimesQuery
-                {
-                    Latitude = SelectedLocation.Latitude,
-                    Longitude = SelectedLocation.Longitude,
-                    Date = Dates
-                };
+        #endregion
 
-                var result = await _mediator.Send(query);
+        #region Helper Methods
 
-                if (result.IsSuccess && result.Data != null)
-                {
-                    var sunTimes = result.Data;
+        public void CalculateSun()
+        {
+            _ = CalculateSunOptimizedAsync();
+        }
 
-                    // Update all the time properties
-                    Sunrise = sunTimes.Sunrise;
-                    Sunset = sunTimes.Sunset;
-                    SolarNoon = sunTimes.SolarNoon;
-                    AstronomicalDawn = sunTimes.AstronomicalDawn;
-                    AstronomicalDusk = sunTimes.AstronomicalDusk;
-                    NauticalDawn = sunTimes.NauticalDawn;
-                    NauticalDusk = sunTimes.NauticalDusk;
-                    CivilDawn = sunTimes.CivilDawn;
-                    CivilDusk = sunTimes.CivilDusk;
+        public void OnDateChanged(DateTime value)
+        {
+            OnDateChangedOptimized(value);
+        }
 
-                    // Update the formatted string properties
-                    OnPropertyChanged(nameof(SunRiseFormatted));
-                    OnPropertyChanged(nameof(SunSetFormatted));
-                    OnPropertyChanged(nameof(SolarNoonFormatted));
-                    OnPropertyChanged(nameof(GoldenHourMorningFormatted));
-                    OnPropertyChanged(nameof(GoldenHourEveningFormatted));
-                    OnPropertyChanged(nameof(AstronomicalDawnFormatted));
-                    OnPropertyChanged(nameof(AstronomicalDuskFormatted));
-                    OnPropertyChanged(nameof(NauticalDawnFormatted));
-                    OnPropertyChanged(nameof(NauticalDuskFormatted));
-                    OnPropertyChanged(nameof(CivilDawnFormatted));
-                    OnPropertyChanged(nameof(CivilDuskFormatted));
-                }
-                else
-                {
-                    OnSystemError(result.ErrorMessage ?? "Failed to calculate sun times");
-                }
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error calculating sun times: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+        private string GenerateCacheKey()
+        {
+            return $"{SelectedLocation?.Latitude:F6}_{SelectedLocation?.Longitude:F6}_{Dates:yyyyMMdd}";
         }
 
         protected override void OnErrorOccurred(string message)
@@ -272,7 +578,28 @@ namespace Location.Photography.ViewModels
 
         public void OnNavigatedFromAsync()
         {
-           // throw new NotImplementedException();
+            _cancellationTokenSource?.Cancel();
         }
+
+        public override void Dispose()
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _operationLock?.Dispose();
+            _calculationCache.Clear();
+            base.Dispose();
+        }
+
+        #endregion
+
+        #region Helper Classes
+
+        private class CachedSunCalculation
+        {
+            public SunTimesDto SunTimes { get; set; }
+            public DateTime Timestamp { get; set; }
+        }
+
+        #endregion
     }
 }

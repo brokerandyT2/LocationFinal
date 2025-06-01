@@ -15,13 +15,20 @@ using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {
-    public class ExposureCalculatorViewModel : ViewModelBase, INavigationAware
+    public class ExposureCalculatorViewModel : ViewModelBase
     {
         #region Fields
         private readonly IMediator _mediator;
         private readonly IExposureCalculatorService _exposureCalculatorService;
         private readonly IErrorDisplayService _errorDisplayService;
 
+        // PERFORMANCE: Threading and caching
+        private readonly SemaphoreSlim _calculationLock = new(1, 1);
+        private DateTime _lastCalculationTime = DateTime.MinValue;
+        private const int CalculationThrottleMs = 200; // Reduced from 500ms for better responsiveness
+        private readonly Dictionary<string, string> _pickerValuesCache = new();
+
+        // Core properties
         private string _shutterSpeedSelected;
         private string _fStopSelected;
         private string _isoSelected;
@@ -47,10 +54,6 @@ namespace Location.Photography.ViewModels
         // Preset properties
         private TipTypeDto _selectedPreset;
         private Lazy<ObservableCollection<TipTypeDto>> _availablePresets;
-
-        // Performance optimization
-        private DateTime _lastCalculationTime = DateTime.MinValue;
-        private const int CalculationThrottleMs = 500; // Throttle calculations to max once per 500ms
         #endregion
 
         #region Events
@@ -61,19 +64,37 @@ namespace Location.Photography.ViewModels
         public string ShutterSpeedSelected
         {
             get => _shutterSpeedSelected;
-            set => SetProperty(ref _shutterSpeedSelected, value);
+            set
+            {
+                if (SetProperty(ref _shutterSpeedSelected, value))
+                {
+                    _ = CalculateOptimizedAsync();
+                }
+            }
         }
 
         public string FStopSelected
         {
             get => _fStopSelected;
-            set => SetProperty(ref _fStopSelected, value);
+            set
+            {
+                if (SetProperty(ref _fStopSelected, value))
+                {
+                    _ = CalculateOptimizedAsync();
+                }
+            }
         }
 
         public string ISOSelected
         {
             get => _isoSelected;
-            set => SetProperty(ref _isoSelected, value);
+            set
+            {
+                if (SetProperty(ref _isoSelected, value))
+                {
+                    _ = CalculateOptimizedAsync();
+                }
+            }
         }
 
         public string OldShutterSpeed
@@ -137,8 +158,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _fullHalfThirds, value))
                 {
-                    // Update picker values when exposure increment changes
-                    LoadPickerValuesAsync().ConfigureAwait(false);
+                    _ = LoadPickerValuesOptimizedAsync();
                 }
             }
         }
@@ -152,7 +172,13 @@ namespace Location.Photography.ViewModels
         public double EVValue
         {
             get => _evValue;
-            set => SetProperty(ref _evValue, value);
+            set
+            {
+                if (SetProperty(ref _evValue, value))
+                {
+                    _ = CalculateOptimizedAsync();
+                }
+            }
         }
 
         public bool ShowError
@@ -175,7 +201,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _isShutterLocked, value))
                 {
-                    UpdateCalculationMode();
+                    UpdateCalculationModeOptimized();
                 }
             }
         }
@@ -187,7 +213,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _isApertureLocked, value))
                 {
-                    UpdateCalculationMode();
+                    UpdateCalculationModeOptimized();
                 }
             }
         }
@@ -199,7 +225,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _isIsoLocked, value))
                 {
-                    UpdateCalculationMode();
+                    UpdateCalculationModeOptimized();
                 }
             }
         }
@@ -212,7 +238,7 @@ namespace Location.Photography.ViewModels
             {
                 if (SetProperty(ref _selectedPreset, value) && value != null)
                 {
-                    ApplyPreset(value);
+                    _ = ApplyPresetOptimizedAsync(value);
                 }
             }
         }
@@ -224,12 +250,12 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region Commands
-        public IRelayCommand CalculateCommand { get; }
-        public IRelayCommand ResetCommand { get; }
-        public IRelayCommand ToggleShutterLockCommand { get; }
-        public IRelayCommand ToggleApertureLockCommand { get; }
-        public IRelayCommand ToggleIsoLockCommand { get; }
-        public IAsyncRelayCommand LoadPresetsCommand { get; }
+        public IRelayCommand CalculateCommand { get; private set; }
+        public IRelayCommand ResetCommand { get; private set; }
+        public IRelayCommand ToggleShutterLockCommand { get; private set; }
+        public IRelayCommand ToggleApertureLockCommand { get; private set; }
+        public IRelayCommand ToggleIsoLockCommand { get; private set; }
+        public IAsyncRelayCommand LoadPresetsCommand { get; private set; }
         #endregion
 
         #region Constructors
@@ -241,12 +267,8 @@ namespace Location.Photography.ViewModels
             _isosForPicker = ISOs.Full;
             _availablePresets = new Lazy<ObservableCollection<TipTypeDto>>(() => new ObservableCollection<TipTypeDto>());
 
-            CalculateCommand = new RelayCommand(Calculate);
-            ResetCommand = new RelayCommand(Reset);
-            ToggleShutterLockCommand = new RelayCommand(ToggleShutterLock);
-            ToggleApertureLockCommand = new RelayCommand(ToggleApertureLock);
-            ToggleIsoLockCommand = new RelayCommand(ToggleIsoLock);
-            LoadPresetsCommand = new AsyncRelayCommand(LoadPresetsAsync);
+            InitializeCommands();
+            InitializeDefaults();
         }
 
         public ExposureCalculatorViewModel(IMediator mediator, IExposureCalculatorService exposureCalculatorService, IErrorDisplayService errorDisplayService)
@@ -256,186 +278,411 @@ namespace Location.Photography.ViewModels
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
 
-            // Initialize commands
-            CalculateCommand = new RelayCommand(Calculate);
-            ResetCommand = new RelayCommand(Reset);
-            ToggleShutterLockCommand = new RelayCommand(ToggleShutterLock);
-            ToggleApertureLockCommand = new RelayCommand(ToggleApertureLock);
-            ToggleIsoLockCommand = new RelayCommand(ToggleIsoLock);
-            LoadPresetsCommand = new AsyncRelayCommand(LoadPresetsAsync);
+            InitializeCommands();
+            InitializeDefaults();
 
-            // Default values
+            // Load initial data
+            _ = LoadPickerValuesOptimizedAsync();
+            LoadPresetsCommand.Execute(null);
+        }
+
+        private void InitializeCommands()
+        {
+            CalculateCommand = new RelayCommand(() => _ = CalculateOptimizedAsync());
+            ResetCommand = new RelayCommand(ResetOptimized);
+            ToggleShutterLockCommand = new RelayCommand(ToggleShutterLockOptimized);
+            ToggleApertureLockCommand = new RelayCommand(ToggleApertureLockOptimized);
+            ToggleIsoLockCommand = new RelayCommand(ToggleIsoLockOptimized);
+            LoadPresetsCommand = new AsyncRelayCommand(LoadPresetsOptimizedAsync);
+        }
+
+        private void InitializeDefaults()
+        {
             _fullHalfThirds = ExposureIncrements.Full;
             _toCalculate = FixedValue.ShutterSpeeds;
             _evValue = 0;
             _availablePresets = new Lazy<ObservableCollection<TipTypeDto>>(() => new ObservableCollection<TipTypeDto>());
-
-            // Load initial picker values
-            LoadPickerValuesAsync().ConfigureAwait(false);
-
-            // Load presets on initialization
-            LoadPresetsCommand.Execute(null);
         }
         #endregion
 
-        #region Methods
-        private async Task LoadPickerValuesAsync()
+        #region PERFORMANCE OPTIMIZED METHODS
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Throttled and optimized calculation
+        /// </summary>
+        private async Task CalculateOptimizedAsync()
+        {
+            // Throttle rapid updates
+            var now = DateTime.Now;
+            if ((now - _lastCalculationTime).TotalMilliseconds < CalculationThrottleMs)
+            {
+                return;
+            }
+            _lastCalculationTime = now;
+
+            if (!await _calculationLock.WaitAsync(50))
+            {
+                return; // Skip if another calculation is in progress
+            }
+
+            try
+            {
+                await Task.Run(() => CalculateCore());
+            }
+            finally
+            {
+                _calculationLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Core calculation logic moved to background thread
+        /// </summary>
+        private async Task CalculateCore()
+        {
+            try
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsBusy = true;
+                    ClearErrors();
+                });
+
+                // Validate inputs before calculation
+                if (string.IsNullOrEmpty(OldShutterSpeed) || string.IsNullOrEmpty(OldFstop) || string.IsNullOrEmpty(OldISO))
+                {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        StoreOldValuesOptimized();
+                        IsBusy = false;
+                    });
+                    return;
+                }
+
+                // Perform calculations on background thread
+                var calculationResults = await PerformCalculationsAsync();
+
+                // Update UI on main thread with batch updates
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    try
+                    {
+                        BeginPropertyChangeBatch();
+
+                        ShutterSpeedResult = calculationResults.ShutterSpeed;
+                        FStopResult = calculationResults.Aperture;
+                        ISOResult = calculationResults.ISO;
+
+                        StoreOldValuesOptimized();
+
+                        _ = EndPropertyChangeBatchAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        OnSystemError($"Error updating calculation results: {ex.Message}");
+                        _ = EndPropertyChangeBatchAsync();
+                    }
+                    finally
+                    {
+                        IsBusy = false;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error calculating exposure: {ex.Message}");
+                    IsBusy = false;
+                });
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Background calculation execution
+        /// </summary>
+        private async Task<ExposureCalculationResult> PerformCalculationsAsync()
+        {
+            var result = new ExposureCalculationResult
+            {
+                ShutterSpeed = ShutterSpeedSelected,
+                Aperture = FStopSelected,
+                ISO = ISOSelected
+            };
+
+            // Create base exposure triangle from old values
+            var baseExposure = new ExposureTriangleDto
+            {
+                ShutterSpeed = OldShutterSpeed,
+                Aperture = OldFstop,
+                Iso = OldISO
+            };
+
+            // Calculate based on what's NOT locked
+            if (!IsShutterLocked)
+            {
+                var shutterResult = await _exposureCalculatorService.CalculateShutterSpeedAsync(
+                   baseExposure, FStopSelected, ISOSelected, FullHalfThirds, default, EVValue);
+
+                if (shutterResult.IsSuccess && shutterResult.Data != null)
+                {
+                    result.ShutterSpeed = shutterResult.Data.ShutterSpeed;
+                }
+                else
+                {
+                    result.ShutterSpeed = OldShutterSpeed;
+                    if (!shutterResult.IsSuccess)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            SetValidationError(shutterResult.ErrorMessage);
+                        });
+                        return result;
+                    }
+                }
+            }
+
+            if (!IsApertureLocked)
+            {
+                var apertureResult = await _exposureCalculatorService.CalculateApertureAsync(
+                   baseExposure, ShutterSpeedSelected, ISOSelected, FullHalfThirds, default, EVValue);
+
+                if (apertureResult.IsSuccess && apertureResult.Data != null)
+                {
+                    result.Aperture = apertureResult.Data.Aperture;
+                }
+                else
+                {
+                    result.Aperture = OldFstop;
+                    if (!apertureResult.IsSuccess)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            SetValidationError(apertureResult.ErrorMessage);
+                        });
+                        return result;
+                    }
+                }
+            }
+
+            if (!IsIsoLocked)
+            {
+                var isoResult = await _exposureCalculatorService.CalculateIsoAsync(
+                            baseExposure, ShutterSpeedSelected, FStopSelected, FullHalfThirds, default, EVValue);
+
+                if (isoResult.IsSuccess && isoResult.Data != null)
+                {
+                    result.ISO = isoResult.Data.Iso;
+                }
+                else
+                {
+                    result.ISO = OldISO;
+                    if (!isoResult.IsSuccess)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            SetValidationError(isoResult.ErrorMessage);
+                        });
+                        return result;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized picker values loading with caching
+        /// </summary>
+        private async Task LoadPickerValuesOptimizedAsync()
         {
             try
             {
                 IsBusy = true;
                 ShowError = false;
 
-                string incrementString = GetIncrementString();
+                string incrementString = GetIncrementStringOptimized();
 
-                // Use the shared utility classes to get the appropriate values
-                ShutterSpeedsForPicker = ShutterSpeeds.GetScale(incrementString);
-                ApeaturesForPicker = Apetures.GetScale(incrementString);
-                ISOsForPicker = ISOs.GetScale(incrementString);
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error loading exposure values: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        private string GetIncrementString()
-        {
-            return FullHalfThirds switch
-            {
-                ExposureIncrements.Full => "Full",
-                ExposureIncrements.Half => "Halves",
-                ExposureIncrements.Third => "Thirds",
-                _ => "Full"
-            };
-        }
-
-        public void Calculate()
-        {
-            // Throttle calculations to improve performance
-            var now = DateTime.Now;
-            if ((now - _lastCalculationTime).TotalMilliseconds < CalculationThrottleMs)
-            {
-                return; // Skip calculation if called too frequently
-            }
-            _lastCalculationTime = now;
-
-            try
-            {
-                IsBusy = true;
-                ClearErrors();
-
-                // Validate inputs before calculation
-                if (string.IsNullOrEmpty(OldShutterSpeed) || string.IsNullOrEmpty(OldFstop) || string.IsNullOrEmpty(OldISO))
+                // Check cache first
+                var cacheKey = $"picker_values_{incrementString}";
+                if (_pickerValuesCache.ContainsKey(cacheKey))
                 {
-                    // Initialize with current values if old values are missing
-                    StoreOldValues();
-                    IsBusy = false;
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        BeginPropertyChangeBatch();
+
+                        string[] cachedValueParts = _pickerValuesCache[cacheKey].ToString().Split('|');
+                        ShutterSpeedsForPicker = cachedValueParts[0].Split(',');
+                        ApeaturesForPicker = cachedValueParts[1].Split(',');
+                        ISOsForPicker = cachedValueParts[2].Split(',');
+
+                        _ = EndPropertyChangeBatchAsync();
+                    });
                     return;
                 }
 
-                // Create base exposure triangle from old values
-                var baseExposure = new ExposureTriangleDto
+                // Load values on background thread
+                var pickerValues = await Task.Run(() =>
                 {
-                    ShutterSpeed = OldShutterSpeed,
-                    Aperture = OldFstop,
-                    Iso = OldISO
-                };
+                    var shutterSpeeds = ShutterSpeeds.GetScale(incrementString);
+                    var apertures = Apetures.GetScale(incrementString);
+                    var isos = ISOs.GetScale(incrementString);
 
-                // Calculate based on what's NOT locked
-                if (!IsShutterLocked)
-                {
-                    var shutterResult = _exposureCalculatorService.CalculateShutterSpeedAsync(
-                       baseExposure, FStopSelected, ISOSelected, FullHalfThirds, default, EVValue)
-                       .GetAwaiter().GetResult();
-
-                    if (shutterResult.IsSuccess && shutterResult.Data != null)
+                    return new
                     {
-                        ShutterSpeedResult = shutterResult.Data.ShutterSpeed;
-                    }
-                    else
-                    {
-                        ShutterSpeedResult = OldShutterSpeed;
-                        if (!shutterResult.IsSuccess)
-                        {
-                            SetValidationError(shutterResult.ErrorMessage);
-                            return;
-                        }
-                    }
-                }
-                else
-                {
-                    ShutterSpeedResult = ShutterSpeedSelected;
-                }
+                        ShutterSpeeds = shutterSpeeds,
+                        Apertures = apertures,
+                        ISOs = isos
+                    };
+                });
 
-                if (!IsApertureLocked)
-                {
-                    var apertureResult = _exposureCalculatorService.CalculateApertureAsync(
-                       baseExposure, ShutterSpeedSelected, ISOSelected, FullHalfThirds, default, EVValue)
-                       .GetAwaiter().GetResult();
+                // Cache the results
+                var cacheValue = $"{string.Join(",", pickerValues.ShutterSpeeds)}|{string.Join(",", pickerValues.Apertures)}|{string.Join(",", pickerValues.ISOs)}";
+                _pickerValuesCache[cacheKey] = cacheValue;
 
-                    if (apertureResult.IsSuccess && apertureResult.Data != null)
-                    {
-                        FStopResult = apertureResult.Data.Aperture;
-                    }
-                    else
-                    {
-                        FStopResult = OldFstop;
-                        if (!apertureResult.IsSuccess)
-                        {
-                            SetValidationError(apertureResult.ErrorMessage);
-                            return;
-                        }
-                    }
-                }
-                else
+                // Update UI
+                await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    FStopResult = FStopSelected;
-                }
+                    BeginPropertyChangeBatch();
 
-                if (!IsIsoLocked)
-                {
-                    var isoResult = _exposureCalculatorService.CalculateIsoAsync(
-                                baseExposure, ShutterSpeedSelected, FStopSelected, FullHalfThirds, default, EVValue)
-                                .GetAwaiter().GetResult();
+                    ShutterSpeedsForPicker = pickerValues.ShutterSpeeds;
+                    ApeaturesForPicker = pickerValues.Apertures;
+                    ISOsForPicker = pickerValues.ISOs;
 
-                    if (isoResult.IsSuccess && isoResult.Data != null)
-                    {
-                        ISOResult = isoResult.Data.Iso;
-                    }
-                    else
-                    {
-                        ISOResult = OldISO;
-                        if (!isoResult.IsSuccess)
-                        {
-                            SetValidationError(isoResult.ErrorMessage);
-                            return;
-                        }
-                    }
-                }
-                else
-                {
-                    ISOResult = ISOSelected;
-                }
+                    // Set default selections if not already set
+                    if (string.IsNullOrEmpty(ShutterSpeedSelected) && ShutterSpeedsForPicker?.Length > 0)
+                        ShutterSpeedSelected = ShutterSpeedsForPicker[ShutterSpeedsForPicker.Length / 2];
 
-                // Store the current values for the next calculation
-                StoreOldValues();
+                    if (string.IsNullOrEmpty(FStopSelected) && ApeaturesForPicker?.Length > 0)
+                        FStopSelected = ApeaturesForPicker[ApeaturesForPicker.Length / 2];
+
+                    if (string.IsNullOrEmpty(ISOSelected) && ISOsForPicker?.Length > 0)
+                        ISOSelected = ISOsForPicker[ISOsForPicker.Length / 2];
+
+                    _ = EndPropertyChangeBatchAsync();
+                });
             }
             catch (Exception ex)
             {
-                OnSystemError($"Error calculating exposure: {ex.Message}");
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error loading exposure values: {ex.Message}");
+                });
             }
             finally
             {
-                IsBusy = false;
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsBusy = false;
+                });
             }
         }
 
-        private void UpdateCalculationMode()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized preset loading
+        /// </summary>
+        private async Task LoadPresetsOptimizedAsync()
+        {
+            try
+            {
+                IsBusy = true;
+                ShowError = false;
+
+                var query = new Location.Core.Application.Queries.TipTypes.GetAllTipTypesQuery();
+                var result = await _mediator.Send(query);
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (result.IsSuccess && result.Data != null)
+                    {
+                        AvailablePresets.Clear();
+
+                        foreach (var tipType in result.Data)
+                        {
+                            AvailablePresets.Add(tipType);
+                        }
+
+                        OnPropertyChanged(nameof(AvailablePresets));
+                    }
+                    else
+                    {
+                        OnSystemError(result.ErrorMessage ?? "Failed to load presets");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error loading presets: {ex.Message}");
+                });
+            }
+            finally
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsBusy = false;
+                });
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized preset application
+        /// </summary>
+        private async Task ApplyPresetOptimizedAsync(TipTypeDto preset)
+        {
+            try
+            {
+                var randomTipQuery = new Location.Core.Application.Commands.Tips.GetRandomTipCommand { TipTypeId = preset.Id };
+                var result = await _mediator.Send(randomTipQuery);
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (result.IsSuccess && result.Data != null)
+                    {
+                        var tip = result.Data;
+
+                        BeginPropertyChangeBatch();
+
+                        if (!string.IsNullOrEmpty(tip.ShutterSpeed))
+                        {
+                            ShutterSpeedSelected = tip.ShutterSpeed;
+                        }
+
+                        if (!string.IsNullOrEmpty(tip.Fstop))
+                        {
+                            FStopSelected = tip.Fstop;
+                        }
+
+                        if (!string.IsNullOrEmpty(tip.Iso))
+                        {
+                            ISOSelected = tip.Iso;
+                        }
+
+                        StoreOldValuesOptimized();
+
+                        _ = EndPropertyChangeBatchAsync();
+                        _ = CalculateOptimizedAsync();
+                    }
+                    else
+                    {
+                        OnSystemError("No tips found for the selected preset category");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error applying preset: {ex.Message}");
+                });
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized calculation mode update
+        /// </summary>
+        private void UpdateCalculationModeOptimized()
         {
             // Determine which parameter to calculate based on locks
             if (IsShutterLocked)
@@ -457,20 +704,28 @@ namespace Location.Photography.ViewModels
             }
 
             // Trigger recalculation
-            Calculate();
+            _ = CalculateOptimizedAsync();
         }
 
-        private void StoreOldValues()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized value storage
+        /// </summary>
+        private void StoreOldValuesOptimized()
         {
             OldShutterSpeed = ShutterSpeedSelected;
             OldFstop = FStopSelected;
             OldISO = ISOSelected;
         }
 
-        public void Reset()
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Optimized reset with batch updates
+        /// </summary>
+        public void ResetOptimized()
         {
             try
             {
+                BeginPropertyChangeBatch();
+
                 // Reset to default values
                 if (ShutterSpeedsForPicker?.Length > 0)
                     ShutterSpeedSelected = ShutterSpeedsForPicker[0];
@@ -501,145 +756,76 @@ namespace Location.Photography.ViewModels
                 // Clear error message
                 ShowError = false;
                 ClearErrors();
+
+                _ = EndPropertyChangeBatchAsync();
             }
             catch (Exception ex)
             {
                 OnSystemError($"Error resetting exposure calculator: {ex.Message}");
+                _ = EndPropertyChangeBatchAsync();
             }
         }
 
-        #region Lock Methods
-        private void ToggleShutterLock()
+        #endregion
+
+        #region OPTIMIZED LOCK METHODS
+
+        private void ToggleShutterLockOptimized()
         {
             if (IsShutterLocked)
             {
-                // Unlock shutter
                 IsShutterLocked = false;
             }
             else
             {
-                // Lock shutter, unlock others
                 IsShutterLocked = true;
                 IsApertureLocked = false;
                 IsIsoLocked = false;
             }
         }
 
-        private void ToggleApertureLock()
+        private void ToggleApertureLockOptimized()
         {
             if (IsApertureLocked)
             {
-                // Unlock aperture
                 IsApertureLocked = false;
             }
             else
             {
-                // Lock aperture, unlock others
                 IsApertureLocked = true;
                 IsShutterLocked = false;
                 IsIsoLocked = false;
             }
         }
 
-        private void ToggleIsoLock()
+        private void ToggleIsoLockOptimized()
         {
             if (IsIsoLocked)
             {
-                // Unlock ISO
                 IsIsoLocked = false;
             }
             else
             {
-                // Lock ISO, unlock others
                 IsIsoLocked = true;
                 IsShutterLocked = false;
                 IsApertureLocked = false;
             }
         }
+
         #endregion
 
-        #region Preset Methods
-        private async Task LoadPresetsAsync()
+        #region Helper Methods
+
+        private string GetIncrementStringOptimized()
         {
-            try
+            return FullHalfThirds switch
             {
-                IsBusy = true;
-                ShowError = false;
-
-                // Load all tip types for the preset dropdown
-                var query = new Location.Core.Application.Queries.TipTypes.GetAllTipTypesQuery();
-                var result = await _mediator.Send(query);
-
-                if (result.IsSuccess && result.Data != null)
-                {
-                    AvailablePresets.Clear();
-
-                    foreach (var tipType in result.Data)
-                    {
-                        AvailablePresets.Add(tipType);
-                    }
-
-                    // Notify that the collection has changed
-                    OnPropertyChanged(nameof(AvailablePresets));
-                }
-                else
-                {
-                    OnSystemError(result.ErrorMessage ?? "Failed to load presets");
-                }
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error loading presets: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+                ExposureIncrements.Full => "Full",
+                ExposureIncrements.Half => "Halves",
+                ExposureIncrements.Third => "Thirds",
+                _ => "Full"
+            };
         }
-
-        private async void ApplyPreset(TipTypeDto preset)
-        {
-            try
-            {
-                // Get a random tip from the selected tip type
-                var randomTipQuery = new Location.Core.Application.Commands.Tips.GetRandomTipCommand { TipTypeId = preset.Id };
-                var result = await _mediator.Send(randomTipQuery);
-
-                if (result.IsSuccess && result.Data != null)
-                {
-                    var tip = result.Data;
-
-                    // Apply preset values if they exist
-                    if (!string.IsNullOrEmpty(tip.ShutterSpeed))
-                    {
-                        ShutterSpeedSelected = tip.ShutterSpeed;
-                    }
-
-                    if (!string.IsNullOrEmpty(tip.Fstop))
-                    {
-                        FStopSelected = tip.Fstop;
-                    }
-
-                    if (!string.IsNullOrEmpty(tip.Iso))
-                    {
-                        ISOSelected = tip.Iso;
-                    }
-
-                    // Store as old values and recalculate
-                    StoreOldValues();
-                    Calculate();
-                }
-                else
-                {
-                    OnSystemError("No tips found for the selected preset category");
-                }
-            }
-            catch (Exception ex)
-            {
-                OnSystemError($"Error applying preset: {ex.Message}");
-            }
-        }
-        #endregion
 
         protected override void OnErrorOccurred(string message)
         {
@@ -648,7 +834,7 @@ namespace Location.Photography.ViewModels
 
         public void OnNavigatedToAsync()
         {
-            LoadPickerValuesAsync().ConfigureAwait(false);
+            _ = LoadPickerValuesOptimizedAsync();
             LoadPresetsCommand.Execute(null);
         }
 
@@ -656,6 +842,25 @@ namespace Location.Photography.ViewModels
         {
             // Implementation not required for this use case
         }
+
+        public override void Dispose()
+        {
+            _calculationLock?.Dispose();
+            _pickerValuesCache.Clear();
+            base.Dispose();
+        }
+
+        #endregion
+
+        #region Helper Classes
+
+        private class ExposureCalculationResult
+        {
+            public string ShutterSpeed { get; set; } = string.Empty;
+            public string Aperture { get; set; } = string.Empty;
+            public string ISO { get; set; } = string.Empty;
+        }
+
         #endregion
     }
 }
