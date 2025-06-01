@@ -31,7 +31,7 @@ namespace Location.Photography.Infrastructure.Services
 
             var phases = GetSunPhasesWithCaching(date, latitude, longitude);
             var sunrise = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "sunrise");
-            var result = sunrise.PhaseTime.ToLocalTime() != default ? sunrise.PhaseTime.ToLocalTime() : date;
+            var result = sunrise.PhaseTime != default ? sunrise.PhaseTime : date;
 
             _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
             return result;
@@ -48,7 +48,7 @@ namespace Location.Photography.Infrastructure.Services
 
             var phases = GetSunPhasesWithCaching(date, latitude, longitude);
             var sunset = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "sunset");
-            var result = sunset.PhaseTime.ToLocalTime() != default ? sunset.PhaseTime.ToLocalTime() : date;
+            var result = sunset.PhaseTime != default ? sunset.PhaseTime : date;
 
             _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
             return result;
@@ -65,7 +65,24 @@ namespace Location.Photography.Infrastructure.Services
 
             var phases = GetSunPhasesWithCaching(date, latitude, longitude);
             var solarNoon = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "solar noon");
-            var result = solarNoon.PhaseTime != default ? solarNoon.PhaseTime.ToLocalTime() : date.Date.AddHours(12);
+            var result = solarNoon.PhaseTime != default ? solarNoon.PhaseTime : date.Date.AddHours(12);
+
+            _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
+            return result;
+        }
+
+        public DateTime GetNadir(DateTime date, double latitude, double longitude, string timezone)
+        {
+            var cacheKey = $"nadir_{date:yyyyMMdd}_{latitude:F4}_{longitude:F4}";
+
+            if (_calculationCache.TryGetValue(cacheKey, out var cached) && DateTime.UtcNow < cached.expiry)
+            {
+                return (DateTime)cached.result;
+            }
+
+            var phases = GetSunPhasesWithCaching(date, latitude, longitude);
+            var nadir = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "nadir");
+            var result = nadir.PhaseTime != default ? nadir.PhaseTime : date.Date.AddHours(0); // Midnight
 
             _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
             return result;
@@ -82,7 +99,7 @@ namespace Location.Photography.Infrastructure.Services
 
             var phases = GetSunPhasesWithCaching(date, latitude, longitude);
             var dawn = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "dawn");
-            var result = dawn.PhaseTime.ToLocalTime() != default ? dawn.PhaseTime.ToLocalTime() : date;
+            var result = dawn.PhaseTime != default ? dawn.PhaseTime : date;
 
             _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
             return result;
@@ -99,7 +116,7 @@ namespace Location.Photography.Infrastructure.Services
 
             var phases = GetSunPhasesWithCaching(date, latitude, longitude);
             var dusk = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "dusk");
-            var result = dusk.PhaseTime.ToLocalTime() != default ? dusk.PhaseTime.ToLocalTime() : date;
+            var result = dusk.PhaseTime != default ? dusk.PhaseTime : date;
 
             _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
             return result;
@@ -116,7 +133,7 @@ namespace Location.Photography.Infrastructure.Services
 
             var phases = GetSunPhasesWithCaching(date, latitude, longitude);
             var nauticalDawn = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "nautical dawn");
-            var result = nauticalDawn.PhaseTime.ToLocalTime() != default ? nauticalDawn.PhaseTime.ToLocalTime() : date;
+            var result = nauticalDawn.PhaseTime != default ? nauticalDawn.PhaseTime : date;
 
             _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
             return result;
@@ -133,7 +150,7 @@ namespace Location.Photography.Infrastructure.Services
 
             var phases = GetSunPhasesWithCaching(date, latitude, longitude);
             var nauticalDusk = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "nautical dusk");
-            var result = nauticalDusk.PhaseTime.ToLocalTime() != default ? nauticalDusk.PhaseTime.ToLocalTime() : date;
+            var result = nauticalDusk.PhaseTime != default ? nauticalDusk.PhaseTime : date;
 
             _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
             return result;
@@ -149,8 +166,8 @@ namespace Location.Photography.Infrastructure.Services
             }
 
             var phases = GetSunPhasesWithCaching(date, latitude, longitude);
-            var nightEnd = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "sunrise");
-            var result = nightEnd.PhaseTime.AddHours(-2).ToLocalTime() != default ? nightEnd.PhaseTime.AddHours(-2).ToLocalTime() : date;
+            var nightEnd = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "night end");
+            var result = nightEnd.PhaseTime != default ? nightEnd.PhaseTime : date;
 
             _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
             return result;
@@ -166,8 +183,76 @@ namespace Location.Photography.Infrastructure.Services
             }
 
             var phases = GetSunPhasesWithCaching(date, latitude, longitude);
-            var night = phases.FirstOrDefault(p => p.Name.Value == "sunset");
-            var result = night.PhaseTime.AddHours(2).ToLocalTime() != default ? night.PhaseTime.AddHours(2).ToLocalTime() : date;
+            var night = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "night");
+            var result = night.PhaseTime != default ? night.PhaseTime : date;
+
+            _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
+            return result;
+        }
+
+        public DateTime GetGoldenHour(DateTime date, double latitude, double longitude, string timezone)
+        {
+            var cacheKey = $"goldenhour_{date:yyyyMMdd}_{latitude:F4}_{longitude:F4}";
+
+            if (_calculationCache.TryGetValue(cacheKey, out var cached) && DateTime.UtcNow < cached.expiry)
+            {
+                return (DateTime)cached.result;
+            }
+
+            var phases = GetSunPhasesWithCaching(date, latitude, longitude);
+            var goldenHour = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "golden hour");
+            var result = goldenHour.PhaseTime != default ? goldenHour.PhaseTime : date;
+
+            _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
+            return result;
+        }
+
+        public DateTime GetGoldenHourEnd(DateTime date, double latitude, double longitude, string timezone)
+        {
+            var cacheKey = $"goldenhourend_{date:yyyyMMdd}_{latitude:F4}_{longitude:F4}";
+
+            if (_calculationCache.TryGetValue(cacheKey, out var cached) && DateTime.UtcNow < cached.expiry)
+            {
+                return (DateTime)cached.result;
+            }
+
+            var phases = GetSunPhasesWithCaching(date, latitude, longitude);
+            var goldenHourEnd = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "golden hour end");
+            var result = goldenHourEnd.PhaseTime != default ? goldenHourEnd.PhaseTime : date;
+
+            _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
+            return result;
+        }
+
+        public DateTime GetNightEnd(DateTime date, double latitude, double longitude, string timezone)
+        {
+            var cacheKey = $"nightend_{date:yyyyMMdd}_{latitude:F4}_{longitude:F4}";
+
+            if (_calculationCache.TryGetValue(cacheKey, out var cached) && DateTime.UtcNow < cached.expiry)
+            {
+                return (DateTime)cached.result;
+            }
+
+            var phases = GetSunPhasesWithCaching(date, latitude, longitude);
+            var nightEnd = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "night end");
+            var result = nightEnd.PhaseTime != default ? nightEnd.PhaseTime : date;
+
+            _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
+            return result;
+        }
+
+        public DateTime GetNight(DateTime date, double latitude, double longitude, string timezone)
+        {
+            var cacheKey = $"night_{date:yyyyMMdd}_{latitude:F4}_{longitude:F4}";
+
+            if (_calculationCache.TryGetValue(cacheKey, out var cached) && DateTime.UtcNow < cached.expiry)
+            {
+                return (DateTime)cached.result;
+            }
+
+            var phases = GetSunPhasesWithCaching(date, latitude, longitude);
+            var night = phases.FirstOrDefault(p => p.Name.Value.ToLower() == "night");
+            var result = night.PhaseTime != default ? night.PhaseTime : date;
 
             _calculationCache[cacheKey] = (result, DateTime.UtcNow.Add(_cacheTimeout));
             return result;
@@ -282,6 +367,9 @@ namespace Location.Photography.Infrastructure.Services
                         case "solarnoon":
                             results[timeType] = GetSolarNoon(date, latitude, longitude, timezone);
                             break;
+                        case "nadir":
+                            results[timeType] = GetNadir(date, latitude, longitude, timezone);
+                            break;
                         case "civildawn":
                             results[timeType] = GetCivilDawn(date, latitude, longitude, timezone);
                             break;
@@ -299,6 +387,18 @@ namespace Location.Photography.Infrastructure.Services
                             break;
                         case "astronomicaldusk":
                             results[timeType] = GetAstronomicalDusk(date, latitude, longitude, timezone);
+                            break;
+                        case "goldenhour":
+                            results[timeType] = GetGoldenHour(date, latitude, longitude, timezone);
+                            break;
+                        case "goldenhourend":
+                            results[timeType] = GetGoldenHourEnd(date, latitude, longitude, timezone);
+                            break;
+                        case "nightend":
+                            results[timeType] = GetNightEnd(date, latitude, longitude, timezone);
+                            break;
+                        case "night":
+                            results[timeType] = GetNight(date, latitude, longitude, timezone);
                             break;
                     }
                 }

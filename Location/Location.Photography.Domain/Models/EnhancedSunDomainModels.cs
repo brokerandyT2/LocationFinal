@@ -108,7 +108,7 @@ namespace Location.Photography.Domain.Models
         GoldenHour,
         BlueHour,
         Overcast,
-        Dramatic,
+        Dramatic,Night,
         Flat, Direct
     }
 

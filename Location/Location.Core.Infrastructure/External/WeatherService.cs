@@ -369,7 +369,7 @@ namespace Location.Core.Infrastructure.External
         private async Task<WeatherDto> MapToWeatherDtoAsync(Domain.Entities.Weather weather, WeatherApiResponse apiData, CancellationToken cancellationToken)
         {
             var currentForecast = weather.GetCurrentForecast();
-            var currentApiData = apiData.DailyForecasts.FirstOrDefault();
+            var currentApiData = apiData?.DailyForecasts?.FirstOrDefault();
 
             // Get raw wind direction from stored data
             var rawWindDirection = currentForecast?.Wind.Direction ?? currentApiData?.WindDirection ?? 0;

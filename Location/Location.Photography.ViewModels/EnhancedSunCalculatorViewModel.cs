@@ -798,7 +798,28 @@ namespace Location.Photography.ViewModels
 
             try
             {
-                // Use weather service to get timezone information
+                // Get weather data which contains the authoritative timezone from OpenWeather API
+                var weather = await _unitOfWork.Weather.GetByLocationIdAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
+
+                if (weather != null && !string.IsNullOrEmpty(weather.Timezone))
+                {
+                    // Use timezone from stored weather data (from OpenWeather API)
+                    try
+                    {
+                        LocationTimeZone = _timezoneService.GetTimeZoneInfo(weather.Timezone);
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+                        });
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                       // _logger?.LogWarning(ex, "Failed to parse stored timezone {Timezone}, will fetch fresh data", weather.Timezone);
+                    }
+                }
+
+                // No stored weather data or invalid timezone, fetch fresh data from API
                 var weatherResult = await _weatherService.UpdateWeatherForLocationAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
 
                 if (weatherResult.IsSuccess && weatherResult.Data != null && !string.IsNullOrEmpty(weatherResult.Data.Timezone))
@@ -806,23 +827,20 @@ namespace Location.Photography.ViewModels
                     try
                     {
                         LocationTimeZone = _timezoneService.GetTimeZoneInfo(weatherResult.Data.Timezone);
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+                        });
+                        return;
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // Fallback to coordinate-based timezone lookup
-                        await DetermineTimezoneFromCoordinatesOptimizedAsync();
+                       // _logger?.LogWarning(ex, "Failed to parse API timezone {Timezone}, falling back to coordinate lookup", weatherResult.Data.Timezone);
                     }
-                }
-                else
-                {
-                    // Fallback to coordinate-based timezone lookup
-                    await DetermineTimezoneFromCoordinatesOptimizedAsync();
                 }
 
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
-                });
+                // Final fallback: coordinate-based timezone lookup
+                await DetermineTimezoneFromCoordinatesOptimizedAsync();
             }
             catch (Exception ex)
             {
@@ -830,7 +848,7 @@ namespace Location.Photography.ViewModels
                 {
                     OnSystemError($"Error loading location timezone: {ex.Message}");
                     LocationTimeZone = TimeZoneInfo.Local;
-                    LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+                    LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName} (fallback)";
                 });
             }
         }
@@ -878,15 +896,18 @@ namespace Location.Photography.ViewModels
                 {
                     BeginPropertyChangeBatch();
 
-                    SunriseUtc = sunTimes.Sunrise;
-                    SunsetUtc = sunTimes.Sunset;
-                    SolarNoonUtc = sunTimes.SolarNoon;
-                    SunriseDeviceTime = FormatTimeForTimezoneOptimized(sunTimes.Sunrise, DeviceTimeZone);
-                    SunriseLocationTime = FormatTimeForTimezoneOptimized(sunTimes.Sunrise, LocationTimeZone);
-                    SunsetDeviceTime = FormatTimeForTimezoneOptimized(sunTimes.Sunset, DeviceTimeZone);
-                    SunsetLocationTime = FormatTimeForTimezoneOptimized(sunTimes.Sunset, LocationTimeZone);
-                    SolarNoonDeviceTime = FormatTimeForTimezoneOptimized(sunTimes.SolarNoon, DeviceTimeZone);
-                    SolarNoonLocationTime = FormatTimeForTimezoneOptimized(sunTimes.SolarNoon, LocationTimeZone);
+                    // Store UTC times for proper timezone conversion
+                    SunriseUtc = DateTime.SpecifyKind(sunTimes.Sunrise, DateTimeKind.Utc);
+                    SunsetUtc = DateTime.SpecifyKind(sunTimes.Sunset, DateTimeKind.Utc);
+                    SolarNoonUtc = DateTime.SpecifyKind(sunTimes.SolarNoon, DateTimeKind.Utc);
+
+                    // Convert to display times for both timezones
+                    SunriseDeviceTime = FormatTimeForTimezoneOptimized(SunriseUtc, DeviceTimeZone);
+                    SunriseLocationTime = FormatTimeForTimezoneOptimized(SunriseUtc, LocationTimeZone);
+                    SunsetDeviceTime = FormatTimeForTimezoneOptimized(SunsetUtc, DeviceTimeZone);
+                    SunsetLocationTime = FormatTimeForTimezoneOptimized(SunsetUtc, LocationTimeZone);
+                    SolarNoonDeviceTime = FormatTimeForTimezoneOptimized(SolarNoonUtc, DeviceTimeZone);
+                    SolarNoonLocationTime = FormatTimeForTimezoneOptimized(SolarNoonUtc, LocationTimeZone);
 
                     _ = EndPropertyChangeBatchAsync();
                 });
@@ -1736,45 +1757,45 @@ namespace Location.Photography.ViewModels
                 return Math.Max(0.1, Math.Min(1.0, baseConfidence));
             }
 
-            private string FormatTimeForTimezoneOptimized(DateTime utcTime, TimeZoneInfo timezone)
+        private string FormatTimeForTimezoneOptimized(DateTime utcTime, TimeZoneInfo timezone)
+        {
+            try
             {
-                try
+                if (timezone == null)
                 {
-                    if (timezone == null)
-                    {
-                        return utcTime.ToString(TimeFormat);
-                    }
-
-                    DateTime localTime = utcTime;
-                    try
-                    {
-                        if (utcTime.Hour == 0 && utcTime.Minute == 0 && utcTime.Second == 0)
-                        {
-                            // Handle default DateTime values
-                        }
-                        else
-                        {
-                            utcTime = DateTime.SpecifyKind(utcTime, DateTimeKind.Utc);
-                            localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, timezone);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        // Use original time if conversion fails
-                    }
-                    return localTime.ToString(TimeFormat);
-                }
-                catch (Exception ex)
-                {
-                    OnErrorOccurred($"Error formatting time: {ex.Message}");
                     return utcTime.ToString(TimeFormat);
                 }
+
+                // Ensure we're working with UTC time
+                if (utcTime.Kind != DateTimeKind.Utc)
+                {
+                    // If it's not UTC, assume it's device local time and convert to UTC first
+                    if (utcTime.Kind == DateTimeKind.Local)
+                    {
+                        utcTime = utcTime.ToUniversalTime();
+                    }
+                    else
+                    {
+                        // Unspecified kind - assume UTC
+                        utcTime = DateTime.SpecifyKind(utcTime, DateTimeKind.Utc);
+                    }
+                }
+
+                // Convert from UTC to target timezone
+                var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, timezone);
+                return localTime.ToString(TimeFormat);
             }
+            catch (Exception ex)
+            {
+                OnErrorOccurred($"Error formatting time: {ex.Message}");
+                return utcTime.ToString(TimeFormat);
+            }
+        }
 
-            #endregion
+        #endregion
 
-            #region Legacy Methods
-            private void InitializeTimezoneDisplays()
+        #region Legacy Methods
+        private void InitializeTimezoneDisplays()
             {
                 DeviceTimeZoneDisplay = $"Device: {DeviceTimeZone.DisplayName}";
                 LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
@@ -1814,13 +1835,6 @@ namespace Location.Photography.ViewModels
                 }
             }
 
-            void OnSelectedDateChanged(DateTime value)
-            {
-                if (SelectedLocation != null)
-                {
-                    _ = CalculateEnhancedSunDataAsync();
-                }
-            }
 
             public async Task SynchronizeWeatherDataWithProgressAsync(IProgress<string> progress = null)
             {

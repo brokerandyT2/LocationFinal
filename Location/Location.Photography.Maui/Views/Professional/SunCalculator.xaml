@@ -404,13 +404,15 @@
                 </Frame>
 
                 <!-- Optimal Shooting Windows - MOVED TO LAST POSITION -->
-                <Frame BackgroundColor="#FFF8E1" HasShadow="True" CornerRadius="10" Padding="15">
+                <Frame BackgroundColor="#FFF8E1" HasShadow="True" CornerRadius="10" Padding="15" HeightRequest="400">
+                    <ScrollView>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Label Grid.Row="0" Text="Optimal Future Shooting Windows" FontSize="16" FontAttributes="Bold" TextColor="#F57F17" Margin="0,0,0,10"/>
+                        
                         <CollectionView Grid.Row="1" ItemsSource="{Binding OptimalWindows}">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="viewmodels:OptimalWindowDisplayModel">
@@ -433,6 +435,7 @@
                             </CollectionView.ItemTemplate>
                         </CollectionView>
                     </Grid>
+                    </ScrollView>
                 </Frame>
 
             </StackLayout>
