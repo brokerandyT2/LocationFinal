@@ -189,7 +189,6 @@
                         Grid.Column="0"
                         ItemsSource="{Binding ShutterSpeedsForPicker}" 
                         SelectedItem="{Binding ShutterSpeedSelected}"
-                        SelectedIndexChanged="ShutterSpeed_Picker_SelectedIndexChanged"
                         FontSize="12"/>
                 <Button x:Name="ShutterLockButton"
                         Grid.Column="1"
@@ -209,7 +208,6 @@
                         Grid.Column="0"
                         ItemsSource="{Binding ApeaturesForPicker}" 
                         SelectedItem="{Binding FStopSelected}"
-                        SelectedIndexChanged="fstop_Picker_SelectedIndexChanged"
                         FontSize="12"/>
                 <Button x:Name="ApertureLockButton"
                         Grid.Column="1"
@@ -229,7 +227,6 @@
                         Grid.Column="0"
                         ItemsSource="{Binding ISOsForPicker}" 
                         SelectedItem="{Binding ISOSelected}"
-                        SelectedIndexChanged="ISO_Picker_SelectedIndexChanged"
                         FontSize="12"/>
                 <Button x:Name="IsoLockButton"
                         Grid.Column="1"
@@ -282,7 +279,6 @@
                     Grid.Column="0" 
                     ItemsSource="{Binding ShutterSpeedsForPicker}" 
                     SelectedItem="{Binding ShutterSpeedSelected}"
-                    SelectedIndexChanged="TargetShutterSpeed_Picker_SelectedIndexChanged"
                     FontSize="12"
                     Margin="5"/>
 
@@ -291,7 +287,6 @@
                     Grid.Column="1" 
                     ItemsSource="{Binding ApeaturesForPicker}" 
                     SelectedItem="{Binding FStopSelected}"
-                    SelectedIndexChanged="TargetFstop_Picker_SelectedIndexChanged"
                     FontSize="12"
                     Margin="5"/>
 
@@ -300,7 +295,6 @@
                     Grid.Column="2" 
                     ItemsSource="{Binding ISOsForPicker}" 
                     SelectedItem="{Binding ISOSelected}"
-                    SelectedIndexChanged="TargetISO_Picker_SelectedIndexChanged"
                     FontSize="12"
                     Margin="5"/>
 

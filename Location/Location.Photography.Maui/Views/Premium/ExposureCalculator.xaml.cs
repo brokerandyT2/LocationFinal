@@ -8,7 +8,7 @@ using MediatR;
 
 namespace Location.Photography.Maui.Views.Premium
 {
-    public partial class ExposureCalculator : ContentPage
+    public partial class ExposureCalculator : ContentPage, IDisposable
     {
         private readonly IAlertService _alertService;
         private readonly IErrorDisplayService _errorDisplayService;
@@ -20,6 +20,17 @@ namespace Location.Photography.Maui.Views.Premium
         private double _currentEVStep = _fullStopEV;
         private IMediator _mediator;
 
+        // PERFORMANCE: UI state management
+        private readonly SemaphoreSlim _uiUpdateLock = new(1, 1);
+        private bool _isInitialized = false;
+        private bool _isDisposed = false;
+        private CancellationTokenSource _uiCancellationSource = new();
+
+        // PERFORMANCE: Prevent redundant operations
+        private DateTime _lastPickerUpdate = DateTime.MinValue;
+        private const int PICKER_UPDATE_THROTTLE_MS = 100;
+        private readonly Dictionary<string, DateTime> _lastValueChanges = new();
+
         public ExposureCalculator()
         {
             InitializeComponent();
@@ -27,7 +38,7 @@ namespace Location.Photography.Maui.Views.Premium
             _viewModel.CalculateCommand.Execute(_viewModel);
             BindingContext = _viewModel;
             CloseButton.IsVisible = false;
-            AddHandlers();
+            _ = InitializeUIAsync();
         }
 
         public ExposureCalculator(
@@ -39,9 +50,10 @@ namespace Location.Photography.Maui.Views.Premium
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+
             InitializeComponent();
-            InitializeViewModel(exposureCalculatorService);
-            AddHandlers();
+            CloseButton.IsVisible = false;
+            _ = InitializeUIAsync(exposureCalculatorService);
         }
 
         public ExposureCalculator(
@@ -56,157 +68,686 @@ namespace Location.Photography.Maui.Views.Premium
 
             InitializeComponent();
             CloseButton.IsVisible = isFromTips;
-            InitializeViewModelFromTip(exposureCalculatorService, tipID);
-            AddHandlers();
-        }
-        private void AddHandlers()
-        {
-            ShutterLockButton.ImageSource = "lockopen.png";
-            IsoLockButton.ImageSource = "lockopen.png";
-            ApertureLockButton.ImageSource = "lockopen.png";
-
-            ShutterLockButton.Pressed += (s, e) => HandleClick("shutter");
-            IsoLockButton.Pressed += (s, e) => HandleClick("iso");
-            ApertureLockButton.Pressed += (s, e) => HandleClick("aperture");
-            _viewModel.IsBusy = false;
+            _ = InitializeUIAsync(exposureCalculatorService, tipID);
         }
 
-        private void HandleClick(string v)
-        {
-            if (v == "shutter")
-            {
+        #region PERFORMANCE OPTIMIZED INITIALIZATION
 
-                ShutterSpeed_Picker.IsEnabled = !ShutterSpeed_Picker.IsEnabled;
-                ShutterLockButton.ImageSource = ShutterSpeed_Picker.IsEnabled ? "lockopen.png" : "lock.png";
-
-                IsoLockButton.ImageSource = "lockopen.png";
-                ISO_Picker.IsEnabled = true;
-
-                ApertureLockButton.ImageSource = "lockopen.png";
-                fstop_Picker.IsEnabled = true;
-            }
-            else if (v == "iso")
-            {
-                ShutterLockButton.ImageSource = "lockopen.png";
-                ShutterSpeed_Picker.IsEnabled = true;
-
-
-                ISO_Picker.IsEnabled = !ISO_Picker.IsEnabled;
-                IsoLockButton.ImageSource = ISO_Picker.IsEnabled ? "lockopen.png" : "lock.png";
-
-                ApertureLockButton.ImageSource = "lockopen.png";
-                fstop_Picker.IsEnabled = true;
-            }
-            else if (v == "aperture")
-            {
-                ShutterLockButton.ImageSource = "lockopen.png";
-                ShutterSpeed_Picker.IsEnabled = true;
-
-                IsoLockButton.ImageSource = "lockopen.png";
-                ISO_Picker.IsEnabled = true;
-
-                fstop_Picker.IsEnabled = !fstop_Picker.IsEnabled;
-                ApertureLockButton.ImageSource = fstop_Picker.IsEnabled ? "lockopen.png" : "lock.png";
-
-            }
-        }
-
-        private void InitializeViewModel(IExposureCalculatorService exposureCalculatorService)
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Async UI initialization with proper loading states
+        /// </summary>
+        private async Task InitializeUIAsync(IExposureCalculatorService exposureCalculatorService = null, int? tipID = null)
         {
             try
             {
-                _viewModel = new ExposureCalculatorViewModel(_mediator, exposureCalculatorService, _errorDisplayService);
-                BindingContext = _viewModel;
+                if (_isDisposed) return;
 
-                _skipCalculations = true;
-                _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Full;
-                SetupEVSlider();
+                // Show loading state immediately
+                await ShowLoadingStateAsync("Initializing exposure calculator...");
 
-                if (_viewModel.ShutterSpeedsForPicker?.Length > 0)
-                    ShutterSpeed_Picker.SelectedIndex = 0;
+                // Initialize ViewModel on background thread
+                await Task.Run(async () =>
+                {
+                    try
+                    {
+                        await InitializeViewModelAsync(exposureCalculatorService, tipID);
+                    }
+                    catch (Exception ex)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            HandleErrorSafely(ex, "Error initializing view model");
+                        });
+                        return;
+                    }
+                }, _uiCancellationSource.Token);
 
-                if (_viewModel.ApeaturesForPicker?.Length > 0)
-                    fstop_Picker.SelectedIndex = 0;
+                // Setup UI components on main thread
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    try
+                    {
+                        if (_isDisposed) return;
 
-                if (_viewModel.ISOsForPicker?.Length > 0)
-                    ISO_Picker.SelectedIndex = 0;
-
-                _viewModel.ShutterSpeedSelected = ShutterSpeed_Picker.SelectedItem?.ToString();
-                _viewModel.FStopSelected = fstop_Picker.SelectedItem?.ToString();
-                _viewModel.ISOSelected = ISO_Picker.SelectedItem?.ToString();
-
-                _viewModel.OldShutterSpeed = _viewModel.ShutterSpeedSelected;
-                _viewModel.OldFstop = _viewModel.FStopSelected;
-                _viewModel.OldISO = _viewModel.ISOSelected;
-
-                _viewModel.ToCalculate = Application.Services.FixedValue.ShutterSpeeds;
-                _viewModel.EVValue = 0;
-
-                // Initialize target pickers to same values
-                SyncTargetPickers();
-
-                // Subscribe to lock state changes
-                _viewModel.PropertyChanged += ViewModel_PropertyChanged;
-
-                _skipCalculations = false;
-                _viewModel.Calculate();
+                        SetupUIComponents();
+                        SubscribeToViewModelEvents();
+                        _isInitialized = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        HandleErrorSafely(ex, "Error setting up UI components");
+                    }
+                    finally
+                    {
+                        HideLoadingState();
+                    }
+                });
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error initializing exposure calculator");
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HandleErrorSafely(ex, "Critical error during initialization");
+                    HideLoadingState();
+                });
             }
         }
 
-        private void InitializeViewModelFromTip(IExposureCalculatorService exposureCalculatorService, int tipID)
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Background ViewModel initialization
+        /// </summary>
+        private async Task InitializeViewModelAsync(IExposureCalculatorService exposureCalculatorService, int? tipID)
         {
             try
             {
-                _viewModel = new ExposureCalculatorViewModel(null, exposureCalculatorService, _errorDisplayService);
-                BindingContext = _viewModel;
+                if (tipID.HasValue)
+                {
+                    _viewModel = new ExposureCalculatorViewModel(null, exposureCalculatorService, _errorDisplayService);
+                }
+                else if (exposureCalculatorService != null)
+                {
+                    _viewModel = new ExposureCalculatorViewModel(_mediator, exposureCalculatorService, _errorDisplayService);
+                }
+                else
+                {
+                    _viewModel = new ExposureCalculatorViewModel();
+                }
 
-                _skipCalculations = true;
-                _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Full;
-                exposurefull.IsChecked = true;
-                SetupEVSlider();
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    BindingContext = _viewModel;
+                });
 
-                if (_viewModel.ShutterSpeedsForPicker?.Length > 0)
-                    ShutterSpeed_Picker.SelectedIndex = 0;
-
-                if (_viewModel.ApeaturesForPicker?.Length > 0)
-                    fstop_Picker.SelectedIndex = 0;
-
-                if (_viewModel.ISOsForPicker?.Length > 0)
-                    ISO_Picker.SelectedIndex = 0;
-
-                _viewModel.ShutterSpeedSelected = ShutterSpeed_Picker.SelectedItem?.ToString();
-                _viewModel.FStopSelected = fstop_Picker.SelectedItem?.ToString();
-                _viewModel.ISOSelected = ISO_Picker.SelectedItem?.ToString();
-
-                _viewModel.OldShutterSpeed = _viewModel.ShutterSpeedSelected;
-                _viewModel.OldFstop = _viewModel.FStopSelected;
-                _viewModel.OldISO = _viewModel.ISOSelected;
-
-                _viewModel.ToCalculate = Application.Services.FixedValue.ShutterSpeeds;
-                _viewModel.EVValue = 0;
-
-                // Initialize target pickers to same values
-                SyncTargetPickers();
-
-                // Subscribe to lock state changes
-                _viewModel.PropertyChanged += ViewModel_PropertyChanged;
-
-                _skipCalculations = false;
-                _viewModel.Calculate();
+                // Load initial data
+                await _viewModel.LoadPresetsCommand.ExecuteAsync(null);
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error initializing exposure calculator from tip");
+                throw new InvalidOperationException($"ViewModel initialization failed: {ex.Message}", ex);
             }
         }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: UI component setup with loading states
+        /// </summary>
+        private void SetupUIComponents()
+        {
+            try
+            {
+                _skipCalculations = true;
+
+                // Setup lock buttons with loading indicators
+                SetupLockButtons();
+
+                // Setup EV slider
+                SetupEVSlider();
+
+                // Initialize picker values with loading states
+                InitializePickersWithLoadingStates();
+
+                // Setup event handlers
+                SetupEventHandlers();
+
+                _skipCalculations = false;
+
+                // Perform initial calculation
+                _viewModel?.CalculateCommand.Execute(_viewModel);
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error setting up UI components");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Setup lock buttons with proper visual states
+        /// </summary>
+        private void SetupLockButtons()
+        {
+            try
+            {
+                ShutterLockButton.ImageSource = "lockopen.png";
+                IsoLockButton.ImageSource = "lockopen.png";
+                ApertureLockButton.ImageSource = "lockopen.png";
+
+                ShutterLockButton.Pressed += (s, e) => HandleLockButtonClick("shutter");
+                IsoLockButton.Pressed += (s, e) => HandleLockButtonClick("iso");
+                ApertureLockButton.Pressed += (s, e) => HandleLockButtonClick("aperture");
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error setting up lock buttons");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Setup event handlers with throttling
+        /// </summary>
+        private void SetupEventHandlers()
+        {
+            try
+            {
+                // Throttled picker events
+                ShutterSpeed_Picker.SelectedIndexChanged += (s, e) => HandlePickerChangeThrottled("shutter", () =>
+                {
+                    if (_skipCalculations || _viewModel == null) return;
+                    _viewModel.ShutterSpeedSelected = ShutterSpeed_Picker.SelectedItem?.ToString();
+                    _viewModel?.CalculateCommand.Execute(_viewModel);
+                });
+
+                fstop_Picker.SelectedIndexChanged += (s, e) => HandlePickerChangeThrottled("aperture", () =>
+                {
+                    if (_skipCalculations || _viewModel == null) return;
+                    _viewModel.FStopSelected = fstop_Picker.SelectedItem?.ToString();
+                    _viewModel?.CalculateCommand.Execute(_viewModel);
+                });
+
+                ISO_Picker.SelectedIndexChanged += (s, e) => HandlePickerChangeThrottled("iso", () =>
+                {
+                    if (_skipCalculations || _viewModel == null) return;
+                    _viewModel.ISOSelected = ISO_Picker.SelectedItem?.ToString();
+                    _viewModel?.CalculateCommand.Execute(_viewModel);
+                });
+
+                // Target picker events
+                SetupTargetPickerEvents();
+
+                // Other UI events
+                EvSlider.ValueChanged += EvSlider_ValueChanged;
+                exposurefull.CheckedChanged += exposuresteps_CheckedChanged;
+                exposurehalfstop.CheckedChanged += exposuresteps_CheckedChanged;
+                exposurethirdstop.CheckedChanged += exposuresteps_CheckedChanged;
+                PresetPicker.SelectedIndexChanged += PresetPicker_SelectedIndexChanged;
+                CloseButton.Pressed += CloseButton_Pressed;
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error setting up event handlers");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Initialize pickers with loading states
+        /// </summary>
+        private void InitializePickersWithLoadingStates()
+        {
+            try
+            {
+                // Show loading for pickers
+                SetPickerLoadingState(ShutterSpeed_Picker, true);
+                SetPickerLoadingState(fstop_Picker, true);
+                SetPickerLoadingState(ISO_Picker, true);
+
+                // Initialize picker selections
+                if (_viewModel?.ShutterSpeedsForPicker?.Length > 0)
+                {
+                    ShutterSpeed_Picker.SelectedIndex = 0;
+                    SetPickerLoadingState(ShutterSpeed_Picker, false);
+                }
+
+                if (_viewModel?.ApeaturesForPicker?.Length > 0)
+                {
+                    fstop_Picker.SelectedIndex = 0;
+                    SetPickerLoadingState(fstop_Picker, false);
+                }
+
+                if (_viewModel?.ISOsForPicker?.Length > 0)
+                {
+                    ISO_Picker.SelectedIndex = 0;
+                    SetPickerLoadingState(ISO_Picker, false);
+                }
+
+                // Initialize target pickers
+                SyncTargetPickers();
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error initializing pickers");
+            }
+        }
+
+        #endregion
+
+        #region PERFORMANCE OPTIMIZED EVENT HANDLING
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Throttled picker change handling
+        /// </summary>
+        private void HandlePickerChangeThrottled(string pickerType, Action updateAction)
+        {
+            try
+            {
+                var now = DateTime.Now;
+                var key = $"picker_{pickerType}";
+
+                if (_lastValueChanges.ContainsKey(key))
+                {
+                    var timeSinceLastChange = (now - _lastValueChanges[key]).TotalMilliseconds;
+                    if (timeSinceLastChange < PICKER_UPDATE_THROTTLE_MS)
+                    {
+                        return; // Skip this update
+                    }
+                }
+
+                _lastValueChanges[key] = now;
+                updateAction?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, $"Error handling {pickerType} picker change");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Lock button handling with visual feedback
+        /// </summary>
+        private void HandleLockButtonClick(string lockType)
+        {
+            try
+            {
+                if (_viewModel == null) return;
+
+                // Provide immediate visual feedback
+                ProvideLockButtonFeedback(lockType);
+
+                // Update lock states
+                switch (lockType)
+                {
+                    case "shutter":
+                        UpdateShutterLock();
+                        break;
+                    case "iso":
+                        UpdateIsoLock();
+                        break;
+                    case "aperture":
+                        UpdateApertureLock();
+                        break;
+                }
+
+                // Update visual states
+                UpdateLockButtonVisualStates();
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, $"Error handling {lockType} lock button");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Immediate visual feedback for lock buttons
+        /// </summary>
+        private void ProvideLockButtonFeedback(string lockType)
+        {
+            try
+            {
+                // Provide haptic feedback if available
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        HapticFeedback.Perform(HapticFeedbackType.Click);
+                    }
+                    catch { } // Ignore haptic errors
+                });
+
+                // Visual feedback - briefly change button opacity
+                var button = lockType switch
+                {
+                    "shutter" => ShutterLockButton,
+                    "iso" => IsoLockButton,
+                    "aperture" => ApertureLockButton,
+                    _ => null
+                };
+
+                if (button != null)
+                {
+                    button.Opacity = 0.5;
+                    Task.Delay(100).ContinueWith(_ =>
+                    {
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            if (!_isDisposed)
+                                button.Opacity = 1.0;
+                        });
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw for visual feedback errors
+                System.Diagnostics.Debug.WriteLine($"Error providing lock button feedback: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Update lock states with proper validation
+        /// </summary>
+        private void UpdateShutterLock()
+        {
+            if (_viewModel == null) return;
+
+            ShutterSpeed_Picker.IsEnabled = !ShutterSpeed_Picker.IsEnabled;
+            ShutterLockButton.ImageSource = ShutterSpeed_Picker.IsEnabled ? "lockopen.png" : "lock.png";
+
+            if (!ShutterSpeed_Picker.IsEnabled)
+            {
+                // Lock shutter, unlock others
+                IsoLockButton.ImageSource = "lockopen.png";
+                ISO_Picker.IsEnabled = true;
+                ApertureLockButton.ImageSource = "lockopen.png";
+                fstop_Picker.IsEnabled = true;
+
+                _viewModel.IsShutterLocked = true;
+                _viewModel.IsIsoLocked = false;
+                _viewModel.IsApertureLocked = false;
+            }
+            else
+            {
+                _viewModel.IsShutterLocked = false;
+            }
+        }
+
+        private void UpdateIsoLock()
+        {
+            if (_viewModel == null) return;
+
+            ISO_Picker.IsEnabled = !ISO_Picker.IsEnabled;
+            IsoLockButton.ImageSource = ISO_Picker.IsEnabled ? "lockopen.png" : "lock.png";
+
+            if (!ISO_Picker.IsEnabled)
+            {
+                // Lock ISO, unlock others
+                ShutterLockButton.ImageSource = "lockopen.png";
+                ShutterSpeed_Picker.IsEnabled = true;
+                ApertureLockButton.ImageSource = "lockopen.png";
+                fstop_Picker.IsEnabled = true;
+
+                _viewModel.IsIsoLocked = true;
+                _viewModel.IsShutterLocked = false;
+                _viewModel.IsApertureLocked = false;
+            }
+            else
+            {
+                _viewModel.IsIsoLocked = false;
+            }
+        }
+
+        private void UpdateApertureLock()
+        {
+            if (_viewModel == null) return;
+
+            fstop_Picker.IsEnabled = !fstop_Picker.IsEnabled;
+            ApertureLockButton.ImageSource = fstop_Picker.IsEnabled ? "lockopen.png" : "lock.png";
+
+            if (!fstop_Picker.IsEnabled)
+            {
+                // Lock aperture, unlock others
+                ShutterLockButton.ImageSource = "lockopen.png";
+                ShutterSpeed_Picker.IsEnabled = true;
+                IsoLockButton.ImageSource = "lockopen.png";
+                ISO_Picker.IsEnabled = true;
+
+                _viewModel.IsApertureLocked = true;
+                _viewModel.IsShutterLocked = false;
+                _viewModel.IsIsoLocked = false;
+            }
+            else
+            {
+                _viewModel.IsApertureLocked = false;
+            }
+        }
+
+        #endregion
+
+        #region PERFORMANCE OPTIMIZED UI STATE MANAGEMENT
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Subscribe to ViewModel events with proper error handling
+        /// </summary>
+        private void SubscribeToViewModelEvents()
+        {
+            if (_viewModel == null) return;
+
+            try
+            {
+                _viewModel.ErrorOccurred -= OnSystemError;
+                _viewModel.ErrorOccurred += OnSystemError;
+                _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error subscribing to ViewModel events");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Show loading state with proper UI updates
+        /// </summary>
+        private async Task ShowLoadingStateAsync(string message)
+        {
+            try
+            {
+                if (_isDisposed) return;
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (_viewModel != null)
+                    {
+                        _viewModel.IsBusy = true;
+                    }
+
+                    // Show loading overlay or indicator
+                    // You could add a loading overlay here if needed
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing loading state: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Hide loading state safely
+        /// </summary>
+        private void HideLoadingState()
+        {
+            try
+            {
+                if (_isDisposed || _viewModel == null) return;
+
+                _viewModel.IsBusy = false;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error hiding loading state: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Set picker loading state with visual feedback
+        /// </summary>
+        private void SetPickerLoadingState(Picker picker, bool isLoading)
+        {
+            try
+            {
+                if (_isDisposed || picker == null) return;
+
+                picker.IsEnabled = !isLoading;
+                picker.Opacity = isLoading ? 0.5 : 1.0;
+
+                // You could add a loading spinner next to the picker here
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting picker loading state: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Update lock button visual states
+        /// </summary>
+        private void UpdateLockButtonVisualStates()
+        {
+            try
+            {
+                if (_isDisposed || _viewModel == null) return;
+
+                // Update button text/images based on lock states
+                ShutterLockButton.ImageSource = _viewModel.IsShutterLocked ? "lock.png" : "lockopen.png";
+                IsoLockButton.ImageSource = _viewModel.IsIsoLocked ? "lock.png" : "lockopen.png";
+                ApertureLockButton.ImageSource = _viewModel.IsApertureLocked ? "lock.png" : "lockopen.png";
+
+                // Update picker states
+                ShutterSpeed_Picker.IsEnabled = !_viewModel.IsShutterLocked;
+                ISO_Picker.IsEnabled = !_viewModel.IsIsoLocked;
+                fstop_Picker.IsEnabled = !_viewModel.IsApertureLocked;
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error updating lock button visual states");
+            }
+        }
+
+        #endregion
+
+        #region EXISTING EVENT HANDLERS (OPTIMIZED)
+
+        private void exposuresteps_CheckedChanged(object sender, CheckedChangedEventArgs e)
+        {
+            if (_skipCalculations || !e.Value || _viewModel == null || _isDisposed)
+                return;
+
+            try
+            {
+                RadioButton radioButton = (RadioButton)sender;
+
+                if (radioButton == exposurefull)
+                    _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Full;
+                else if (radioButton == exposurehalfstop)
+                    _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Half;
+                else if (radioButton == exposurethirdstop)
+                    _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Third;
+
+                SetupEVSlider();
+                PopulateViewModel();
+                SyncTargetPickers();
+                _viewModel?.CalculateCommand.Execute(_viewModel);
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error changing exposure steps");
+            }
+        }
+
+        private void PresetPicker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (_skipCalculations || _viewModel == null || _isDisposed)
+                return;
+
+            try
+            {
+                // Preset application is handled in the ViewModel through binding
+                SyncTargetPickers();
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error selecting preset");
+            }
+        }
+
+        private void SetupTargetPickerEvents()
+        {
+            try
+            {
+                TargetShutterSpeed_Picker.SelectedIndexChanged += (s, e) => HandlePickerChangeThrottled("target_shutter", () =>
+                {
+                    if (_skipCalculations || _viewModel == null) return;
+                    string selectedValue = TargetShutterSpeed_Picker.SelectedItem?.ToString();
+                    if (!string.IsNullOrEmpty(selectedValue))
+                    {
+                        _viewModel.ShutterSpeedSelected = selectedValue;
+                        ShutterSpeed_Picker.SelectedItem = selectedValue;
+                        _viewModel?.CalculateCommand.Execute(_viewModel);
+                    }
+                });
+
+                TargetFstop_Picker.SelectedIndexChanged += (s, e) => HandlePickerChangeThrottled("target_aperture", () =>
+                {
+                    if (_skipCalculations || _viewModel == null) return;
+                    string selectedValue = TargetFstop_Picker.SelectedItem?.ToString();
+                    if (!string.IsNullOrEmpty(selectedValue))
+                    {
+                        _viewModel.FStopSelected = selectedValue;
+                        fstop_Picker.SelectedItem = selectedValue;
+                        _viewModel?.CalculateCommand.Execute(_viewModel);
+                    }
+                });
+
+                TargetISO_Picker.SelectedIndexChanged += (s, e) => HandlePickerChangeThrottled("target_iso", () =>
+                {
+                    if (_skipCalculations || _viewModel == null) return;
+                    string selectedValue = TargetISO_Picker.SelectedItem?.ToString();
+                    if (!string.IsNullOrEmpty(selectedValue))
+                    {
+                        _viewModel.ISOSelected = selectedValue;
+                        ISO_Picker.SelectedItem = selectedValue;
+                        _viewModel?.CalculateCommand.Execute(_viewModel);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error setting up target picker events");
+            }
+        }
+
+        private void EvSlider_ValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            if (_skipCalculations || _viewModel == null || _isDisposed)
+                return;
+
+            try
+            {
+                double newValue = Math.Round(e.NewValue / _currentEVStep) * _currentEVStep;
+
+                if (Math.Abs(newValue - _viewModel.EVValue) >= _currentEVStep * 0.5)
+                {
+                    newValue = Math.Round(newValue, 2);
+
+                    if (Math.Abs(EvSlider.Value - newValue) > 0.001)
+                    {
+                        EvSlider.Value = newValue;
+                    }
+
+                    _viewModel.EVValue = newValue;
+                    _viewModel?.CalculateCommand.Execute(_viewModel);
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error changing EV value");
+            }
+        }
+
+        private void CloseButton_Pressed(object sender, EventArgs e)
+        {
+            try
+            {
+                Navigation.PopModalAsync();
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error closing page");
+            }
+        }
+
+        #endregion
+
+        #region HELPER METHODS (OPTIMIZED)
 
         private void SetupEVSlider()
         {
-            if (_skipCalculations || _viewModel == null)
+            if (_skipCalculations || _viewModel == null || _isDisposed)
                 return;
 
             try
@@ -239,13 +780,13 @@ namespace Location.Photography.Maui.Views.Premium
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error setting up EV slider");
+                HandleErrorSafely(ex, "Error setting up EV slider");
             }
         }
 
         private void SyncTargetPickers()
         {
-            if (_viewModel == null) return;
+            if (_viewModel == null || _isDisposed) return;
 
             try
             {
@@ -267,265 +808,35 @@ namespace Location.Photography.Maui.Views.Premium
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error syncing target pickers");
+                HandleErrorSafely(ex, "Error syncing target pickers");
             }
         }
-
-        #region Event Handlers
-
-        private void exposuresteps_CheckedChanged(object sender, CheckedChangedEventArgs e)
-        {
-            if (_skipCalculations || !e.Value || _viewModel == null)
-                return;
-
-            try
-            {
-                RadioButton radioButton = (RadioButton)sender;
-
-                if (radioButton == exposurefull)
-                    _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Full;
-                else if (radioButton == exposurehalfstop)
-                    _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Half;
-                else if (radioButton == exposurethirdstop)
-                    _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Third;
-
-                SetupEVSlider();
-                PopulateViewModel();
-                SyncTargetPickers();
-                _viewModel.Calculate();
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error changing exposure steps");
-            }
-        }
-
-        private void PresetPicker_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (_skipCalculations || _viewModel == null)
-                return;
-
-            try
-            {
-                // Preset application is handled in the ViewModel through binding
-                // Just sync the target pickers after preset is applied
-                SyncTargetPickers();
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error selecting preset");
-            }
-        }
-
-        #region Base Exposure Picker Events
-
-        private void ShutterSpeed_Picker_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (_skipCalculations || _viewModel == null)
-                return;
-
-            try
-            {
-                _viewModel.ShutterSpeedSelected = ShutterSpeed_Picker.SelectedItem?.ToString();
-
-                // Update target picker if shutter is not locked
-                if (!_viewModel.IsShutterLocked)
-                {
-                    TargetShutterSpeed_Picker.SelectedItem = _viewModel.ShutterSpeedSelected;
-                }
-
-                _viewModel.Calculate();
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error selecting base shutter speed");
-            }
-        }
-
-        private void fstop_Picker_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (_skipCalculations || _viewModel == null)
-                return;
-
-            try
-            {
-                _viewModel.FStopSelected = fstop_Picker.SelectedItem?.ToString();
-
-                // Update target picker if aperture is not locked
-                if (!_viewModel.IsApertureLocked)
-                {
-                    TargetFstop_Picker.SelectedItem = _viewModel.FStopSelected;
-                }
-
-                _viewModel.Calculate();
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error selecting base aperture");
-            }
-        }
-
-        private void ISO_Picker_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (_skipCalculations || _viewModel == null)
-                return;
-
-            try
-            {
-                _viewModel.ISOSelected = ISO_Picker.SelectedItem?.ToString();
-
-                // Update target picker if ISO is not locked
-                if (!_viewModel.IsIsoLocked)
-                {
-                    TargetISO_Picker.SelectedItem = _viewModel.ISOSelected;
-                }
-
-                _viewModel.Calculate();
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error selecting base ISO");
-            }
-        }
-
-        #endregion
-
-        #region Target Picker Events
-
-        private void TargetShutterSpeed_Picker_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (_skipCalculations || _viewModel == null)
-                return;
-
-            try
-            {
-                string selectedValue = TargetShutterSpeed_Picker.SelectedItem?.ToString();
-                if (!string.IsNullOrEmpty(selectedValue))
-                {
-                    _viewModel.ShutterSpeedSelected = selectedValue;
-
-                    // Update base picker to match
-                    ShutterSpeed_Picker.SelectedItem = selectedValue;
-
-                    _viewModel.Calculate();
-                }
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error selecting target shutter speed");
-            }
-        }
-
-        private void TargetFstop_Picker_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (_skipCalculations || _viewModel == null)
-                return;
-
-            try
-            {
-                string selectedValue = TargetFstop_Picker.SelectedItem?.ToString();
-                if (!string.IsNullOrEmpty(selectedValue))
-                {
-                    _viewModel.FStopSelected = selectedValue;
-
-                    // Update base picker to match
-                    fstop_Picker.SelectedItem = selectedValue;
-
-                    _viewModel.Calculate();
-                }
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error selecting target aperture");
-            }
-        }
-
-        private void TargetISO_Picker_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (_skipCalculations || _viewModel == null)
-                return;
-
-            try
-            {
-                string selectedValue = TargetISO_Picker.SelectedItem?.ToString();
-                if (!string.IsNullOrEmpty(selectedValue))
-                {
-                    _viewModel.ISOSelected = selectedValue;
-
-                    // Update base picker to match
-                    ISO_Picker.SelectedItem = selectedValue;
-
-                    _viewModel.Calculate();
-                }
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error selecting target ISO");
-            }
-        }
-
-        #endregion
-
-        private void EvSlider_ValueChanged(object sender, ValueChangedEventArgs e)
-        {
-            if (_skipCalculations || _viewModel == null)
-                return;
-
-            try
-            {
-                double newValue = Math.Round(e.NewValue / _currentEVStep) * _currentEVStep;
-
-                if (Math.Abs(newValue - _viewModel.EVValue) >= _currentEVStep * 0.5)
-                {
-                    newValue = Math.Round(newValue, 2);
-
-                    if (Math.Abs(EvSlider.Value - newValue) > 0.001)
-                    {
-                        EvSlider.Value = newValue;
-                    }
-
-                    _viewModel.EVValue = newValue;
-                    _viewModel.Calculate();
-                }
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error changing EV value");
-            }
-        }
-
-        private void CloseButton_Pressed(object sender, EventArgs e)
-        {
-            Navigation.PopModalAsync();
-        }
-
-        #endregion
-
-        #region Helper Methods
 
         private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            // Update lock button text when lock states change
-            switch (e.PropertyName)
+            if (_isDisposed) return;
+
+            try
             {
-                case nameof(ExposureCalculatorViewModel.IsShutterLocked):
-                    if (ShutterLockButton != null)
-                        ShutterLockButton.Text = _viewModel.IsShutterLocked ? "LOCK" : "OPEN";
-                    break;
-                case nameof(ExposureCalculatorViewModel.IsApertureLocked):
-                    if (ApertureLockButton != null)
-                        ApertureLockButton.Text = _viewModel.IsApertureLocked ? "LOCK" : "OPEN";
-                    break;
-                case nameof(ExposureCalculatorViewModel.IsIsoLocked):
-                    if (IsoLockButton != null)
-                        IsoLockButton.Text = _viewModel.IsIsoLocked ? "LOCK" : "OPEN";
-                    break;
+                // Update lock button text when lock states change
+                switch (e.PropertyName)
+                {
+                    case nameof(ExposureCalculatorViewModel.IsShutterLocked):
+                    case nameof(ExposureCalculatorViewModel.IsApertureLocked):
+                    case nameof(ExposureCalculatorViewModel.IsIsoLocked):
+                        UpdateLockButtonVisualStates();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleErrorSafely(ex, "Error handling property change");
             }
         }
 
         private void PopulateViewModel()
         {
-            if (_viewModel == null) return;
+            if (_viewModel == null || _isDisposed) return;
 
             try
             {
@@ -546,37 +857,39 @@ namespace Location.Photography.Maui.Views.Premium
                 _viewModel.OldFstop = oldFStop;
                 _viewModel.OldISO = oldISO;
 
-                // Sync target pickers
                 SyncTargetPickers();
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error populating view model");
+                HandleErrorSafely(ex, "Error populating view model");
             }
         }
 
         #endregion
 
-        #region Lifecycle Events
+        #region LIFECYCLE EVENTS (OPTIMIZED)
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
 
             try
             {
-                if (_viewModel != null)
+                if (_viewModel != null && !_isDisposed)
                 {
                     _viewModel.ErrorOccurred -= OnSystemError;
                     _viewModel.ErrorOccurred += OnSystemError;
 
                     // Load presets when page appears
-                    _viewModel.LoadPresetsCommand.Execute(null);
+                    if (_isInitialized)
+                    {
+                        await _viewModel.LoadPresetsCommand.ExecuteAsync(null);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                HandleError(ex, "Error during page appearing");
+                HandleErrorSafely(ex, "Error during page appearing");
             }
         }
 
@@ -584,54 +897,124 @@ namespace Location.Photography.Maui.Views.Premium
         {
             base.OnDisappearing();
 
-            if (_viewModel != null)
+            try
             {
-                _viewModel.ErrorOccurred -= OnSystemError;
-                _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+                if (_viewModel != null)
+                {
+                    _viewModel.ErrorOccurred -= OnSystemError;
+                    _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error during page disappearing: {ex.Message}");
+            }
+        }
+
+        protected void OnDestroy()
+        {
+            try
+            {
+                _isDisposed = true;
+                _uiCancellationSource?.Cancel();
+                _uiCancellationSource?.Dispose();
+                _uiUpdateLock?.Dispose();
+                _lastValueChanges?.Clear();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error during page destruction: {ex.Message}");
+            }
+            finally
+            {
+                
             }
         }
 
         #endregion
 
-        #region Error Handling
+        #region ERROR HANDLING (OPTIMIZED)
+
+        /// <summary>
+        /// PERFORMANCE OPTIMIZATION: Safe error handling that won't crash UI
+        /// </summary>
+        private void HandleErrorSafely(Exception ex, string context)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Error: {context}. {ex.Message}");
+
+                if (_isDisposed) return;
+
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                try
+                {
+                    if (_alertService != null)
+                    {
+                        await _alertService.ShowErrorAlertAsync(context, "Error");
+                    }
+                        else
+                        {
+                            await DisplayAlert("Error", context, "OK");
+                        }
+                    }
+                    catch
+                    {
+                        // Last resort - don't let error handling crash the app
+                        System.Diagnostics.Debug.WriteLine($"Critical: Failed to show error dialog for: {context}");
+                    }
+
+                    if (_viewModel != null)
+                    {
+                        _viewModel.ShowError = true;
+                        _viewModel.ErrorMessage = $"{context}: {ex.Message}";
+                        _viewModel.IsBusy = false;
+                    }
+                });
+            }
+            catch
+            {
+                // Absolutely cannot let error handling itself crash
+                System.Diagnostics.Debug.WriteLine($"Critical error in error handler: {context}");
+            }
+        }
 
         private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
-            var retry = await DisplayAlert("Error", $"{e.Message}. Try again?", "OK", "Cancel");
-            if (retry && sender is ExposureCalculatorViewModel viewModel)
+            try
             {
-                await viewModel.RetryLastCommandAsync();
+                if (_isDisposed) return;
+
+                var retry = await DisplayAlert("Error", $"{e.Message}. Try again?", "OK", "Cancel");
+                if (retry && sender is ExposureCalculatorViewModel viewModel)
+                {
+                    await viewModel.RetryLastCommandAsync();
+                }
             }
-        }
-
-        private void HandleError(Exception ex, string message)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error: {message}. {ex.Message}");
-
-            MainThread.BeginInvokeOnMainThread(async () =>
+            catch (Exception ex)
             {
-                if (_alertService != null)
-                {
-                    await _alertService.ShowErrorAlertAsync(message, "Error");
-                }
-                else
-                {
-                    await DisplayAlert("Error", message, "OK");
-                }
-            });
-
-            if (_viewModel != null)
-            {
-                _viewModel.ShowError = true;
-                _viewModel.ErrorMessage = $"{message}: {ex.Message}";
+                HandleErrorSafely(ex, "Error in system error handler");
             }
         }
 
         #endregion
 
+        #region UNUSED EVENTS (KEPT FOR COMPATIBILITY)
+
         private void ShutterLockButton_Pressed(object sender, EventArgs e)
         {
-
+            // This method is kept for compatibility but functionality moved to HandleLockButtonClick
         }
+
+        public void Dispose()
+        {
+            OnDestroy();
+            OnDisappearing(); // Ensure cleanup on dispose
+        }
+
+
+
+        #endregion
     }
 }

@@ -30,7 +30,7 @@ namespace Location.Photography.Maui.Views.Professional
         {
             InitializeComponent();
             _viewModel = new LightMeterViewModel();
-            _viewModel.LoadExposureArraysAsync();
+            _viewModel.LoadExposureArraysOptimizedAsync();
 
             BindingContext = _viewModel;
         }
@@ -118,7 +118,7 @@ namespace Location.Photography.Maui.Views.Professional
                 _viewModel.IsBusy = true;
 
                 // Initialize the arrays for sliders
-                await _viewModel.LoadExposureArraysAsync();
+                await _viewModel.LoadExposureArraysOptimizedAsync();
 
             }
             catch (Exception ex)
@@ -505,7 +505,7 @@ namespace Location.Photography.Maui.Views.Professional
                     }
 
                     // Reload arrays with new step size
-                    await _viewModel.LoadExposureArraysAsync();
+                    await _viewModel.LoadExposureArraysOptimizedAsync();
 
                     // Recalculate EV with new step precision
                     _viewModel.CalculateEV();

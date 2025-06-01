@@ -245,8 +245,7 @@ namespace Location.Photography.ViewModels
 
                         var result = await _imageAnalysisService.AnalyzeImageAsync(
                             stream,
-                            _cancellationTokenSource.Token,
-                            analysisProgress);
+                            _cancellationTokenSource.Token);
 
                         return result;
                     }

@@ -147,8 +147,8 @@ namespace Location.Photography.Maui
                         return;
                     }
                 }
-
-                await Shell.Current.GoToAsync("//MainPage");
+                var redirect = _serviceProvider.GetRequiredService<AppShell>();
+                Microsoft.Maui.Controls.Application.Current.MainPage = redirect;
             }
             catch (Exception ex)
             {

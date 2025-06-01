@@ -29,7 +29,7 @@ namespace Location.Photography.ViewModels
         private readonly IPredictiveLightService _predictiveLightService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITimezoneService _timezoneService;
-
+        private readonly IWeatherService _weatherService;
         // PERFORMANCE: Threading and caching
         private CancellationTokenSource _cancellationTokenSource = new();
         private readonly SemaphoreSlim _operationLock = new(1, 1);
@@ -192,7 +192,14 @@ namespace Location.Photography.ViewModels
         public LocationListItemViewModel? SelectedLocation
         {
             get => _selectedLocation;
-            set => SetProperty(ref _selectedLocation, value);
+            set
+            {
+                if (SetProperty(ref _selectedLocation, value))
+                {
+                    SelectedLocationProp = value;
+                    OnSelectedLocationChanged(value);
+                }
+            }
         }
 
         public DateTime SelectedDate
@@ -204,7 +211,13 @@ namespace Location.Photography.ViewModels
         public string LocationPhoto
         {
             get => _locationPhoto;
-            set => SetProperty(ref _locationPhoto, value);
+            set
+            {
+                if (SetProperty(ref _locationPhoto, value))
+                {
+                    LocationPhotoProp = value;
+                }
+            }
         }
 
         public string TimeFormat
@@ -386,7 +399,7 @@ namespace Location.Photography.ViewModels
             IErrorDisplayService errorDisplayService,
             IPredictiveLightService predictiveLightService,
             IUnitOfWork unitOfWork,
-            ITimezoneService timezoneService)
+            ITimezoneService timezoneService, IWeatherService weatherService)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -394,7 +407,7 @@ namespace Location.Photography.ViewModels
             _predictiveLightService = predictiveLightService ?? throw new ArgumentNullException(nameof(predictiveLightService));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
-
+            _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
             InitializeTimezoneDisplays();
         }
         #endregion
@@ -501,7 +514,11 @@ namespace Location.Photography.ViewModels
                     _cancellationTokenSource = new CancellationTokenSource();
 
                     ClearErrors();
-                    WeatherDataStatus = "Loading enhanced weather data...";
+
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        WeatherDataStatus = "Loading enhanced weather data...";
+                    });
 
                     // Check cache first
                     var cacheKey = GetCacheKey();
@@ -512,26 +529,32 @@ namespace Location.Photography.ViewModels
                     }
 
                     // Perform calculations in parallel on background thread
-                    var backgroundTask = Task.Run(async () =>
+                    await Task.Run(async () =>
                     {
-                        var tasks = new[]
-                        {
-                            LoadLocationTimezoneOptimizedAsync(),
-                            CalculateSunTimesOptimizedAsync(),
-                            GenerateSunPathPointsOptimizedAsync(),
-                            SynchronizeWeatherDataOptimizedAsync()
-                        };
+                        // Load timezone first
+                        await LoadLocationTimezoneOptimizedAsync();
 
-                        await Task.WhenAll(tasks);
+                        // Update timezone displays on UI thread
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+                        });
+
+                        // Calculate sun times
+                        await CalculateSunTimesOptimizedAsync();
+
+                        // Generate sun path points
+                        await GenerateSunPathPointsOptimizedAsync();
+
+                        // Synchronize weather data
+                        await SynchronizeWeatherDataOptimizedAsync();
 
                         // Cache the results
                         await CacheResultsAsync(cacheKey);
 
-                        return true;
                     }, _cancellationTokenSource.Token);
 
-                    await backgroundTask;
-
+                    // Final UI updates on main thread
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
                         UpdateCurrentPredictionDisplayOptimized();
@@ -775,21 +798,24 @@ namespace Location.Photography.ViewModels
 
             try
             {
-                var weather = await _unitOfWork.Weather.GetByLocationIdAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
+                // Use weather service to get timezone information
+                var weatherResult = await _weatherService.UpdateWeatherForLocationAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
 
-                if (weather != null && !string.IsNullOrEmpty(weather.Timezone))
+                if (weatherResult.IsSuccess && weatherResult.Data != null && !string.IsNullOrEmpty(weatherResult.Data.Timezone))
                 {
                     try
                     {
-                        LocationTimeZone = _timezoneService.GetTimeZoneInfo(weather.Timezone);
+                        LocationTimeZone = _timezoneService.GetTimeZoneInfo(weatherResult.Data.Timezone);
                     }
                     catch
                     {
+                        // Fallback to coordinate-based timezone lookup
                         await DetermineTimezoneFromCoordinatesOptimizedAsync();
                     }
                 }
                 else
                 {
+                    // Fallback to coordinate-based timezone lookup
                     await DetermineTimezoneFromCoordinatesOptimizedAsync();
                 }
 
@@ -1449,23 +1475,27 @@ namespace Location.Photography.ViewModels
 
             try
             {
+                // Get optimal windows starting from current time for next 24 hours
+                var currentTime = DateTime.Now;
                 var optimalQuery = new GetOptimalShootingTimesQuery
                 {
                     Latitude = SelectedLocation.Latitude,
                     Longitude = SelectedLocation.Longitude,
-                    Date = SelectedDate,
+                    Date = currentTime, // Use current date, not selected date
                     IncludeWeatherForecast = true,
                     TimeZone = LocationTimeZone.Id
                 };
 
                 var result = await _mediator.Send(optimalQuery, _cancellationTokenSource.Token);
-                var now = DateTime.UtcNow;
 
                 if (result.IsSuccess && result.Data != null)
                 {
+                    // Filter to only future windows within next 24 hours
+                    var next24Hours = currentTime.AddHours(24);
+
                     var windows = result.Data
-                        .Where(w => w.EndTime > now)
-                        .Take(20) // Limit for performance
+                        .Where(w => w.StartTime > currentTime && w.StartTime <= next24Hours) // Only next 24 hours
+                        .OrderBy(w => w.StartTime) // Order by time
                         .Select(window => new OptimalWindowDisplayModel
                         {
                             WindowType = window.LightQuality.ToString(),
@@ -1475,7 +1505,7 @@ namespace Location.Photography.ViewModels
                             EndTimeDisplay = FormatTimeForTimezoneOptimized(window.EndTime, LocationTimeZone),
                             LightQuality = window.Description,
                             OptimalFor = string.Join(", ", window.IdealFor),
-                            IsCurrentlyActive = DateTime.Now >= window.StartTime && DateTime.Now <= window.EndTime,
+                            IsCurrentlyActive = currentTime >= window.StartTime && currentTime <= window.EndTime,
                             ConfidenceLevel = window.QualityScore,
                             TimeFormat = TimeFormat
                         })
@@ -1766,16 +1796,16 @@ namespace Location.Photography.ViewModels
                 _cancellationTokenSource?.Cancel();
             }
 
-            void OnSelectedLocationChanged(LocationListItemViewModel? value)
+        private void OnSelectedLocationChanged(LocationListItemViewModel? value)
+        {
+            if (value != null)
             {
-                if (value != null)
-                {
-                    LocationPhoto = value.Photo;
-                    _ = CalculateEnhancedSunDataAsync();
-                }
+                LocationPhoto = value.Photo ?? string.Empty;
+                _ = CalculateEnhancedSunDataAsync();
             }
+        }
 
-            [RelayCommand]
+        [RelayCommand]
             public async Task RetryLastCommandAsync()
             {
                 if (LastCommand?.CanExecute(LastCommandParameter) == true)

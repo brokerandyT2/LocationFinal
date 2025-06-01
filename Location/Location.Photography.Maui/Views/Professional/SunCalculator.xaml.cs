@@ -44,12 +44,23 @@ namespace Location.Photography.Maui.Views.Professional
             BindingContext = _viewModel;
             _viewModel.IsBusy = true;
             LoadLocations();
-           _viewModel.IsBusy = false;
+            _viewModel.IsBusy = false;
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            //LocationPicker.SelectedIndexChanged += OnLocationSelectionChanged;
 
         }
 
-
+        private void LocationPicker_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            _viewModel.SelectedLocation = (LocationListItemViewModel)sender;
+            //_viewModel.CalculateEnhancedSunDataCommand.Execute(_viewModel);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _viewModel.CalculateEnhancedSunDataAsync();
+                UpdateSunPathCanvas();
+            }
+            );
+        }
 
         private async void LoadLocations()
         {
@@ -82,7 +93,7 @@ namespace Location.Photography.Maui.Views.Professional
             }
         }
 
-        
+
 
         private bool _isHydrated = false;
         protected override void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -90,14 +101,14 @@ namespace Location.Photography.Maui.Views.Professional
             base.OnPropertyChanged(propertyName);
             if (!_isHydrated && nameof(IsVisible) == propertyName)
             {
-                if(!IsVisible)
+                if (!IsVisible)
                     return;
 
                 LoadLocations();
                 _isHydrated = true;
             }
         }
-        
+
 
         protected override void OnDisappearing()
         {
@@ -142,15 +153,15 @@ namespace Location.Photography.Maui.Views.Professional
             }
         }
 
-        private  void UpdateSunPathCanvas()
+        private void UpdateSunPathCanvas()
         {
-            var time = new GetSettingByKeyQuery() { Key= MagicStrings.TimeFormat };
+            var time = new GetSettingByKeyQuery() { Key = MagicStrings.TimeFormat };
             var date = new GetSettingByKeyQuery() { Key = MagicStrings.DateFormat };
 
-         //   var timeFormat =  _mediator.Send(time).Result.Data.Value;
-        //    var dateFormat = _mediator.Send(date).Result.Data.Value;
-         //   _sunPathDrawable.DateFormat = dateFormat ?? "MM/dd/yyyy";
-         //   _sunPathDrawable.TimeFormat = timeFormat ?? "HH:mm:ss";
+            //   var timeFormat =  _mediator.Send(time).Result.Data.Value;
+            //    var dateFormat = _mediator.Send(date).Result.Data.Value;
+            //   _sunPathDrawable.DateFormat = dateFormat ?? "MM/dd/yyyy";
+            //   _sunPathDrawable.TimeFormat = timeFormat ?? "HH:mm:ss";
 
 
             try
@@ -339,10 +350,16 @@ namespace Location.Photography.Maui.Views.Professional
         {
             try
             {
-                if (_viewModel != null && _viewModel.SelectedLocation != null)
+                if (e.CurrentSelection?.FirstOrDefault() is LocationListItemViewModel selectedLocation)
                 {
-                    await _viewModel.CalculateEnhancedSunDataAsync();
-                    UpdateSunPathCanvas();
+                    _viewModel.SelectedLocation = selectedLocation;
+                    _viewModel.LocationPhoto = selectedLocation.Photo ?? string.Empty;
+
+                    if (_viewModel != null)
+                    {
+                        await _viewModel.CalculateEnhancedSunDataAsync();
+                        UpdateSunPathCanvas();
+                    }
                 }
             }
             catch (Exception ex)

@@ -17,7 +17,17 @@ namespace Location.Core.Domain.Entities
         private string? _photoPath;
         private bool _isDeleted;
         private DateTime _timestamp;
-
+        private int _id;
+        public int Id
+        {
+            get => _id;
+            private set
+            {
+                if (value <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(value), "Id must be greater than zero");
+                _id = value;
+            }
+        }
         public string Title
         {
             get => _title;

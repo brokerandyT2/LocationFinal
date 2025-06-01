@@ -769,21 +769,45 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 coordinateNew,
                 addressNew);
 
-            // Create initialization expressions for setting private properties
+            // Create initialization expressions for setting properties
             var locationVar = Expression.Variable(typeof(Domain.Entities.Location), "location");
             var initExpressions = new List<Expression>
-           {
-               Expression.Assign(locationVar, locationNew)
-           };
+   {
+       Expression.Assign(locationVar, locationNew)
+   };
 
-            // Set private properties using cached setters
+            // Set the Id property correctly
             var idProperty = typeof(Domain.Entities.Location).GetProperty("Id");
             if (idProperty?.CanWrite == true)
             {
-                initExpressions.Add(Expression.Call(
+                initExpressions.Add(Expression.Assign(
                     Expression.Property(locationVar, idProperty),
-                    typeof(int).GetMethod("Equals", new[] { typeof(object) })!,
-                    Expression.Convert(Expression.Property(entityParam, nameof(LocationEntity.Id)), typeof(object))));
+                    Expression.Property(entityParam, nameof(LocationEntity.Id))));
+            }
+
+            // Set other properties
+            var photoPathProperty = typeof(Domain.Entities.Location).GetProperty("PhotoPath");
+            if (photoPathProperty?.CanWrite == true)
+            {
+                initExpressions.Add(Expression.Assign(
+                    Expression.Property(locationVar, photoPathProperty),
+                    Expression.Property(entityParam, nameof(LocationEntity.PhotoPath))));
+            }
+
+            var isDeletedProperty = typeof(Domain.Entities.Location).GetProperty("IsDeleted");
+            if (isDeletedProperty?.CanWrite == true)
+            {
+                initExpressions.Add(Expression.Assign(
+                    Expression.Property(locationVar, isDeletedProperty),
+                    Expression.Property(entityParam, nameof(LocationEntity.IsDeleted))));
+            }
+
+            var timestampProperty = typeof(Domain.Entities.Location).GetProperty("Timestamp");
+            if (timestampProperty?.CanWrite == true)
+            {
+                initExpressions.Add(Expression.Assign(
+                    Expression.Property(locationVar, timestampProperty),
+                    Expression.Property(entityParam, nameof(LocationEntity.Timestamp))));
             }
 
             initExpressions.Add(locationVar);

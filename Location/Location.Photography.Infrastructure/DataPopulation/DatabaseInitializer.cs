@@ -156,25 +156,25 @@ namespace Location.Photography.Infrastructure
                        "Soldiers and Sailors Monument",
                        "Located in the heart of downtown in Monument Circle, it was originally designed to honor Indiana's Civil War veterans. It now commemorates the valor of Hoosier veterans who served in all wars prior to WWI, including the Revolutionary War, the War of 1812, the Mexican War, the Civil War, the Frontier Wars and the Spanish-American War. One of the most popular parts of the monument is the observation deck with a 360-degree view of the city skyline from 275 feet up.",
                        39.7685, -86.1580,
-                       "Resources/Images/s_and_sm_new.jpg"
+                       "s_and_sm_new.jpg"
                    ),
                    (
                        "The Bean",
                        "What is The Bean?\r\nThe Bean is a work of public art in the heart of Chicago. The sculpture, which is officially titled Cloud Gate, is one of the world's largest permanent outdoor art installations. The monumental work was unveiled in 2004 and quickly became of the Chicago's most iconic sights.",
                        41.8827, -87.6233,
-                       "Resources/Images/chicagobean.jpg"
+                       "chicagobean.jpg"
                    ),
                    (
                        "Golden Gate Bridge",
                        "The Golden Gate Bridge is a suspension bridge spanning the Golden Gate strait, the one-mile-wide (1.6 km) channel between San Francisco Bay and the Pacific Ocean. The strait is the entrance to San Francisco Bay from the Pacific Ocean. The bridge connects the city of San Francisco, California, to Marin County, carrying both U.S. Route 101 and California State Route 1 across the strait.",
                        37.8199, -122.4783,
-                       "Resources/Images/ggbridge.jpg"
+                       "ggbridge.jpg"
                    ),
                    (
                        "Gateway Arch",
                        "The Gateway Arch is a 630-foot (192 m) monument in St. Louis, Missouri, that commemorates Thomas Jefferson and the westward expansion of the United States. The arch is the centerpiece of the Gateway Arch National Park and is the tallest arch in the world.",
                        38.6247, -90.1848,
-                       "Resources/Images/stlarch.jpg"
+                       "stlarch.jpg"
                    )
                };
 

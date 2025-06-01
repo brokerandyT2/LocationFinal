@@ -102,11 +102,11 @@ namespace Location.Core.Infrastructure.Data
 
                 // Enable foreign keys and performance optimizations
                 await _connection.ExecuteAsync("PRAGMA foreign_keys = ON");
-                await _connection.ExecuteAsync($"PRAGMA busy_timeout = {BUSY_TIMEOUT_MS}");
-                await _connection.ExecuteAsync("PRAGMA journal_mode = WAL");
-                await _connection.ExecuteAsync("PRAGMA synchronous = NORMAL");
-                await _connection.ExecuteAsync("PRAGMA cache_size = 10000");
-                await _connection.ExecuteAsync("PRAGMA temp_store = MEMORY");
+                //await _connection.ExecuteAsync($"PRAGMA busy_timeout = {BUSY_TIMEOUT_MS}");
+                //await _connection.ExecuteAsync("PRAGMA journal_mode = WAL");
+                //await _connection.ExecuteAsync("PRAGMA synchronous = NORMAL");
+                //await _connection.ExecuteAsync("PRAGMA cache_size = 10000");
+                //await _connection.ExecuteAsync("PRAGMA temp_store = MEMORY");
 
                 _logger.LogDebug("Database PRAGMA settings configured");
 

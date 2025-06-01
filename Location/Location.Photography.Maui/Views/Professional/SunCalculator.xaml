@@ -47,10 +47,10 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Label Grid.Row="0" Text="Choose your location" FontSize="14"/>
-                            <Picker Grid.Row="1" ItemsSource="{Binding Locations}" 
-                                SelectedItem="{Binding SelectedLocation}"
-                                ItemDisplayBinding="{Binding Title}" x:Name="LocationPicker"
-                                FontSize="14" Margin="0,5,0,0"/>
+                            <Picker Grid.Row="1" ItemsSource="{Binding Locations, Mode=TwoWay}" 
+   SelectedItem="{Binding SelectedLocation}"
+   ItemDisplayBinding="{Binding Title}" x:Name="LocationPicker"
+   FontSize="14" Margin="0,5,0,0"/>
                         </Grid>
 
                         <!-- Date Picker -->

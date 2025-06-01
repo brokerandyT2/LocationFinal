@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {
-    public partial class SubscriptionSignUpViewModel : ViewModelBase, INavigationAware
+    public partial class SubscriptionSignUpViewModel : ViewModelBase
     {
         #region Fields
         private readonly IMediator _mediator;

@@ -28,14 +28,54 @@ namespace Location.Photography.Application.Queries.SunLocation
         {
             try
             {
+                var currentTime = DateTime.UtcNow;
+
+                TimeZoneInfo zone = TimeZoneInfo.FindSystemTimeZoneById(request.TimeZone);
+
+                currentTime = TimeZoneInfo.ConvertTimeFromUtc(currentTime, zone);
+
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var optimalTimes = new List<OptimalShootingTime>();
 
                 var sunrise = _sunCalculatorService.GetSunrise(request.Date, request.Latitude, request.Longitude, request.TimeZone);
+                if(sunrise < currentTime)
+                {
+                    sunrise = _sunCalculatorService.GetSunrise(request.Date.AddDays(1), request.Latitude, request.Longitude, request.TimeZone);
+                }
                 var sunset = _sunCalculatorService.GetSunset(request.Date, request.Latitude, request.Longitude, request.TimeZone);
+                if (sunset < currentTime)
+                {
+                    sunset = _sunCalculatorService.GetSunset(request.Date.AddDays(1), request.Latitude, request.Longitude, request.TimeZone);
+                }
                 var civilDawn = _sunCalculatorService.GetCivilDawn(request.Date, request.Latitude, request.Longitude, request.TimeZone);
+                if(civilDawn < currentTime)
+                {
+                    civilDawn = _sunCalculatorService.GetCivilDawn(request.Date.AddDays(1), request.Latitude, request.Longitude, request.TimeZone);
+                }
                 var civilDusk = _sunCalculatorService.GetCivilDusk(request.Date, request.Latitude, request.Longitude, request.TimeZone);
+                if(civilDusk < currentTime)
+                {
+                    civilDusk = _sunCalculatorService.GetCivilDusk(request.Date.AddDays(1), request.Latitude, request.Longitude, request.TimeZone);
+                }
+
+                var solarNoon = _sunCalculatorService.GetSolarNoon(request.Date, request.Latitude, request.Longitude, request.TimeZone);
+
+                if(solarNoon < currentTime)
+                {
+                    solarNoon = _sunCalculatorService.GetSolarNoon(request.Date.AddDays(1), request.Latitude, request.Longitude, request.TimeZone);
+                }
+
+                optimalTimes.Add(new OptimalShootingTime()
+                {
+                    StartTime = solarNoon,
+                    EndTime = solarNoon,
+                    LightQuality = LightQuality.Harsh,
+                    QualityScore = 0.9,
+                    IdealFor = new List<string> { "Landscapes", "Architecture" },
+                    Description = "Solar Noon - Strong, generally harsh light.  Minimal shadows"
+                });
 
                 optimalTimes.Add(new OptimalShootingTime
                 {

@@ -65,8 +65,8 @@ namespace Location.Core.Application.Mappings
         {
             // This allows for direct database projections without loading full entities
             // Usage: queryable.ProjectTo<LocationListDto>(_mapper.ConfigurationProvider)
-            CreateMap<TSource, TDestination>()
-                .ConstructUsing((src, context) => context.Mapper.Map<TDestination>(src));
+            ////CreateMap<TSource, TDestination>()
+             //   .ConstructUsing((src, context) => context.Mapper.Map<TDestination>(src));
         }
     }
 
