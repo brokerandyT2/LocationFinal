@@ -199,7 +199,10 @@ namespace Location.Core.Infrastructure.Data
 
         public SQLiteAsyncConnection GetConnection()
         {
-            EnsureInitialized();
+            if (!_isInitialized)
+            {
+                throw new InvalidOperationException("Database must be initialized before use. Call InitializeDatabaseAsync() first.");
+            }
             return _connection;
         }
 
@@ -298,7 +301,10 @@ namespace Location.Core.Infrastructure.Data
 
         public AsyncTableQuery<T> Table<T>() where T : class, new()
         {
-            EnsureInitialized();
+            if (!_isInitialized)
+            {
+                throw new InvalidOperationException("Database must be initialized before use. Call InitializeDatabaseAsync() first.");
+            }
             return _connection.Table<T>();
         }
 
@@ -617,20 +623,7 @@ namespace Location.Core.Infrastructure.Data
             }
         }
 
-        private void EnsureInitialized()
-        {
-            if (!_isInitialized)
-            {
-                // For synchronous calls, use a lock to prevent multiple threads from initializing
-                lock (_initializationSemaphore)
-                {
-                    if (!_isInitialized)
-                    {
-                        InitializeDatabaseAsync().GetAwaiter().GetResult();
-                    }
-                }
-            }
-        }
+       
 
         #endregion
 
