@@ -372,10 +372,16 @@ namespace Location.Photography.Maui.Views.Professional
         {
             try
             {
-                if (_viewModel != null && _viewModel.SelectedLocation != null)
+                if (_viewModel != null)
                 {
-                    await _viewModel.CalculateEnhancedSunDataAsync();
-                    UpdateSunPathCanvas();
+                    // Cancel any ongoing operations before starting new ones
+                    _viewModel.CancelAllOperations(); // You'll need to make this method public
+
+                    if (_viewModel.SelectedLocation != null)
+                    {
+                        await _viewModel.CalculateEnhancedSunDataAsync();
+                        UpdateSunPathCanvas();
+                    }
                 }
             }
             catch (Exception ex)
@@ -466,5 +472,9 @@ namespace Location.Photography.Maui.Views.Professional
             return _sunPathDrawable;
         }
 
+        private void DatePicker_DateSelected(object sender, DateChangedEventArgs e)
+        {
+
+        }
     }
 }

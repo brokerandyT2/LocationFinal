@@ -207,6 +207,8 @@ namespace Location.Photography.ViewModels
 
         public string CompactSummary => $"{FormattedPrediction} • {ConfidenceDisplay} • {LightQuality}";
 
+        public double ShootingQualityScore { get; internal set; }
+
         // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler PropertyChanged;
 

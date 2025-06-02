@@ -14,7 +14,8 @@ namespace Location.Photography.Domain.Services
         /// Gets the sunrise time for a specific date and location (returns UTC)
         /// </summary>
         DateTime GetSunrise(DateTime date, double latitude, double longitude, string timezone);
-
+        DateTime GetSunriseEnd(DateTime date, double latitude, double longitude, string timezone);
+        DateTime GetSunsetStart(DateTime date, double latitude, double longitude, string timezone);
         /// <summary>
         /// Gets the sunset time for a specific date and location (returns UTC)
         /// </summary>

@@ -75,13 +75,36 @@ namespace Location.Photography.ViewModels
         private string _weatherDataStatus = "Loading...";
         private DateTime _weatherLastUpdate;
         #endregion
+        private CancellationTokenSource _sunPathCancellationTokenSource = new();
+        private CancellationTokenSource _hourlyForecastsCancellationTokenSource = new();
+        private CancellationTokenSource _optimalEventsCancellationTokenSource = new();
 
+        // Method to cancel all ongoing operations
+        public void CancelAllOperations()
+        {
+            _sunPathCancellationTokenSource?.Cancel();
+            _hourlyForecastsCancellationTokenSource?.Cancel();
+            _optimalEventsCancellationTokenSource?.Cancel();
+
+            // Create new token sources for next operations
+            _sunPathCancellationTokenSource = new CancellationTokenSource();
+            _hourlyForecastsCancellationTokenSource = new CancellationTokenSource();
+            _optimalEventsCancellationTokenSource = new CancellationTokenSource();
+        }
         #region Properties
         public ObservableCollection<LocationListItemViewModel> Locations
         {
             get => _locations;
             set => SetProperty(ref _locations, value);
         }
+        [ObservableProperty]
+        private bool _isSunPathLoading;
+
+        [ObservableProperty]
+        private bool _isHourlyForecastsLoading;
+
+        [ObservableProperty]
+        private bool _isOptimalEventsLoading;
 
         [ObservableProperty]
         private LocationListItemViewModel? _selectedLocationProp;
@@ -417,6 +440,10 @@ namespace Location.Photography.ViewModels
         [RelayCommand]
         public async Task LoadLocationsAsync()
         {
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                IsOptimalEventsLoading = IsHourlyForecastsLoading = IsSunPathLoading = true;
+            });
             if (!await _operationLock.WaitAsync(100))
             {
                 return; // Skip if another operation is in progress
@@ -488,6 +515,7 @@ namespace Location.Photography.ViewModels
             }
             finally
             {
+
                 _operationLock.Release();
             }
         }
@@ -499,7 +527,10 @@ namespace Location.Photography.ViewModels
             {
                 return; // Skip if another operation is in progress
             }
-
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                IsHourlyForecastsLoading = IsOptimalEventsLoading = IsSunPathLoading = true;
+            });
             var command = new AsyncRelayCommand(async () =>
             {
                 try
@@ -545,7 +576,10 @@ namespace Location.Photography.ViewModels
 
                         // Generate sun path points
                         await GenerateSunPathPointsOptimizedAsync();
-
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            IsSunPathLoading = false;
+                        });
                         // Synchronize weather data
                         await SynchronizeWeatherDataOptimizedAsync();
 
@@ -815,7 +849,7 @@ namespace Location.Photography.ViewModels
                     }
                     catch (Exception ex)
                     {
-                       // _logger?.LogWarning(ex, "Failed to parse stored timezone {Timezone}, will fetch fresh data", weather.Timezone);
+                        // _logger?.LogWarning(ex, "Failed to parse stored timezone {Timezone}, will fetch fresh data", weather.Timezone);
                     }
                 }
 
@@ -835,7 +869,7 @@ namespace Location.Photography.ViewModels
                     }
                     catch (Exception ex)
                     {
-                       // _logger?.LogWarning(ex, "Failed to parse API timezone {Timezone}, falling back to coordinate lookup", weatherResult.Data.Timezone);
+                        // _logger?.LogWarning(ex, "Failed to parse API timezone {Timezone}, falling back to coordinate lookup", weatherResult.Data.Timezone);
                     }
                 }
 
@@ -949,7 +983,7 @@ namespace Location.Photography.ViewModels
                 IntervalMinutes = 15
             };
 
-            var result = await _mediator.Send(pathQuery, _cancellationTokenSource.Token);
+            var result = await _mediator.Send(pathQuery, _sunPathCancellationTokenSource.Token);
 
             if (result.IsSuccess && result.Data != null)
             {
@@ -968,6 +1002,7 @@ namespace Location.Photography.ViewModels
                     {
                         SunPathPoints.Add(point);
                     }
+
                 });
             }
         }
@@ -1258,10 +1293,12 @@ namespace Location.Photography.ViewModels
                 if (HourlyWeatherData?.HourlyForecasts?.Any() == true)
                 {
                     predictions = await GeneratePredictionsFromHourlyWeatherOptimizedAsync();
+
                 }
                 else
                 {
                     predictions = await GenerateBasicPredictionsOptimizedAsync();
+
                 }
 
                 await MainThread.InvokeOnMainThreadAsync(() =>
@@ -1276,9 +1313,20 @@ namespace Location.Photography.ViewModels
                 // Cache the results
                 _predictionCache[cacheKey] = predictions;
             }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancelled - don't treat as error
+            }
             catch (Exception ex)
             {
                 OnSystemError($"Error generating weather-aware predictions: {ex.Message}");
+            }
+            finally
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsHourlyForecastsLoading = false;
+                });
             }
         }
 
@@ -1354,6 +1402,17 @@ namespace Location.Photography.ViewModels
             var weatherImpact = CalculateHourlyWeatherImpactOptimized(hourlyForecast);
             var lightPrediction = CreateBasicLightPredictionOptimized(hourlyForecast, sunPosition, weatherImpact);
 
+            var weatherConditions = new WeatherConditions
+            {
+                CloudCover = hourlyForecast.Clouds / 100.0,
+                Precipitation = hourlyForecast.ProbabilityOfPrecipitation,
+                Humidity = hourlyForecast.Humidity / 100.0,
+                Visibility = hourlyForecast.Visibility,
+                UvIndex = hourlyForecast.UvIndex,
+                WindSpeed = hourlyForecast.WindSpeed
+            };
+
+            var shootingQuality = CalculateShootingQualityScore(lightPrediction, sunPosition, weatherConditions);
             return new HourlyPredictionDisplayModel
             {
                 Time = hourlyForecast.DateTime,
@@ -1375,7 +1434,8 @@ namespace Location.Photography.ViewModels
                 PrecipitationProbability = hourlyForecast.ProbabilityOfPrecipitation,
                 WindInfo = $"{hourlyForecast.WindSpeed:F1} mph {GetCardinalDirectionOptimized(hourlyForecast.WindDirection)}",
                 UvIndex = hourlyForecast.UvIndex,
-                Humidity = hourlyForecast.Humidity
+                Humidity = hourlyForecast.Humidity,
+                ShootingQualityScore = shootingQuality
             };
         }
 
@@ -1496,6 +1556,7 @@ namespace Location.Photography.ViewModels
 
             try
             {
+                IsOptimalEventsLoading = true;
                 // Get optimal windows starting from current time for next 24 hours
                 var currentTime = DateTime.Now;
                 var optimalQuery = new GetOptimalShootingTimesQuery
@@ -1515,11 +1576,9 @@ namespace Location.Photography.ViewModels
                     var next24Hours = currentTime.AddHours(24);
 
                     var windows = result.Data
-                        .Where(w => w.StartTime > currentTime && w.StartTime <= next24Hours) // Only next 24 hours
-                        .OrderBy(w => w.StartTime) // Order by time
                         .Select(window => new OptimalWindowDisplayModel
                         {
-                            WindowType = window.LightQuality.ToString(),
+                            WindowType = window.Description.ToString(),
                             StartTime = window.StartTime,
                             EndTime = window.EndTime,
                             StartTimeDisplay = FormatTimeForTimezoneOptimized(window.StartTime, LocationTimeZone),
@@ -1541,10 +1600,18 @@ namespace Location.Photography.ViewModels
                         }
                     });
                 }
+
             }
             catch (Exception ex)
             {
                 OnSystemError($"Error calculating optimal windows: {ex.Message}");
+            }
+            finally
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsOptimalEventsLoading = false;
+                });
             }
         }
 
@@ -1699,64 +1766,188 @@ namespace Location.Photography.ViewModels
             var isGoldenHour = sunPosition.Elevation < 15 && sunPosition.Elevation > 0;
 
             return hasGoodLight && weatherIsManageable || isGoldenHour;
+        }
+
+        private string GetCardinalDirectionOptimized(double degrees)
+        {
+            var directions = new[] { "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW" };
+            var index = (int)Math.Round(degrees / 22.5) % 16;
+            return directions[index];
+        }
+
+        private string ExtractApertureValueOptimized(string aperture)
+        {
+            return aperture?.Replace("f/", "") ?? "8";
+        }
+
+        private string ExtractISOValueOptimized(string iso)
+        {
+            return iso?.Replace("ISO ", "") ?? "100";
+        }
+
+        private double CalculateEnhancedConfidenceOptimized(HourlyLightPrediction prediction, WeatherImpactAnalysis weather)
+        {
+            double baseConfidence = 0.90;
+
+            // Time decay: 0.2% per hour
+            var hoursFromNow = (prediction.DateTime - DateTime.Now).TotalHours;
+            baseConfidence -= (hoursFromNow * 0.002);
+
+            // Precipitation uncertainty: multiply by inverse of rain chance
+            if (weather.CurrentConditions?.Precipitation > 0)
+            {
+                var precipitationChance = weather.CurrentConditions.Precipitation;
+                var precipitationUncertainty = Math.Abs(precipitationChance - 0.5) * 2; // 0 to 1 scale
+                baseConfidence *= precipitationUncertainty;
             }
 
-            private string GetCardinalDirectionOptimized(double degrees)
+            // Weather data freshness: 5% penalty per 12 hours old
+            var weatherAge = DateTime.Now - WeatherLastUpdate;
+            var weatherAgeHours = weatherAge.TotalHours;
+            var weatherAgePenalty = Math.Floor(weatherAgeHours / 12.0) * 0.05;
+            baseConfidence -= weatherAgePenalty;
+
+            // Sun position calculation uncertainty for night predictions
+            if (prediction.SunPosition?.IsAboveHorizon == false)
             {
-                var directions = new[] { "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW" };
-                var index = (int)Math.Round(degrees / 22.5) % 16;
-                return directions[index];
+                // Night predictions have inherent uncertainty
+                baseConfidence *= 0.8; // 20% reduction for night predictions
             }
 
-            private string ExtractApertureValueOptimized(string aperture)
+            // Final bounds: confidence between 10% and 100%
+            return Math.Max(0.1, Math.Min(1.0, baseConfidence));
+        }
+        private double CalculateShootingQualityScore(HourlyLightPrediction prediction, SunPositionDto sunPosition, WeatherConditions? weather)
+        {
+            double qualityScore = 0.0;
+            var maxScore = 100.0;
+
+            // 1. Sun elevation score (40% of total) - Factor in morning AND evening golden hours
+            double sunScore = 0.0;
+            if (sunPosition.IsAboveHorizon)
             {
-                return aperture?.Replace("f/", "") ?? "8";
-            }
-
-            private string ExtractISOValueOptimized(string iso)
-            {
-                return iso?.Replace("ISO ", "") ?? "100";
-            }
-
-            private double CalculateEnhancedConfidenceOptimized(HourlyLightPrediction prediction, WeatherImpactAnalysis weather)
-            {
-                double baseConfidence = 0.90;
-
-                var hoursFromNow = (prediction.DateTime - DateTime.Now).TotalHours;
-                var daysFromNow = hoursFromNow / 24.0;
-                baseConfidence -= (daysFromNow * 0.05);
-
-                if (weather.CurrentConditions != null)
+                var elevation = sunPosition.Elevation;
+                if (elevation <= 10) // Golden hour
                 {
-                    baseConfidence -= (weather.CurrentConditions.CloudCover * 0.3);
-                    if (weather.CurrentConditions.Precipitation > 0)
-                    {
-                        baseConfidence -= 0.4;
-                    }
+                    sunScore = 40.0; // Maximum sun score
                 }
-
-                var hour = prediction.DateTime.Hour;
-                if (hour <= 6 || hour >= 18)
+                else if (elevation <= 30) // Good light
                 {
-                    baseConfidence -= 0.2;
+                    sunScore = 32.0; // 80% of max
                 }
-
-                if (prediction.SunPosition?.IsAboveHorizon == false)
+                else if (elevation <= 60) // Moderate light
                 {
-                    var dayOfMonth = prediction.DateTime.Day;
-                    var approximateMoonPhase = Math.Abs(dayOfMonth - 15) / 15.0;
-
-                    if (approximateMoonPhase < 0.2)
-                        baseConfidence = Math.Max(baseConfidence, 0.7);
-                    else if (approximateMoonPhase > 0.8)
-                        baseConfidence = Math.Min(baseConfidence, 0.3);
-                    else
-                        baseConfidence = Math.Min(baseConfidence, 0.5);
+                    sunScore = 24.0; // 60% of max
                 }
-
-                return Math.Max(0.1, Math.Min(1.0, baseConfidence));
+                else // Harsh overhead light
+                {
+                    sunScore = 16.0; // 40% of max
+                }
             }
+            else // Night/below horizon
+            {
+                sunScore = 20.0; // 50% of max for night photography
+            }
+            qualityScore += sunScore;
 
+            // 2. Cloud cover score (25% of total) - Some clouds enhance drama
+            double cloudScore = 0.0;
+            if (weather?.CloudCover != null)
+            {
+                var clouds = weather.CloudCover / 100.0; // Convert to 0-1 scale
+                if (clouds <= 0.2) // 0-20% clouds
+                {
+                    cloudScore = 20.0; // 80% of max cloud score
+                }
+                else if (clouds <= 0.5) // 20-50% clouds - dramatic
+                {
+                    cloudScore = 25.0; // Maximum cloud score
+                }
+                else if (clouds <= 0.8) // 50-80% clouds - overcast but workable
+                {
+                    cloudScore = 15.0; // 60% of max
+                }
+                else // 80%+ clouds - flat gray
+                {
+                    cloudScore = 10.0; // 40% of max
+                }
+            }
+            else
+            {
+                cloudScore = 20.0; // Default moderate score if no data
+            }
+            qualityScore += cloudScore;
+
+            // 3. Precipitation score (15% of total) - Use uncertainty model
+            double precipScore = 0.0;
+            if (weather?.Precipitation != null)
+            {
+                var precipChance = weather.Precipitation;
+                // Distance from 50% uncertainty - closer to 0% or 100% = better for specific photo types
+                var precipCertainty = Math.Abs(precipChance - 0.5) * 2; // 0 to 1 scale
+                precipScore = precipCertainty * 15.0; // Scale to 15% max
+            }
+            else
+            {
+                precipScore = 15.0; // Default full score if no data
+            }
+            qualityScore += precipScore;
+
+            // 4. UV Index score (10% of total) - Sun brightness
+            double uvScore = 0.0;
+            if (weather?.UvIndex != null)
+            {
+                var uvIndex = weather.UvIndex;
+                if (uvIndex <= 2) // Low light
+                {
+                    uvScore = 5.0; // 50% of max
+                }
+                else if (uvIndex <= 5) // Good light
+                {
+                    uvScore = 8.0; // 80% of max
+                }
+                else if (uvIndex <= 8) // Excellent light
+                {
+                    uvScore = 10.0; // Maximum UV score
+                }
+                else // Very bright (9+)
+                {
+                    uvScore = 7.0; // 70% of max (may need filters)
+                }
+            }
+            else
+            {
+                uvScore = 8.0; // Default good score if no data
+            }
+            qualityScore += uvScore;
+
+            // 5. Visibility score (10% of total) - Atmospheric clarity
+            double visibilityScore = 0.0;
+            if (weather?.Visibility != null)
+            {
+                var visibility = weather.Visibility; // In meters
+                if (visibility >= 10000) // 10km+ - excellent clarity
+                {
+                    visibilityScore = 10.0; // Maximum visibility score
+                }
+                else if (visibility >= 5000) // 5-10km - good clarity
+                {
+                    visibilityScore = 7.0; // 70% of max
+                }
+                else // <5km - reduced clarity (haze/pollution)
+                {
+                    visibilityScore = 4.0; // 40% of max
+                }
+            }
+            else
+            {
+                visibilityScore = 8.0; // Default good score if no data
+            }
+            qualityScore += visibilityScore;
+
+            // Ensure score is within bounds (0-100)
+            return Math.Max(0.0, Math.Min(maxScore, qualityScore));
+        }
         private string FormatTimeForTimezoneOptimized(DateTime utcTime, TimeZoneInfo timezone)
         {
             try
@@ -1796,110 +1987,112 @@ namespace Location.Photography.ViewModels
 
         #region Legacy Methods
         private void InitializeTimezoneDisplays()
-            {
-                DeviceTimeZoneDisplay = $"Device: {DeviceTimeZone.DisplayName}";
-                LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
-            }
+        {
+            DeviceTimeZoneDisplay = $"Device: {DeviceTimeZone.DisplayName}";
+            LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+        }
 
-            protected override void OnErrorOccurred(string message)
-            {
-                ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
-            }
+        protected override void OnErrorOccurred(string message)
+        {
+            ErrorOccurred?.Invoke(this, new OperationErrorEventArgs(OperationErrorSource.Unknown, message));
+        }
 
-            public void OnNavigatedToAsync()
-            {
-                SelectedDate = DateTime.Today;
-                _ = LoadLocationsAsync();
-            }
+        public void OnNavigatedToAsync()
+        {
+            SelectedDate = DateTime.Today;
+            _ = LoadLocationsAsync();
+        }
 
-            public void OnNavigatedFromAsync()
-            {
-                _cancellationTokenSource?.Cancel();
-            }
+        public void OnNavigatedFromAsync()
+        {
+            _cancellationTokenSource?.Cancel();
+        }
 
         private void OnSelectedLocationChanged(LocationListItemViewModel? value)
         {
             if (value != null)
             {
+                CancelAllOperations();
+
                 LocationPhoto = value.Photo ?? string.Empty;
                 _ = CalculateEnhancedSunDataAsync();
             }
         }
 
         [RelayCommand]
-            public async Task RetryLastCommandAsync()
-            {
-                if (LastCommand?.CanExecute(LastCommandParameter) == true)
-                {
-                    await LastCommand.ExecuteAsync(LastCommandParameter);
-                }
-            }
-
-
-            public async Task SynchronizeWeatherDataWithProgressAsync(IProgress<string> progress = null)
-            {
-                if (SelectedLocation == null) return;
-
-                try
-                {
-                    progress?.Report("Starting weather synchronization...");
-
-                    // Phase 1: Force update weather data
-                    progress?.Report("Updating weather data from API...");
-                    await SynchronizeWeatherDataOptimizedAsync();
-
-                    progress?.Report("Weather synchronization complete");
-
-                    await MainThread.InvokeOnMainThreadAsync(() =>
-                    {
-                        UpdateCurrentPredictionDisplayOptimized();
-                    });
-                }
-                catch (OperationCanceledException)
-                {
-                    progress?.Report("Weather synchronization cancelled");
-                }
-                catch (Exception ex)
-                {
-                    progress?.Report("Weather synchronization failed");
-                    OnSystemError($"Weather sync error: {ex.Message}");
-                }
-            }
-
-            public override void Dispose()
-            {
-                _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource?.Dispose();
-                _operationLock?.Dispose();
-
-                // Clear caches
-                _weatherCache.Clear();
-                _predictionCache.Clear();
-
-                base.Dispose();
-            }
-            #endregion
-        }
-
-        public class WeatherDataResult
+        public async Task RetryLastCommandAsync()
         {
-            public bool IsSuccess { get; set; }
-            public Location.Core.Domain.Entities.Weather? Weather { get; set; }
-            public WeatherForecastDto? WeatherForecast { get; set; }
-            public string Source { get; set; } = string.Empty;
-            public string? ErrorMessage { get; set; }
-            public WeatherImpactAnalysis WeatherImpact { get; set; } = new();
-            public DateTime Timestamp { get; set; } = DateTime.Now;
+            if (LastCommand?.CanExecute(LastCommandParameter) == true)
+            {
+                await LastCommand.ExecuteAsync(LastCommandParameter);
+            }
         }
 
-        // Weather impact calculation helper
-        public class WeatherImpactFactor
+
+        public async Task SynchronizeWeatherDataWithProgressAsync(IProgress<string> progress = null)
         {
-            public double CloudCoverReduction { get; set; }
-            public double PrecipitationReduction { get; set; }
-            public double HumidityReduction { get; set; }
-            public double VisibilityReduction { get; set; }
-            public double OverallLightReductionFactor { get; set; }
-            public double ConfidenceImpact { get; set; }
+            if (SelectedLocation == null) return;
+
+            try
+            {
+                progress?.Report("Starting weather synchronization...");
+
+                // Phase 1: Force update weather data
+                progress?.Report("Updating weather data from API...");
+                await SynchronizeWeatherDataOptimizedAsync();
+
+                progress?.Report("Weather synchronization complete");
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    UpdateCurrentPredictionDisplayOptimized();
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                progress?.Report("Weather synchronization cancelled");
+            }
+            catch (Exception ex)
+            {
+                progress?.Report("Weather synchronization failed");
+                OnSystemError($"Weather sync error: {ex.Message}");
+            }
         }
+
+        public override void Dispose()
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _operationLock?.Dispose();
+
+            // Clear caches
+            _weatherCache.Clear();
+            _predictionCache.Clear();
+
+            base.Dispose();
+        }
+        #endregion
     }
+
+    public class WeatherDataResult
+    {
+        public bool IsSuccess { get; set; }
+        public Location.Core.Domain.Entities.Weather? Weather { get; set; }
+        public WeatherForecastDto? WeatherForecast { get; set; }
+        public string Source { get; set; } = string.Empty;
+        public string? ErrorMessage { get; set; }
+        public WeatherImpactAnalysis WeatherImpact { get; set; } = new();
+        public DateTime Timestamp { get; set; } = DateTime.Now;
+    }
+
+    // Weather impact calculation helper
+    public class WeatherImpactFactor
+    {
+        public double CloudCoverReduction { get; set; }
+        public double PrecipitationReduction { get; set; }
+        public double HumidityReduction { get; set; }
+        public double VisibilityReduction { get; set; }
+        public double OverallLightReductionFactor { get; set; }
+        public double ConfidenceImpact { get; set; }
+    }
+}
