@@ -1,20 +1,16 @@
 ﻿using FluentAssertions;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
-using Location.Photography.Infrastructure.Services;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Location.Photography.Infrastructure.Test.Services
+namespace Location.Photography.Application.Tests.Services
 {
     [TestFixture]
     public class SunServiceTests
     {
-        private Mock<ISunCalculatorService> _sunCalculatorServiceMock;
         private SunService _sunService;
+        private Mock<ISunCalculatorService> _sunCalculatorServiceMock;
 
         [SetUp]
         public void SetUp()
@@ -24,7 +20,7 @@ namespace Location.Photography.Infrastructure.Test.Services
         }
 
         [Test]
-        public void Constructor_WithNullSunCalculatorService_ThrowsArgumentNullException()
+        public void Constructor_WithNullSunCalculatorService_ShouldThrowArgumentNullException()
         {
             // Act & Assert
             FluentActions.Invoking(() => new SunService(null))
@@ -33,21 +29,22 @@ namespace Location.Photography.Infrastructure.Test.Services
         }
 
         [Test]
-        public async Task GetSunPositionAsync_ReturnsCorrectSunPosition()
+        public async Task GetSunPositionAsync_ShouldReturnCorrectPosition()
         {
             // Arrange
             double latitude = 47.6062;
             double longitude = -122.3321;
-            DateTime dateTime = new DateTime(2024, 6, 21, 12, 0, 0);
-            double expectedAzimuth = 180.0;
-            double expectedElevation = 65.0;
+            DateTime dateTime = new DateTime(2024, 5, 15, 12, 0, 0);
+
+            double expectedAzimuth = 180.0; // Due south at noon
+            double expectedElevation = 60.0; // High in the sky
 
             _sunCalculatorServiceMock
-                .Setup(s => s.GetSolarAzimuth(dateTime, latitude, longitude))
+                .Setup(x => x.GetSolarAzimuth(dateTime, latitude, longitude, It.IsAny<string>()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(s => s.GetSolarElevation(dateTime, latitude, longitude))
+                .Setup(x => x.GetSolarElevation(dateTime, latitude, longitude, It.IsAny<string>()))
                 .Returns(expectedElevation);
 
             // Act
@@ -56,25 +53,24 @@ namespace Location.Photography.Infrastructure.Test.Services
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().NotBeNull();
+            result.Data.Azimuth.Should().Be(expectedAzimuth);
+            result.Data.Elevation.Should().Be(expectedElevation);
             result.Data.DateTime.Should().Be(dateTime);
             result.Data.Latitude.Should().Be(latitude);
             result.Data.Longitude.Should().Be(longitude);
-            result.Data.Azimuth.Should().Be(expectedAzimuth);
-            result.Data.Elevation.Should().Be(expectedElevation);
         }
 
         [Test]
-        public async Task GetSunPositionAsync_WhenSunCalculatorServiceThrowsException_ReturnsFailureResult()
+        public async Task GetSunPositionAsync_WhenCalculatorThrowsException_ShouldReturnFailureResult()
         {
             // Arrange
             double latitude = 47.6062;
             double longitude = -122.3321;
-            DateTime dateTime = new DateTime(2024, 6, 21, 12, 0, 0);
-            string errorMessage = "Invalid coordinates";
+            DateTime dateTime = new DateTime(2024, 5, 15, 12, 0, 0);
 
             _sunCalculatorServiceMock
-                .Setup(s => s.GetSolarAzimuth(dateTime, latitude, longitude))
-                .Throws(new ArgumentException(errorMessage));
+                .Setup(x => x.GetSolarAzimuth(dateTime, latitude, longitude, It.IsAny<string>()))
+                .Throws(new ArgumentException("Invalid coordinates"));
 
             // Act
             var result = await _sunService.GetSunPositionAsync(latitude, longitude, dateTime, CancellationToken.None);
@@ -82,36 +78,37 @@ namespace Location.Photography.Infrastructure.Test.Services
             // Assert
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Contain("Error calculating sun position");
-            result.ErrorMessage.Should().Contain(errorMessage);
+            result.ErrorMessage.Should().Contain("Invalid coordinates");
         }
 
         [Test]
-        public async Task GetSunTimesAsync_ReturnsCorrectSunTimes()
+        public async Task GetSunTimesAsync_ShouldReturnAllSunTimes()
         {
             // Arrange
             double latitude = 47.6062;
             double longitude = -122.3321;
-            DateTime date = new DateTime(2024, 6, 21);
+            DateTime date = new DateTime(2024, 5, 15);
 
-            var sunrise = new DateTime(2024, 6, 21, 5, 30, 0);
-            var sunset = new DateTime(2024, 6, 21, 21, 15, 0);
-            var solarNoon = new DateTime(2024, 6, 21, 13, 22, 30);
-            var civilDawn = new DateTime(2024, 6, 21, 5, 0, 0);
-            var civilDusk = new DateTime(2024, 6, 21, 21, 45, 0);
-            var nauticalDawn = new DateTime(2024, 6, 21, 4, 15, 0);
-            var nauticalDusk = new DateTime(2024, 6, 21, 22, 30, 0);
-            var astronomicalDawn = new DateTime(2024, 6, 21, 3, 30, 0);
-            var astronomicalDusk = new DateTime(2024, 6, 21, 23, 15, 0);
+            var sunrise = new DateTime(2024, 5, 15, 5, 30, 0);
+            var sunset = new DateTime(2024, 5, 15, 20, 45, 0);
+            var solarNoon = new DateTime(2024, 5, 15, 13, 7, 30);
+            var civilDawn = new DateTime(2024, 5, 15, 5, 0, 0);
+            var civilDusk = new DateTime(2024, 5, 15, 21, 15, 0);
+            var nauticalDawn = new DateTime(2024, 5, 15, 4, 30, 0);
+            var nauticalDusk = new DateTime(2024, 5, 15, 21, 45, 0);
+            var astronomicalDawn = new DateTime(2024, 5, 15, 4, 0, 0);
+            var astronomicalDusk = new DateTime(2024, 5, 15, 22, 15, 0);
 
-            _sunCalculatorServiceMock.Setup(s => s.GetSunrise(date, latitude, longitude)).Returns(sunrise);
-            _sunCalculatorServiceMock.Setup(s => s.GetSunset(date, latitude, longitude)).Returns(sunset);
-            _sunCalculatorServiceMock.Setup(s => s.GetSolarNoon(date, latitude, longitude)).Returns(solarNoon);
-            _sunCalculatorServiceMock.Setup(s => s.GetCivilDawn(date, latitude, longitude)).Returns(civilDawn);
-            _sunCalculatorServiceMock.Setup(s => s.GetCivilDusk(date, latitude, longitude)).Returns(civilDusk);
-            _sunCalculatorServiceMock.Setup(s => s.GetNauticalDawn(date, latitude, longitude)).Returns(nauticalDawn);
-            _sunCalculatorServiceMock.Setup(s => s.GetNauticalDusk(date, latitude, longitude)).Returns(nauticalDusk);
-            _sunCalculatorServiceMock.Setup(s => s.GetAstronomicalDawn(date, latitude, longitude)).Returns(astronomicalDawn);
-            _sunCalculatorServiceMock.Setup(s => s.GetAstronomicalDusk(date, latitude, longitude)).Returns(astronomicalDusk);
+            // Set up all the required calculations
+            _sunCalculatorServiceMock.Setup(x => x.GetSunrise(date, latitude, longitude, It.IsAny<string>())).Returns(sunrise);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunset(date, latitude, longitude, It.IsAny<string>())).Returns(sunset);
+            _sunCalculatorServiceMock.Setup(x => x.GetSolarNoon(date, latitude, longitude, It.IsAny<string>())).Returns(solarNoon);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDawn(date, latitude, longitude, It.IsAny<string>())).Returns(civilDawn);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDusk(date, latitude, longitude, It.IsAny<string>())).Returns(civilDusk);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(nauticalDawn);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(nauticalDusk);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(astronomicalDawn);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(astronomicalDusk);
 
             // Act
             var result = await _sunService.GetSunTimesAsync(latitude, longitude, date, CancellationToken.None);
@@ -140,17 +137,16 @@ namespace Location.Photography.Infrastructure.Test.Services
         }
 
         [Test]
-        public async Task GetSunTimesAsync_WhenSunCalculatorServiceThrowsException_ReturnsFailureResult()
+        public async Task GetSunTimesAsync_WhenCalculatorThrowsException_ShouldReturnFailureResult()
         {
             // Arrange
             double latitude = 47.6062;
             double longitude = -122.3321;
-            DateTime date = new DateTime(2024, 6, 21);
-            string errorMessage = "Invalid date";
+            DateTime date = new DateTime(2024, 5, 15);
 
             _sunCalculatorServiceMock
-                .Setup(s => s.GetSunrise(date, latitude, longitude))
-                .Throws(new ArgumentException(errorMessage));
+                .Setup(x => x.GetSunrise(date, latitude, longitude, It.IsAny<string>()))
+                .Throws(new ArgumentException("Invalid date"));
 
             // Act
             var result = await _sunService.GetSunTimesAsync(latitude, longitude, date, CancellationToken.None);
@@ -158,93 +154,82 @@ namespace Location.Photography.Infrastructure.Test.Services
             // Assert
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Contain("Error calculating sun times");
-            result.ErrorMessage.Should().Contain(errorMessage);
+            result.ErrorMessage.Should().Contain("Invalid date");
         }
 
         [Test]
-        public async Task GetSunTimesAsync_HandlesExtremeLatitudes()
+        public async Task GetSunTimesAsync_WithExtremeLocation_ShouldHandlePolarDay()
         {
-            // Arrange - polar day scenario
-            double latitude = 78.0; // Far north
+            // Arrange - Arctic Circle in summer
+            double latitude = 78.0;
             double longitude = 15.0;
             DateTime date = new DateTime(2024, 6, 21); // Summer solstice
 
-            // In polar day, the implementation is returning an error, so let's adjust our test
-            _sunCalculatorServiceMock.Setup(s => s.GetSunrise(date, latitude, longitude))
-                .Throws(new Exception("No sunrise/sunset in polar day"));
+            // In polar day, there's no sunrise/sunset
+            var mockTime = new DateTime(2024, 6, 21, 12, 0, 0);
 
-            // Act
-            var result = await _sunService.GetSunTimesAsync(latitude, longitude, date, CancellationToken.None);
-
-            // Assert - adjust expectations: the service returns a failure in this scenario
-            result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Contain("Error calculating sun times");
-        }
-
-        [Test]
-        public async Task GetSunPositionAsync_WithCancellationToken_ThrowsWhenCancelled()
-        {
-            // Arrange
-            double latitude = 47.6062;
-            double longitude = -122.3321;
-            DateTime dateTime = new DateTime(2024, 6, 21, 12, 0, 0);
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-
-            // Act & Assert
-            await FluentActions.Invoking(() =>
-                    _sunService.GetSunPositionAsync(latitude, longitude, dateTime, cts.Token))
-                .Should().ThrowAsync<OperationCanceledException>();
-        }
-
-        [Test]
-        public async Task GetSunTimesAsync_WithCancellationToken_ThrowsWhenCancelled()
-        {
-            // Arrange
-            double latitude = 47.6062;
-            double longitude = -122.3321;
-            DateTime date = new DateTime(2024, 6, 21);
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-
-            // Act & Assert
-            await FluentActions.Invoking(() =>
-                    _sunService.GetSunTimesAsync(latitude, longitude, date, cts.Token))
-                .Should().ThrowAsync<OperationCanceledException>();
-        }
-
-        [Test]
-        public async Task GetSunTimesAsync_GoldenHourIsCalculatedCorrectly()
-        {
-            // Arrange
-            double latitude = 47.6062;
-            double longitude = -122.3321;
-            DateTime date = new DateTime(2024, 6, 21);
-
-            var sunrise = new DateTime(2024, 6, 21, 5, 30, 0);
-            var sunset = new DateTime(2024, 6, 21, 21, 15, 0);
-
-            _sunCalculatorServiceMock.Setup(s => s.GetSunrise(date, latitude, longitude)).Returns(sunrise);
-            _sunCalculatorServiceMock.Setup(s => s.GetSunset(date, latitude, longitude)).Returns(sunset);
-
-            // Setup all the other required methods (simplified for brevity)
-            _sunCalculatorServiceMock.Setup(s => s.GetSolarNoon(date, latitude, longitude)).Returns(new DateTime(2024, 6, 21, 13, 0, 0));
-            _sunCalculatorServiceMock.Setup(s => s.GetCivilDawn(date, latitude, longitude)).Returns(new DateTime(2024, 6, 21, 5, 0, 0));
-            _sunCalculatorServiceMock.Setup(s => s.GetCivilDusk(date, latitude, longitude)).Returns(new DateTime(2024, 6, 21, 21, 45, 0));
-            _sunCalculatorServiceMock.Setup(s => s.GetNauticalDawn(date, latitude, longitude)).Returns(new DateTime(2024, 6, 21, 4, 30, 0));
-            _sunCalculatorServiceMock.Setup(s => s.GetNauticalDusk(date, latitude, longitude)).Returns(new DateTime(2024, 6, 21, 22, 15, 0));
-            _sunCalculatorServiceMock.Setup(s => s.GetAstronomicalDawn(date, latitude, longitude)).Returns(new DateTime(2024, 6, 21, 4, 0, 0));
-            _sunCalculatorServiceMock.Setup(s => s.GetAstronomicalDusk(date, latitude, longitude)).Returns(new DateTime(2024, 6, 21, 22, 45, 0));
+            // When there's no sunrise/sunset, the calculator returns the same time for both
+            _sunCalculatorServiceMock.Setup(x => x.GetSunrise(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunset(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetSolarNoon(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDawn(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDusk(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
 
             // Act
             var result = await _sunService.GetSunTimesAsync(latitude, longitude, date, CancellationToken.None);
 
             // Assert
             result.IsSuccess.Should().BeTrue();
-            result.Data.GoldenHourMorningStart.Should().Be(sunrise);
-            result.Data.GoldenHourMorningEnd.Should().Be(sunrise.AddHours(1));
-            result.Data.GoldenHourEveningStart.Should().Be(sunset.AddHours(-1));
-            result.Data.GoldenHourEveningEnd.Should().Be(sunset);
+            result.Data.Sunrise.Should().Be(mockTime);
+            result.Data.Sunset.Should().Be(mockTime);
+
+            // Even for polar day, the golden hour calculations should still work
+            result.Data.GoldenHourMorningStart.Should().Be(mockTime);
+            result.Data.GoldenHourMorningEnd.Should().Be(mockTime.AddHours(1));
+            result.Data.GoldenHourEveningStart.Should().Be(mockTime.AddHours(-1));
+            result.Data.GoldenHourEveningEnd.Should().Be(mockTime);
+        }
+
+        [Test]
+        public async Task GetSunPositionAsync_WithCancellationToken_ShouldHonorToken()
+        {
+            // Arrange
+            var cts = new CancellationTokenSource();
+            var token = cts.Token;
+            double latitude = 47.6062;
+            double longitude = -122.3321;
+            DateTime dateTime = new DateTime(2024, 5, 15, 12, 0, 0);
+
+            // Cancel the token before calling the method
+            cts.Cancel();
+
+            // Act & Assert
+            await FluentActions.Invoking(async () =>
+                await _sunService.GetSunPositionAsync(latitude, longitude, dateTime, token))
+                .Should().ThrowAsync<OperationCanceledException>();
+        }
+
+        [Test]
+        public async Task GetSunTimesAsync_WithCancellationToken_ShouldHonorToken()
+        {
+            // Arrange
+            var cts = new CancellationTokenSource();
+            var token = cts.Token;
+            double latitude = 47.6062;
+            double longitude = -122.3321;
+            DateTime date = new DateTime(2024, 5, 15);
+
+            // Cancel the token before calling the method
+            cts.Cancel();
+
+            // Act & Assert
+            await FluentActions.Invoking(async () =>
+                await _sunService.GetSunTimesAsync(latitude, longitude, date, token))
+                .Should().ThrowAsync<OperationCanceledException>();
         }
     }
 }

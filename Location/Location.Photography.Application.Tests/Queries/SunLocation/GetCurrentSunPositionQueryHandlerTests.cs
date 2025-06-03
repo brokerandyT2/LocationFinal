@@ -49,11 +49,11 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             var expectedElevation = 60.0; // High in the sky
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedElevation);
 
             // Act
@@ -68,8 +68,8 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             result.Data.Latitude.Should().Be(query.Latitude);
             result.Data.Longitude.Should().Be(query.Longitude);
 
-            _sunCalculatorServiceMock.Verify(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude), Times.Once);
-            _sunCalculatorServiceMock.Verify(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude), Times.Once);
+            _sunCalculatorServiceMock.Verify(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()), Times.Once);
+            _sunCalculatorServiceMock.Verify(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()), Times.Once);
         }
 
         [Test]
@@ -84,7 +84,7 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             };
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Throws(new ArgumentException("Invalid coordinates"));
 
             // Act
@@ -111,11 +111,11 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             var expectedElevation = 35.5; // Low elevation due to high latitude
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedElevation);
 
             // Act
@@ -131,12 +131,14 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             _sunCalculatorServiceMock.Verify(x => x.GetSolarAzimuth(
                 It.IsAny<DateTime>(),
                 78.0,
-                It.IsAny<double>()), Times.Once);
+                It.IsAny<double>(),
+                It.IsAny<string>()), Times.Once);
 
             _sunCalculatorServiceMock.Verify(x => x.GetSolarElevation(
                 It.IsAny<DateTime>(),
                 78.0,
-                It.IsAny<double>()), Times.Once);
+                It.IsAny<double>(),
+                It.IsAny<string>()), Times.Once);
         }
 
         [Test]
@@ -154,11 +156,11 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             var expectedElevation = -35.5; // Negative elevation (below horizon)
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedElevation);
 
             // Act
@@ -174,12 +176,14 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             _sunCalculatorServiceMock.Verify(x => x.GetSolarAzimuth(
                 It.IsAny<DateTime>(),
                 -78.0,
-                It.IsAny<double>()), Times.Once);
+                It.IsAny<double>(),
+                It.IsAny<string>()), Times.Once);
 
             _sunCalculatorServiceMock.Verify(x => x.GetSolarElevation(
                 It.IsAny<DateTime>(),
                 -78.0,
-                It.IsAny<double>()), Times.Once);
+                It.IsAny<double>(),
+                It.IsAny<string>()), Times.Once);
         }
 
         [Test]
@@ -197,11 +201,11 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             var expectedElevation = 60.0; // High in the sky
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedElevation);
 
             // Act
@@ -215,12 +219,14 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             _sunCalculatorServiceMock.Verify(x => x.GetSolarAzimuth(
                 It.IsAny<DateTime>(),
                 It.IsAny<double>(),
-                179.9), Times.Once);
+                179.9,
+                It.IsAny<string>()), Times.Once);
 
             _sunCalculatorServiceMock.Verify(x => x.GetSolarElevation(
                 It.IsAny<DateTime>(),
                 It.IsAny<double>(),
-                179.9), Times.Once);
+                179.9,
+                It.IsAny<string>()), Times.Once);
         }
 
         [Test]
@@ -238,11 +244,11 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             var expectedElevation = 0.5; // Just above the horizon
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedElevation);
 
             // Act
@@ -270,11 +276,11 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             var expectedElevation = 0.5; // Just above the horizon
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedElevation);
 
             // Act
@@ -302,11 +308,11 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             var expectedElevation = -30.0; // Below the horizon
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, It.IsAny<string>()))
                 .Returns(expectedElevation);
 
             // Act

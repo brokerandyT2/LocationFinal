@@ -1,10 +1,11 @@
-﻿
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using FluentAssertions;
-using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
+using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Data.Repositories;
+using Location.Core.Infrastructure.Services;
 using Location.Core.Infrastructure.Tests.Helpers;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -18,12 +19,22 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
     public class LocationRepositoryAdapterTests
     {
         private LocationRepositoryAdapter _adapter;
-        private Mock<ILocationRepository> _mockInnerRepository;
+        private Mock<LocationRepository> _mockInnerRepository;
 
         [SetUp]
         public void Setup()
         {
-            _mockInnerRepository = new Mock<ILocationRepository>();
+            // Create mocks for LocationRepository dependencies
+            var mockContext = new Mock<IDatabaseContext>();
+            var mockLogger = new Mock<ILogger<LocationRepository>>();
+            var mockExceptionMapper = new Mock<IInfrastructureExceptionMappingService>();
+
+            // Create mock of the concrete LocationRepository class
+            _mockInnerRepository = new Mock<LocationRepository>(
+                mockContext.Object,
+                mockLogger.Object,
+                mockExceptionMapper.Object);
+
             _adapter = new LocationRepositoryAdapter(_mockInnerRepository.Object);
         }
 
@@ -50,7 +61,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Location)null);
+                .ReturnsAsync((Location.Core.Domain.Entities.Location?)null);
 
             // Act
             var result = await _adapter.GetByIdAsync(999);
@@ -141,7 +152,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             var location = TestDataBuilder.CreateValidLocation();
-            _mockInnerRepository.Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+            _mockInnerRepository.Setup(x => x.AddAsync(It.IsAny<Location.Core.Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(location);
 
             // Act
@@ -159,7 +170,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Arrange
             var location = TestDataBuilder.CreateValidLocation();
             var exception = new Exception("Database error");
-            _mockInnerRepository.Setup(x => x.AddAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+            _mockInnerRepository.Setup(x => x.AddAsync(It.IsAny<Location.Core.Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
             // Act
@@ -175,7 +186,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             var location = TestDataBuilder.CreateValidLocation();
-            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Location.Core.Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
@@ -194,8 +205,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Arrange
             var location = TestDataBuilder.CreateValidLocation();
             var exception = new Exception("Database error");
-            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
-      .ThrowsAsync(exception);
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Location.Core.Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(exception);
 
             // Act
             var result = await _adapter.UpdateAsync(location);
@@ -212,7 +223,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             var location = TestDataBuilder.CreateValidLocation();
             _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(location);
-            _mockInnerRepository.Setup(x => x.DeleteAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
+            _mockInnerRepository.Setup(x => x.DeleteAsync(It.IsAny<Location.Core.Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
@@ -230,7 +241,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Location)null);
+                .ReturnsAsync((Location.Core.Domain.Entities.Location?)null);
 
             // Act
             var result = await _adapter.DeleteAsync(999);
@@ -238,32 +249,11 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Be("Location with ID 999 not found");
-            _mockInnerRepository.Verify(x => x.DeleteAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(It.IsAny<Location.Core.Domain.Entities.Location>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
-        public async Task SoftDeleteAsync_WithExistingLocation_ShouldReturnSuccess()
-        {
-            // Arrange
-            var location = TestDataBuilder.CreateValidLocation();
-            _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(location);
-            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Domain.Entities.Location>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
-
-            // Act
-            var result = await _adapter.SoftDeleteAsync(1);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Should().BeTrue();
-            location.IsDeleted.Should().BeTrue();
-            _mockInnerRepository.Verify(x => x.UpdateAsync(location, It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Test]
-        public async Task GetByCoordinatesAsync_WithMatchingLocations_ShouldReturnSuccess()
+        public async Task GetNearbyAsync_WithMatchingLocations_ShouldReturnSuccess()
         {
             // Arrange
             var locations = new[]
@@ -278,8 +268,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(locations);
 
-            // Act
-            var result = await _adapter.GetByCoordinatesAsync(47.6062, -122.3321, 10);
+            // Act - Fixed: Added missing distanceKm parameter
+            var result = await _adapter.GetNearbyAsync(47.6062, -122.3321, 10.0);
 
             // Assert
             result.IsSuccess.Should().BeTrue();
@@ -288,7 +278,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public async Task GetByCoordinatesAsync_WithException_ShouldReturnFailure()
+        public async Task GetNearbyAsync_WithException_ShouldReturnFailure()
         {
             // Arrange
             var exception = new Exception("Database error");
@@ -299,8 +289,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
                     It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
-            // Act
-            var result = await _adapter.GetByCoordinatesAsync(47.6062, -122.3321);
+            // Act - Fixed: Added missing distanceKm parameter
+            var result = await _adapter.GetNearbyAsync(47.6062, -122.3321, 5.0);
 
             // Assert
             result.IsSuccess.Should().BeFalse();
@@ -332,21 +322,6 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Be("Failed to delete location: Database error");
-        }
-
-        [Test]
-        public async Task SoftDeleteAsync_WithNonExistingLocation_ShouldReturnFailure()
-        {
-            // Arrange
-            _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Location)null);
-
-            // Act
-            var result = await _adapter.SoftDeleteAsync(999);
-
-            // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be("Location with ID 999 not found");
         }
     }
 }

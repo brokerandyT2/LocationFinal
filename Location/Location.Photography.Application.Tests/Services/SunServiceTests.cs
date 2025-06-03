@@ -40,11 +40,11 @@ namespace Location.Photography.Application.Tests.Services
             double expectedElevation = 60.0; // High in the sky
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(dateTime, latitude, longitude))
+                .Setup(x => x.GetSolarAzimuth(dateTime, latitude, longitude, It.IsAny<string>()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarElevation(dateTime, latitude, longitude))
+                .Setup(x => x.GetSolarElevation(dateTime, latitude, longitude, It.IsAny<string>()))
                 .Returns(expectedElevation);
 
             // Act
@@ -69,7 +69,7 @@ namespace Location.Photography.Application.Tests.Services
             DateTime dateTime = new DateTime(2024, 5, 15, 12, 0, 0);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(dateTime, latitude, longitude))
+                .Setup(x => x.GetSolarAzimuth(dateTime, latitude, longitude, It.IsAny<string>()))
                 .Throws(new ArgumentException("Invalid coordinates"));
 
             // Act
@@ -100,15 +100,15 @@ namespace Location.Photography.Application.Tests.Services
             var astronomicalDusk = new DateTime(2024, 5, 15, 22, 15, 0);
 
             // Set up all the required calculations
-            _sunCalculatorServiceMock.Setup(x => x.GetSunrise(date, latitude, longitude)).Returns(sunrise);
-            _sunCalculatorServiceMock.Setup(x => x.GetSunset(date, latitude, longitude)).Returns(sunset);
-            _sunCalculatorServiceMock.Setup(x => x.GetSolarNoon(date, latitude, longitude)).Returns(solarNoon);
-            _sunCalculatorServiceMock.Setup(x => x.GetCivilDawn(date, latitude, longitude)).Returns(civilDawn);
-            _sunCalculatorServiceMock.Setup(x => x.GetCivilDusk(date, latitude, longitude)).Returns(civilDusk);
-            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDawn(date, latitude, longitude)).Returns(nauticalDawn);
-            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDusk(date, latitude, longitude)).Returns(nauticalDusk);
-            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDawn(date, latitude, longitude)).Returns(astronomicalDawn);
-            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDusk(date, latitude, longitude)).Returns(astronomicalDusk);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunrise(date, latitude, longitude, It.IsAny<string>())).Returns(sunrise);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunset(date, latitude, longitude, It.IsAny<string>())).Returns(sunset);
+            _sunCalculatorServiceMock.Setup(x => x.GetSolarNoon(date, latitude, longitude, It.IsAny<string>())).Returns(solarNoon);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDawn(date, latitude, longitude, It.IsAny<string>())).Returns(civilDawn);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDusk(date, latitude, longitude, It.IsAny<string>())).Returns(civilDusk);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(nauticalDawn);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(nauticalDusk);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(astronomicalDawn);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(astronomicalDusk);
 
             // Act
             var result = await _sunService.GetSunTimesAsync(latitude, longitude, date, CancellationToken.None);
@@ -145,7 +145,7 @@ namespace Location.Photography.Application.Tests.Services
             DateTime date = new DateTime(2024, 5, 15);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSunrise(date, latitude, longitude))
+                .Setup(x => x.GetSunrise(date, latitude, longitude, It.IsAny<string>()))
                 .Throws(new ArgumentException("Invalid date"));
 
             // Act
@@ -169,15 +169,15 @@ namespace Location.Photography.Application.Tests.Services
             var mockTime = new DateTime(2024, 6, 21, 12, 0, 0);
 
             // When there's no sunrise/sunset, the calculator returns the same time for both
-            _sunCalculatorServiceMock.Setup(x => x.GetSunrise(date, latitude, longitude)).Returns(mockTime);
-            _sunCalculatorServiceMock.Setup(x => x.GetSunset(date, latitude, longitude)).Returns(mockTime);
-            _sunCalculatorServiceMock.Setup(x => x.GetSolarNoon(date, latitude, longitude)).Returns(mockTime);
-            _sunCalculatorServiceMock.Setup(x => x.GetCivilDawn(date, latitude, longitude)).Returns(mockTime);
-            _sunCalculatorServiceMock.Setup(x => x.GetCivilDusk(date, latitude, longitude)).Returns(mockTime);
-            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDawn(date, latitude, longitude)).Returns(mockTime);
-            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDusk(date, latitude, longitude)).Returns(mockTime);
-            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDawn(date, latitude, longitude)).Returns(mockTime);
-            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDusk(date, latitude, longitude)).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunrise(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunset(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetSolarNoon(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDawn(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDusk(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(mockTime);
 
             // Act
             var result = await _sunService.GetSunTimesAsync(latitude, longitude, date, CancellationToken.None);
