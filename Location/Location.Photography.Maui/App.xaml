@@ -35,8 +35,9 @@
             <converters:StringToBoolConverter x:Key="CustomStringToBoolConverter"/>
             <converters:BoolToOptimalColorConverter x:Key="BoolToOptimalColorConverter" />
             <converters:BoolToColorConverterSun x:Key="BoolToColorConverterSun" />
-            <converters:BoolToColorConverterSunEvents x:Key="BoolToColorConverterSunEvents" /> 
-
+            <converters:BoolToColorConverterSunEvents x:Key="BoolToColorConverterSunEvents" />
+            <converters:ScoreToProgressConverter x:Key="ScoreToProgressConverter" />
+            <converters:NotNullToBoolConverter x:Key="NotNullToBoolConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

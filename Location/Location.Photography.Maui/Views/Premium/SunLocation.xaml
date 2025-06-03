@@ -211,52 +211,7 @@
                 </StackLayout>
             </Frame>
 
-            <!-- Device Tilt and Elevation -->
-            <Grid Grid.Row="6" Padding="10" Margin="5">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Label Text="Device Tilt:" 
-                       Grid.Row="0" 
-                       Grid.Column="0"
-                       FontSize="14"
-                       Margin="5"/>
-                <Label Text="{Binding DeviceTilt, StringFormat='{0:F1}°'}" 
-                       Grid.Row="0" 
-                       Grid.Column="1"
-                       FontSize="14"
-                       Margin="5"/>
-
-                <Label Text="Sun Elevation:" 
-                       Grid.Row="1" 
-                       Grid.Column="0"
-                       FontSize="14"
-                       Margin="5"/>
-                <Label Text="{Binding SunElevation, StringFormat='{0:F1}°'}" 
-                       Grid.Row="1" 
-                       Grid.Column="1"
-                       FontSize="14"
-                       Margin="5"/>
-            </Grid>
-
-            <!-- Alignment indicator frame -->
-            <Grid Grid.Row="7" Padding="10" Margin="5">
-                <Grid BackgroundColor="{Binding ElevationMatched, Converter={StaticResource BoolToColorConverter}}"
-                      Padding="10"
-                      Margin="5"
-                      HorizontalOptions="Center">
-                    <Label Text="{Binding ElevationMatched, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Aligned with Sun!|Point at Sun'}"
-                           FontSize="14"
-                           HorizontalOptions="Center"
-                           Margin="5"/>
-                </Grid>
-            </Grid>
+            
 
             <!-- Light Quality and Recommendations -->
             <Frame Grid.Row="8" 

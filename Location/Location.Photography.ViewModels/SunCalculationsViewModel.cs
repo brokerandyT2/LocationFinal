@@ -589,5 +589,6 @@ namespace Location.Photography.ViewModels
         public double Lattitude { get; set; }
         public double Longitude { get; set; }
         public string Photo { get; set; } = string.Empty;
+        public int Id { get; set; } = 0;
     }
 }

@@ -70,6 +70,7 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<IErrorDisplayService, ErrorDisplayService>();
             builder.Services.AddSingleton<IImageAnalysisService, ImageAnalysisService>();
             builder.Services.AddTransient<ITimezoneService, TimezoneService>();
+            
 #if ANDROID
             // Android-specific services
             builder.Services.AddSingleton<Platforms.Android.ILightSensorService, Platforms.Android.LightSensorService>();
@@ -184,6 +185,7 @@ namespace Location.Photography.Maui
                 var settingRepo = sp.GetRequiredService<ISettingRepository>();
                 var errorService = sp.GetRequiredService<IErrorDisplayService>();
                 var timezoneService = sp.GetRequiredService<ITimezoneService>();
+                
                 return new Views.Premium.SunLocation(mediator, alertService, locationRepo, sunCalcService, settingRepo, errorService, timezoneService);
             });
 

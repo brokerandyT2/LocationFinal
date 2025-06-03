@@ -147,77 +147,52 @@ namespace Location.Photography.Maui.Controls
 
         private void DrawCurrentSunOnArc(ICanvas canvas, float centerX, float centerY, float canvasWidth, float canvasHeight, float amplitude)
         {
-            // Calculate current sun position using the SAME time-based method as sun events
-            if (_viewModel == null)
-                return;
+            if (_viewModel?.SelectedLocation == null) return;
 
-            // Get actual sunrise/sunset times from ViewModel
-            var sunriseTime = GetSunriseDateTime();
-            var sunsetTime = GetSunsetDateTime();
-            var solarNoonTime = GetSolarNoonDateTime();
+            // Use the selected date with current time of day
+            var selectedDate = _viewModel.SelectedDate.Date;
+            var currentTimeOfDay = DateTime.Now.TimeOfDay;
+            var targetDateTime = selectedDate.Add(currentTimeOfDay);
 
-            if (sunriseTime == null || sunsetTime == null || solarNoonTime == null)
-                return;
+            // Calculate sun times for the selected date (not auto-advanced times)
+            var coordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, selectedDate);
 
-            // Use current time in location timezone for positioning
-            var currentTime = DateTime.Now;
-            // Convert current time to location timezone if needed
-            var currentLocationTime = TimeZoneInfo.ConvertTime(currentTime, _viewModel.LocationTimeZone);
+            var sunriseLocal = coordinate.CelestialInfo.SunRise.HasValue
+               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunRise.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+               : selectedDate.AddHours(6);
+            var sunsetLocal = coordinate.CelestialInfo.SunSet.HasValue
+               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunSet.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+               : selectedDate.AddHours(18);
+            var solarNoon = coordinate.CelestialInfo.SolarNoon.HasValue
+               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SolarNoon.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+               : selectedDate.AddHours(12);
 
-            // Calculate position using SAME method as sun events
-            var position = CalculateSunEventPosition(currentLocationTime, centerX, centerY, canvasWidth, amplitude);
+            // Calculate current sun position for the target date/time
+            var currentCoordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, targetDateTime);
+            var currentElevation = currentCoordinate.CelestialInfo.SunAltitude;
 
-            // Only draw if sun is above horizon (current elevation > 0) and position is valid
-            if (_viewModel.CurrentElevation > 0 && position.HasValue)
+            // Only draw if sun is above horizon
+            if (currentElevation <= 0) return;
+
+            // Calculate position on arc
+            var position = CalculateSunEventPosition(targetDateTime, centerX, centerY, canvasWidth, amplitude, sunriseLocal, sunsetLocal, solarNoon);
+
+            if (position.HasValue && position.Value.Y <= centerY)
             {
-                // Ensure the position is above horizon (positive Y calculation should put it above centerY)
-                if (position.Value.Y <= centerY) // Above horizon line
-                {
-                    // Draw current sun position as orange circle (half size)
-                    canvas.FillColor = _currentSunColor; // Orange
-                    canvas.FillCircle(position.Value.X, position.Value.Y, 5); // Half of previous 10px
+                // Draw current sun position as orange circle
+                canvas.FillColor = _currentSunColor;
+                canvas.FillCircle(position.Value.X, position.Value.Y, 5);
 
-                    // Add white border for visibility
-                    canvas.StrokeColor = Colors.White;
-                    canvas.StrokeSize = 1;
-                    canvas.DrawCircle(position.Value.X, position.Value.Y, 5);
-                }
+                // Add white border for visibility
+                canvas.StrokeColor = Colors.White;
+                canvas.StrokeSize = 1;
+                canvas.DrawCircle(position.Value.X, position.Value.Y, 5);
             }
         }
 
         private void DrawSunEvents(ICanvas canvas, float centerX, float centerY, float canvasWidth, float canvasHeight, float amplitude)
         {
-            if (_viewModel == null) return;
-
-            // Get actual sunrise/sunset times from ViewModel
-            var sunriseTime = GetSunriseDateTime();
-            var sunsetTime = GetSunsetDateTime();
-
-            if (sunriseTime == null || sunsetTime == null)
-                return;
-
-            // Calculate all sun events - only 6 unique events
-            _sunEvents.Clear();
-
-            // Blue Hour Morning Start (60 min before sunrise, on night arc)
-            var blueHourMorningStart = sunriseTime.Value.AddMinutes(-60);
-
-            // Golden Hour Morning End (60 min after sunrise, on day arc)
-            var goldenHourMorningEnd = sunriseTime.Value.AddMinutes(60);
-
-            // Golden Hour Evening Start (60 min before sunset, on day arc)
-            var goldenHourEveningStart = sunsetTime.Value.AddMinutes(-60);
-
-            // Blue Hour Evening End (60 min after sunset, on night arc)
-            var blueHourEveningEnd = sunsetTime.Value.AddMinutes(60);
-
-            // Add events to collection for drawing and touch detection
-            AddSunEvent(SunEventType.BlueHourStart, Color.FromRgb(25, 25, 112), blueHourMorningStart, "Blue Hour Start", false);
-            AddSunEvent(SunEventType.Sunrise, Colors.Black, sunriseTime.Value, "Sunrise", false);
-            AddSunEvent(SunEventType.GoldenHourEnd, Color.FromRgb(255, 215, 0), goldenHourMorningEnd, "Golden Hour End", false);
-            AddSunEvent(SunEventType.GoldenHourStart, Color.FromRgb(255, 215, 0), goldenHourEveningStart, "Golden Hour Start", false);
-            AddSunEvent(SunEventType.Sunset, Colors.Black, sunsetTime.Value, "Sunset", false);
-            AddSunEvent(SunEventType.BlueHourEnd, Color.FromRgb(25, 25, 112), blueHourEveningEnd, "Blue Hour End", false);
+            if (_viewModel == null || !_sunEvents.Any()) return;
 
             // Draw each event on the arc
             foreach (var sunEvent in _sunEvents)
@@ -268,19 +243,33 @@ namespace Location.Photography.Maui.Controls
 
         private PointF? CalculateSunEventPosition(DateTime eventTime, float centerX, float centerY, float canvasWidth, float amplitude)
         {
-            var sunriseTime = GetSunriseDateTime();
-            var sunsetTime = GetSunsetDateTime();
-            var solarNoonTime = GetSolarNoonDateTime();
+            if (_viewModel?.SelectedLocation == null) return null;
 
-            if (sunriseTime == null || sunsetTime == null || solarNoonTime == null)
-                return null;
+            // Calculate sun times for the selected date
+            var selectedDate = _viewModel.SelectedDate.Date;
+            var coordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, selectedDate);
 
+            var sunriseTime = coordinate.CelestialInfo.SunRise.HasValue
+                ? DateTime.SpecifyKind(coordinate.CelestialInfo.SunRise.Value, DateTimeKind.Local)
+                : selectedDate.AddHours(6);
+            var sunsetTime = coordinate.CelestialInfo.SunSet.HasValue
+                ? DateTime.SpecifyKind(coordinate.CelestialInfo.SunSet.Value, DateTimeKind.Local)
+                : selectedDate.AddHours(18);
+            var solarNoonTime = coordinate.CelestialInfo.SolarNoon.HasValue
+                ? DateTime.SpecifyKind(coordinate.CelestialInfo.SolarNoon.Value, DateTimeKind.Local)
+                : selectedDate.AddHours(12);
+
+            return CalculateSunEventPosition(eventTime, centerX, centerY, canvasWidth, amplitude, sunriseTime, sunsetTime, solarNoonTime);
+        }
+
+        private PointF? CalculateSunEventPosition(DateTime eventTime, float centerX, float centerY, float canvasWidth, float amplitude, DateTime sunriseTime, DateTime sunsetTime, DateTime solarNoonTime)
+        {
             // Calculate hours from solar noon (this gives us the time position on our curve)
-            double hoursFromNoon = (eventTime - solarNoonTime.Value).TotalHours;
+            double hoursFromNoon = (eventTime - solarNoonTime).TotalHours;
 
             // Map time to mathematical X coordinate
             // We need to map the day length to the curve range where cosine is meaningful
-            double dayLength = (sunsetTime.Value - sunriseTime.Value).TotalHours;
+            double dayLength = (sunsetTime - sunriseTime).TotalHours;
 
             // Scale the time to fit our cosine curve range
             // Solar noon (0 hours from noon) should map to X = 0 (peak of cosine)
@@ -294,7 +283,7 @@ namespace Location.Photography.Maui.Controls
             double mathY = CosLimited(mathX);
 
             // For events outside daylight hours (Blue Hours), mirror to negative Y
-            if (eventTime < sunriseTime.Value || eventTime > sunsetTime.Value)
+            if (eventTime < sunriseTime || eventTime > sunsetTime)
             {
                 mathY = -Math.Abs(mathY); // Force to negative Y (night portion)
             }
@@ -311,8 +300,20 @@ namespace Location.Photography.Maui.Controls
             canvas.FontSize = 10;
             canvas.FontColor = Colors.Black;
 
-            var solarNoonTime = GetSolarNoonDateTime();
-            if (solarNoonTime == null) return;
+            if (_viewModel?.SelectedLocation == null) return;
+
+            // Calculate solar noon for the selected date
+            var selectedDate = _viewModel.SelectedDate.Date;
+            var coordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, selectedDate);
+            var sunriseLocal = coordinate.CelestialInfo.SunRise.HasValue
+               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunRise.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+               : selectedDate.AddHours(6);
+            var sunsetLocal = coordinate.CelestialInfo.SunSet.HasValue
+               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunSet.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+               : selectedDate.AddHours(18);
+            var solarNoonTime = coordinate.CelestialInfo.SolarNoon.HasValue
+               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SolarNoon.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+               : selectedDate.AddHours(12);
 
             foreach (var sunEvent in _sunEvents)
             {
@@ -321,7 +322,7 @@ namespace Location.Photography.Maui.Controls
                 if (position.HasValue)
                 {
                     // Determine if morning or evening event
-                    bool isMorningEvent = sunEvent.DateTime <= solarNoonTime.Value;
+                    bool isMorningEvent = sunEvent.DateTime <= solarNoonTime;
 
                     // Position label with offsets
                     float labelX, labelY;
@@ -396,41 +397,36 @@ namespace Location.Photography.Maui.Controls
         private void CalculateSunEvents()
         {
             _sunEvents.Clear();
-            // This method is called to initialize events but actual calculation happens in DrawSunEvents
-        }
 
-        // Helper methods to extract DateTime from ViewModel UTC properties
-        private DateTime? GetSunriseDateTime()
-        {
-            // Use the raw UTC time and convert to location timezone
-            if (_viewModel.SunriseUtc != default(DateTime))
-            {
-                var utcTime = DateTime.SpecifyKind(_viewModel.SunriseUtc, DateTimeKind.Utc);
-                return TimeZoneInfo.ConvertTimeFromUtc(utcTime, _viewModel.LocationTimeZone);
-            }
-            return _viewModel.SelectedDate.AddHours(6); // Fallback: 6 AM
-        }
+            if (_viewModel?.SelectedLocation == null) return;
 
-        private DateTime? GetSunsetDateTime()
-        {
-            // Use the raw UTC time and convert to location timezone
-            if (_viewModel.SunsetUtc != default(DateTime))
-            {
-                var utcTime = DateTime.SpecifyKind(_viewModel.SunsetUtc, DateTimeKind.Utc);
-                return TimeZoneInfo.ConvertTimeFromUtc(utcTime, _viewModel.LocationTimeZone);
-            }
-            return _viewModel.SelectedDate.AddHours(18); // Fallback: 6 PM
-        }
+            // Calculate sun times for the selected date
+            var selectedDate = _viewModel.SelectedDate.Date;
+            var coordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, selectedDate);
 
-        private DateTime? GetSolarNoonDateTime()
-        {
-            // Use the raw UTC time and convert to location timezone
-            if (_viewModel.SolarNoonUtc != default(DateTime))
-            {
-                var utcTime = DateTime.SpecifyKind(_viewModel.SolarNoonUtc, DateTimeKind.Utc);
-                return TimeZoneInfo.ConvertTimeFromUtc(utcTime, _viewModel.LocationTimeZone);
-            }
-            return _viewModel.SelectedDate.AddHours(12); // Fallback: 12 PM
+            var sunriseLocal = coordinate.CelestialInfo.SunRise.HasValue
+               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunRise.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+               : selectedDate.AddHours(6);
+            var sunsetLocal = coordinate.CelestialInfo.SunSet.HasValue
+               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunSet.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+               : selectedDate.AddHours(18);
+            var solarNoon = coordinate.CelestialInfo.SolarNoon.HasValue
+               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SolarNoon.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
+               : selectedDate.AddHours(12);
+
+            // Calculate sun events using calculated data
+            var blueHourMorningStart = sunriseLocal.AddMinutes(-60);
+            var goldenHourMorningEnd = sunriseLocal.AddMinutes(60);
+            var goldenHourEveningStart = sunsetLocal.AddMinutes(-60);
+            var blueHourEveningEnd = sunsetLocal.AddMinutes(60);
+
+            // Add events using the calculated data
+            AddSunEvent(SunEventType.BlueHourStart, Color.FromRgb(25, 25, 112), blueHourMorningStart, "Blue Hour Start", false);
+            AddSunEvent(SunEventType.Sunrise, Colors.Black, sunriseLocal, "Sunrise", false);
+            AddSunEvent(SunEventType.GoldenHourEnd, Color.FromRgb(255, 215, 0), goldenHourMorningEnd, "Golden Hour End", false);
+            AddSunEvent(SunEventType.GoldenHourStart, Color.FromRgb(255, 215, 0), goldenHourEveningStart, "Golden Hour Start", false);
+            AddSunEvent(SunEventType.Sunset, Colors.Black, sunsetLocal, "Sunset", false);
+            AddSunEvent(SunEventType.BlueHourEnd, Color.FromRgb(25, 25, 112), blueHourEveningEnd, "Blue Hour End", false);
         }
 
         public SunEventPoint GetTouchedEvent(PointF touchPoint, float centerX, float centerY, float canvasWidth)

@@ -24,12 +24,13 @@ namespace Location.Photography.Maui.Views.Premium
         private readonly ITimezoneService _timezoneService;
         private SunLocationViewModel _viewModel;
 
-        public SunLocation()
+        public SunLocation(IMediator mediator, ISunCalculatorService sunCalculatorService, IErrorDisplayService error, ITimezoneService time)
         {
             InitializeComponent();
-            _viewModel = new SunLocationViewModel();
+            _viewModel = new SunLocationViewModel(mediator, sunCalculatorService, error, time);
             BindingContext = _viewModel;
         }
+
 
         public SunLocation(
             IMediator mediator,
@@ -37,7 +38,8 @@ namespace Location.Photography.Maui.Views.Premium
             ILocationRepository locationRepository,
             ISunCalculatorService sunCalculatorService,
             ISettingRepository settingRepository,
-            IErrorDisplayService errorDisplayService, ITimezoneService timezoneService)
+            IErrorDisplayService errorDisplayService,
+            ITimezoneService timezoneService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
@@ -48,16 +50,20 @@ namespace Location.Photography.Maui.Views.Premium
             InitializeComponent();
             InitializeViewModel(errorDisplayService);
         }
+
         private async void OnTimelineEventTapped(object sender, EventArgs e)
         {
             if (sender is StackLayout stackLayout && stackLayout.BindingContext is TimelineEventViewModel timelineEvent)
             {
                 if (_viewModel != null)
                 {
-                    _viewModel.SelectedDateTime = timelineEvent.EventTime;
+                    // Update the selected date and time to match the timeline event
+                    _viewModel.SelectedDate = timelineEvent.EventTime.Date;
+                    _viewModel.SelectedTime = timelineEvent.EventTime.TimeOfDay;
                 }
             }
         }
+
         protected override async void OnNavigatedTo(NavigatedToEventArgs args)
         {
             base.OnNavigatedTo(args);
@@ -111,6 +117,7 @@ namespace Location.Photography.Maui.Views.Premium
                     var locationViewModels = result.Data.Select(l =>
                         new LocationViewModel()
                         {
+                            Id = l.Id,
                             Name = l.Title,
                             Description = l.Description,
                             Lattitude = l.Coordinate.Latitude,
@@ -124,9 +131,7 @@ namespace Location.Photography.Maui.Views.Premium
                     {
                         locationPicker.SelectedIndex = 0;
                         var selectedLocation = _viewModel.Locations[0];
-
-                        _viewModel.Latitude = selectedLocation.Lattitude;
-                        _viewModel.Longitude = selectedLocation.Longitude;
+                        _viewModel.SelectedLocation = selectedLocation;
 
                         await UpdateSunPositionAsync(_viewModel);
                     }
@@ -153,21 +158,21 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                if (viewModel.Latitude == 0 && viewModel.Longitude == 0)
+                if (viewModel.SelectedLocation == null)
                     return;
 
                 var query = new GetCurrentSunPositionQuery
                 {
-                    Latitude = viewModel.Latitude,
-                    Longitude = viewModel.Longitude,
-                    DateTime = viewModel.SelectedDateTime
+                    Latitude = viewModel.SelectedLocation.Lattitude,
+                    Longitude = viewModel.SelectedLocation.Longitude,
+                    DateTime = viewModel.SelectedDate.Date.Add(viewModel.SelectedTime)
                 };
 
                 var result = await _mediator.Send(query);
 
                 if (result.IsSuccess && result.Data != null)
                 {
-                    viewModel.SunDirection = result.Data.Azimuth;
+                    // The ViewModel will handle updating sun direction through compass integration
                     viewModel.SunElevation = result.Data.Elevation;
                 }
                 else
@@ -185,8 +190,7 @@ namespace Location.Photography.Maui.Views.Premium
         {
             if (locationPicker.SelectedItem is LocationViewModel selectedLocation && _viewModel != null)
             {
-                _viewModel.Latitude = selectedLocation.Lattitude;
-                _viewModel.Longitude = selectedLocation.Longitude;
+                _viewModel.SelectedLocation = selectedLocation;
 
                 await UpdateSunPositionAsync(_viewModel);
             }
@@ -249,6 +253,7 @@ namespace Location.Photography.Maui.Views.Premium
                 {
                     _viewModel.ErrorOccurred -= OnSystemError;
                     _viewModel.BeginMonitoring = false;
+                    _viewModel.StopSensors();
                 }
             }
             catch (Exception ex)

@@ -5,7 +5,7 @@
             xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
             x:Class="Location.Photography.Maui.Views.Professional.SunCalculator"
             x:DataType="viewmodels:EnhancedSunCalculatorViewModel"
-            Title="Enhanced Sun Calculator">
+            Title="Location Calculator">
     <ContentPage.Resources>
         <ResourceDictionary>
             <!-- Ensure we have the string to bool converter -->
@@ -233,25 +233,38 @@
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="60"/>
                                                     </Grid.ColumnDefinitions>
                                                     <Label Grid.Column="0" 
-                                                      Text="{Binding LocationTimeDisplay}" 
-                                                      FontSize="16" 
-                                                      FontAttributes="Bold" 
-                                                      TextColor="White" 
-                                                      VerticalOptions="Center"/>
+                             Text="{Binding LocationTimeDisplay}" 
+                             FontSize="16" 
+                             FontAttributes="Bold" 
+                             TextColor="White" 
+                             VerticalOptions="Center"/>
                                                     <Label Grid.Column="1" 
-                                                      Text="{Binding FormattedPrediction}" 
-                                                      FontSize="12" 
-                                                      TextColor="White" 
-                                                      VerticalOptions="Center"/>
+                             Text="{Binding FormattedPrediction}" 
+                             FontSize="12" 
+                             TextColor="White" 
+                             VerticalOptions="Center"/>
+
+                                                    <!-- Visual Quality Score Indicator -->
+                                                    <StackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
+                                                        <ProgressBar Progress="{Binding ShootingQualityScore, Converter={StaticResource ScoreToProgressConverter}}" 
+                                       ProgressColor="Gold" 
+                                       BackgroundColor="White" 
+                                       HeightRequest="8" 
+                                       WidthRequest="50"/>
+                                                        <Label Text="{Binding ShootingQualityScore, StringFormat='{0:F0}'}" 
+                                 FontSize="10" 
+                                 TextColor="White" 
+                                 HorizontalTextAlignment="Center"/>
+                                                    </StackLayout>
                                                 </Grid>
                                             </maui:Expander.HeaderContent>
 
-                                            <!-- Enhanced Expanded Content with Weather Data -->
+                                            <!-- Enhanced Expanded Content -->
                                             <Grid Padding="15" BackgroundColor="White">
                                                 <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto"/>
                                                     <RowDefinition Height="Auto"/>
                                                     <RowDefinition Height="Auto"/>
                                                     <RowDefinition Height="Auto"/>
@@ -269,11 +282,11 @@
 
                                                 <!-- Exposure Settings -->
                                                 <Label Grid.Row="0" Grid.ColumnSpan="2" 
-                                                  Text="Suggested Camera Settings" 
-                                                  FontSize="14" 
-                                                  FontAttributes="Bold" 
-                                                  TextColor="#2E7D32" 
-                                                  Margin="0,0,0,10"/>
+                         Text="Suggested Camera Settings" 
+                         FontSize="14" 
+                         FontAttributes="Bold" 
+                         TextColor="#2E7D32" 
+                         Margin="0,0,0,10"/>
 
                                                 <StackLayout Grid.Row="1" Grid.Column="0">
                                                     <Label Text="Aperture" FontSize="12" TextColor="Gray"/>
@@ -297,11 +310,11 @@
 
                                                 <!-- Weather Conditions Section -->
                                                 <Label Grid.Row="3" Grid.ColumnSpan="2" 
-                                                  Text="Weather Conditions" 
-                                                  FontSize="14" 
-                                                  FontAttributes="Bold" 
-                                                  TextColor="#FF9800" 
-                                                  Margin="0,10,0,5"/>
+                         Text="Weather Conditions" 
+                         FontSize="14" 
+                         FontAttributes="Bold" 
+                         TextColor="#FF9800" 
+                         Margin="0,10,0,5"/>
 
                                                 <StackLayout Grid.Row="4" Grid.Column="0">
                                                     <Label Text="Conditions" FontSize="12" TextColor="Gray"/>
@@ -325,46 +338,23 @@
 
                                                 <!-- Light Quality and Confidence -->
                                                 <Label Grid.Row="6" Grid.ColumnSpan="2" 
-                                                  Text="{Binding LightQuality}" 
-                                                  FontSize="14" 
-                                                  TextColor="#1976D2" 
-                                                  Margin="0,10,0,5"/>
+                         Text="{Binding LightQuality}" 
+                         FontSize="14" 
+                         TextColor="#1976D2" 
+                         Margin="0,10,0,5"/>
 
                                                 <Label Grid.Row="7" Grid.ColumnSpan="2" 
-                                                  Text="{Binding ConfidenceDisplay}" 
-                                                  FontSize="12" 
-                                                  TextColor="#4CAF50" 
-                                                  Margin="0,0,0,10"/>
+                         Text="{Binding ConfidenceDisplay}" 
+                         FontSize="12" 
+                         TextColor="#4CAF50" 
+                         Margin="0,0,0,10"/>
 
                                                 <!-- Recommendations -->
                                                 <Label Grid.Row="8" Grid.ColumnSpan="2" 
-                                                  Text="{Binding Recommendations}" 
-                                                  FontSize="12" 
-                                                  TextColor="#666666" 
-                                                  Margin="0,0,0,10"/>
-
-                                                <!-- Action Buttons -->
-                                                <Button Grid.Row="9" Grid.Column="0" 
-                                                   Text="Light Meter" 
-                                                   FontSize="12" 
-                                                   BackgroundColor="#2196F3" 
-                                                   TextColor="White" 
-                                                   CornerRadius="15"
-                                                       HeightRequest="30"
-                                                   Margin="0,0,5,0"
-                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:EnhancedSunCalculatorViewModel}}, Path=OpenLightMeterCommand}"
-                                                   CommandParameter="{Binding .}"/>
-
-                                                <Button Grid.Row="9" Grid.Column="1" 
-                                                   Text="Camera Tips" 
-                                                   FontSize="12" 
-                                                   BackgroundColor="#FF9800" 
-                                                   TextColor="White" 
-                                                   CornerRadius="15" 
-                                                       HeightRequest="30"
-                                                   Margin="5,0,0,0"
-                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:EnhancedSunCalculatorViewModel}}, Path=OpenCameraTipsCommand}"
-                                                   CommandParameter="{Binding .}"/>
+                         Text="{Binding Recommendations}" 
+                         FontSize="12" 
+                         TextColor="#666666" 
+                         Margin="0,0,0,10"/>
                                             </Grid>
                                         </maui:Expander>
                                     </DataTemplate>

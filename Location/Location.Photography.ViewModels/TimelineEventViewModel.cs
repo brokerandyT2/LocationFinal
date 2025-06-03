@@ -53,6 +53,7 @@ namespace Location.Photography.ViewModels
 
                 return $"{(int)timeSpan.TotalDays}d {(int)timeSpan.Hours}h";
             }
+           
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
