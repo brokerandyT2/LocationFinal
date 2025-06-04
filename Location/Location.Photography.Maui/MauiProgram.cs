@@ -78,6 +78,7 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<IExifService, ExifService>();
             builder.Services.AddSingleton<IFOVCalculationService, FOVCalculationService>();
             builder.Services.AddSingleton<IPhoneCameraProfileRepository, PhoneCameraProfileRepository>();
+            builder.Services.AddSingleton<ICameraDataService, CameraDataService>();
 
 #if ANDROID
             // Android-specific services
@@ -190,8 +191,9 @@ namespace Location.Photography.Maui
                 var logger = sp.GetRequiredService<ILogger<Views.Premium.FieldOfView>>();
                 var fovCalculationService = sp.GetRequiredService<IFOVCalculationService>();
                 var alertService = sp.GetRequiredService<IAlertService>();
+                var cameraDataService = sp.GetRequiredService<ICameraDataService>();
 
-                return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService);
+                return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService, cameraDataService);
             });
 
             builder.Services.AddTransient<Views.Premium.SunLocation>(sp =>

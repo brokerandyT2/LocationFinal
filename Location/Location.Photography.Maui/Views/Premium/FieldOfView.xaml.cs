@@ -4,35 +4,98 @@ using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Graphics;
-using GSize = Microsoft.Maui.Graphics.Size;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace Location.Photography.Maui.Views.Premium
 {
-    public partial class FieldOfView : ContentPage
+    public partial class FieldOfView : ContentPage, INotifyPropertyChanged
     {
         private readonly IMediator _mediator;
         private readonly ILogger<FieldOfView> _logger;
         private readonly IFOVCalculationService _fovCalculationService;
         private readonly IAlertService _alertService;
+        private readonly ICameraDataService _cameraDataService;
 
         private double _phoneFOV = 0;
         private double _selectedCameraFOV = 0;
         private bool _isCalculating = false;
         private string _currentImagePath = string.Empty;
 
+        // Collections for camera and lens data
+        private ObservableCollection<CameraDisplayItem> _availableCameras = new();
+        private ObservableCollection<LensDisplayItem> _availableLenses = new();
+        private CameraDisplayItem? _selectedCamera;
+        private LensDisplayItem? _selectedLens;
+
+        // Paging support
+        private int _currentCameraSkip = 0;
+        private int _currentLensSkip = 0;
+        private const int _pageSize = 20;
+        private bool _hasMoreCameras = true;
+        private bool _hasMoreLenses = true;
+        private bool _isLoadingCameras = false;
+        private bool _isLoadingLenses = false;
+
+        public ObservableCollection<CameraDisplayItem> AvailableCameras
+        {
+            get => _availableCameras;
+            set
+            {
+                _availableCameras = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<LensDisplayItem> AvailableLenses
+        {
+            get => _availableLenses;
+            set
+            {
+                _availableLenses = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public CameraDisplayItem? SelectedCamera
+        {
+            get => _selectedCamera;
+            set
+            {
+                _selectedCamera = value;
+                OnPropertyChanged();
+                OnCameraSelectionChanged();
+            }
+        }
+
+        public LensDisplayItem? SelectedLens
+        {
+            get => _selectedLens;
+            set
+            {
+                _selectedLens = value;
+                OnPropertyChanged();
+                OnLensSelectionChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public FieldOfView(
             IMediator mediator,
             ILogger<FieldOfView> logger,
             IFOVCalculationService fovCalculationService,
-            IAlertService alertService)
+            IAlertService alertService,
+            ICameraDataService cameraDataService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fovCalculationService = fovCalculationService ?? throw new ArgumentNullException(nameof(fovCalculationService));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
+            _cameraDataService = cameraDataService ?? throw new ArgumentNullException(nameof(cameraDataService));
 
             InitializeComponent();
+            BindingContext = this;
             InitializeFieldOfView();
         }
 
@@ -40,23 +103,223 @@ namespace Location.Photography.Maui.Views.Premium
         {
             base.OnAppearing();
             await LoadPhoneCameraProfileAsync();
+            await LoadCamerasAsync();
         }
 
         private void InitializeFieldOfView()
         {
             try
             {
-                // Set up the graphics view with our drawable
                 OverlayGraphicsView.Drawable = new FOVOverlayDrawable();
-
-                // Initialize camera picker
-                CameraPicker.SelectedIndex = 0;
-
                 _logger.LogInformation("Field of View page initialized");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error initializing Field of View page");
+            }
+        }
+
+        private async Task LoadCamerasAsync(bool loadMore = false)
+        {
+            if (_isLoadingCameras) return;
+
+            try
+            {
+                _isLoadingCameras = true;
+                ProcessingOverlay.IsVisible = true;
+
+                if (!loadMore)
+                {
+                    _currentCameraSkip = 0;
+                    AvailableCameras.Clear();
+
+                    // Add "Missing Camera?" option
+                    AvailableCameras.Add(new CameraDisplayItem
+                    {
+                        Camera = null,
+                        DisplayName = "Missing Camera?",
+                        IsMissingOption = true
+                    });
+                }
+
+                var result = await _cameraDataService.GetCameraBodiesAsync(_currentCameraSkip, _pageSize);
+                if (result.IsSuccess)
+                {
+                    foreach (var camera in result.Data.CameraBodies)
+                    {
+                        AvailableCameras.Add(new CameraDisplayItem
+                        {
+                            Camera = camera,
+                            DisplayName = camera.DisplayName,
+                            IsMissingOption = false
+                        });
+                    }
+
+                    _hasMoreCameras = result.Data.HasMore;
+                    LoadMoreCamerasButton.IsVisible = _hasMoreCameras;
+                    _currentCameraSkip += _pageSize;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading cameras");
+                await _alertService.ShowErrorAlertAsync("Error loading cameras", "Error");
+            }
+            finally
+            {
+                _isLoadingCameras = false;
+                ProcessingOverlay.IsVisible = false;
+            }
+        }
+
+        private async Task LoadLensesAsync(bool loadMore = false)
+        {
+            if (_isLoadingLenses || SelectedCamera?.Camera == null) return;
+
+            try
+            {
+                _isLoadingLenses = true;
+                ProcessingOverlay.IsVisible = true;
+
+                if (!loadMore)
+                {
+                    _currentLensSkip = 0;
+                    AvailableLenses.Clear();
+
+                    // Add "Missing Lens?" option
+                    AvailableLenses.Add(new LensDisplayItem
+                    {
+                        Lens = null,
+                        DisplayName = "Missing Lens?",
+                        IsMissingOption = true
+                    });
+                }
+
+                var result = await _cameraDataService.GetLensesAsync(_currentLensSkip, _pageSize, false, SelectedCamera.Camera.Id);
+                if (result.IsSuccess)
+                {
+                    foreach (var lens in result.Data.Lenses)
+                    {
+                        AvailableLenses.Add(new LensDisplayItem
+                        {
+                            Lens = lens,
+                            DisplayName = lens.DisplayName,
+                            IsMissingOption = false
+                        });
+                    }
+
+                    _hasMoreLenses = result.Data.HasMore;
+                    LoadMoreLensesButton.IsVisible = _hasMoreLenses;
+                    _currentLensSkip += _pageSize;
+                }
+
+                LensPicker.IsEnabled = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading lenses");
+                await _alertService.ShowErrorAlertAsync("Error loading lenses", "Error");
+            }
+            finally
+            {
+                _isLoadingLenses = false;
+                ProcessingOverlay.IsVisible = false;
+            }
+        }
+
+        private async void OnLoadMoreCamerasClicked(object sender, EventArgs e)
+        {
+            await LoadCamerasAsync(true);
+        }
+
+        private async void OnLoadMoreLensesClicked(object sender, EventArgs e)
+        {
+            await LoadLensesAsync(true);
+        }
+
+        private async void OnCameraSelectionChanged(object sender, EventArgs e)
+        {
+            await OnCameraSelectionChanged();
+        }
+
+        private async Task OnCameraSelectionChanged()
+        {
+            try
+            {
+                if (SelectedCamera?.IsMissingOption == true)
+                {
+                    await Shell.Current.GoToAsync("//AddCameraModal");
+                    return;
+                }
+
+                // Reset lens selection
+                SelectedLens = null;
+                AvailableLenses.Clear();
+                LensPicker.IsEnabled = false;
+                LoadMoreLensesButton.IsVisible = false;
+
+                if (SelectedCamera?.Camera != null)
+                {
+                    await LoadLensesAsync();
+                }
+
+                UpdateFOVDisplay();
+                UpdateOverlay();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling camera selection");
+            }
+        }
+
+        private async void OnLensSelectionChanged(object sender, EventArgs e)
+        {
+            await OnLensSelectionChanged();
+        }
+
+        private async Task OnLensSelectionChanged()
+        {
+            try
+            {
+                if (SelectedLens?.IsMissingOption == true)
+                {
+                    await Shell.Current.GoToAsync("//AddLensModal");
+                    return;
+                }
+
+                if (SelectedLens?.Lens != null)
+                {
+                    CalculateSelectedCameraFOV();
+                }
+                else
+                {
+                    _selectedCameraFOV = 0;
+                }
+
+                UpdateFOVDisplay();
+                UpdateOverlay();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling lens selection");
+            }
+        }
+
+        private void CalculateSelectedCameraFOV()
+        {
+            try
+            {
+                if (SelectedCamera?.Camera == null || SelectedLens?.Lens == null) return;
+
+                var focalLength = SelectedLens.Lens.MinMM; // Use minimum focal length for calculation
+                var sensorWidth = SelectedCamera.Camera.SensorWidth;
+
+                _selectedCameraFOV = _fovCalculationService.CalculateHorizontalFOV(focalLength, sensorWidth);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating selected camera FOV");
+                _selectedCameraFOV = 0;
             }
         }
 
@@ -103,7 +366,6 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                // Copy photo to app directory for processing
                 var newFile = Path.Combine(FileSystem.AppDataDirectory, $"fov_capture_{DateTime.Now:yyyyMMdd_HHmmss}.jpg");
 
                 using var sourceStream = await photo.OpenReadAsync();
@@ -111,15 +373,10 @@ namespace Location.Photography.Maui.Views.Premium
                 await sourceStream.CopyToAsync(localFileStream);
 
                 _currentImagePath = newFile;
-
-                // Display the image
                 CapturedImage.Source = ImageSource.FromFile(newFile);
-
-                // Hide placeholder and show overlay
                 PlaceholderStack.IsVisible = false;
                 OverlayGraphicsView.IsVisible = true;
 
-                // Update FOV display and overlay
                 UpdateFOVDisplay();
                 UpdateOverlay();
 
@@ -141,7 +398,6 @@ namespace Location.Photography.Maui.Views.Premium
                 _isCalculating = true;
                 ProcessingOverlay.IsVisible = true;
 
-                // Try to get existing phone camera profile
                 var command = new GetPhoneCameraProfileQuery();
                 var result = await _mediator.Send(command);
 
@@ -153,7 +409,6 @@ namespace Location.Photography.Maui.Views.Premium
                 }
                 else
                 {
-                    // Estimate based on device if no profile exists
                     await EstimatePhoneFOVAsync();
                 }
             }
@@ -178,14 +433,12 @@ namespace Location.Photography.Maui.Views.Premium
 
                 if (sensorResult.IsSuccess)
                 {
-                    // Estimate typical phone camera focal length (usually around 26-28mm equivalent)
-                    var estimatedFocalLength = 4.0; // Typical physical focal length for phones
+                    var estimatedFocalLength = 4.0;
                     _phoneFOV = _fovCalculationService.CalculateHorizontalFOV(estimatedFocalLength, sensorResult.Data.Width);
                 }
                 else
                 {
-                    // Fallback to typical smartphone FOV
-                    _phoneFOV = 78.0; // Typical smartphone camera FOV
+                    _phoneFOV = 78.0;
                 }
 
                 UpdateFOVDisplay();
@@ -194,84 +447,8 @@ namespace Location.Photography.Maui.Views.Premium
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error estimating phone FOV");
-                _phoneFOV = 78.0; // Fallback
+                _phoneFOV = 78.0;
                 UpdateFOVDisplay();
-            }
-        }
-
-        private void OnCameraPickerSelectedIndexChanged(object sender, EventArgs e)
-        {
-            try
-            {
-                var picker = (Picker)sender;
-                var selectedIndex = picker.SelectedIndex;
-
-                switch (selectedIndex)
-                {
-                    case 0: // Phone Camera
-                        FocalLengthStack.IsVisible = false;
-                        _selectedCameraFOV = _phoneFOV;
-                        break;
-
-                    case 1: // Custom Focal Length
-                        FocalLengthStack.IsVisible = true;
-                        if (!string.IsNullOrEmpty(FocalLengthEntry.Text) && double.TryParse(FocalLengthEntry.Text, out double focalLength))
-                        {
-                            CalculateCustomFOV(focalLength);
-                        }
-                        else
-                        {
-                            _selectedCameraFOV = 0;
-                        }
-                        break;
-                }
-
-                UpdateFOVDisplay();
-                UpdateOverlay();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error handling camera picker selection");
-            }
-        }
-
-        private void OnFocalLengthChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(e.NewTextValue))
-                {
-                    _selectedCameraFOV = 0;
-                    UpdateFOVDisplay();
-                    UpdateOverlay();
-                    return;
-                }
-
-                if (double.TryParse(e.NewTextValue, out double focalLength) && focalLength > 0)
-                {
-                    CalculateCustomFOV(focalLength);
-                    UpdateFOVDisplay();
-                    UpdateOverlay();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating custom FOV");
-            }
-        }
-
-        private void CalculateCustomFOV(double focalLength)
-        {
-            try
-            {
-                // Use full-frame sensor dimensions for focal length comparison (36mm x 24mm)
-                var fullFrameWidth = 36.0;
-                _selectedCameraFOV = _fovCalculationService.CalculateHorizontalFOV(focalLength, fullFrameWidth);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating FOV for focal length {FocalLength}", focalLength);
-                _selectedCameraFOV = 0;
             }
         }
 
@@ -332,7 +509,6 @@ namespace Location.Photography.Maui.Views.Premium
         {
             base.OnDisappearing();
 
-            // Clean up temporary image file
             if (!string.IsNullOrEmpty(_currentImagePath) && File.Exists(_currentImagePath))
             {
                 try
@@ -345,6 +521,25 @@ namespace Location.Photography.Maui.Views.Premium
                 }
             }
         }
+
+        protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class CameraDisplayItem
+    {
+        public CameraBodyDto? Camera { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
+        public bool IsMissingOption { get; set; }
+    }
+
+    public class LensDisplayItem
+    {
+        public LensDto? Lens { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
+        public bool IsMissingOption { get; set; }
     }
 
     public class FOVOverlayDrawable : IDrawable
@@ -359,11 +554,9 @@ namespace Location.Photography.Maui.Views.Premium
             var centerX = dirtyRect.Width / 2;
             var centerY = dirtyRect.Height / 2;
 
-            // Calculate phone FOV box (cyan)
             var phoneFOVBox = CalculateFOVBox(PhoneFOV, dirtyRect);
             DrawFOVBox(canvas, phoneFOVBox, Colors.Cyan, "Phone Camera");
 
-            // Calculate selected camera FOV box (orange)
             if (SelectedCameraFOV > 0)
             {
                 var cameraFOVBox = CalculateFOVBox(SelectedCameraFOV, dirtyRect);
@@ -373,18 +566,15 @@ namespace Location.Photography.Maui.Views.Premium
 
         private RectF CalculateFOVBox(double fov, RectF containerRect)
         {
-            // Normalize FOV to a scale factor (phone FOV = 1.0)
-            var referenceFOV = Math.Max(PhoneFOV, 60.0); // Use phone FOV or minimum 60° as reference
+            var referenceFOV = Math.Max(PhoneFOV, 60.0);
             var scaleFactor = fov / referenceFOV;
 
-            // Calculate box dimensions
-            var maxWidth = containerRect.Width * 0.8f; // Leave some margin
+            var maxWidth = containerRect.Width * 0.8f;
             var maxHeight = containerRect.Height * 0.8f;
 
             var boxWidth = Math.Max(100, Math.Min(maxWidth, maxWidth * scaleFactor));
-            var boxHeight = boxWidth * 0.6f; // Maintain 3:2 aspect ratio
+            var boxHeight = boxWidth * 0.6f;
 
-            // Center the box
             var x = (containerRect.Width - boxWidth) / 2;
             var y = (containerRect.Height - boxHeight) / 2;
 
@@ -393,19 +583,16 @@ namespace Location.Photography.Maui.Views.Premium
 
         private void DrawFOVBox(ICanvas canvas, RectF box, Color color, string label)
         {
-            // Draw the FOV rectangle
             canvas.StrokeColor = color;
             canvas.StrokeSize = 3;
             canvas.DrawRectangle(box);
 
-            // Draw corner markers
             var cornerSize = 20;
-            DrawCorner(canvas, box.Left, box.Top, cornerSize, color); // Top-left
-            DrawCorner(canvas, box.Right - cornerSize, box.Top, cornerSize, color); // Top-right
-            DrawCorner(canvas, box.Left, box.Bottom - cornerSize, cornerSize, color); // Bottom-left
-            DrawCorner(canvas, box.Right - cornerSize, box.Bottom - cornerSize, cornerSize, color); // Bottom-right
+            DrawCorner(canvas, box.Left, box.Top, cornerSize, color);
+            DrawCorner(canvas, box.Right - cornerSize, box.Top, cornerSize, color);
+            DrawCorner(canvas, box.Left, box.Bottom - cornerSize, cornerSize, color);
+            DrawCorner(canvas, box.Right - cornerSize, box.Bottom - cornerSize, cornerSize, color);
 
-            // Draw label
             canvas.FontColor = color;
             canvas.FontSize = 16;
             var labelY = box.Top - 25;
@@ -418,14 +605,11 @@ namespace Location.Photography.Maui.Views.Premium
         {
             canvas.StrokeColor = color;
             canvas.StrokeSize = 4;
-
-            // Draw L-shaped corner
-            canvas.DrawLine(x, y, x + size, y); // Horizontal line
-            canvas.DrawLine(x, y, x, y + size); // Vertical line
+            canvas.DrawLine(x, y, x + size, y);
+            canvas.DrawLine(x, y, x, y + size);
         }
     }
 
-    // Query class for getting phone camera profile
     public class GetPhoneCameraProfileQuery : IRequest<Result<PhoneCameraProfileDto>>
     {
     }

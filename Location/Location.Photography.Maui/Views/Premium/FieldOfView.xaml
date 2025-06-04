@@ -85,37 +85,47 @@
                         Clicked="OnCaptureButtonClicked" />
 
                 <!-- Camera Selection -->
-                <Label Text="Camera Lens:" TextColor="White" FontAttributes="Bold" />
+                <Label Text="Camera Body:" TextColor="White" FontAttributes="Bold" />
                 <Picker x:Name="CameraPicker" 
-                        Title="Select Camera Lens"
+                        Title="Select Camera"
                         TextColor="White"
                         TitleColor="Gray"
-                        SelectedIndexChanged="OnCameraPickerSelectedIndexChanged">
-                    <Picker.Items>
-                        <x:String>Phone Camera</x:String>
-                        <x:String>Custom Focal Length</x:String>
-                    </Picker.Items>
-                </Picker>
+                        ItemsSource="{Binding AvailableCameras}"
+                        ItemDisplayBinding="{Binding DisplayName}"
+                        SelectedItem="{Binding SelectedCamera}"
+                        SelectedIndexChanged="OnCameraSelectionChanged" />
 
-                <!-- Focal Length Input -->
-                <StackLayout x:Name="FocalLengthStack" 
-                            Orientation="Horizontal" 
-                            Spacing="10"
-                            IsVisible="False">
-                    <Label Text="Focal Length:" 
-                           TextColor="White" 
-                           VerticalOptions="Center" />
-                    <Entry x:Name="FocalLengthEntry" 
-                           Placeholder="50" 
-                           Keyboard="Numeric"
-                           TextColor="White"
-                           PlaceholderColor="Gray"
-                           BackgroundColor="#40FFFFFF"
-                           WidthRequest="80"
-                           TextChanged="OnFocalLengthChanged" />
-                    <Label Text="mm" 
-                           TextColor="White" 
-                           VerticalOptions="Center" />
+                <!-- Lens Selection -->
+                <Label Text="Lens:" TextColor="White" FontAttributes="Bold" />
+                <Picker x:Name="LensPicker" 
+                        Title="Select Lens"
+                        TextColor="White"
+                        TitleColor="Gray"
+                        ItemsSource="{Binding AvailableLenses}"
+                        ItemDisplayBinding="{Binding DisplayName}"
+                        SelectedItem="{Binding SelectedLens}"
+                        SelectedIndexChanged="OnLensSelectionChanged"
+                        IsEnabled="False" />
+
+                <!-- Load More Buttons -->
+                <StackLayout Orientation="Horizontal" Spacing="10">
+                    <Button x:Name="LoadMoreCamerasButton"
+                            Text="Load More Cameras"
+                            BackgroundColor="#666666"
+                            TextColor="White"
+                            FontSize="12"
+                            HorizontalOptions="FillAndExpand"
+                            Clicked="OnLoadMoreCamerasClicked"
+                            IsVisible="False" />
+
+                    <Button x:Name="LoadMoreLensesButton"
+                            Text="Load More Lenses"
+                            BackgroundColor="#666666"
+                            TextColor="White"
+                            FontSize="12"
+                            HorizontalOptions="FillAndExpand"
+                            Clicked="OnLoadMoreLensesClicked"
+                            IsVisible="False" />
                 </StackLayout>
 
                 <!-- FOV Information -->
@@ -154,7 +164,7 @@
                                   Color="White" 
                                   HeightRequest="50" 
                                   WidthRequest="50"/>
-                <Label Text="Processing image..." 
+                <Label Text="Processing..." 
                        TextColor="White" 
                        FontSize="16"/>
             </StackLayout>

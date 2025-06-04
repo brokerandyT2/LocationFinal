@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Location.Photography.Maui.Views.Premium.AddCameraModal"
+             Title="Add Camera"
+             BackgroundColor="Black">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Frame Grid.Row="0" 
+               BackgroundColor="#80000000" 
+               Margin="20,40,20,10" 
+               Padding="20"
+               CornerRadius="10">
+            <StackLayout>
+                <Label Text="Add New Camera" 
+                       FontSize="22" 
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center" />
+
+                <Label Text="Enter camera details to add to your collection"
+                       FontSize="14"
+                       TextColor="White"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,10,0,0" />
+            </StackLayout>
+        </Frame>
+
+        <!-- Form -->
+        <ScrollView Grid.Row="1" Margin="20">
+            <StackLayout Spacing="20">
+
+                <!-- Camera Name -->
+                <StackLayout>
+                    <Label Text="Camera Name *" 
+                           TextColor="White" 
+                           FontAttributes="Bold" />
+                    <Entry x:Name="CameraNameEntry"
+                           Placeholder="e.g., Canon EOS R5"
+                           TextColor="White"
+                           PlaceholderColor="Gray"
+                           BackgroundColor="#40FFFFFF"
+                           TextChanged="OnCameraNameChanged" />
+                    <Label x:Name="CameraNameError" 
+                           TextColor="Red" 
+                           FontSize="12"
+                           IsVisible="False" />
+                </StackLayout>
+
+                <!-- Sensor Type -->
+                <StackLayout>
+                    <Label Text="Sensor Type *" 
+                           TextColor="White" 
+                           FontAttributes="Bold" />
+                    <Entry x:Name="SensorTypeEntry"
+                           Placeholder="e.g., Full Frame, APS-C, Micro Four Thirds"
+                           TextColor="White"
+                           PlaceholderColor="Gray"
+                           BackgroundColor="#40FFFFFF" />
+                    <Label x:Name="SensorTypeError" 
+                           TextColor="Red" 
+                           FontSize="12"
+                           IsVisible="False" />
+                </StackLayout>
+
+                <!-- Sensor Width -->
+                <StackLayout>
+                    <Label Text="Sensor Width (mm) *" 
+                           TextColor="White" 
+                           FontAttributes="Bold" />
+                    <Entry x:Name="SensorWidthEntry"
+                           Placeholder="e.g., 36.0"
+                           Keyboard="Numeric"
+                           TextColor="White"
+                           PlaceholderColor="Gray"
+                           BackgroundColor="#40FFFFFF" />
+                    <Label x:Name="SensorWidthError" 
+                           TextColor="Red" 
+                           FontSize="12"
+                           IsVisible="False" />
+                </StackLayout>
+
+                <!-- Sensor Height -->
+                <StackLayout>
+                    <Label Text="Sensor Height (mm) *" 
+                           TextColor="White" 
+                           FontAttributes="Bold" />
+                    <Entry x:Name="SensorHeightEntry"
+                           Placeholder="e.g., 24.0"
+                           Keyboard="Numeric"
+                           TextColor="White"
+                           PlaceholderColor="Gray"
+                           BackgroundColor="#40FFFFFF" />
+                    <Label x:Name="SensorHeightError" 
+                           TextColor="Red" 
+                           FontSize="12"
+                           IsVisible="False" />
+                </StackLayout>
+
+                <!-- Mount Type -->
+                <StackLayout>
+                    <Label Text="Mount Type *" 
+                           TextColor="White" 
+                           FontAttributes="Bold" />
+                    <Picker x:Name="MountTypePicker"
+                            Title="Select Mount Type"
+                            TextColor="White"
+                            TitleColor="Gray"
+                            ItemsSource="{Binding MountTypes}"
+                            ItemDisplayBinding="{Binding DisplayName}"
+                            SelectedItem="{Binding SelectedMountType}" />
+                    <Label x:Name="MountTypeError" 
+                           TextColor="Red" 
+                           FontSize="12"
+                           IsVisible="False" />
+                </StackLayout>
+
+                <!-- Duplicate Warning -->
+                <Frame x:Name="DuplicateWarningFrame"
+                       BackgroundColor="#80FF6B00"
+                       BorderColor="Orange"
+                       CornerRadius="5"
+                       Padding="15"
+                       IsVisible="False">
+                    <StackLayout>
+                        <Label Text="⚠️ Similar Camera Found" 
+                               TextColor="Orange" 
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label x:Name="DuplicateWarningText"
+                               TextColor="White"
+                               FontSize="14" />
+                        <StackLayout Orientation="Horizontal" 
+                                    HorizontalOptions="End"
+                                    Spacing="10"
+                                    Margin="0,10,0,0">
+                            <Button Text="Cancel" 
+                                    BackgroundColor="#666666"
+                                    TextColor="White"
+                                    Clicked="OnCancelDuplicateClicked" />
+                            <Button Text="Save Anyway" 
+                                    BackgroundColor="Orange"
+                                    TextColor="White"
+                                    Clicked="OnSaveAnywayClicked" />
+                        </StackLayout>
+                    </StackLayout>
+                </Frame>
+
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Action Buttons -->
+        <Frame Grid.Row="2" 
+               BackgroundColor="#80000000" 
+               Margin="20,10,20,40" 
+               Padding="20"
+               CornerRadius="10">
+            <StackLayout Orientation="Horizontal" 
+                        HorizontalOptions="FillAndExpand"
+                        Spacing="15">
+
+                <Button Text="Cancel"
+                        FontSize="16"
+                        BackgroundColor="#666666"
+                        TextColor="White"
+                        HeightRequest="50"
+                        CornerRadius="25"
+                        HorizontalOptions="FillAndExpand"
+                        Clicked="OnCancelClicked" />
+
+                <Button x:Name="SaveButton"
+                        Text="Save Camera"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="#007ACC"
+                        TextColor="White"
+                        HeightRequest="50"
+                        CornerRadius="25"
+                        HorizontalOptions="FillAndExpand"
+                        Clicked="OnSaveClicked"
+                        IsEnabled="False" />
+            </StackLayout>
+        </Frame>
+
+        <!-- Processing Overlay -->
+        <Grid x:Name="ProcessingOverlay"
+              Grid.RowSpan="3"
+              BackgroundColor="#CC000000"
+              IsVisible="False">
+            <StackLayout VerticalOptions="Center" 
+                        HorizontalOptions="Center"
+                        Spacing="15">
+                <ActivityIndicator IsRunning="True" 
+                                  Color="White" 
+                                  HeightRequest="50" 
+                                  WidthRequest="50"/>
+                <Label Text="Saving camera..." 
+                       TextColor="White" 
+                       FontSize="16"/>
+            </StackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

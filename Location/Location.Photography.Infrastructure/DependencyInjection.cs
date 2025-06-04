@@ -26,21 +26,26 @@ namespace Location.Photography.Infrastructure
             // Core services with optimized registration
             services.AddScoped<ISunCalculatorService, SunCalculatorService>();
             services.AddScoped<ISunService, SunService>();
-
             services.AddScoped<IExposureTriangleService, ExposureTriangleService>();
             services.AddScoped<IExposureCalculatorService, ExposureCalculatorService>();
-
             services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
             services.AddScoped<ISubscriptionStatusService, SubscriptionStatusService>();
             services.AddScoped<ISubscriptionFeatureGuard, SubscriptionFeatureGuardService>();
-
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-
             services.AddScoped<IPredictiveLightService, PredictiveLightService>();
             services.AddScoped<ITimezoneService, TimezoneService>();
             services.AddScoped<ISceneEvaluationService, SceneEvaluationService>();
+
+            // NEW: Camera/Lens services
+            services.AddScoped<ICameraBodyRepository, CameraBodyRepository>();
+            services.AddScoped<ILensRepository, LensRepository>();
+            services.AddScoped<ILensCameraCompatibilityRepository, LensCameraCompatibilityRepository>();
+            services.AddScoped<ICameraDataService, CameraDataService>();
+            services.AddScoped<IFOVCalculationService, FOVCalculationService>();
+            services.AddScoped<IExifService, ExifService>();
+            services.AddScoped<IImageAnalysisService, ImageAnalysisService>();
 
             // ViewModels registered as transient for better memory management
             services.AddTransient<SunCalculationsViewModel>();
@@ -52,7 +57,6 @@ namespace Location.Photography.Infrastructure
             services.AddTransient<SettingsViewModel>();
             services.AddTransient<SettingViewModel>();
             services.AddTransient<EnhancedSunCalculatorViewModel>();
-
             services.AddTransient<SubscriptionAwareViewModelBase>();
 
             // Add background service for cache cleanup and maintenance

@@ -65,6 +65,12 @@
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Remove="Resources\CameraSensorProfiles\2010.json" />
+	  <None Remove="Resources\CameraSensorProfiles\2011.json" />
+	  <None Remove="Resources\CameraSensorProfiles\2012.json" />
+	</ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Camera.MAUI" Version="1.5.1" />
     <PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
@@ -94,6 +100,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiAsset Include="Resources\CameraSensorProfiles\2010.json" />
+    <MauiAsset Include="Resources\CameraSensorProfiles\2011.json" />
+    <MauiAsset Include="Resources\CameraSensorProfiles\2012.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Resources\AppResources.Designer.cs">
       <DependentUpon>AppResources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
@@ -119,6 +131,12 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\CameraEvaluation.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\Premium\AddCameraModal.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\Premium\AddLensModal.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Premium\ExposureCalculator.xaml">

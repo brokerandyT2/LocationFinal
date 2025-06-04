@@ -146,7 +146,9 @@ namespace Location.Core.Infrastructure.Data
             await _connection.CreateTableAsync<Log>();
             await _connection.CreateTableAsync<Subscription>();
             await _connection.CreateTableAsync<PhoneCameraProfileEntity>();
-
+            await _connection.CreateTableAsync<CameraBody>();
+            await _connection.CreateTableAsync<Lens>();
+            await _connection.CreateTableAsync<LensCameraCompatibility>();
             _logger.LogDebug("Database tables created");
         }
 
@@ -159,31 +161,39 @@ namespace Location.Core.Infrastructure.Data
             {
                 var indexCommands = new[]
                 {
-                   // Location indexes
-                   "CREATE INDEX IF NOT EXISTS idx_location_coords ON LocationEntity (Latitude, Longitude)",
-                   "CREATE INDEX IF NOT EXISTS idx_location_title ON LocationEntity (Title)",
-                   "CREATE INDEX IF NOT EXISTS idx_location_active ON LocationEntity (IsDeleted, Timestamp)",
-                   "CREATE INDEX IF NOT EXISTS idx_location_search ON LocationEntity (Title, City, State, Description)",
+           // Location indexes
+           "CREATE INDEX IF NOT EXISTS idx_location_coords ON LocationEntity (Latitude, Longitude)",
+           "CREATE INDEX IF NOT EXISTS idx_location_title ON LocationEntity (Title)",
+           "CREATE INDEX IF NOT EXISTS idx_location_active ON LocationEntity (IsDeleted, Timestamp)",
+           "CREATE INDEX IF NOT EXISTS idx_location_search ON LocationEntity (Title, City, State, Description)",
 
-                   // Weather indexes
-                   "CREATE INDEX IF NOT EXISTS idx_weather_location ON WeatherEntity (LocationId, LastUpdate)",
-                   "CREATE INDEX IF NOT EXISTS idx_weather_forecast ON WeatherForecastEntity (WeatherId, Date)",
-                   "CREATE INDEX IF NOT EXISTS idx_hourly_forecast ON HourlyForecastEntity (WeatherId, DateTime)",
+           // Weather indexes
+           "CREATE INDEX IF NOT EXISTS idx_weather_location ON WeatherEntity (LocationId, LastUpdate)",
+           "CREATE INDEX IF NOT EXISTS idx_weather_forecast ON WeatherForecastEntity (WeatherId, Date)",
+           "CREATE INDEX IF NOT EXISTS idx_hourly_forecast ON HourlyForecastEntity (WeatherId, DateTime)",
 
-                   // Tip indexes
-                   "CREATE INDEX IF NOT EXISTS idx_tip_type ON TipEntity (TipTypeId)",
-                   "CREATE INDEX IF NOT EXISTS idx_tip_title ON TipEntity (Title)",
+           // Tip indexes
+           "CREATE INDEX IF NOT EXISTS idx_tip_type ON TipEntity (TipTypeId)",
+           "CREATE INDEX IF NOT EXISTS idx_tip_title ON TipEntity (Title)",
 
-                   // Setting indexes
-                   "CREATE UNIQUE INDEX IF NOT EXISTS idx_setting_key ON SettingEntity (Key)",
+           // Setting indexes
+           "CREATE UNIQUE INDEX IF NOT EXISTS idx_setting_key ON SettingEntity (Key)",
 
-                   // Log indexes
-                   "CREATE INDEX IF NOT EXISTS idx_log_timestamp ON Log (Timestamp DESC)",
-                   "CREATE INDEX IF NOT EXISTS idx_log_level ON Log (Level, Timestamp)",
+           // Log indexes
+           "CREATE INDEX IF NOT EXISTS idx_log_timestamp ON Log (Timestamp DESC)",
+           "CREATE INDEX IF NOT EXISTS idx_log_level ON Log (Level, Timestamp)",
 
-                   // Subscription indexes
-                   "CREATE INDEX IF NOT EXISTS idx_subscription_user ON Subscription (UserId, Status, ExpirationDate)"
-               };
+           // Subscription indexes
+           "CREATE INDEX IF NOT EXISTS idx_subscription_user ON Subscription (UserId, Status, ExpirationDate)",
+           
+           // Camera/Lens indexes
+           "CREATE INDEX IF NOT EXISTS idx_camera_user ON CameraBodies (IsUserCreated, Name)",
+           "CREATE INDEX IF NOT EXISTS idx_camera_mount ON CameraBodies (MountType)",
+           "CREATE INDEX IF NOT EXISTS idx_lens_user ON Lenses (IsUserCreated, MinMM)",
+           "CREATE INDEX IF NOT EXISTS idx_lens_focal ON Lenses (MinMM, MaxMM)",
+           "CREATE INDEX IF NOT EXISTS idx_compatibility_lens ON LensCameraCompatibility (LensId)",
+           "CREATE INDEX IF NOT EXISTS idx_compatibility_camera ON LensCameraCompatibility (CameraBodyId)"
+       };
 
                 // Execute index creation commands concurrently for better performance
                 var tasks = indexCommands.Select(cmd => _connection.ExecuteAsync(cmd));
