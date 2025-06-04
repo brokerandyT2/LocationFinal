@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:camera="clr-namespace:Camera.MAUI;assembly=Camera.MAUI"
-             xmlns:test="clr-namespace:Camera.MAUI;assembly=Camera.MAUI"
              x:Class="Location.Photography.Maui.Views.CameraEvaluation"
              Title="Camera Setup"
              BackgroundColor="Black">
@@ -44,16 +42,36 @@
             </StackLayout>
         </Frame>
 
-        <!-- Camera View -->
-        <Border Grid.Row="1" 
-                StrokeThickness="0"
-                Margin="20,10">
-            <camera:CameraView x:Name="CameraView" 
-                              AutoStartPreview="True"
-                              AutoStartRecording="False"
-                              VerticalOptions="FillAndExpand"
-                              HorizontalOptions="FillAndExpand" />
-        </Border>
+        <!-- Image Preview Area -->
+        <Grid Grid.Row="1" Margin="20,10">
+            <!-- Captured Image Display -->
+            <Image x:Name="CapturedImage" 
+                   Aspect="AspectFill"
+                   VerticalOptions="FillAndExpand"
+                   HorizontalOptions="FillAndExpand"
+                   BackgroundColor="#333333"
+                   IsVisible="False" />
+
+            <!-- Placeholder when no image -->
+            <StackLayout x:Name="PlaceholderStack"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Center"
+                        IsVisible="True">
+                <Label Text="📸" 
+                       FontSize="80" 
+                       TextColor="Gray"
+                       HorizontalOptions="Center" />
+                <Label Text="Ready for calibration photo"
+                       FontSize="18"
+                       TextColor="Gray"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,10,0,0" />
+                <Label Text="Tap 'Take Calibration Photo' below"
+                       FontSize="14"
+                       TextColor="#AAAAAA"
+                       HorizontalTextAlignment="Center" />
+            </StackLayout>
+        </Grid>
 
         <!-- Controls -->
         <StackLayout Grid.Row="2" 

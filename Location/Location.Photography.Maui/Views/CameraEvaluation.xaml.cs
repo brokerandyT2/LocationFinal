@@ -1,5 +1,5 @@
-// Location.Photography.Maui/Views/CameraEvaluation.xaml.cs
 using Location.Photography.Application.Commands.CameraEvaluation;
+using Location.Photography.Maui.Views.Premium;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -36,7 +36,7 @@ namespace Location.Photography.Maui.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-
+           
             try
             {
                 // Request camera permissions
@@ -50,19 +50,14 @@ namespace Location.Photography.Maui.Views
                     return;
                 }
 
-                // Start camera preview
-                if (CameraView != null)
-                {
-                    CameraView.AutoStartPreview = true;
-                }
+                _logger?.LogInformation("Camera permissions granted");
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error starting camera preview");
-                await DisplayAlert("Camera Error",
-                    "Unable to start camera. Proceeding without calibration.",
+                _logger?.LogError(ex, "Error requesting camera permissions");
+                await DisplayAlert("Permission Error",
+                    "Unable to request camera permissions. You can skip calibration for now.",
                     "OK");
-                await NavigateToSubscriptionPage();
             }
         }
 
@@ -72,12 +67,6 @@ namespace Location.Photography.Maui.Views
 
             try
             {
-                // Stop camera preview
-                if (CameraView != null)
-                {
-                    CameraView.AutoStartPreview = false;
-                }
-
                 // Cleanup temp files
                 CleanupTempFiles();
             }
@@ -95,28 +84,57 @@ namespace Location.Photography.Maui.Views
             try
             {
                 _isProcessing = true;
-                await SetProcessingState(true, "Capturing image...");
+                await SetProcessingState(true, "Opening camera...");
 
-                // Capture photo
-                var photoStream = await CameraView.TakePhotoAsync();
-                if (photoStream == null)
+                // Check if camera capture is supported
+                if (!MediaPicker.Default.IsCaptureSupported)
                 {
-                    await ShowError("Failed to capture photo. Please try again.");
+                    await ShowError("Camera capture is not supported on this device");
                     return;
                 }
 
-                // Save to temp file
-                _tempImagePath = Path.Combine(FileSystem.AppDataDirectory, $"calibration_{DateTime.Now:yyyyMMddHHmmss}.jpg");
-
-                using (var fileStream = File.Create(_tempImagePath))
+                // Capture photo using MediaPicker
+                var photo = await MediaPicker.Default.CapturePhotoAsync();
+                if (photo == null)
                 {
-                    await photoStream.CopyToAsync(fileStream);
+                    await ShowError("Photo capture was cancelled");
+                    return;
                 }
 
-                await SetProcessingState(true, "Processing EXIF data...");
+                await SetProcessingState(true, "Processing image...");
+
+                // Save photo to temp file
+                _tempImagePath = Path.Combine(FileSystem.AppDataDirectory, $"calibration_{DateTime.Now:yyyyMMddHHmmss}.jpg");
+
+                // Read image data into memory first
+                byte[] imageData;
+                using (var sourceStream = await photo.OpenReadAsync())
+                {
+                    using var memoryStream = new MemoryStream();
+                    await sourceStream.CopyToAsync(memoryStream);
+                    imageData = memoryStream.ToArray();
+                }
+
+                // Save to file
+                await File.WriteAllBytesAsync(_tempImagePath, imageData);
+
+                // Create ImageSource from byte array to avoid file lock
+                CapturedImage.Source = ImageSource.FromStream(() => new MemoryStream(imageData));
+                CapturedImage.IsVisible = true;
+                PlaceholderStack.IsVisible = false;
+
+                await SetProcessingState(true, "Analyzing EXIF data...");
 
                 // Process the image
                 await ProcessCapturedImage();
+            }
+            catch (FeatureNotSupportedException)
+            {
+                await ShowError("Camera is not supported on this device");
+            }
+            catch (PermissionException)
+            {
+                await ShowError("Camera permission is required. Please enable it in settings.");
             }
             catch (Exception ex)
             {
@@ -161,6 +179,9 @@ namespace Location.Photography.Maui.Views
                     await ShowError(profile.ErrorMessage);
                     return;
                 }
+
+                // Mark calibration as completed
+                await SecureStorage.SetAsync("CameraProfileCompleted", "true");
 
                 // Show success
                 await ShowSuccess(profile);
@@ -231,6 +252,8 @@ namespace Location.Photography.Maui.Views
 
             if (result)
             {
+                // Mark calibration as skipped
+                await SecureStorage.SetAsync("CameraSetupSkipped", "true");
                 await NavigateToSubscriptionPage();
             }
         }
@@ -241,6 +264,11 @@ namespace Location.Photography.Maui.Views
             {
                 ErrorOverlay.IsVisible = false;
                 SuccessOverlay.IsVisible = false;
+
+                // Reset image display
+                CapturedImage.IsVisible = false;
+                PlaceholderStack.IsVisible = true;
+                CapturedImage.Source = null;
             });
         }
 

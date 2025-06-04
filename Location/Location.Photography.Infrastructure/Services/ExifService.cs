@@ -37,19 +37,41 @@ namespace Location.Photography.Infrastructure.Services
                     return Result<ExifData>.Failure("Image file does not exist");
                 }
 
-                return await Task.Run(() =>
+                return await Task.Run(async () =>
                 {
-                    try
+                    // Retry logic to handle file locks
+                    const int maxRetries = 5;
+                    const int delayMs = 200;
+
+                    for (int attempt = 0; attempt < maxRetries; attempt++)
                     {
-                        var directories = ImageMetadataReader.ReadMetadata(imagePath);
-                        var exifData = ExtractDataFromDirectories(directories);
-                        return Result<ExifData>.Success(exifData);
+                        try
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            var directories = ImageMetadataReader.ReadMetadata(imagePath);
+                            var exifData = ExtractDataFromDirectories(directories);
+                            return Result<ExifData>.Success(exifData);
+                        }
+                        catch (IOException ioEx) when (attempt < maxRetries - 1)
+                        {
+                            // File is locked, wait and retry
+                            _logger.LogWarning("File locked on attempt {Attempt}, retrying in {Delay}ms: {ImagePath}",
+                                attempt + 1, delayMs, imagePath);
+                            await Task.Delay(delayMs * (attempt + 1), cancellationToken);
+                            continue;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to extract EXIF data from {ImagePath} on attempt {Attempt}",
+                                imagePath, attempt + 1);
+
+                            if (attempt == maxRetries - 1)
+                                return Result<ExifData>.Failure($"Failed to extract EXIF data after {maxRetries} attempts: {ex.Message}");
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to extract EXIF data from {ImagePath}", imagePath);
-                        return Result<ExifData>.Failure($"Failed to extract EXIF data: {ex.Message}");
-                    }
+
+                    return Result<ExifData>.Failure($"Failed to extract EXIF data after {maxRetries} attempts");
                 }, cancellationToken);
             }
             catch (OperationCanceledException)
@@ -63,42 +85,7 @@ namespace Location.Photography.Infrastructure.Services
             }
         }
 
-        public async Task<Result<ExifData>> ExtractExifDataAsync(Stream imageStream, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
 
-                if (imageStream == null)
-                {
-                    return Result<ExifData>.Failure("Image stream cannot be null");
-                }
-
-                return await Task.Run(() =>
-                {
-                    try
-                    {
-                        var directories = ImageMetadataReader.ReadMetadata(imageStream);
-                        var exifData = ExtractDataFromDirectories(directories);
-                        return Result<ExifData>.Success(exifData);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to extract EXIF data from stream");
-                        return Result<ExifData>.Failure($"Failed to extract EXIF data: {ex.Message}");
-                    }
-                }, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error extracting EXIF data from stream");
-                return Result<ExifData>.Failure($"Error extracting EXIF data: {ex.Message}");
-            }
-        }
 
         public async Task<Result<bool>> HasRequiredExifDataAsync(string imagePath, CancellationToken cancellationToken = default)
         {

@@ -1,0 +1,124 @@
+﻿{
+    "Cameras": {
+        "Canon EOS 600D (2011 - 2011)": {
+            "Brand": "Canon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 22.3,
+                "SensorHeightInMM": 14.9
+            }
+        },
+        "Nikon D5100 (2011 - 2011)": {
+            "Brand": "Nikon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.6,
+                "SensorHeightInMM": 15.6
+            }
+        },
+        "Sony Alpha A35 (2011 - 2011)": {
+            "Brand": "Sony",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.5,
+                "SensorHeightInMM": 15.6
+            }
+        },
+        "Pentax K-5 (2011 - 2011)": {
+            "Brand": "Pentax",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.7,
+                "SensorHeightInMM": 15.7
+            }
+        },
+        "Canon EOS 1100D (2011 - 2011)": {
+            "Brand": "Canon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 22.2,
+                "SensorHeightInMM": 14.7
+            }
+        },
+        "Nikon D7000 (2011 - 2011)": {
+            "Brand": "Nikon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.6,
+                "SensorHeightInMM": 15.6
+            }
+        },
+        "Sony Alpha A55 (2011 - 2011)": {
+            "Brand": "Sony",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.5,
+                "SensorHeightInMM": 15.6
+            }
+        },
+        "Pentax K-r (2011 - 2011)": {
+            "Brand": "Pentax",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.6,
+                "SensorHeightInMM": 15.8
+            }
+        },
+        "Canon EOS 5D Mark II (2011 - 2011)": {
+            "Brand": "Canon",
+            "SensorType": "Full Frame",
+            "Sensor": {
+                "SensorWidthInMM": 36.0,
+                "SensorHeightInMM": 24.0
+            }
+        },
+        "Nikon D3s (2011 - 2011)": {
+            "Brand": "Nikon",
+            "SensorType": "Full Frame",
+            "Sensor": {
+                "SensorWidthInMM": 36.0,
+                "SensorHeightInMM": 23.9
+            }
+        },
+        "Sony Alpha A900 (2011 - 2011)": {
+            "Brand": "Sony",
+            "SensorType": "Full Frame",
+            "Sensor": {
+                "SensorWidthInMM": 35.9,
+                "SensorHeightInMM": 24.0
+            }
+        },
+        "Pentax 645D (2011 - 2011)": {
+            "Brand": "Pentax",
+            "SensorType": "Medium Format",
+            "Sensor": {
+                "SensorWidthInMM": 44.0,
+                "SensorHeightInMM": 33.0
+            }
+        },
+        "Canon EOS 60D (2011 - 2011)": {
+            "Brand": "Canon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 22.3,
+                "SensorHeightInMM": 14.9
+            }
+        },
+        "Nikon D3100 (2011 - 2011)": {
+            "Brand": "Nikon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.1,
+                "SensorHeightInMM": 15.4
+            }
+        },
+        "Sony Alpha A290 (2011 - 2011)": {
+            "Brand": "Sony",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.5,
+                "SensorHeightInMM": 15.7
+            }
+        }
+    }
+}

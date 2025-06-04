@@ -1,8 +1,10 @@
 // Location.Photography.Maui/Views/UserOnboarding.xaml.cs
 using Location.Core.Application.Services;
+using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Photography.Infrastructure;
 using Location.Photography.Maui.Resources;
 using Location.Photography.ViewModels;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
 using System.Linq;
@@ -57,6 +59,23 @@ namespace Location.Photography.Maui.Views
                 _logger.LogInformation("UserOnboarding page loaded, calling GetSetting");
                 GetSetting();
                 _logger.LogInformation("GetSetting completed");
+
+                var sq = new GetSettingByKeyQuery
+                {
+                    Key = MagicStrings.Email
+                };
+                Mediator m = new Mediator(_serviceProvider);
+                var result = m.Send(sq).Result;
+                if(result != null && result.Data.Value != null)
+                {
+                   Navigation.PushAsync((ContentPage)_serviceProvider.GetRequiredService<CameraEvaluation>());
+                    _logger.LogInformation("Navigating to CameraEvaluation with email: {Email}", result.Data.Value);
+                }
+                else
+                {
+                    _logger.LogWarning("No email address found in settings");
+                }
+
             }
             catch (Exception ex)
             {

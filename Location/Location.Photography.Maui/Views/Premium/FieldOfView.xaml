@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:camera="clr-namespace:Camera.MAUI;assembly=Camera.MAUI"
              x:Class="Location.Photography.Maui.Views.Premium.FieldOfView"
              Title="Field of View Preview"
              BackgroundColor="Black">
@@ -13,259 +12,152 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Camera Controls Header -->
+        <!-- Header with camera selection -->
         <Frame Grid.Row="0" 
-               BackgroundColor="#DD000000" 
-               Margin="0" 
-               Padding="15,10"
-               CornerRadius="0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+               BackgroundColor="#80000000" 
+               Margin="20,40,20,10" 
+               Padding="20"
+               CornerRadius="10">
+            <StackLayout>
+                <Label Text="Field of View Preview" 
+                       FontSize="22" 
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center" />
 
-                <StackLayout Grid.Column="0" Orientation="Vertical" Spacing="5">
-                    <Label x:Name="CameraLensLabel" 
-                           Text="Select Camera and Lens"
-                           FontSize="16" 
-                           FontAttributes="Bold"
-                           TextColor="White" />
-
-                    <Label x:Name="FOVInfoLabel"
-                           Text="Phone: 24mm (84°) | Camera: Select equipment"
-                           FontSize="12"
-                           TextColor="#CCCCCC" />
-                </StackLayout>
-
-                <Button Grid.Column="1"
-                        x:Name="SettingsButton"
-                        Text="⚙️"
-                        FontSize="20"
-                        BackgroundColor="Transparent"
-                        TextColor="White"
-                        WidthRequest="50"
-                        HeightRequest="40"
-                        Clicked="OnSettingsButtonClicked" />
-            </Grid>
+                <Label Text="Capture a photo to see field of view comparison with different camera lenses"
+                       FontSize="14"
+                       TextColor="White"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,10,0,0" />
+            </StackLayout>
         </Frame>
 
-        <!-- Camera View with Overlays -->
-        <Grid Grid.Row="1">
-            <!-- Camera Preview -->
-            <camera:CameraView x:Name="CameraView" 
-                              AutoStartPreview="True"
-                              VerticalOptions="FillAndExpand"
-                              HorizontalOptions="FillAndExpand" />
+        <!-- Image preview with overlay -->
+        <Grid Grid.Row="1" Margin="10">
+            <!-- Captured Image Display -->
+            <Image x:Name="CapturedImage" 
+                   Aspect="AspectFill"
+                   VerticalOptions="FillAndExpand"
+                   HorizontalOptions="FillAndExpand"
+                   BackgroundColor="#333333" />
 
-            <!-- FOV Overlay Canvas -->
-            <Canvas x:Name="OverlayCanvas" 
-                    BackgroundColor="Transparent"
-                    VerticalOptions="FillAndExpand"
-                    HorizontalOptions="FillAndExpand">
+            <!-- Placeholder when no image -->
+            <StackLayout x:Name="PlaceholderStack"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Center"
+                        IsVisible="True">
+                <Label Text="📸" 
+                       FontSize="60" 
+                       TextColor="Gray"
+                       HorizontalOptions="Center" />
+                <Label Text="Tap 'Take Photo' to capture an image"
+                       FontSize="16"
+                       TextColor="Gray"
+                       HorizontalTextAlignment="Center" />
+            </StackLayout>
 
-                <!-- FOV Overlay Box -->
-                <Frame x:Name="FOVOverlayBox"
-                       BorderColor="Lime"
-                       BackgroundColor="Transparent"
-                       HasShadow="False"
-                       Padding="0"
-                       IsVisible="False">
-                    <Frame.Stroke>
-                        <LinearGradientBrush>
-                            <GradientStop Color="Lime" Offset="0.0" />
-                            <GradientStop Color="Yellow" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Frame.Stroke>
-                </Frame>
-
-                <!-- Focus Range Indicators -->
-                <Frame x:Name="NearFocusFrame"
-                       BorderColor="Green"
-                       BackgroundColor="#40000000"
-                       HasShadow="False"
-                       Padding="5"
-                       CornerRadius="5"
-                       IsVisible="False">
-                    <Label x:Name="NearFocusLabel"
-                           Text="Near: 1.8m"
-                           TextColor="Green"
-                           FontSize="12"
-                           FontAttributes="Bold" />
-                </Frame>
-
-                <Frame x:Name="FarFocusFrame"
-                       BorderColor="Blue"
-                       BackgroundColor="#40000000"
-                       HasShadow="False"
-                       Padding="5"
-                       CornerRadius="5"
-                       IsVisible="False">
-                    <Label x:Name="FarFocusLabel"
-                           Text="Far: 12.4m"
-                           TextColor="Blue"
-                           FontSize="12"
-                           FontAttributes="Bold" />
-                </Frame>
-            </Canvas>
-
-            <!-- Center Crosshair -->
-            <Grid VerticalOptions="Center" HorizontalOptions="Center">
-                <Ellipse Fill="Transparent"
-                         Stroke="White"
-                         StrokeThickness="2"
-                         WidthRequest="20"
-                         HeightRequest="20"
-                         Opacity="0.7" />
-                <Line X1="10" Y1="0" X2="10" Y2="20"
-                      Stroke="White"
-                      StrokeThickness="1"
-                      Opacity="0.7" />
-                <Line X1="0" Y1="10" X2="20" Y2="10"
-                      Stroke="White"
-                      StrokeThickness="1"
-                      Opacity="0.7" />
-            </Grid>
-
-            <!-- Mode Indicator -->
-            <Frame x:Name="ModeIndicator"
-                   BackgroundColor="#80000000"
-                   Padding="10,5"
-                   CornerRadius="15"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Start"
-                   Margin="0,20,0,0">
-                <Label x:Name="ModeLabel"
-                       Text="FOV Preview Mode"
-                       TextColor="White"
-                       FontSize="12"
-                       FontAttributes="Bold" />
-            </Frame>
+            <!-- FOV Overlay -->
+            <GraphicsView x:Name="OverlayGraphicsView"
+                         VerticalOptions="FillAndExpand"
+                         HorizontalOptions="FillAndExpand"
+                         BackgroundColor="Transparent"
+                         IsVisible="False" />
         </Grid>
 
-        <!-- Bottom Controls -->
+        <!-- Controls -->
         <Frame Grid.Row="2" 
-               BackgroundColor="#DD000000" 
-               Margin="0" 
-               Padding="15"
-               CornerRadius="0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+               BackgroundColor="#80000000" 
+               Margin="20,10,20,40" 
+               Padding="20"
+               CornerRadius="10">
+            <StackLayout Spacing="15">
 
-                <!-- Camera Selection -->
-                <Button Grid.Row="0" Grid.Column="0"
-                        x:Name="CameraButton"
-                        Text="📷 Camera"
-                        FontSize="14"
-                        BackgroundColor="#333333"
-                        TextColor="White"
-                        CornerRadius="10"
-                        Margin="2"
-                        Clicked="OnCameraButtonClicked" />
-
-                <!-- Lens Selection -->
-                <Button Grid.Row="0" Grid.Column="1"
-                        x:Name="LensButton"
-                        Text="🔍 Lens"
-                        FontSize="14"
-                        BackgroundColor="#333333"
-                        TextColor="White"
-                        CornerRadius="10"
-                        Margin="2"
-                        Clicked="OnLensButtonClicked" />
-
-                <!-- Toggle Overlay -->
-                <Button Grid.Row="0" Grid.Column="2"
-                        x:Name="ToggleButton"
-                        Text="👁️ Toggle"
-                        FontSize="14"
+                <!-- Capture Button -->
+                <Button x:Name="CaptureButton"
+                        Text="📸 Take Photo"
+                        FontSize="16"
+                        FontAttributes="Bold"
                         BackgroundColor="#007ACC"
                         TextColor="White"
-                        CornerRadius="10"
-                        Margin="2"
-                        Clicked="OnToggleOverlayClicked" />
+                        HeightRequest="50"
+                        CornerRadius="25"
+                        Clicked="OnCaptureButtonClicked" />
 
-                <!-- Distance Input -->
-                <StackLayout Grid.Row="1" Grid.ColumnSpan="3" 
+                <!-- Camera Selection -->
+                <Label Text="Camera Lens:" TextColor="White" FontAttributes="Bold" />
+                <Picker x:Name="CameraPicker" 
+                        Title="Select Camera Lens"
+                        TextColor="White"
+                        TitleColor="Gray"
+                        SelectedIndexChanged="OnCameraPickerSelectedIndexChanged">
+                    <Picker.Items>
+                        <x:String>Phone Camera</x:String>
+                        <x:String>Custom Focal Length</x:String>
+                    </Picker.Items>
+                </Picker>
+
+                <!-- Focal Length Input -->
+                <StackLayout x:Name="FocalLengthStack" 
                             Orientation="Horizontal" 
-                            HorizontalOptions="Center"
-                            Margin="0,10,0,0"
-                            Spacing="10">
-                    <Label Text="Subject Distance:"
-                           TextColor="White"
-                           FontSize="14"
+                            Spacing="10"
+                            IsVisible="False">
+                    <Label Text="Focal Length:" 
+                           TextColor="White" 
                            VerticalOptions="Center" />
-
-                    <Slider x:Name="DistanceSlider"
-                            Minimum="0.5"
-                            Maximum="50"
-                            Value="5"
-                            WidthRequest="150"
-                            ValueChanged="OnDistanceChanged" />
-
-                    <Label x:Name="DistanceLabel"
-                           Text="5.0m"
+                    <Entry x:Name="FocalLengthEntry" 
+                           Placeholder="50" 
+                           Keyboard="Numeric"
                            TextColor="White"
-                           FontSize="14"
-                           VerticalOptions="Center"
-                           WidthRequest="50" />
+                           PlaceholderColor="Gray"
+                           BackgroundColor="#40FFFFFF"
+                           WidthRequest="80"
+                           TextChanged="OnFocalLengthChanged" />
+                    <Label Text="mm" 
+                           TextColor="White" 
+                           VerticalOptions="Center" />
                 </StackLayout>
-            </Grid>
+
+                <!-- FOV Information -->
+                <StackLayout x:Name="FOVInfoStack" Spacing="5">
+                    <Label x:Name="PhoneFOVLabel" 
+                           Text="Phone FOV: Calculating..." 
+                           TextColor="Cyan" 
+                           FontSize="14" />
+                    <Label x:Name="CameraFOVLabel" 
+                           Text="Selected FOV: --" 
+                           TextColor="Orange" 
+                           FontSize="14" />
+                    <Label x:Name="ComparisonLabel" 
+                           Text="Comparison: --" 
+                           TextColor="Yellow" 
+                           FontSize="14" />
+                </StackLayout>
+
+                <!-- Help Text -->
+                <Label Text="The cyan box shows your phone's field of view. The orange box shows the selected camera's field of view."
+                       FontSize="12"
+                       TextColor="#CCCCCC"
+                       HorizontalTextAlignment="Center" />
+            </StackLayout>
         </Frame>
 
-        <!-- No EXIF Fallback -->
-        <Grid x:Name="FallbackOverlay"
+        <!-- Processing Overlay -->
+        <Grid x:Name="ProcessingOverlay"
               Grid.RowSpan="3"
               BackgroundColor="#CC000000"
               IsVisible="False">
-            <Frame BackgroundColor="White"
-                   CornerRadius="15"
-                   Margin="40"
-                   Padding="30"
-                   VerticalOptions="Center">
-                <StackLayout Spacing="20">
-                    <Label Text="📖"
-                           FontSize="60"
-                           HorizontalOptions="Center" />
-
-                    <Label Text="Educational Mode"
-                           FontSize="20"
-                           FontAttributes="Bold"
-                           HorizontalOptions="Center"
-                           TextColor="Black" />
-
-                    <Label Text="Live FOV preview requires camera calibration. You can still use the calculator below or calibrate your camera in settings."
-                           FontSize="14"
-                           HorizontalTextAlignment="Center"
-                           TextColor="Black" />
-
-                    <StackLayout Orientation="Horizontal" Spacing="10">
-                        <Button Text="Open Calculator"
-                                BackgroundColor="#007ACC"
-                                TextColor="White"
-                                CornerRadius="10"
-                                HeightRequest="45"
-                                HorizontalOptions="FillAndExpand"
-                                Clicked="OnOpenCalculatorClicked" />
-
-                        <Button Text="Calibrate Camera"
-                                BackgroundColor="Green"
-                                TextColor="White"
-                                CornerRadius="10"
-                                HeightRequest="45"
-                                HorizontalOptions="FillAndExpand"
-                                Clicked="OnCalibrateButtonClicked" />
-                    </StackLayout>
-                </StackLayout>
-            </Frame>
+            <StackLayout VerticalOptions="Center" 
+                        HorizontalOptions="Center"
+                        Spacing="15">
+                <ActivityIndicator IsRunning="True" 
+                                  Color="White" 
+                                  HeightRequest="50" 
+                                  WidthRequest="50"/>
+                <Label Text="Processing image..." 
+                       TextColor="White" 
+                       FontSize="16"/>
+            </StackLayout>
         </Grid>
     </Grid>
 </ContentPage>

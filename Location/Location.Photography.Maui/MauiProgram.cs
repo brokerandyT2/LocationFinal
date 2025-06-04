@@ -184,6 +184,16 @@ namespace Location.Photography.Maui
                 return new Views.Premium.ExposureCalculator(exposureService, alertService, errorService, mediator);
             });
 
+            builder.Services.AddTransient<Views.Premium.FieldOfView>(sp =>
+            {
+                var mediator = sp.GetRequiredService<IMediator>();
+                var logger = sp.GetRequiredService<ILogger<Views.Premium.FieldOfView>>();
+                var fovCalculationService = sp.GetRequiredService<IFOVCalculationService>();
+                var alertService = sp.GetRequiredService<IAlertService>();
+
+                return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService);
+            });
+
             builder.Services.AddTransient<Views.Premium.SunLocation>(sp =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();

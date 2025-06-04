@@ -1,0 +1,124 @@
+﻿{
+    "Cameras": {
+        "Canon EOS 550D (2010 - 2010)": {
+            "Brand": "Canon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 22.3,
+                "SensorHeightInMM": 14.9
+            }
+        },
+        "Nikon D3100 (2010 - 2010)": {
+            "Brand": "Nikon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.1,
+                "SensorHeightInMM": 15.4
+            }
+        },
+        "Canon EOS 7D (2010 - 2010)": {
+            "Brand": "Canon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 22.3,
+                "SensorHeightInMM": 14.9
+            }
+        },
+        "Nikon D7000 (2010 - 2010)": {
+            "Brand": "Nikon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.6,
+                "SensorHeightInMM": 15.6
+            }
+        },
+        "Sony Alpha A500 (2010 - 2010)": {
+            "Brand": "Sony",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.5,
+                "SensorHeightInMM": 15.6
+            }
+        },
+        "Pentax K-x (2010 - 2010)": {
+            "Brand": "Pentax",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.6,
+                "SensorHeightInMM": 15.8
+            }
+        },
+        "Canon EOS 5D Mark II (2010 - 2010)": {
+            "Brand": "Canon",
+            "SensorType": "Full Frame",
+            "Sensor": {
+                "SensorWidthInMM": 36.0,
+                "SensorHeightInMM": 24.0
+            }
+        },
+        "Nikon D3s (2010 - 2010)": {
+            "Brand": "Nikon",
+            "SensorType": "Full Frame",
+            "Sensor": {
+                "SensorWidthInMM": 36.0,
+                "SensorHeightInMM": 23.9
+            }
+        },
+        "Sony Alpha A850 (2010 - 2010)": {
+            "Brand": "Sony",
+            "SensorType": "Full Frame",
+            "Sensor": {
+                "SensorWidthInMM": 35.9,
+                "SensorHeightInMM": 24.0
+            }
+        },
+        "Pentax K-7 (2010 - 2010)": {
+            "Brand": "Pentax",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.4,
+                "SensorHeightInMM": 15.6
+            }
+        },
+        "Canon EOS 1000D (2010 - 2010)": {
+            "Brand": "Canon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 22.2,
+                "SensorHeightInMM": 14.8
+            }
+        },
+        "Nikon D90 (2010 - 2010)": {
+            "Brand": "Nikon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.6,
+                "SensorHeightInMM": 15.8
+            }
+        },
+        "Sony Alpha A230 (2010 - 2010)": {
+            "Brand": "Sony",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.5,
+                "SensorHeightInMM": 15.7
+            }
+        },
+        "Pentax K20D (2010 - 2010)": {
+            "Brand": "Pentax",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 23.4,
+                "SensorHeightInMM": 15.6
+            }
+        },
+        "Canon EOS 50D (2010 - 2010)": {
+            "Brand": "Canon",
+            "SensorType": "Crop",
+            "Sensor": {
+                "SensorWidthInMM": 22.3,
+                "SensorHeightInMM": 14.9
+            }
+        }
+    }
+}

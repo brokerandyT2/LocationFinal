@@ -16,8 +16,8 @@ namespace Location.Photography.Application.Services
         /// <summary>
         /// Extracts EXIF data from an image stream
         /// </summary>
-        Task<Result<ExifData>> ExtractExifDataAsync(Stream imageStream, CancellationToken cancellationToken = default);
-
+        //Task<Result<ExifData>> ExtractExifDataAsync(Stream imageStream, CancellationToken cancellationToken = default);
+        // Task<Result<ExifData>> ExtractExifDataAsync(string imagePath, CancellationToken cancellationToken = default)
         /// <summary>
         /// Checks if the image contains the required EXIF data for camera calibration
         /// </summary>
