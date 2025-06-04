@@ -171,7 +171,7 @@ namespace Location.Photography.Maui.Views
                             timeFormat, windDirection, email, _guid);
                     });
 
-                    await Navigation.PushAsync(_serviceProvider.GetRequiredService<SubscriptionSignUpPage>());
+                    await Navigation.PushAsync(_serviceProvider.GetRequiredService<CameraEvaluation>());
                 }
                 catch (Exception ex)
                 {

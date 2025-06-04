@@ -1,273 +1,271 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:camera="clr-namespace:Camera.MAUI;assembly=Camera.MAUI"
              x:Class="Location.Photography.Maui.Views.Premium.FieldOfView"
-             Title="FieldOfView">
-    <VerticalStackLayout>
-       <!-- <Label 
-            Text=" Photography FOV & DoF App - Complete Feature Documentation
-🎯 Project Overview
-Development of a .NET MAUI photography app that helps amateur photographers understand Field of View (FOV) and Depth of Field (DoF) using their phone camera as a preview tool for their DSLR/mirrorless camera gear.
+             Title="Field of View Preview"
+             BackgroundColor="Black">
 
-📊 Database Architecture
-Camera Bodies Table
-sqlCREATE TABLE CameraBodies (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Manufacturer TEXT NOT NULL,        - "Canon", "Nikon", "Sony"
-    Model TEXT NOT NULL,               - "EOS R5", "D850", "A7 IV"
-    SensorType TEXT NOT NULL,          - "FullFrame", "APSCCanon", "APSCNikonSony", "MicroFourThirds", "OneInch"
-    SensorWidth REAL NOT NULL,         - 36.0, 22.3, 23.6, 17.3, 13.2 (mm)
-    SensorHeight REAL NOT NULL,        - 24.0, 14.9, 15.6, 13.0, 8.8 (mm)
-    CropFactor REAL NOT NULL,          - 1.0, 1.6, 1.5, 2.0, 2.7
-    IsPopular BOOLEAN DEFAULT 1
-);
-User Lenses Table
-sqlCREATE TABLE UserLenses (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Name TEXT NOT NULL,                - "70-200mm f/2.8" or "My 50mm prime"
-    MinFocalLength INTEGER NOT NULL,   - 70 (or 50 for prime)
-    MaxFocalLength INTEGER NOT NULL,   - 200 (or 50 for prime)
-    MinAperture REAL NOT NULL,         - f/1.4, f/2.8 (widest)
-    MaxAperture REAL NOT NULL,         - f/8, f/16 (narrowest)
-    DateAdded DATETIME DEFAULT CURRENT_TIMESTAMP,
-    IsPrime AS (MinFocalLength = MaxFocalLength) STORED
-);
-Phone Camera Profiles Table
-sqlCREATE TABLE PhoneCameraProfiles (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    PhoneModel TEXT NOT NULL,          - "Apple iPhone 15 Pro"
-    MainLensFocalLength REAL NOT NULL, - 24 (from EXIF)
-    MainLensFOV REAL NOT NULL,         - 84 (calculated)
-    UltraWideFocalLength REAL,         - 13 (if available)
-    TelephotoFocalLength REAL,         - 77 (if available)
-    DateCalibrated DATETIME NOT NULL,
-    IsActive BOOLEAN DEFAULT 1
-);
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
-🎯 Core Features & Implementation
-1. Enhanced Onboarding with EXIF Capture
-Purpose: Automatically detect and store user's phone camera specifications
-csharppublic class OnboardingCameraSetup
-{
-    public async Task<PhoneCameraProfile> CalibrateUserPhone()
-    {
-        // Step 1: Force user to take calibration photo
-        await ShowInstructions("Take a photo of anything to set up your camera");
-        
-        // Step 2: Capture with Camera.MAUI
-        var photoStream = await cameraView.TakePhotoAsync();
-        var filePath = await SaveTempPhoto(photoStream);
-        
-        // Step 3: Extract EXIF data
-        var exifData = await ReadExifData(filePath);
-        
-        // Step 4: Create and store phone profile
-        var profile = new PhoneCameraProfile
-        {
-            PhoneModel = $"{DeviceInfo.Manufacturer} {DeviceInfo.Model}",
-            MainLensFocalLength = exifData.FocalLength,
-            MainLensFOV = CalculateFOVFromFocalLength(exifData.FocalLength),
-            DateCalibrated = DateTime.Now
-        };
-        
-        await SavePhoneProfile(profile);
-        File.Delete(filePath); // Cleanup
-        
-        return profile;
-    }
-}
-2. Two-Mode System Based on EXIF Availability
-Mode 1: EXIF Available → Live FOV with Distance Markers
+        <!-- Camera Controls Header -->
+        <Frame Grid.Row="0" 
+               BackgroundColor="#DD000000" 
+               Margin="0" 
+               Padding="15,10"
+               CornerRadius="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-Real-time camera preview using Maui.Camera
-Overlay boxes showing camera gear FOV at specific distances
-Distance-based focus range visualization
+                <StackLayout Grid.Column="0" Orientation="Vertical" Spacing="5">
+                    <Label x:Name="CameraLensLabel" 
+                           Text="Select Camera and Lens"
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="White" />
 
-Mode 2: No EXIF → Educational Calculator
+                    <Label x:Name="FOVInfoLabel"
+                           Text="Phone: 24mm (84°) | Camera: Select equipment"
+                           FontSize="12"
+                           TextColor="#CCCCCC" />
+                </StackLayout>
 
-Text-based focus range calculator
-No live preview capabilities
-Educational information about gear capabilities
+                <Button Grid.Column="1"
+                        x:Name="SettingsButton"
+                        Text="⚙️"
+                        FontSize="20"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        WidthRequest="50"
+                        HeightRequest="40"
+                        Clicked="OnSettingsButtonClicked" />
+            </Grid>
+        </Frame>
 
-3. Live Camera FOV Preview (EXIF Mode)
-Technology: Camera.MAUI for live preview
-Features:
+        <!-- Camera View with Overlays -->
+        <Grid Grid.Row="1">
+            <!-- Camera Preview -->
+            <camera:CameraView x:Name="CameraView" 
+                              AutoStartPreview="True"
+                              VerticalOptions="FillAndExpand"
+                              HorizontalOptions="FillAndExpand" />
 
-Real-time camera view
-Overlay boxes showing selected camera/lens FOV
-Distance-based focus range markers
-Camera body and lens selection
+            <!-- FOV Overlay Canvas -->
+            <Canvas x:Name="OverlayCanvas" 
+                    BackgroundColor="Transparent"
+                    VerticalOptions="FillAndExpand"
+                    HorizontalOptions="FillAndExpand">
 
-xml
-        <Grid>
-                   <camera:CameraView x:Name="CameraView" AutoStartPreview="True"/>
-
-            
-            <Canvas BackgroundColor="Transparent">
-                
-                <Frame BorderColor="Green" StrokeThickness="3">
-                    <Label Text="Near Focus: 1.8m" TextColor="Green"/>
+                <!-- FOV Overlay Box -->
+                <Frame x:Name="FOVOverlayBox"
+                       BorderColor="Lime"
+                       BackgroundColor="Transparent"
+                       HasShadow="False"
+                       Padding="0"
+                       IsVisible="False">
+                    <Frame.Stroke>
+                        <LinearGradientBrush>
+                            <GradientStop Color="Lime" Offset="0.0" />
+                            <GradientStop Color="Yellow" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Frame.Stroke>
                 </Frame>
 
-          
-                <Frame BorderColor="Blue" StrokeThickness="3">
-                    <Label Text="Far Focus: 12.4m" TextColor="Blue"/>
+                <!-- Focus Range Indicators -->
+                <Frame x:Name="NearFocusFrame"
+                       BorderColor="Green"
+                       BackgroundColor="#40000000"
+                       HasShadow="False"
+                       Padding="5"
+                       CornerRadius="5"
+                       IsVisible="False">
+                    <Label x:Name="NearFocusLabel"
+                           Text="Near: 1.8m"
+                           TextColor="Green"
+                           FontSize="12"
+                           FontAttributes="Bold" />
+                </Frame>
+
+                <Frame x:Name="FarFocusFrame"
+                       BorderColor="Blue"
+                       BackgroundColor="#40000000"
+                       HasShadow="False"
+                       Padding="5"
+                       CornerRadius="5"
+                       IsVisible="False">
+                    <Label x:Name="FarFocusLabel"
+                           Text="Far: 12.4m"
+                           TextColor="Blue"
+                           FontSize="12"
+                           FontAttributes="Bold" />
                 </Frame>
             </Canvas>
+
+            <!-- Center Crosshair -->
+            <Grid VerticalOptions="Center" HorizontalOptions="Center">
+                <Ellipse Fill="Transparent"
+                         Stroke="White"
+                         StrokeThickness="2"
+                         WidthRequest="20"
+                         HeightRequest="20"
+                         Opacity="0.7" />
+                <Line X1="10" Y1="0" X2="10" Y2="20"
+                      Stroke="White"
+                      StrokeThickness="1"
+                      Opacity="0.7" />
+                <Line X1="0" Y1="10" X2="20" Y2="10"
+                      Stroke="White"
+                      StrokeThickness="1"
+                      Opacity="0.7" />
+            </Grid>
+
+            <!-- Mode Indicator -->
+            <Frame x:Name="ModeIndicator"
+                   BackgroundColor="#80000000"
+                   Padding="10,5"
+                   CornerRadius="15"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Start"
+                   Margin="0,20,0,0">
+                <Label x:Name="ModeLabel"
+                       Text="FOV Preview Mode"
+                       TextColor="White"
+                       FontSize="12"
+                       FontAttributes="Bold" />
+            </Frame>
         </Grid>
-        4. FOV Calculation Algorithm
-csharppublic double CalculateHorizontalFOV(double focalLength, double sensorWidth)
-{
-    return 2 * Math.Atan(sensorWidth / (2 * focalLength)) * (180 / Math.PI);
-}
 
-public OverlayBox CalculateOverlayBox(double phoneFOV, double cameraFOV, Size screenSize)
-{
-    double scaleFactor = cameraFOV / phoneFOV;
-    
-    int boxWidth = (int)(screenSize.Width * scaleFactor);
-    int boxHeight = (int)(screenSize.Height * scaleFactor);
-    
-    return new OverlayBox
-    {
-        X = (screenSize.Width - boxWidth) / 2,
-        Y = (screenSize.Height - boxHeight) / 2,
-        Width = boxWidth,
-        Height = boxHeight
-    };
-}
+        <!-- Bottom Controls -->
+        <Frame Grid.Row="2" 
+               BackgroundColor="#DD000000" 
+               Margin="0" 
+               Padding="15"
+               CornerRadius="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-🧮 Depth of Field Implementation
-Core Limitation
-DoF calculation requires focus distance - impossible to calculate with only focal length and aperture.
-Educational DoF Range Calculator
-Purpose: Show focus capability range of camera/lens combinations
-csharppublic class DoFRangeCalculator
-{
-    public DoFRange CalculateFocusRange(CameraBody camera, UserLens lens)
-    {
-        // Scenario 1: Shallowest DoF (longest focal length + widest aperture)
-        var shallow = CalculateHyperfocal(lens.MaxFocalLength, lens.MinAperture, camera.SensorWidth);
-        
-        // Scenario 2: Deepest DoF (shortest focal length + narrowest aperture)  
-        var deep = CalculateHyperfocal(lens.MinFocalLength, lens.MaxAperture, camera.SensorWidth);
-        
-        return new DoFRange
-        {
-            MinFocusDistance = shallow.NearLimit,      // e.g., 1.8m
-            MaxFocusDistance = deep.HyperfocalDistance, // e.g., 12.4m
-            ShallowSetting = $"{lens.MaxFocalLength}mm f/{lens.MinAperture}",
-            DeepSetting = $"{lens.MinFocalLength}mm f/{lens.MaxAperture}"
-        };
-    }
-}
-User Output
-"This camera and lens can take sharp photos from 1.8m to 12.4m
-- Shallow DoF: 70mm f/2.8 (great for portraits)
-- Deep DoF: 24mm f/5.6 (good for landscapes)"
+                <!-- Camera Selection -->
+                <Button Grid.Row="0" Grid.Column="0"
+                        x:Name="CameraButton"
+                        Text="📷 Camera"
+                        FontSize="14"
+                        BackgroundColor="#333333"
+                        TextColor="White"
+                        CornerRadius="10"
+                        Margin="2"
+                        Clicked="OnCameraButtonClicked" />
 
-📱 Camera Management System
-Pre-populated Camera Database
+                <!-- Lens Selection -->
+                <Button Grid.Row="0" Grid.Column="1"
+                        x:Name="LensButton"
+                        Text="🔍 Lens"
+                        FontSize="14"
+                        BackgroundColor="#333333"
+                        TextColor="White"
+                        CornerRadius="10"
+                        Margin="2"
+                        Clicked="OnLensButtonClicked" />
 
-100+ camera bodies across all major manufacturers
-Sensor specifications stored for accurate calculations
-Grouped by manufacturer for easy browsing
-Generic sensor categories to avoid user confusion
+                <!-- Toggle Overlay -->
+                <Button Grid.Row="0" Grid.Column="2"
+                        x:Name="ToggleButton"
+                        Text="👁️ Toggle"
+                        FontSize="14"
+                        BackgroundColor="#007ACC"
+                        TextColor="White"
+                        CornerRadius="10"
+                        Margin="2"
+                        Clicked="OnToggleOverlayClicked" />
 
-User Lens Management
+                <!-- Distance Input -->
+                <StackLayout Grid.Row="1" Grid.ColumnSpan="3" 
+                            Orientation="Horizontal" 
+                            HorizontalOptions="Center"
+                            Margin="0,10,0,0"
+                            Spacing="10">
+                    <Label Text="Subject Distance:"
+                           TextColor="White"
+                           FontSize="14"
+                           VerticalOptions="Center" />
 
-User-entered lenses with focal length and aperture ranges
-Prime vs zoom lens detection (computed column)
-Easy deletion with confirmation dialog
-Swipe-to-delete UI pattern
+                    <Slider x:Name="DistanceSlider"
+                            Minimum="0.5"
+                            Maximum="50"
+                            Value="5"
+                            WidthRequest="150"
+                            ValueChanged="OnDistanceChanged" />
 
+                    <Label x:Name="DistanceLabel"
+                           Text="5.0m"
+                           TextColor="White"
+                           FontSize="14"
+                           VerticalOptions="Center"
+                           WidthRequest="50" />
+                </StackLayout>
+            </Grid>
+        </Frame>
 
-🔄 App Workflow
-First Launch
+        <!-- No EXIF Fallback -->
+        <Grid x:Name="FallbackOverlay"
+              Grid.RowSpan="3"
+              BackgroundColor="#CC000000"
+              IsVisible="False">
+            <Frame BackgroundColor="White"
+                   CornerRadius="15"
+                   Margin="40"
+                   Padding="30"
+                   VerticalOptions="Center">
+                <StackLayout Spacing="20">
+                    <Label Text="📖"
+                           FontSize="60"
+                           HorizontalOptions="Center" />
 
-Onboarding setup - force photo capture for EXIF
-Camera gear entry - add camera bodies and lenses
-Phone calibration - store EXIF-derived phone specs
+                    <Label Text="Educational Mode"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           TextColor="Black" />
 
-Daily Use - EXIF Mode
+                    <Label Text="Live FOV preview requires camera calibration. You can still use the calculator below or calibrate your camera in settings."
+                           FontSize="14"
+                           HorizontalTextAlignment="Center"
+                           TextColor="Black" />
 
-Select camera body and lens
-Open live camera view
-See real-time FOV overlays with distance markers
-Understand gear capabilities visually
+                    <StackLayout Orientation="Horizontal" Spacing="10">
+                        <Button Text="Open Calculator"
+                                BackgroundColor="#007ACC"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="45"
+                                HorizontalOptions="FillAndExpand"
+                                Clicked="OnOpenCalculatorClicked" />
 
-Daily Use - Educational Mode
-
-Select camera body and lens
-View calculated focus range
-Learn about DoF relationships
-Plan shot settings
-
-
-🛠 Technical Implementation Notes
-Camera.MAUI Limitations
-
-❌ Cannot detect which phone lens is active (ultra-wide/main/telephoto)
-❌ No pinch-to-zoom gesture support
-❌ No real-time EXIF data access
-✅ Can provide live preview and photo capture
-✅ Supports digital zoom factor
-
-EXIF Data Strategy
-
-Read EXIF after photo capture (not during live view)
-One-time calibration during onboarding
-Persistent storage of phone camera specifications
-Fallback to educational mode if EXIF unavailable
-
-Distance Measurement Limitations
-
-No reliable automatic distance detection on most phones
-ARCore possible but adds complexity and device requirements
-User input required for precise DoF calculations
-Focus range approach provides useful boundaries without exact distance
-
-
-📋 Development Priorities
-Phase 1: Core Foundation
-
-✅ Database schema and camera body population
-✅ User lens management system
-✅ Enhanced onboarding with EXIF capture
-✅ FOV calculation algorithms
-
-Phase 2: Live Camera Features
-
-✅ Camera.MAUI integration
-✅ Live FOV overlay system
-✅ Distance-based focus range visualization
-✅ Two-mode system (EXIF vs Educational)
-
-Phase 3: Educational Features
-
-✅ DoF range calculator
-✅ Camera/lens capability explanations
-✅ Photography scenario recommendations
-
-Phase 4: Polish & Enhancement
-
-UI/UX refinement
-Additional camera body database expansion
-Advanced educational content
-Performance optimization
-
-
-💡 Key Design Decisions
-
-Offline-first architecture - no cloud dependency
-Generic sensor categories - avoid overwhelming beginners
-EXIF-based calibration - automatic phone detection
-Educational fallback - valuable even without EXIF
-Focus range approach - practical without exact distance measurement
-Camera.MAUI for simplicity - avoid platform-specific camera code
-
-This documentation provides a complete roadmap for implementing the photography FOV and DoF assistance app with clear technical specifications and user experience design."
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" /> -->
-    </VerticalStackLayout>
+                        <Button Text="Calibrate Camera"
+                                BackgroundColor="Green"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="45"
+                                HorizontalOptions="FillAndExpand"
+                                Clicked="OnCalibrateButtonClicked" />
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+        </Grid>
+    </Grid>
 </ContentPage>

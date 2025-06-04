@@ -138,17 +138,11 @@ namespace Location.Photography.Maui
         {
             try
             {
-                if (_serviceProvider != null)
-                {
-                    var mainPage = _serviceProvider.GetService(typeof(App)) as Page;
-                    if (mainPage != null)
-                    {
-                        await Navigation.PushAsync(mainPage);
-                        return;
-                    }
-                }
-                var redirect = _serviceProvider.GetRequiredService<AppShell>();
-                Microsoft.Maui.Controls.Application.Current.MainPage = redirect;
+                // Use proper MAUI navigation instead of MainPage replacement
+                var appShell = _serviceProvider.GetRequiredService<AppShell>();
+                Microsoft.Maui.Controls.Application.Current.MainPage = appShell;
+
+                _logger?.LogInformation("Successfully navigated to AppShell");
             }
             catch (Exception ex)
             {

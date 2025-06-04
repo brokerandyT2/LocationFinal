@@ -144,18 +144,52 @@ namespace Location.Photography.Maui
             }
         }
 
+        // Location.Photography.Maui/App.xaml.cs
+        // CHANGE: HasCompletedOnboardingAsync method (lines 88-99)
+
         private async Task<bool> HasCompletedOnboardingAsync()
         {
             try
             {
                 var email = await SecureStorage.Default.GetAsync(MagicStrings.Email);
-                return !string.IsNullOrEmpty(email);
+                var hasProfile = await CheckForCameraProfileAsync();
+
+                // User has completed onboarding if they have email AND camera profile (or skipped camera setup)
+                return !string.IsNullOrEmpty(email) && (hasProfile || await HasSkippedCameraSetupAsync());
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error checking onboarding status");
                 return Preferences.Default.ContainsKey(MagicStrings.Email) &&
                        !string.IsNullOrEmpty(Preferences.Default.Get(MagicStrings.Email, string.Empty));
+            }
+        }
+
+        private async Task<bool> CheckForCameraProfileAsync()
+        {
+            try
+            {
+                // Check if user has completed camera calibration
+                var hasProfile = await SecureStorage.Default.GetAsync("CameraProfileCompleted");
+                return !string.IsNullOrEmpty(hasProfile) && hasProfile == "true";
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> HasSkippedCameraSetupAsync()
+        {
+            try
+            {
+                // Check if user explicitly skipped camera setup
+                var skipped = await SecureStorage.Default.GetAsync("CameraSetupSkipped");
+                return !string.IsNullOrEmpty(skipped) && skipped == "true";
+            }
+            catch
+            {
+                return false;
             }
         }
 

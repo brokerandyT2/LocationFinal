@@ -1,4 +1,5 @@
 ﻿// Location.Photography.Maui/MauiProgram.cs - Complete implementation
+using Camera.MAUI;
 using CommunityToolkit.Maui;
 using Location.Core.Application;
 using Location.Core.Application.Alerts;
@@ -10,14 +11,17 @@ using Location.Core.Infrastructure.Data.Repositories;
 using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using Location.Photography.Application;
+using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
+using Location.Photography.Infrastructure.Repositories;
 using Location.Photography.Infrastructure.Services;
 using Location.Photography.Maui.Views;
 using Location.Photography.ViewModels;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Camera.MAUI;
 
 namespace Location.Photography.Maui
 {
@@ -29,6 +33,7 @@ namespace Location.Photography.Maui
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseMauiCameraView()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -70,7 +75,10 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<IErrorDisplayService, ErrorDisplayService>();
             builder.Services.AddSingleton<IImageAnalysisService, ImageAnalysisService>();
             builder.Services.AddTransient<ITimezoneService, TimezoneService>();
-            
+            builder.Services.AddSingleton<IExifService, ExifService>();
+            builder.Services.AddSingleton<IFOVCalculationService, FOVCalculationService>();
+            builder.Services.AddSingleton<IPhoneCameraProfileRepository, PhoneCameraProfileRepository>();
+
 #if ANDROID
             // Android-specific services
             builder.Services.AddSingleton<Platforms.Android.ILightSensorService, Platforms.Android.LightSensorService>();
@@ -230,7 +238,13 @@ namespace Location.Photography.Maui
                 var settingRepo = sp.GetRequiredService<ISettingRepository>();
                 return new Views.Settings(mediator, alertService, settingRepo);
             });
-
+            builder.Services.AddTransient<CameraEvaluation>(sp =>
+            {
+                var mediator = sp.GetRequiredService<IMediator>();
+                var logger = sp.GetRequiredService<ILogger<CameraEvaluation>>();
+                var serviceProvider = sp;
+                return new CameraEvaluation(mediator, logger, serviceProvider);
+            });
             builder.Services.AddTransient<UserOnboarding>(sp =>
             {
                 var alertService = sp.GetRequiredService<IAlertService>();

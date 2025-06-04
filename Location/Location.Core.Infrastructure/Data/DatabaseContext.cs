@@ -145,6 +145,7 @@ namespace Location.Core.Infrastructure.Data
             await _connection.CreateTableAsync<HourlyForecastEntity>();
             await _connection.CreateTableAsync<Log>();
             await _connection.CreateTableAsync<Subscription>();
+            await _connection.CreateTableAsync<PhoneCameraProfileEntity>();
 
             _logger.LogDebug("Database tables created");
         }
