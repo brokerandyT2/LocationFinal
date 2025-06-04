@@ -9,135 +9,122 @@ namespace Location.Photography.Maui.Controls
     {
         private EnhancedSunCalculatorViewModel _viewModel;
         private readonly Color _backgroundColor = Colors.White;
-        private readonly Color _currentSunColor = Color.FromRgb(255, 165, 0); // Orange
-
-        private List<SunEventPoint> _sunEvents = new();
+        private readonly Color _daylightColor = Color.FromRgb(135, 206, 235); // Sky blue
+        private readonly Color _nightColor = Color.FromRgb(25, 25, 112); // Dark blue
+        private readonly Color _sunColor = Color.FromRgb(255, 215, 0); // Gold
+        private readonly Color _textColor = Colors.Black;
 
         public SunPathDrawable(EnhancedSunCalculatorViewModel viewModel)
         {
             _viewModel = viewModel;
-            CalculateSunEvents();
         }
 
         public void UpdateViewModel(EnhancedSunCalculatorViewModel viewModel)
         {
             _viewModel = viewModel;
-            CalculateSunEvents();
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
-            if (_viewModel == null) return;
+            if (_viewModel?.SelectedLocation == null) return;
 
             var width = dirtyRect.Width;
             var height = dirtyRect.Height;
             var centerX = width / 2;
-            var centerY = height * 0.7f; // Move up to make room for legend
+            var centerY = height * 0.55f; // Move up to 55% to make room for labels below
+            var amplitude = height * 0.25f; // Adjust amplitude proportionally
 
-            // Clear background to white
+            // Clear background
             canvas.FillColor = _backgroundColor;
             canvas.FillRectangle(dirtyRect);
 
-            // Draw the cosine wave using y = cos((π/4)x) with clamping
-            DrawCosineWave(canvas, centerX, centerY, width, height);
+            // Get sun times for the selected date
+            var sunTimes = GetSunTimesForSelectedDate();
+            if (sunTimes == null) return;
 
-            // Draw legend at bottom
-            DrawLegend(canvas, width, height);
+            // Draw the cosine wave
+            DrawCosineWave(canvas, centerX, centerY, width, height, amplitude);
+
+            // Draw time labels using trigonometry
+            DrawTimeLabelsWithTrigonometry(canvas, centerX, centerY, width, amplitude, sunTimes);
+
+            // Draw current sun position using trigonometry
+            DrawCurrentSunPositionWithTrigonometry(canvas, centerX, centerY, width, amplitude, sunTimes);
         }
 
-        private void DrawCosineWave(ICanvas canvas, float centerX, float centerY, float canvasWidth, float canvasHeight)
+        private void DrawCosineWave(ICanvas canvas, float centerX, float centerY, float canvasWidth, float canvasHeight, float amplitude)
         {
-            // Map canvas width to x range [-3, +3]
-            var amplitude = canvasHeight * 0.3f; // Wave amplitude (30% of canvas height)
+            var daylightPath = new PathF();
+            var nightPath = new PathF();
 
-            var dayPath = new PathF(); // y >= 0 (blue)
-            var nightPath = new PathF(); // y < 0 (black)
-
-            bool dayPathStarted = false;
-            bool nightPathStarted = false;
+            bool daylightStarted = false;
+            bool nightStarted = false;
 
             // Generate wave points across full canvas width
-            for (float canvasX = 0; canvasX <= canvasWidth; canvasX += 1f) // 1px increments for smooth curve
+            for (float canvasX = 0; canvasX <= canvasWidth; canvasX += 1f)
             {
                 // Map canvas X (0 to canvasWidth) to mathematical X (-3 to +3)
-                double mathX = ((canvasX / canvasWidth) * 6.0) - 3.0; // Maps 0→canvasWidth to -3→+3
+                double mathX = ((canvasX / canvasWidth) * 6.0) - 3.0;
 
-                // Calculate y using the cosine equation with clamping
+                // Calculate y using cosine with clamping
                 double mathY = CosLimited(mathX);
 
                 // Map mathematical Y to canvas Y (flip vertically and scale)
-                float canvasY = centerY - (float)(mathY * amplitude); // Negative to flip upside down
+                float canvasY = centerY - (float)(mathY * amplitude);
 
-                // Determine color based on y value
-                if (mathY >= 0) // Day portion (above horizon)
+                // Separate daylight (y >= 0) and night (y < 0) portions
+                if (mathY >= 0) // Daylight portion
                 {
-                    if (!dayPathStarted)
+                    if (!daylightStarted)
                     {
-                        dayPath.MoveTo(canvasX, canvasY);
-                        dayPathStarted = true;
+                        daylightPath.MoveTo(canvasX, canvasY);
+                        daylightStarted = true;
                     }
                     else
                     {
-                        dayPath.LineTo(canvasX, canvasY);
+                        daylightPath.LineTo(canvasX, canvasY);
                     }
-
-                    // If we were drawing night path, we need to restart it later
-                    if (nightPathStarted)
-                    {
-                        nightPathStarted = false;
-                    }
+                    nightStarted = false; // Reset night path
                 }
-                else // Night portion (below horizon)
+                else // Night portion (y < 0)
                 {
-                    if (!nightPathStarted)
+                    if (!nightStarted)
                     {
                         nightPath.MoveTo(canvasX, canvasY);
-                        nightPathStarted = true;
+                        nightStarted = true;
                     }
                     else
                     {
                         nightPath.LineTo(canvasX, canvasY);
                     }
-
-                    // If we were drawing day path, we need to restart it later
-                    if (dayPathStarted)
-                    {
-                        dayPathStarted = false;
-                    }
+                    daylightStarted = false; // Reset daylight path
                 }
             }
 
-            // Draw horizon line at y = 0 (mathematical y = 0 maps to centerY on canvas)
-            canvas.StrokeColor = Color.FromRgb(128, 128, 128); // Gray horizon line
-            canvas.StrokeSize = 2;
+            // Draw horizon line at y = 0
+            canvas.StrokeColor = Color.FromRgb(128, 128, 128);
+            canvas.StrokeSize = 1;
             canvas.DrawLine(0, centerY, canvasWidth, centerY);
 
-            // Draw night portion (y < 0) - light grey so blue hours are visible
+            // Draw night portion (y < 0) in dark blue
             if (nightPath.Count > 0)
             {
-                canvas.StrokeColor = Color.FromRgb(180, 180, 180); // Light grey instead of black
-                canvas.StrokeSize = 4; // Half of previous 8px
+                canvas.StrokeColor = _nightColor;
+                canvas.StrokeSize = 4;
                 canvas.StrokeLineCap = LineCap.Round;
                 canvas.DrawPath(nightPath);
             }
 
-            // Draw day portion (y >= 0) - blue with half stroke width
-            if (dayPath.Count > 0)
+            // Draw daylight portion (y >= 0) in sky blue
+            if (daylightPath.Count > 0)
             {
-                canvas.StrokeColor = Color.FromRgb(100, 149, 237); // Cornflower blue
-                canvas.StrokeSize = 4; // Half of previous 8px
+                canvas.StrokeColor = _daylightColor;
+                canvas.StrokeSize = 4;
                 canvas.StrokeLineCap = LineCap.Round;
-                canvas.DrawPath(dayPath);
+                canvas.DrawPath(daylightPath);
             }
-
-            // Draw current sun position on the arc
-            DrawCurrentSunOnArc(canvas, centerX, centerY, canvasWidth, canvasHeight, amplitude);
-
-            // Draw sun events on the arc
-            DrawSunEvents(canvas, centerX, centerY, canvasWidth, canvasHeight, amplitude);
         }
 
-        // Your provided clamping function
         private double CosLimited(double x)
         {
             if (x < -3 || x > 3)
@@ -145,297 +132,187 @@ namespace Location.Photography.Maui.Controls
             return Math.Cos(Math.PI / 4 * x);
         }
 
-        private void DrawCurrentSunOnArc(ICanvas canvas, float centerX, float centerY, float canvasWidth, float canvasHeight, float amplitude)
-        {
-            if (_viewModel?.SelectedLocation == null) return;
-
-            // Use the selected date with current time of day
-            var selectedDate = _viewModel.SelectedDate.Date;
-            var currentTimeOfDay = DateTime.Now.TimeOfDay;
-            var targetDateTime = selectedDate.Add(currentTimeOfDay);
-
-            // Calculate sun times for the selected date (not auto-advanced times)
-            var coordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, selectedDate);
-
-            var sunriseLocal = coordinate.CelestialInfo.SunRise.HasValue
-               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunRise.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-               : selectedDate.AddHours(6);
-            var sunsetLocal = coordinate.CelestialInfo.SunSet.HasValue
-               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunSet.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-               : selectedDate.AddHours(18);
-            var solarNoon = coordinate.CelestialInfo.SolarNoon.HasValue
-               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SolarNoon.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-               : selectedDate.AddHours(12);
-
-            // Calculate current sun position for the target date/time
-            var currentCoordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, targetDateTime);
-            var currentElevation = currentCoordinate.CelestialInfo.SunAltitude;
-
-            // Only draw if sun is above horizon
-            if (currentElevation <= 0) return;
-
-            // Calculate position on arc
-            var position = CalculateSunEventPosition(targetDateTime, centerX, centerY, canvasWidth, amplitude, sunriseLocal, sunsetLocal, solarNoon);
-
-            if (position.HasValue && position.Value.Y <= centerY)
-            {
-                // Draw current sun position as orange circle
-                canvas.FillColor = _currentSunColor;
-                canvas.FillCircle(position.Value.X, position.Value.Y, 5);
-
-                // Add white border for visibility
-                canvas.StrokeColor = Colors.White;
-                canvas.StrokeSize = 1;
-                canvas.DrawCircle(position.Value.X, position.Value.Y, 5);
-            }
-        }
-
-        private void DrawSunEvents(ICanvas canvas, float centerX, float centerY, float canvasWidth, float canvasHeight, float amplitude)
-        {
-            if (_viewModel == null || !_sunEvents.Any()) return;
-
-            // Draw each event on the arc
-            foreach (var sunEvent in _sunEvents)
-            {
-                var position = CalculateSunEventPosition(sunEvent.DateTime, centerX, centerY, canvasWidth, amplitude);
-
-                if (position.HasValue)
-                {
-                    if (sunEvent.EventType == SunEventType.Sunrise || sunEvent.EventType == SunEventType.Sunset)
-                    {
-                        // Draw hash mark instead of circle
-                        canvas.StrokeColor = Colors.Black;
-                        canvas.StrokeSize = 2; // Slightly thinner
-                        canvas.DrawLine(position.Value.X, position.Value.Y - 6, position.Value.X, position.Value.Y + 6); // Shorter hash
-                    }
-                    else
-                    {
-                        // Filled colored circle (half size)
-                        canvas.FillColor = sunEvent.Color;
-                        canvas.FillCircle(position.Value.X, position.Value.Y, 5); // Half of previous 10px
-
-                        // White border for visibility
-                        canvas.StrokeColor = Colors.White;
-                        canvas.StrokeSize = 1;
-                        canvas.DrawCircle(position.Value.X, position.Value.Y, 5);
-                    }
-                }
-            }
-
-            // Draw time labels for each event
-            DrawEventLabels(canvas, centerX, centerY, canvasWidth, amplitude);
-        }
-
-        private void AddSunEvent(SunEventType eventType, Color color, DateTime time, string displayName, bool isBelowHorizon)
-        {
-            _sunEvents.Add(new SunEventPoint
-            {
-                EventType = eventType,
-                Color = color,
-                Time = time.ToString(_viewModel?.TimeFormat ?? "HH:mm"),
-                DisplayName = displayName,
-                DateTime = time,
-                Size = 5,
-                IsVisible = true,
-                IsBelowHorizon = isBelowHorizon
-            });
-        }
-
-        private PointF? CalculateSunEventPosition(DateTime eventTime, float centerX, float centerY, float canvasWidth, float amplitude)
+        private SunTimesData? GetSunTimesForSelectedDate()
         {
             if (_viewModel?.SelectedLocation == null) return null;
 
-            // Calculate sun times for the selected date
-            var selectedDate = _viewModel.SelectedDate.Date;
-            var coordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, selectedDate);
-
-            var sunriseTime = coordinate.CelestialInfo.SunRise.HasValue
-                ? DateTime.SpecifyKind(coordinate.CelestialInfo.SunRise.Value, DateTimeKind.Local)
-                : selectedDate.AddHours(6);
-            var sunsetTime = coordinate.CelestialInfo.SunSet.HasValue
-                ? DateTime.SpecifyKind(coordinate.CelestialInfo.SunSet.Value, DateTimeKind.Local)
-                : selectedDate.AddHours(18);
-            var solarNoonTime = coordinate.CelestialInfo.SolarNoon.HasValue
-                ? DateTime.SpecifyKind(coordinate.CelestialInfo.SolarNoon.Value, DateTimeKind.Local)
-                : selectedDate.AddHours(12);
-
-            return CalculateSunEventPosition(eventTime, centerX, centerY, canvasWidth, amplitude, sunriseTime, sunsetTime, solarNoonTime);
-        }
-
-        private PointF? CalculateSunEventPosition(DateTime eventTime, float centerX, float centerY, float canvasWidth, float amplitude, DateTime sunriseTime, DateTime sunsetTime, DateTime solarNoonTime)
-        {
-            // Calculate hours from solar noon (this gives us the time position on our curve)
-            double hoursFromNoon = (eventTime - solarNoonTime).TotalHours;
-
-            // Map time to mathematical X coordinate
-            // We need to map the day length to the curve range where cosine is meaningful
-            double dayLength = (sunsetTime - sunriseTime).TotalHours;
-
-            // Scale the time to fit our cosine curve range
-            // Solar noon (0 hours from noon) should map to X = 0 (peak of cosine)
-            // Sunrise/sunset should map to where cosine crosses zero
-            double mathX = (hoursFromNoon / (dayLength / 2.0)) * (Math.PI / 2.0); // Map to ±π/2 range
-
-            // Convert to our CosLimited input range (-3 to +3)
-            mathX = mathX * (4.0 / Math.PI); // Scale π/2 range to match our function's meaningful range
-
-            // Calculate Y position using the cosine equation - this puts events exactly on the curve
-            double mathY = CosLimited(mathX);
-
-            // For events outside daylight hours (Blue Hours), mirror to negative Y
-            if (eventTime < sunriseTime || eventTime > sunsetTime)
+            try
             {
-                mathY = -Math.Abs(mathY); // Force to negative Y (night portion)
-            }
+                var selectedDate = _viewModel.SelectedDateProp.Date;
+                var coordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, selectedDate);
 
-            // Map mathematical coordinates to canvas coordinates
-            float canvasX = (float)((mathX + 3.0) / 6.0 * canvasWidth);
-            float canvasY = centerY - (float)(mathY * amplitude);
-
-            return new PointF(canvasX, canvasY);
-        }
-
-        private void DrawEventLabels(ICanvas canvas, float centerX, float centerY, float canvasWidth, float amplitude)
-        {
-            canvas.FontSize = 10;
-            canvas.FontColor = Colors.Black;
-
-            if (_viewModel?.SelectedLocation == null) return;
-
-            // Calculate solar noon for the selected date
-            var selectedDate = _viewModel.SelectedDate.Date;
-            var coordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, selectedDate);
-            var sunriseLocal = coordinate.CelestialInfo.SunRise.HasValue
-               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunRise.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-               : selectedDate.AddHours(6);
-            var sunsetLocal = coordinate.CelestialInfo.SunSet.HasValue
-               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunSet.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-               : selectedDate.AddHours(18);
-            var solarNoonTime = coordinate.CelestialInfo.SolarNoon.HasValue
-               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SolarNoon.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-               : selectedDate.AddHours(12);
-
-            foreach (var sunEvent in _sunEvents)
-            {
-                var position = CalculateSunEventPosition(sunEvent.DateTime, centerX, centerY, canvasWidth, amplitude);
-
-                if (position.HasValue)
+                var sunTimes = new SunTimesData
                 {
-                    // Determine if morning or evening event
-                    bool isMorningEvent = sunEvent.DateTime <= solarNoonTime;
+                    Dawn = TimeZoneInfo.ConvertTimeFromUtc(coordinate.CelestialInfo.AdditionalSolarTimes.CivilDawn.Value, TimeZoneInfo.Local),
+                    Sunrise = TimeZoneInfo.ConvertTimeFromUtc(coordinate.CelestialInfo.SunRise.Value, TimeZoneInfo.Local),
+                    SolarNoon = TimeZoneInfo.ConvertTimeFromUtc(coordinate.CelestialInfo.SolarNoon.Value, TimeZoneInfo.Local),
+                    Sunset = TimeZoneInfo.ConvertTimeFromUtc(coordinate.CelestialInfo.SunSet.Value, TimeZoneInfo.Local),
+                    Dusk = TimeZoneInfo.ConvertTimeFromUtc(coordinate.CelestialInfo.AdditionalSolarTimes.CivilDusk.Value, TimeZoneInfo.Local)
+                };
 
-                    // Position label with offsets
-                    float labelX, labelY;
-
-                    if (isMorningEvent)
-                    {
-                        // Morning events: left 5px, up 5px
-                        labelX = position.Value.X - 5;
-                        labelY = position.Value.Y - 20;
-                    }
-                    else
-                    {
-                        // Evening events: right 2px (was -5, now -3), up 2px more (was -20, now -22)
-                        labelX = position.Value.X - 3;
-                        labelY = position.Value.Y - 22;
-                    }
-
-                    // Save canvas state for rotation
-                    canvas.SaveState();
-
-                    // Translate to label position, then rotate based on morning/evening
-                    canvas.Translate(labelX, labelY);
-
-                    if (isMorningEvent)
-                    {
-                        canvas.Rotate(45); // 45° clockwise for morning events
-                    }
-                    else
-                    {
-                        canvas.Rotate(-45); // 45° counter-clockwise for evening events
-                    }
-
-                    // Draw the time text (now rotated)
-                    canvas.DrawString(sunEvent.Time, -20, -5, 40, 10, HorizontalAlignment.Center, VerticalAlignment.Center);
-
-                    // Restore canvas state
-                    canvas.RestoreState();
-                }
+                return sunTimes;
+            }
+            catch
+            {
+                return null;
             }
         }
 
-        private void DrawLegend(ICanvas canvas, float width, float height)
+        private (float x, float y) CalculatePositionFromTime(DateTime time, DateTime sunrise, DateTime sunset, float canvasWidth, float amplitude, float centerY)
         {
-            var legendY = height * 0.85f;
-            var legendItemWidth = width / 4f; // Changed to 4 items
+            // Calculate daylight duration in hours
+            var daylightDuration = (sunset - sunrise).TotalHours;
 
-            canvas.FontSize = 10;
-            canvas.FontColor = Colors.Black;
+            // Calculate hours since sunrise
+            var hoursSinceSunrise = (time - sunrise).TotalHours;
 
-            // Blue Hour
-            canvas.FillColor = Color.FromRgb(25, 25, 112);
-            canvas.FillCircle(legendItemWidth * 0.5f, legendY, 3); // Half size
-            canvas.DrawString("Blue Hour", 0, legendY + 15, legendItemWidth, 20, HorizontalAlignment.Center, VerticalAlignment.Center);
+            // Map to x coordinate: sunrise=-2, sunset=+2, span=4 units
+            var mathX = -2.0 + (hoursSinceSunrise / daylightDuration) * 4.0;
 
-            // Golden Hour
-            canvas.FillColor = Color.FromRgb(255, 215, 0);
-            canvas.FillCircle(legendItemWidth * 1.5f, legendY, 3); // Half size
-            canvas.DrawString("Golden Hour", legendItemWidth, legendY + 15, legendItemWidth, 20, HorizontalAlignment.Center, VerticalAlignment.Center);
+            // Calculate y using cosine equation: y = cos(π/4 * x)
+            var mathY = Math.Cos(Math.PI / 4.0 * mathX);
 
-            // Sunrise/Sunset (hash marks)
-            canvas.StrokeColor = Colors.Black;
-            canvas.StrokeSize = 2;
-            canvas.DrawLine(legendItemWidth * 2.5f, legendY - 4, legendItemWidth * 2.5f, legendY + 4); // Vertical hash
-            canvas.DrawString("Sunrise/Sunset", legendItemWidth * 2, legendY + 15, legendItemWidth, 20, HorizontalAlignment.Center, VerticalAlignment.Center);
+            // Convert to canvas coordinates
+            var canvasX = Math.Abs((float)((mathX + 3.0) / 6.0 * canvasWidth));
+            var canvasY = Math.Abs(centerY - (float)(mathY * amplitude));
 
-            // Current Sun
-            canvas.FillColor = _currentSunColor;
-            canvas.FillCircle(legendItemWidth * 3.5f, legendY, 3); // Half size
-            canvas.DrawString("Current Sun", legendItemWidth * 3, legendY + 15, legendItemWidth, 20, HorizontalAlignment.Center, VerticalAlignment.Center);
+            return (canvasX, canvasY);
         }
 
-        private void CalculateSunEvents()
+        private void DrawTimeLabelsWithTrigonometry(ICanvas canvas, float centerX, float centerY, float canvasWidth, float amplitude, SunTimesData sunTimes)
         {
-            _sunEvents.Clear();
+            canvas.FontSize = 11;
+            canvas.FontColor = _textColor;
+            var timeFormat = "HH:mm";
 
-            if (_viewModel?.SelectedLocation == null) return;
+            // Convert times to local
+            var dawn = sunTimes.Dawn;
+            var sunrise = sunTimes.Sunrise;
+            var sunset = sunTimes.Sunset;
+            var dusk = sunTimes.Dusk;
+            var solarNoon = sunTimes.SolarNoon;
 
-            // Calculate sun times for the selected date
-            var selectedDate = _viewModel.SelectedDate.Date;
-            var coordinate = new CoordinateSharp.Coordinate(_viewModel.SelectedLocation.Latitude, _viewModel.SelectedLocation.Longitude, selectedDate);
+            // Calculate golden hour times
+            var goldenHourMorningEnd = sunrise.AddHours(1);
+            var goldenHourEveningStart = sunset.AddHours(-1);
 
-            var sunriseLocal = coordinate.CelestialInfo.SunRise.HasValue
-               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunRise.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-               : selectedDate.AddHours(6);
-            var sunsetLocal = coordinate.CelestialInfo.SunSet.HasValue
-               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SunSet.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-               : selectedDate.AddHours(18);
-            var solarNoon = coordinate.CelestialInfo.SolarNoon.HasValue
-               ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(coordinate.CelestialInfo.SolarNoon.Value, DateTimeKind.Utc), TimeZoneInfo.Local)
-               : selectedDate.AddHours(12);
+            // Draw Sunrise label (at horizon)
+            var sunrisePos = CalculatePositionFromTime(sunrise, sunrise, sunset, canvasWidth, amplitude, centerY);
+            canvas.DrawString("Sunrise", sunrisePos.x - 30, centerY + 10, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+            canvas.DrawString(sunrise.ToString(timeFormat), sunrisePos.x - 30, centerY + 25, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
 
-            // Calculate sun events using calculated data
-            var blueHourMorningStart = sunriseLocal.AddMinutes(-60);
-            var goldenHourMorningEnd = sunriseLocal.AddMinutes(60);
-            var goldenHourEveningStart = sunsetLocal.AddMinutes(-60);
-            var blueHourEveningEnd = sunsetLocal.AddMinutes(60);
+            // Draw Sunset label (at horizon)
+            var sunsetPos = CalculatePositionFromTime(sunset, sunrise, sunset, canvasWidth, amplitude, centerY);
+            canvas.DrawString("Sunset", sunsetPos.x - 30, centerY + 10, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+            canvas.DrawString(sunset.ToString(timeFormat), sunsetPos.x - 30, centerY + 25, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
 
-            // Add events using the calculated data
-            AddSunEvent(SunEventType.BlueHourStart, Color.FromRgb(25, 25, 112), blueHourMorningStart, "Blue Hour Start", false);
-            AddSunEvent(SunEventType.Sunrise, Colors.Black, sunriseLocal, "Sunrise", false);
-            AddSunEvent(SunEventType.GoldenHourEnd, Color.FromRgb(255, 215, 0), goldenHourMorningEnd, "Golden Hour End", false);
-            AddSunEvent(SunEventType.GoldenHourStart, Color.FromRgb(255, 215, 0), goldenHourEveningStart, "Golden Hour Start", false);
-            AddSunEvent(SunEventType.Sunset, Colors.Black, sunsetLocal, "Sunset", false);
-            AddSunEvent(SunEventType.BlueHourEnd, Color.FromRgb(25, 25, 112), blueHourEveningEnd, "Blue Hour End", false);
+            // Draw Golden Hour Morning End
+            var goldenMorningPos = CalculatePositionFromTime(goldenHourMorningEnd, sunrise, sunset, canvasWidth, amplitude, centerY);
+            canvas.DrawString("Golden Hour End", goldenMorningPos.x - 40, goldenMorningPos.y - 35, 80, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+            canvas.DrawString(goldenHourMorningEnd.ToString(timeFormat), goldenMorningPos.x - 40, goldenMorningPos.y - 20, 80, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+
+            // Draw Solar Noon
+            var solarNoonPos = CalculatePositionFromTime(solarNoon, sunrise, sunset, canvasWidth, amplitude, centerY);
+            canvas.DrawString("Solar Noon", solarNoonPos.x - 30, solarNoonPos.y - 25, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+            canvas.DrawString(solarNoon.ToString(timeFormat), solarNoonPos.x - 30, solarNoonPos.y - 10, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+
+            // Draw Golden Hour Evening Start
+            var goldenEveningPos = CalculatePositionFromTime(goldenHourEveningStart, sunrise, sunset, canvasWidth, amplitude, centerY);
+            canvas.DrawString("Golden Hour Start", goldenEveningPos.x - 40, goldenEveningPos.y - 25, 80, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+            canvas.DrawString(goldenHourEveningStart.ToString(timeFormat), goldenEveningPos.x - 40, goldenEveningPos.y - 10, 80, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+
+            // Dawn - positioned in negative y region (left side)
+            var dawnYPos = centerY + amplitude * 0.7f; // Below horizon
+            canvas.DrawString("Dawn", 20, dawnYPos + 10, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+            canvas.DrawString(dawn.ToString(timeFormat), 50, dawnYPos + 25, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+
+            // Dusk - positioned in negative y region (right side)
+            var duskYPos = centerY + amplitude * 0.7f; // Below horizon
+            canvas.DrawString("Dusk", canvasWidth - 50, duskYPos + 10, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+            canvas.DrawString(dusk.ToString(timeFormat), canvasWidth - 50, duskYPos + 25, 60, 15, HorizontalAlignment.Center, VerticalAlignment.Center);
+
+            // Draw markers
+            DrawMarkersWithTrigonometry(canvas, centerX, centerY, canvasWidth, amplitude, sunTimes, sunrise, sunset, solarNoon, goldenHourMorningEnd, goldenHourEveningStart);
         }
 
+        private void DrawMarkersWithTrigonometry(ICanvas canvas, float centerX, float centerY, float canvasWidth, float amplitude, SunTimesData sunTimes, DateTime sunrise, DateTime sunset, DateTime solarNoon, DateTime goldenHourMorningEnd, DateTime goldenHourEveningStart)
+        {
+            // Solar Noon marker (dark orange)
+            var solarNoonPos = CalculatePositionFromTime(solarNoon, sunrise, sunset, canvasWidth, amplitude, centerY);
+            DrawMarker(canvas, solarNoonPos.x, solarNoonPos.y, Color.FromRgb(255, 140, 0));
+
+            // Golden Hour Morning End marker (gold)
+            var goldenMorningPos = CalculatePositionFromTime(goldenHourMorningEnd, sunrise, sunset, canvasWidth, amplitude, centerY);
+            DrawMarker(canvas, goldenMorningPos.x, goldenMorningPos.y, Color.FromRgb(255, 215, 0));
+
+            // Golden Hour Evening Start marker (gold)
+            var goldenEveningPos = CalculatePositionFromTime(goldenHourEveningStart, sunrise, sunset, canvasWidth, amplitude, centerY);
+            DrawMarker(canvas, goldenEveningPos.x, goldenEveningPos.y, Color.FromRgb(255, 215, 0));
+        }
+
+        private void DrawMarker(ICanvas canvas, float x, float y, Color color)
+        {
+            // Draw filled circle marker
+            canvas.FillColor = color;
+            canvas.FillCircle(x, y, 4);
+
+            // Add white border
+            canvas.StrokeColor = Colors.White;
+            canvas.StrokeSize = 1;
+            canvas.DrawCircle(x, y, 4);
+        }
+
+        private void DrawCurrentSunPositionWithTrigonometry(ICanvas canvas, float centerX, float centerY, float canvasWidth, float amplitude, SunTimesData sunTimes)
+        {
+            try
+            {
+                var now = DateTime.Now;
+                var selectedDate = _viewModel?.SelectedDateProp.Date ?? DateTime.Today;
+
+                // Convert sun times to local for calculation
+                var sunrise = sunTimes.Sunrise;
+                var sunset = sunTimes.Sunset;
+
+                // Use current time with selected date
+                var targetDateTime = selectedDate.Date.Add(now.TimeOfDay);
+
+                // Only draw if current time is between sunrise and sunset
+
+                var currentPos = CalculatePositionFromTime(targetDateTime, sunrise, sunset, canvasWidth, amplitude, centerY);
+
+                // Draw sun circle
+                canvas.FillColor = _sunColor;
+                canvas.FillCircle(currentPos.x, currentPos.y, 8);
+
+                // Add white border for visibility
+                canvas.StrokeColor = Colors.White;
+                canvas.StrokeSize = 2;
+                canvas.DrawCircle(currentPos.x, currentPos.y, 8);
+
+            }
+            catch
+            {
+                // Silently handle any calculation errors
+            }
+        }
+
+        // Keep existing interface methods
         public SunEventPoint GetTouchedEvent(PointF touchPoint, float centerX, float centerY, float canvasWidth)
         {
-            // Gestures removed as requested
             return null;
+        }
+
+        private class SunTimesData
+        {
+            public DateTime Dawn { get; set; }
+            public DateTime Sunrise { get; set; }
+            public DateTime SolarNoon { get; set; }
+            public DateTime Sunset { get; set; }
+            public DateTime Dusk { get; set; }
         }
     }
 
+    // Keep existing classes that other code depends on
     public class SunEventPoint
     {
         public SunEventType EventType { get; set; }

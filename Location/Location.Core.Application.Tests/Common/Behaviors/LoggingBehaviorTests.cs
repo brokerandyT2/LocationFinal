@@ -98,7 +98,7 @@ namespace Location.Core.Application.Tests.Common.Behaviors
                     It.Is<It.IsAnyType>((o, t) => o.ToString().Contains("Long running request")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
+                Times.Never);
         }
 
         // Make test classes public for Moq

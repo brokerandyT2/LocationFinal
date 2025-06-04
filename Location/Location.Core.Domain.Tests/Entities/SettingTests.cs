@@ -25,7 +25,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void Constructor_WithoutDescription_ShouldSetEmptyDescription()
         {
             // Arrange & Act
-            var setting = new Setting("theme", "dark");
+            var setting = new Setting("theme", "dark", "huh");
 
             // Assert
             setting.Description.Should().BeEmpty();
@@ -35,7 +35,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void Constructor_WithEmptyKey_ShouldThrowException()
         {
             // Arrange & Act
-            Action act = () => new Setting("", "value");
+            Action act = () => new Setting("", "value", "huh");
 
             // Assert
             act.Should().Throw<ArgumentException>()
@@ -47,7 +47,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void Constructor_WithNullKey_ShouldThrowException()
         {
             // Arrange & Act
-            Action act = () => new Setting(null, "value");
+            Action act = () => new Setting(null, "value", "huh");
 
             // Assert
             act.Should().Throw<ArgumentException>()
@@ -58,7 +58,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void Constructor_WithNullValue_ShouldSetEmptyString()
         {
             // Arrange & Act
-            var setting = new Setting("key", null);
+            var setting = new Setting("key", null, "huh");
 
             // Assert
             setting.Value.Should().BeEmpty();
@@ -68,7 +68,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void UpdateValue_ShouldUpdateValueAndTimestamp()
         {
             // Arrange
-            var setting = new Setting("theme", "light");
+            var setting = new Setting("theme", "light", "huh");
             var originalTimestamp = setting.Timestamp;
             System.Threading.Thread.Sleep(100); // Ensure some time passes
 
@@ -84,7 +84,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void UpdateValue_WithNull_ShouldSetEmptyString()
         {
             // Arrange
-            var setting = new Setting("theme", "light");
+            var setting = new Setting("theme", "light", "huh");
 
             // Act
             setting.UpdateValue(null);
@@ -102,7 +102,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void GetBooleanValue_WithValidBoolean_ShouldReturnCorrectValue(string value, bool expected)
         {
             // Arrange
-            var setting = new Setting("enable_feature", value);
+            var setting = new Setting("enable_feature", value, "huh");
 
             // Act
             var result = setting.GetBooleanValue();
@@ -118,7 +118,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void GetBooleanValue_WithInvalidBoolean_ShouldReturnFalse(string value)
         {
             // Arrange
-            var setting = new Setting("enable_feature", value);
+            var setting = new Setting("enable_feature", value, "huh");
 
             // Act
             var result = setting.GetBooleanValue();
@@ -133,7 +133,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void GetIntValue_WithValidInteger_ShouldReturnCorrectValue(string value, int expected)
         {
             // Arrange
-            var setting = new Setting("count", value);
+            var setting = new Setting("count", value, "huh");
 
             // Act
             var result = setting.GetIntValue();
@@ -148,7 +148,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void GetIntValue_WithInvalidInteger_ShouldReturnDefaultValue(string value, int expected)
         {
             // Arrange
-            var setting = new Setting("count", value);
+            var setting = new Setting("count", value, "huh");
 
             // Act
             var result = setting.GetIntValue();
@@ -161,7 +161,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void GetIntValue_WithCustomDefaultValue_ShouldReturnCustomDefault()
         {
             // Arrange
-            var setting = new Setting("count", "invalid");
+            var setting = new Setting("count", "invalid", "huh");
 
             // Act
             var result = setting.GetIntValue(99);
@@ -175,7 +175,7 @@ namespace Location.Core.Domain.Tests.Entities
         {
             // Arrange
             var dateTimeString = "2024-01-15 14:30:00";
-            var setting = new Setting("last_sync", dateTimeString);
+            var setting = new Setting("last_sync", dateTimeString, "huh");
 
             // Act
             var result = setting.GetDateTimeValue();
@@ -191,7 +191,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void GetDateTimeValue_WithInvalidDateTime_ShouldReturnNull(string value)
         {
             // Arrange
-            var setting = new Setting("last_sync", value);
+            var setting = new Setting("last_sync", value, "huh");
 
             // Act
             var result = setting.GetDateTimeValue();

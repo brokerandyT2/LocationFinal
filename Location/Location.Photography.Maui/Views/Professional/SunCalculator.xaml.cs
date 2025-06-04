@@ -140,12 +140,12 @@ namespace Location.Photography.Maui.Views.Professional
             try
             {
                 _sunPathDrawable = new SunPathDrawable(_viewModel);
-                SunPathCanvas.Drawable = _sunPathDrawable;
+                //SunPathCanvas.Drawable = _sunPathDrawable;
 
                 // Add tap gesture recognizer for sun event interaction
                 var tapGesture = new TapGestureRecognizer();
-                tapGesture.Tapped += OnSunPathTapped;
-                SunPathCanvas.GestureRecognizers.Add(tapGesture);
+
+                //SunPathCanvas.GestureRecognizers.Add(tapGesture);
             }
             catch (Exception ex)
             {
@@ -169,7 +169,7 @@ namespace Location.Photography.Maui.Views.Professional
                 if (_sunPathDrawable != null && _viewModel != null)
                 {
                     _sunPathDrawable.UpdateViewModel(_viewModel);
-                    SunPathCanvas.Invalidate();
+                    //SunPathCanvas.Invalidate();
                 }
             }
             catch (Exception ex)
@@ -178,38 +178,7 @@ namespace Location.Photography.Maui.Views.Professional
             }
         }
 
-        private async void OnSunPathTapped(object sender, TappedEventArgs e)
-        {
-            try
-            {
-                if (_isPopupVisible || _sunPathDrawable == null || _viewModel == null)
-                    return;
-
-                // Get tap position relative to the canvas
-                var tapPosition = e.GetPosition((View)sender);
-                if (!tapPosition.HasValue)
-                    return;
-
-                var canvasFrame = SunPathCanvas.Frame;
-                var centerX = (float)canvasFrame.Width / 2;
-                var groundY = (float)canvasFrame.Height * 0.75f;
-                var radius = (float)canvasFrame.Width * 0.4f;
-
-                // Check if tap hit any sun event
-                var touchedEvent = _sunPathDrawable.GetTouchedEvent(
-                    new PointF((float)tapPosition.Value.X, (float)tapPosition.Value.Y),
-                    centerX, groundY, radius);
-
-                if (touchedEvent != null)
-                {
-                    await ShowSunEventPopup(touchedEvent);
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error handling sun path tap: {ex.Message}");
-            }
-        }
+       
 
         private async Task ShowSunEventPopup(SunEventPoint sunEvent)
         {

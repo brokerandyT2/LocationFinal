@@ -65,14 +65,6 @@
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Compile Remove="Views\Premium\FieldOfView.xaml.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <MauiXaml Remove="Views\Premium\FieldOfView.xaml" />
-	</ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
     <PackageReference Include="CoordinateSharp" Version="3.1.1.1" />
@@ -125,7 +117,13 @@
     <MauiXaml Update="UserOnboarding.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\CameraEvaluation.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Premium\ExposureCalculator.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\Premium\FieldOfView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Professional\LightMeter.xaml">

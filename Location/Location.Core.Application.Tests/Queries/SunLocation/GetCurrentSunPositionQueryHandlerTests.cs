@@ -49,11 +49,11 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             var expectedElevation = 60.0; // High in the sky
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, TimeZoneInfo.Local.ToString()))
                 .Returns(expectedAzimuth);
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, TimeZoneInfo.Local.ToString()))
                 .Returns(expectedElevation);
 
             // Act
@@ -68,8 +68,8 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             result.Data.Latitude.Should().Be(query.Latitude);
             result.Data.Longitude.Should().Be(query.Longitude);
 
-            _sunCalculatorServiceMock.Verify(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude), Times.Once);
-            _sunCalculatorServiceMock.Verify(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude), Times.Once);
+            _sunCalculatorServiceMock.Verify(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, TimeZoneInfo.Local.ToString()), Times.Once);
+            _sunCalculatorServiceMock.Verify(x => x.GetSolarElevation(query.DateTime, query.Latitude, query.Longitude, TimeZoneInfo.Local.ToString()), Times.Once);
         }
 
         [Test]
@@ -84,7 +84,7 @@ namespace Location.Photography.Application.Tests.Queries.SunLocation
             };
 
             _sunCalculatorServiceMock
-                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude))
+                .Setup(x => x.GetSolarAzimuth(query.DateTime, query.Latitude, query.Longitude, TimeZoneInfo.Local.ToString()))
                 .Throws(new ArgumentException("Invalid coordinates"));
 
             // Act

@@ -10,7 +10,17 @@ namespace Location.Core.Domain.Entities
     {
         private string _key = string.Empty;
         private string _value = string.Empty;
-
+        private int _id;
+        public int Id
+        {
+            get => _id;
+            private set
+            {
+                if (value <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(value), "Id must be greater than zero");
+                _id = value;
+            }
+        }
         public string Key
         {
             get => _key;
@@ -35,6 +45,14 @@ namespace Location.Core.Domain.Entities
 
         public Setting(string key, string value, string description = "")
         {
+            Key = key;
+            Value = value;
+            Description = description;
+            Timestamp = DateTime.UtcNow;
+        }
+        public Setting(string key, string value, string description = "", int ID = 0)
+        {
+            Id = ID;
             Key = key;
             Value = value;
             Description = description;

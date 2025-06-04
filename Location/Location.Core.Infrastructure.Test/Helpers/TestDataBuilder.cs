@@ -83,9 +83,10 @@ namespace Location.Core.Infrastructure.Tests.Helpers
         public static Setting CreateValidSetting(
             string key = "test_key",
             string value = "test_value",
-            string description = "Test setting")
+            string description = "Test setting", int Id = 1)
         {
-            return new Setting(key, value, description);
+            
+            return new Setting(key, value, description, Id);
         }
 
         // Infrastructure entities

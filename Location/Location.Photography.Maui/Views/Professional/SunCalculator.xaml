@@ -67,7 +67,7 @@
                     </Grid>
                 </Frame>
 
-                <!-- Sun Path Diagram with Loading Overlay -->
+                <!-- Sun Path Diagram with Loading Overlay 
                 <Frame BackgroundColor="#EFEBE9" HasShadow="True" CornerRadius="10" Padding="15">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -79,10 +79,10 @@
                         <Frame Grid.Row="1" BackgroundColor="White" CornerRadius="8" HasShadow="False" Padding="10">
                             <Grid>
                                 <GraphicsView x:Name="SunPathCanvas" BackgroundColor="#87CEEB">
-                                    <!-- Canvas will be populated in code-behind with sun path arc and markers -->
-                                </GraphicsView>
+                                  Canvas will be populated in code-behind with sun path arc and markers 
+                                </GraphicsView>-->
 
-                                <!-- Sun Path Loading Overlay -->
+                                <!-- Sun Path Loading Overlay 
                                 <Grid IsVisible="{Binding IsSunPathLoading}" BackgroundColor="#80000000">
                                     <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
                                         <ActivityIndicator IsRunning="{Binding IsSunPathLoading}" HeightRequest="40" WidthRequest="40" Color="#2196F3" />
@@ -92,9 +92,9 @@
                             </Grid>
                         </Frame>
                     </Grid>
-                </Frame>
+    </Frame> -->
 
-                <!-- Timezone Display -->
+    <!-- Timezone Display -->
                 <Frame BackgroundColor="#E3F2FD" HasShadow="True" CornerRadius="10" Padding="15">
                     <Grid>
                         <Grid.RowDefinitions>
