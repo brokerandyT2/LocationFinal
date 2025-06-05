@@ -3,6 +3,7 @@ using Location.Core.Application.Services;
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Queries.CameraEvaluation;
 using Location.Photography.Application.Services;
+using Location.Photography.Infrastructure.Services;
 using Location.Photography.ViewModels.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ namespace Location.Photography.Maui.Views.Premium
         private readonly IFOVCalculationService _fovCalculationService;
         private readonly IAlertService _alertService;
         private readonly ICameraDataService _cameraDataService;
-
+        private readonly ICameraSensorProfileService _cameraSensorProfileService;
         private double _phoneFOV = 0;
         private double _selectedCameraFOV = 0;
         private bool _isCalculating = false;
@@ -88,19 +89,21 @@ namespace Location.Photography.Maui.Views.Premium
             ILogger<FieldOfView> logger,
             IFOVCalculationService fovCalculationService,
             IAlertService alertService,
-            ICameraDataService cameraDataService)
+            ICameraDataService cameraDataService,
+            ICameraSensorProfileService cameraSensorProfileService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fovCalculationService = fovCalculationService ?? throw new ArgumentNullException(nameof(fovCalculationService));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _cameraDataService = cameraDataService ?? throw new ArgumentNullException(nameof(cameraDataService));
-
+            _cameraSensorProfileService = cameraSensorProfileService;
             InitializeComponent();
             BindingContext = this;
             InitializeFieldOfView();
-             LoadPhoneCameraProfileAsync();
-             LoadCamerasAsync();
+            LoadPhoneCameraProfileAsync();
+            LoadCamerasAsync();
+
         }
 
         // INavigationAware implementation
@@ -157,6 +160,7 @@ namespace Location.Photography.Maui.Views.Premium
                     });
                 }
 
+                // Load cameras from database
                 var result = await _cameraDataService.GetCameraBodiesAsync(_currentCameraSkip, _pageSize);
                 if (result.IsSuccess)
                 {
@@ -173,8 +177,24 @@ namespace Location.Photography.Maui.Views.Premium
                     _hasMoreCameras = result.Data.HasMore;
                     LoadMoreCamerasButton.IsVisible = _hasMoreCameras;
                     _currentCameraSkip += _pageSize;
-                    CameraPicker.SelectedIndex = -1;
                 }
+
+                // Load cameras from JSON sensor profiles (only on first load)
+                if (!loadMore)
+                {
+                    var jsonCameras = await LoadCameraSensorProfilesAsync();
+                    foreach (var jsonCamera in jsonCameras)
+                    {
+                        AvailableCameras.Add(new CameraDisplayItem
+                        {
+                            Camera = jsonCamera,
+                            DisplayName = jsonCamera.DisplayName,
+                            IsMissingOption = false
+                        });
+                    }
+                }
+
+                CameraPicker.SelectedIndex = -1;
             }
             catch (Exception ex)
             {
@@ -187,7 +207,67 @@ namespace Location.Photography.Maui.Views.Premium
                 ProcessingOverlay.IsVisible = false;
             }
         }
+        private async Task<List<CameraBodyDto>> LoadCameraSensorProfilesAsync()
+        {
+            try
+            {
+                var jsonContents = new List<string>();
 
+                // Read JSON files from Resources/CameraSensorProfiles/ for years 2010-2024
+                var currentYear = DateTime.Now.Year;
+                for (int year = 2010; year <= currentYear; year++)
+                {
+                    try
+                    {
+                        var fileName = $"camerasensorprofiles_{year}";
+                        using var stream = await FileSystem.Current.OpenAppPackageFileAsync(fileName);
+                        using var reader = new StreamReader(stream);
+                        var jsonContent = await reader.ReadToEndAsync();
+
+                        if (!string.IsNullOrEmpty(jsonContent))
+                        {
+                            jsonContents.Add(jsonContent);
+                            _logger.LogDebug("Loaded camera sensor profile for year {Year}", year);
+                        }
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        // File doesn't exist for this year, continue to next year
+                        _logger.LogDebug("No camera sensor profile found for year {Year}", year);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error loading camera sensor profile for year {Year}", year);
+                    }
+                }
+
+                if (jsonContents.Count > 0)
+                {
+                    var profilesResult = await _cameraSensorProfileService.LoadCameraSensorProfilesAsync(jsonContents);
+                    if (profilesResult.IsSuccess)
+                    {
+                        _logger.LogInformation("Loaded {Count} cameras from {FileCount} JSON sensor profile files",
+                            profilesResult.Data.Count, jsonContents.Count);
+                        return profilesResult.Data;
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to parse camera sensor profiles: {Error}", profilesResult.ErrorMessage);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("No camera sensor profile JSON files found");
+                }
+
+                return new List<CameraBodyDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading camera sensor profiles from JSON files");
+                return new List<CameraBodyDto>();
+            }
+        }
         private async Task LoadLensesAsync(bool loadMore = false)
         {
             if (_isLoadingLenses || SelectedCamera?.Camera == null) return;

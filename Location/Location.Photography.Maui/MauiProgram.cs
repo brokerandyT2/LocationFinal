@@ -194,8 +194,8 @@ namespace Location.Photography.Maui
                 var fovCalculationService = sp.GetRequiredService<IFOVCalculationService>();
                 var alertService = sp.GetRequiredService<IAlertService>();
                 var cameraDataService = sp.GetRequiredService<ICameraDataService>();
-
-                return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService, cameraDataService);
+                var cameraSensorProfileService = sp.GetRequiredService<ICameraSensorProfileService>();
+                return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService, cameraDataService, cameraSensorProfileService);
             });
 
             // Modal Pages for Field of View feature

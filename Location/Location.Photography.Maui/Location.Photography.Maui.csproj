@@ -66,9 +66,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Resources\CameraSensorProfiles\2010.json" />
-	  <None Remove="Resources\CameraSensorProfiles\2011.json" />
-	  <None Remove="Resources\CameraSensorProfiles\2012.json" />
+	  <None Remove="Resources\Raw\CameraSensorProfiles\2010.json" />
+	  <None Remove="Resources\Raw\CameraSensorProfiles\2011.json" />
+	  <None Remove="Resources\Raw\CameraSensorProfiles\2012.json" />
 	</ItemGroup>
 
   <ItemGroup>
@@ -99,8 +99,17 @@
     <Folder Include="Converters\" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <EmbeddedResource Include="Resources\CameraSensorProfiles\*.json" />
+    <MauiAsset Include="Resources\Raw\CameraSensorProfiles\2010.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </MauiAsset>
+    <MauiAsset Include="Resources\Raw\CameraSensorProfiles\2011.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </MauiAsset>
+    <MauiAsset Include="Resources\Raw\CameraSensorProfiles\2012.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </MauiAsset>
   </ItemGroup>
 
   <ItemGroup>

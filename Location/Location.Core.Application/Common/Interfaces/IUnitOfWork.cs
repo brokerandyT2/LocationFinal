@@ -30,10 +30,12 @@ namespace Location.Core.Application.Common.Interfaces
         /// </summary>
         ITipTypeRepository TipTypes { get; }
 
-        /// <summary>
-        /// Repository for Setting entities
-        /// </summary>
-        ISettingRepository Settings { get; }
+        ICameraBodyRepository CameraBody { get; }
+
+         /// <summary>
+         /// Repository for Setting entities
+         /// </summary>
+         ISettingRepository Settings { get; }
         ISubscriptionRepository Subscriptions { get; }
         /// <summary>
         /// Commits all changes made in this unit of work

@@ -98,7 +98,7 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
                     }
 
                     // Step 2: Load cameras from JSON sensor profiles
-                    var jsonCamerasResult = await _cameraSensorProfileService.LoadCameraSensorProfilesAsync(cancellationToken);
+                    var jsonCamerasResult = await _cameraSensorProfileService.LoadCameraSensorProfilesAsync(new List<string>(), cancellationToken);
                     if (jsonCamerasResult.IsSuccess)
                     {
                         allCameras.AddRange(jsonCamerasResult.Data);

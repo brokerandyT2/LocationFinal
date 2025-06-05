@@ -3,6 +3,8 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Domain.Entities;
+using Location.Photography.Domain.Entities;
+using Location.Photography.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -54,7 +56,8 @@ namespace Location.Photography.Infrastructure
                 {
                     CreateTipTypesAsync(cancellationToken),
                     CreateSampleLocationsAsync(cancellationToken),
-                    CreateBaseSettingsAsync(cancellationToken)
+                    CreateBaseSettingsAsync(cancellationToken),
+                    CreateCameraSensorProfilesAsync(cancellationToken)
                 };
 
                 await Task.WhenAll(initializationTasks).ConfigureAwait(false);
@@ -415,6 +418,106 @@ namespace Location.Photography.Infrastructure
                 _logger.LogError(ex, "Error creating base settings");
                 throw;
             }
+        }
+        private async Task CreateCameraSensorProfilesAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var cameraProfiles = new List<(string Name, string Brand, string SensorType, double SensorWidth, double SensorHeight)>
+       {
+           // 2010 Cameras
+           ("Canon EOS 550D (2010 - 2010)", "Canon", "Crop", 22.3, 14.9),
+           ("Nikon D3100 (2010 - 2010)", "Nikon", "Crop", 23.1, 15.4),
+           ("Canon EOS 7D (2010 - 2010)", "Canon", "Crop", 22.3, 14.9),
+           ("Nikon D7000 (2010 - 2010)", "Nikon", "Crop", 23.6, 15.6),
+           ("Sony Alpha A500 (2010 - 2010)", "Sony", "Crop", 23.5, 15.6),
+           ("Pentax K-x (2010 - 2010)", "Pentax", "Crop", 23.6, 15.8),
+           ("Canon EOS 5D Mark II (2010 - 2010)", "Canon", "Full Frame", 36.0, 24.0),
+           ("Nikon D3s (2010 - 2010)", "Nikon", "Full Frame", 36.0, 23.9),
+           ("Sony Alpha A850 (2010 - 2010)", "Sony", "Full Frame", 35.9, 24.0),
+           ("Pentax K-7 (2010 - 2010)", "Pentax", "Crop", 23.4, 15.6),
+           ("Canon EOS 1000D (2010 - 2010)", "Canon", "Crop", 22.2, 14.8),
+           ("Nikon D90 (2010 - 2010)", "Nikon", "Crop", 23.6, 15.8),
+           ("Sony Alpha A230 (2010 - 2010)", "Sony", "Crop", 23.5, 15.7),
+           ("Pentax K20D (2010 - 2010)", "Pentax", "Crop", 23.4, 15.6),
+           ("Canon EOS 50D (2010 - 2010)", "Canon", "Crop", 22.3, 14.9),
+
+           // 2011 Cameras
+           ("Canon EOS 600D (2011 - 2011)", "Canon", "Crop", 22.3, 14.9),
+           ("Nikon D5100 (2011 - 2011)", "Nikon", "Crop", 23.6, 15.6),
+           ("Sony Alpha A35 (2011 - 2011)", "Sony", "Crop", 23.5, 15.6),
+           ("Pentax K-5 (2011 - 2011)", "Pentax", "Crop", 23.7, 15.7),
+           ("Canon EOS 1100D (2011 - 2011)", "Canon", "Crop", 22.2, 14.7),
+           ("Nikon D7000 (2011 - 2011)", "Nikon", "Crop", 23.6, 15.6),
+           ("Sony Alpha A55 (2011 - 2011)", "Sony", "Crop", 23.5, 15.6),
+           ("Pentax K-r (2011 - 2011)", "Pentax", "Crop", 23.6, 15.8),
+           ("Canon EOS 5D Mark II (2011 - 2011)", "Canon", "Full Frame", 36.0, 24.0),
+           ("Nikon D3s (2011 - 2011)", "Nikon", "Full Frame", 36.0, 23.9),
+           ("Sony Alpha A900 (2011 - 2011)", "Sony", "Full Frame", 35.9, 24.0),
+           ("Pentax 645D (2011 - 2011)", "Pentax", "Medium Format", 44.0, 33.0),
+           ("Canon EOS 60D (2011 - 2011)", "Canon", "Crop", 22.3, 14.9),
+           ("Nikon D3100 (2011 - 2011)", "Nikon", "Crop", 23.1, 15.4),
+           ("Sony Alpha A290 (2011 - 2011)", "Sony", "Crop", 23.5, 15.7)
+       };
+
+                // Process camera profiles in batches to improve performance and reduce database contention
+                const int batchSize = 10;
+                for (int i = 0; i < cameraProfiles.Count; i += batchSize)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var batch = cameraProfiles.Skip(i).Take(batchSize);
+                    var cameraTasks = batch.Select(async cameraData =>
+                    {
+                        var (name, brand, sensorType, sensorWidth, sensorHeight) = cameraData;
+                        var mountType = DetermineMountType(brand, name);
+
+                        var cameraBody = new CameraBody(name, sensorType, sensorWidth, sensorHeight, mountType, false);
+
+                        var databaseContext = (_unitOfWork as Location.Core.Infrastructure.UnitOfWork.UnitOfWork)?.GetDatabaseContext();
+                        if (databaseContext != null)
+                        {
+                            await databaseContext.InsertAsync(cameraBody).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to create camera profile {Name}: DatabaseContext not available", name);
+                        }
+                    });
+
+                    await Task.WhenAll(cameraTasks).ConfigureAwait(false);
+                }
+
+                _logger.LogInformation("Created {Count} camera sensor profiles", cameraProfiles.Count);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating camera sensor profiles");
+                throw;
+            }
+        }
+
+        private MountType DetermineMountType(string brand, string cameraName)
+        {
+            var brandLower = brand?.ToLowerInvariant() ?? "";
+            var cameraNameLower = cameraName.ToLowerInvariant();
+
+            return brandLower switch
+            {
+                "canon" when cameraNameLower.Contains("eos r") => MountType.CanonRF,
+                "canon" when cameraNameLower.Contains("eos m") => MountType.CanonEFM,
+                "canon" => MountType.CanonEF,
+                "nikon" when cameraNameLower.Contains(" z") => MountType.NikonZ,
+                "nikon" => MountType.NikonF,
+                "sony" when cameraNameLower.Contains("fx") || cameraNameLower.Contains("a7") => MountType.SonyFE,
+                "sony" => MountType.SonyE,
+                "pentax" => MountType.PentaxK,
+                _ => MountType.Other
+            };
         }
     }
 }
