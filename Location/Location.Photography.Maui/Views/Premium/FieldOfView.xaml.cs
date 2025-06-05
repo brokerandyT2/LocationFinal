@@ -1,8 +1,10 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Commands.CameraEvaluation;
+using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Queries.CameraEvaluation;
 using Location.Photography.Application.Services;
+using Location.Photography.Domain.Entities;
 using Location.Photography.Infrastructure.Services;
 using Location.Photography.ViewModels.Interfaces;
 using MediatR;
@@ -20,10 +22,12 @@ namespace Location.Photography.Maui.Views.Premium
         private readonly IAlertService _alertService;
         private readonly ICameraDataService _cameraDataService;
         private readonly ICameraSensorProfileService _cameraSensorProfileService;
+        private readonly IUserCameraBodyRepository _userCameraBodyRepository;
         private double _phoneFOV = 0;
         private double _selectedCameraFOV = 0;
         private bool _isCalculating = false;
         private string _currentImagePath = string.Empty;
+        private string _currentUserId = string.Empty;
 
         // Collections for camera and lens data
         private ObservableCollection<CameraDisplayItem> _availableCameras = new();
@@ -90,7 +94,8 @@ namespace Location.Photography.Maui.Views.Premium
             IFOVCalculationService fovCalculationService,
             IAlertService alertService,
             ICameraDataService cameraDataService,
-            ICameraSensorProfileService cameraSensorProfileService)
+            ICameraSensorProfileService cameraSensorProfileService,
+            IUserCameraBodyRepository userCameraBodyRepository)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -98,12 +103,14 @@ namespace Location.Photography.Maui.Views.Premium
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _cameraDataService = cameraDataService ?? throw new ArgumentNullException(nameof(cameraDataService));
             _cameraSensorProfileService = cameraSensorProfileService;
+            _userCameraBodyRepository = userCameraBodyRepository ?? throw new ArgumentNullException(nameof(userCameraBodyRepository));
+
             InitializeComponent();
             BindingContext = this;
             InitializeFieldOfView();
+            LoadCurrentUserIdAsync();
             LoadPhoneCameraProfileAsync();
             LoadCamerasAsync();
-
         }
 
         // INavigationAware implementation
@@ -122,6 +129,19 @@ namespace Location.Photography.Maui.Views.Premium
         {
             base.OnAppearing();
             // Remove the async calls from here since we're using INavigationAware
+        }
+
+        private async Task LoadCurrentUserIdAsync()
+        {
+            try
+            {
+                _currentUserId = await SecureStorage.GetAsync("Email") ?? "default_user";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading current user ID");
+                _currentUserId = "default_user";
+            }
         }
 
         private void InitializeFieldOfView()
@@ -160,7 +180,7 @@ namespace Location.Photography.Maui.Views.Premium
                     });
                 }
 
-                // Load cameras from database
+                // Load cameras from database (includes proper ordering: user cameras first, then alphabetically)
                 var result = await _cameraDataService.GetCameraBodiesAsync(_currentCameraSkip, _pageSize);
                 if (result.IsSuccess)
                 {
@@ -179,21 +199,6 @@ namespace Location.Photography.Maui.Views.Premium
                     _currentCameraSkip += _pageSize;
                 }
 
-                // Load cameras from JSON sensor profiles (only on first load)
-                if (!loadMore)
-                {
-                    var jsonCameras = await LoadCameraSensorProfilesAsync();
-                    foreach (var jsonCamera in jsonCameras)
-                    {
-                        AvailableCameras.Add(new CameraDisplayItem
-                        {
-                            Camera = jsonCamera,
-                            DisplayName = jsonCamera.DisplayName,
-                            IsMissingOption = false
-                        });
-                    }
-                }
-
                 CameraPicker.SelectedIndex = -1;
             }
             catch (Exception ex)
@@ -207,67 +212,7 @@ namespace Location.Photography.Maui.Views.Premium
                 ProcessingOverlay.IsVisible = false;
             }
         }
-        private async Task<List<CameraBodyDto>> LoadCameraSensorProfilesAsync()
-        {
-            try
-            {
-                var jsonContents = new List<string>();
 
-                // Read JSON files from Resources/CameraSensorProfiles/ for years 2010-2024
-                var currentYear = DateTime.Now.Year;
-                for (int year = 2010; year <= currentYear; year++)
-                {
-                    try
-                    {
-                        var fileName = $"camerasensorprofiles_{year}";
-                        using var stream = await FileSystem.Current.OpenAppPackageFileAsync(fileName);
-                        using var reader = new StreamReader(stream);
-                        var jsonContent = await reader.ReadToEndAsync();
-
-                        if (!string.IsNullOrEmpty(jsonContent))
-                        {
-                            jsonContents.Add(jsonContent);
-                            _logger.LogDebug("Loaded camera sensor profile for year {Year}", year);
-                        }
-                    }
-                    catch (FileNotFoundException)
-                    {
-                        // File doesn't exist for this year, continue to next year
-                        _logger.LogDebug("No camera sensor profile found for year {Year}", year);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error loading camera sensor profile for year {Year}", year);
-                    }
-                }
-
-                if (jsonContents.Count > 0)
-                {
-                    var profilesResult = await _cameraSensorProfileService.LoadCameraSensorProfilesAsync(jsonContents);
-                    if (profilesResult.IsSuccess)
-                    {
-                        _logger.LogInformation("Loaded {Count} cameras from {FileCount} JSON sensor profile files",
-                            profilesResult.Data.Count, jsonContents.Count);
-                        return profilesResult.Data;
-                    }
-                    else
-                    {
-                        _logger.LogError("Failed to parse camera sensor profiles: {Error}", profilesResult.ErrorMessage);
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation("No camera sensor profile JSON files found");
-                }
-
-                return new List<CameraBodyDto>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading camera sensor profiles from JSON files");
-                return new List<CameraBodyDto>();
-            }
-        }
         private async Task LoadLensesAsync(bool loadMore = false)
         {
             if (_isLoadingLenses || SelectedCamera?.Camera == null) return;
@@ -331,6 +276,70 @@ namespace Location.Photography.Maui.Views.Premium
         private async void OnLoadMoreLensesClicked(object sender, EventArgs e)
         {
             await LoadLensesAsync(true);
+        }
+
+        private async void OnAddCameraClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                await Shell.Current.GoToAsync("//AddCameraModal");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error navigating to Add Camera modal");
+                await _alertService.ShowErrorAlertAsync("Error opening Add Camera", "Error");
+            }
+        }
+
+        private async void OnSaveCameraClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                if (SelectedCamera?.Camera == null || SelectedCamera.IsMissingOption)
+                {
+                    await _alertService.ShowErrorAlertAsync("Please select a camera to save", "No Camera Selected");
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(_currentUserId))
+                {
+                    await _alertService.ShowErrorAlertAsync("User not logged in", "Error");
+                    return;
+                }
+
+                ProcessingOverlay.IsVisible = true;
+
+                // Check if camera is already saved
+                var existsResult = await _userCameraBodyRepository.ExistsAsync(_currentUserId, SelectedCamera.Camera.Id);
+                if (existsResult.IsSuccess && existsResult.Data)
+                {
+                    await _alertService.ShowInfoAlertAsync("This camera is already in your saved list", "Camera Already Saved");
+                    return;
+                }
+
+                // Save the camera
+                var userCameraBody = new UserCameraBody(SelectedCamera.Camera.Id, _currentUserId);
+                var saveResult = await _userCameraBodyRepository.CreateAsync(userCameraBody);
+
+                if (saveResult.IsSuccess)
+                {
+                    await _alertService.ShowSuccessAlertAsync($"Camera '{SelectedCamera.Camera.DisplayName}' has been saved to your collection!", "Camera Saved");
+                    _logger.LogInformation("User {UserId} saved camera {CameraId}", _currentUserId, SelectedCamera.Camera.Id);
+                }
+                else
+                {
+                    await _alertService.ShowErrorAlertAsync(saveResult.ErrorMessage ?? "Failed to save camera", "Save Failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving camera");
+                await _alertService.ShowErrorAlertAsync("Error saving camera", "Error");
+            }
+            finally
+            {
+                ProcessingOverlay.IsVisible = false;
+            }
         }
 
         private async void OnCameraSelectionChanged(object sender, EventArgs e)
@@ -705,5 +714,4 @@ namespace Location.Photography.Maui.Views.Premium
             canvas.DrawLine(x, y, x, y + size);
         }
     }
-
 }

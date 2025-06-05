@@ -149,6 +149,7 @@ namespace Location.Core.Infrastructure.Data
             await _connection.CreateTableAsync<CameraBody>();
             await _connection.CreateTableAsync<Lens>();
             await _connection.CreateTableAsync<LensCameraCompatibility>();
+            await _connection.CreateTableAsync<UserCameraBody>();
             _logger.LogDebug("Database tables created");
         }
 
@@ -192,7 +193,8 @@ namespace Location.Core.Infrastructure.Data
            "CREATE INDEX IF NOT EXISTS idx_lens_user ON Lenses (IsUserCreated, MinMM)",
            "CREATE INDEX IF NOT EXISTS idx_lens_focal ON Lenses (MinMM, MaxMM)",
            "CREATE INDEX IF NOT EXISTS idx_compatibility_lens ON LensCameraCompatibility (LensId)",
-           "CREATE INDEX IF NOT EXISTS idx_compatibility_camera ON LensCameraCompatibility (CameraBodyId)"
+           "CREATE INDEX IF NOT EXISTS idx_compatibility_camera ON LensCameraCompatibility (CameraBodyId)",
+           "CREATE INDEX IF NOT EXISTS idx_user_camera_body ON UserCameraBody (UserId, CameraBodyId, IsFavorite, DateSaved)"
        };
 
                 // Execute index creation commands concurrently for better performance

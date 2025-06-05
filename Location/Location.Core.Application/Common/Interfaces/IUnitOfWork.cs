@@ -30,7 +30,7 @@ namespace Location.Core.Application.Common.Interfaces
         /// </summary>
         ITipTypeRepository TipTypes { get; }
 
-        ICameraBodyRepository CameraBody { get; }
+
 
          /// <summary>
          /// Repository for Setting entities

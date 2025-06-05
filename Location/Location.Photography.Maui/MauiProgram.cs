@@ -106,6 +106,7 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<ITipRepository, TipRepository>();
             builder.Services.AddSingleton<ISettingRepository, SettingRepository>();
             builder.Services.AddSingleton<ILocationRepository, LocationRepository>();
+            builder.Services.AddSingleton<IUserCameraBodyRepository, UserCameraBodyRepository>();
 
             // Photography repositories (if any additional ones exist)
             // Add photography-specific repositories here
@@ -195,7 +196,8 @@ namespace Location.Photography.Maui
                 var alertService = sp.GetRequiredService<IAlertService>();
                 var cameraDataService = sp.GetRequiredService<ICameraDataService>();
                 var cameraSensorProfileService = sp.GetRequiredService<ICameraSensorProfileService>();
-                return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService, cameraDataService, cameraSensorProfileService);
+                var userCameraShit = sp.GetRequiredService<IUserCameraBodyRepository>();
+                return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService, cameraDataService, cameraSensorProfileService, userCameraShit);
             });
 
             // Modal Pages for Field of View feature

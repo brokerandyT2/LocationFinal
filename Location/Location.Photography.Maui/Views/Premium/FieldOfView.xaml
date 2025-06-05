@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Location.Photography.Maui.Views.Premium.FieldOfView"
-             Title="Field of View Preview"
-             BackgroundColor="Black">
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            x:Class="Location.Photography.Maui.Views.Premium.FieldOfView"
+            Title="Field of View Preview"
+            BackgroundColor="Black">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -12,141 +12,177 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-       
+
         <!-- Image preview with overlay -->
         <Grid Grid.Row="1" Margin="10">
             <!-- Captured Image Display -->
             <Image x:Name="CapturedImage" 
-                   Aspect="AspectFit"
-                   VerticalOptions="FillAndExpand"
-                   HorizontalOptions="FillAndExpand"
-                   BackgroundColor="#333333" />
+                  Aspect="AspectFit"
+                  VerticalOptions="FillAndExpand"
+                  HorizontalOptions="FillAndExpand"
+                  BackgroundColor="#333333" />
 
             <!-- Placeholder when no image -->
             <StackLayout x:Name="PlaceholderStack"
-                        VerticalOptions="Center"
-                        HorizontalOptions="Center"
-                        IsVisible="True">
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center"
+                       IsVisible="True">
                 <Label Text="📸" 
-                       FontSize="60" 
-                       TextColor="Gray"
-                       HorizontalOptions="Center" />
+                      FontSize="60" 
+                      TextColor="Gray"
+                      HorizontalOptions="Center" />
                 <Label Text="Tap 'Take Photo' to capture an image"
-                       FontSize="16"
-                       TextColor="Gray"
-                       HorizontalTextAlignment="Center" />
+                      FontSize="16"
+                      TextColor="Gray"
+                      HorizontalTextAlignment="Center" />
             </StackLayout>
 
             <!-- FOV Overlay -->
             <GraphicsView x:Name="OverlayGraphicsView"
-                         VerticalOptions="FillAndExpand"
-                         HorizontalOptions="FillAndExpand"
-                         BackgroundColor="Transparent"
-                         IsVisible="False" />
+                        VerticalOptions="FillAndExpand"
+                        HorizontalOptions="FillAndExpand"
+                        BackgroundColor="Transparent"
+                        IsVisible="False" />
         </Grid>
 
         <!-- Controls -->
         <Frame Grid.Row="2" 
-               BackgroundColor="#80000000" 
-               Margin="20,10,20,40" 
-               Padding="20"
-               CornerRadius="10">
+              BackgroundColor="#80000000" 
+              Margin="20,10,20,40" 
+              Padding="20"
+              CornerRadius="10">
             <StackLayout Spacing="15">
 
                 <!-- Capture Button -->
                 <Button x:Name="CaptureButton"
-                        Text="📸 Take Photo"
-                        FontSize="16"
-                        FontAttributes="Bold"
-                        BackgroundColor="#007ACC"
-                        TextColor="White"
-                        HeightRequest="50"
-                        CornerRadius="25"
-                        Clicked="OnCaptureButtonClicked" />
+                       Text="📸 Take Photo"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       BackgroundColor="#007ACC"
+                       TextColor="White"
+                       HeightRequest="50"
+                       CornerRadius="25"
+                       Clicked="OnCaptureButtonClicked" />
 
-                <!-- Camera Selection -->
+                <!-- Camera Selection with Action Buttons -->
                 <Label Text="Camera Body:" TextColor="White" FontAttributes="Bold" />
-                <Picker x:Name="CameraPicker" 
-                        Title="Select Camera"
-                        TextColor="White"
-                        TitleColor="Gray"
-                        ItemsSource="{Binding AvailableCameras}"
-                        ItemDisplayBinding="{Binding DisplayName}"
-                        SelectedItem="{Binding SelectedCamera}"
-                        SelectedIndexChanged="OnCameraSelectionChanged" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Picker x:Name="CameraPicker" 
+                           Grid.Column="0"
+                           Title="Select Camera"
+                           TextColor="White"
+                           TitleColor="Gray"
+                           ItemsSource="{Binding AvailableCameras}"
+                           ItemDisplayBinding="{Binding DisplayName}"
+                           SelectedItem="{Binding SelectedCamera}"
+                           SelectedIndexChanged="OnCameraSelectionChanged" />
+
+                    <Button x:Name="AddCameraButton"
+                           Grid.Column="1"
+                           Text="+"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           BackgroundColor="#28a745"
+                           TextColor="White"
+                           WidthRequest="45"
+                           HeightRequest="45"
+                           CornerRadius="22"
+                           Margin="5,0,0,0"
+                           Clicked="OnAddCameraClicked"
+                           ToolTipProperties.Text="Add New Camera" />
+
+                    <Button x:Name="SaveCameraButton"
+                           Grid.Column="2"
+                           Text="💾"
+                           FontSize="16"
+                           BackgroundColor="#ffc107"
+                           TextColor="White"
+                           WidthRequest="45"
+                           HeightRequest="45"
+                           CornerRadius="22"
+                           Margin="5,0,0,0"
+                           Clicked="OnSaveCameraClicked"
+                           ToolTipProperties.Text="Save Camera to Collection" />
+                </Grid>
 
                 <!-- Lens Selection -->
                 <Label Text="Lens:" TextColor="White" FontAttributes="Bold" />
                 <Picker x:Name="LensPicker" 
-                        Title="Select Lens"
-                        TextColor="White"
-                        TitleColor="Gray"
-                        ItemsSource="{Binding AvailableLenses}"
-                        ItemDisplayBinding="{Binding DisplayName}"
-                        SelectedItem="{Binding SelectedLens}"
-                        SelectedIndexChanged="OnLensSelectionChanged"
-                        IsEnabled="False" />
+                       Title="Select Lens"
+                       TextColor="White"
+                       TitleColor="Gray"
+                       ItemsSource="{Binding AvailableLenses}"
+                       ItemDisplayBinding="{Binding DisplayName}"
+                       SelectedItem="{Binding SelectedLens}"
+                       SelectedIndexChanged="OnLensSelectionChanged"
+                       IsEnabled="False" />
 
                 <!-- Load More Buttons -->
                 <StackLayout Orientation="Horizontal" Spacing="10">
                     <Button x:Name="LoadMoreCamerasButton"
-                            Text="Load More Cameras"
-                            BackgroundColor="#666666"
-                            TextColor="White"
-                            FontSize="12"
-                            HorizontalOptions="FillAndExpand"
-                            Clicked="OnLoadMoreCamerasClicked"
-                            IsVisible="False" />
+                           Text="Load More Cameras"
+                           BackgroundColor="#666666"
+                           TextColor="White"
+                           FontSize="12"
+                           HorizontalOptions="FillAndExpand"
+                           Clicked="OnLoadMoreCamerasClicked"
+                           IsVisible="False" />
 
                     <Button x:Name="LoadMoreLensesButton"
-                            Text="Load More Lenses"
-                            BackgroundColor="#666666"
-                            TextColor="White"
-                            FontSize="12"
-                            HorizontalOptions="FillAndExpand"
-                            Clicked="OnLoadMoreLensesClicked"
-                            IsVisible="False" />
+                           Text="Load More Lenses"
+                           BackgroundColor="#666666"
+                           TextColor="White"
+                           FontSize="12"
+                           HorizontalOptions="FillAndExpand"
+                           Clicked="OnLoadMoreLensesClicked"
+                           IsVisible="False" />
                 </StackLayout>
 
                 <!-- FOV Information -->
                 <StackLayout x:Name="FOVInfoStack" Spacing="5">
                     <Label x:Name="PhoneFOVLabel" 
-                           Text="Phone FOV: Calculating..." 
-                           TextColor="Cyan" 
-                           FontSize="14" />
+                          Text="Phone FOV: Calculating..." 
+                          TextColor="Cyan" 
+                          FontSize="14" />
                     <Label x:Name="CameraFOVLabel" 
-                           Text="Selected FOV: --" 
-                           TextColor="Orange" 
-                           FontSize="14" />
+                          Text="Selected FOV: --" 
+                          TextColor="Orange" 
+                          FontSize="14" />
                     <Label x:Name="ComparisonLabel" 
-                           Text="Comparison: --" 
-                           TextColor="Yellow" 
-                           FontSize="14" />
+                          Text="Comparison: --" 
+                          TextColor="Yellow" 
+                          FontSize="14" />
                 </StackLayout>
 
                 <!-- Help Text -->
                 <Label Text="The cyan box shows your phone's field of view. The orange box shows the selected camera's field of view."
-                       FontSize="12"
-                       TextColor="#CCCCCC"
-                       HorizontalTextAlignment="Center" />
+                      FontSize="12"
+                      TextColor="#CCCCCC"
+                      HorizontalTextAlignment="Center" />
             </StackLayout>
         </Frame>
 
         <!-- Processing Overlay -->
         <Grid x:Name="ProcessingOverlay"
-              Grid.RowSpan="3"
-              BackgroundColor="#CC000000"
-              IsVisible="False">
+             Grid.RowSpan="3"
+             BackgroundColor="#CC000000"
+             IsVisible="False">
             <StackLayout VerticalOptions="Center" 
-                        HorizontalOptions="Center"
-                        Spacing="15">
+                       HorizontalOptions="Center"
+                       Spacing="15">
                 <ActivityIndicator IsRunning="True" 
-                                  Color="White" 
-                                  HeightRequest="50" 
-                                  WidthRequest="50"/>
+                                 Color="White" 
+                                 HeightRequest="50" 
+                                 WidthRequest="50"/>
                 <Label Text="Processing..." 
-                       TextColor="White" 
-                       FontSize="16"/>
+                      TextColor="White" 
+                      FontSize="16"/>
             </StackLayout>
         </Grid>
     </Grid>
