@@ -17,30 +17,18 @@
         <!-- Image preview with overlay -->
         <Grid Grid.Row="1" Margin="10">
             <!-- Camera Preview Display -->
-            <camera:CameraView x:Name="CameraPreview" 
-                             HorizontalOptions="Fill"
-                             />
-            <!-- Captured Image Display 
-            <Image x:Name="CapturedImage" 
-                  Aspect="AspectFit"
-                  VerticalOptions="FillAndExpand"
-                  HorizontalOptions="FillAndExpand"
-                   />
-
-     
-            <StackLayout x:Name="PlaceholderStack"
-                       VerticalOptions="Center"
-                       HorizontalOptions="Center"
-                       IsVisible="True">
-                <Label Text="📸" 
-                      FontSize="60" 
-                      TextColor="Gray"
-                      HorizontalOptions="Center" />
-                <Label Text="Tap 'Take Photo' to capture an image"
-                      FontSize="16"
-                      TextColor="Gray"
-                      HorizontalTextAlignment="Center" />
-            </StackLayout>-->
+            <Frame x:Name="CameraContainer" 
+           BackgroundColor="Transparent" 
+           BorderColor="Transparent" 
+           Padding="0" 
+           HasShadow="False">
+                <camera:CameraView x:Name="CameraPreview" 
+                          HorizontalOptions="Fill"
+                          WidthRequest="500"
+                          VerticalOptions="Center"
+                         />
+            </Frame>
+           
 
             <!-- FOV Overlay -->
             <GraphicsView x:Name="OverlayGraphicsView"
@@ -58,7 +46,7 @@
               CornerRadius="10">
             <StackLayout Spacing="15">
 
-                <!-- Capture Button -->
+                <!-- Capture Button 
                 <Button x:Name="CaptureButton"
                        Text="📸 Take Photo"
                        FontSize="16"
@@ -67,7 +55,7 @@
                        TextColor="White"
                        HeightRequest="50"
                        CornerRadius="25"
-                       Clicked="OnCaptureButtonClicked" />
+                       Clicked="OnCaptureButtonClicked" />-->
 
                 <!-- Camera Selection with Action Buttons -->
                 <Label Text="Camera Body:" TextColor="White" FontAttributes="Bold" />
@@ -167,18 +155,7 @@
                 </Grid>
 
                 <!-- Load More Buttons -->
-                <StackLayout Orientation="Horizontal" Spacing="10">
-                    <Button x:Name="LoadMoreCamerasButton"
-                           Text="Load More Cameras"
-                           BackgroundColor="#666666"
-                           TextColor="White"
-                           FontSize="12"
-                           HorizontalOptions="FillAndExpand"
-                           Clicked="OnLoadMoreCamerasClicked"
-                           IsVisible="False" />
-
-
-                </StackLayout>
+               
 
                 <!-- FOV Information -->
                 <StackLayout x:Name="FOVInfoStack" Spacing="5">
@@ -194,7 +171,7 @@
                 </StackLayout>
 
                 <!-- Help Text -->
-                <Label Text="The cyan box shows your phone's field of view. The orange box shows the selected camera's field of view."
+                <Label Text="The outer box shows your lens' largest view area.  The inner box represents the smallest area that your lens will zoom into. The gray area represents what all permutations of your lens' focal length and aperture allow.  If you are using a prime lens, then the only box is what you will see through your lens.  These calculation are only as accurate as your calibrated phone camera.  It is recommended you use this for shot planning, but validate with your specific setup."
                       FontSize="12"
                       TextColor="#CCCCCC"
                       HorizontalTextAlignment="Center" />

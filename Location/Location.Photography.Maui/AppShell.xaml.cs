@@ -1,4 +1,4 @@
-﻿// AppShell.xaml.cs - FIXED VERSION with Modal Integration
+﻿// AppShell.xaml.cs - Simplified Version
 using Location.Core.Maui.Services;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Location.Photography.Maui
@@ -36,11 +35,8 @@ namespace Location.Photography.Maui
                 InitializeComponent();
                 _logger.LogInformation("AppShell InitializeComponent completed");
 
-                // Register modal routes for navigation
                 RegisterModalRoutes();
-
-                // Initialize tabs with nested structure
-                InitializeNestedTabs();
+                InitializeTabs();
 
                 // Background subscription checking
                 Task.Run(async () =>
@@ -77,7 +73,6 @@ namespace Location.Photography.Maui
         {
             try
             {
-                // Register modal routes for Field of View feature
                 Routing.RegisterRoute("AddCameraModal", typeof(AddCameraModal));
                 Routing.RegisterRoute("AddLensModal", typeof(AddLensModal));
 
@@ -89,13 +84,13 @@ namespace Location.Photography.Maui
             }
         }
 
-        private void InitializeNestedTabs()
+        private void InitializeTabs()
         {
             try
             {
-                _logger.LogInformation("Initializing nested tabs");
+                _logger.LogInformation("Initializing tabs");
 
-                // Core tabs (no sub-tabs) - Create instances properly
+                // Core tabs
                 TopTabs.Tabs.Add(new TabItem
                 {
                     Title = "Add Location",
@@ -117,17 +112,57 @@ namespace Location.Photography.Maui
                     IsEnabled = true
                 });
 
-                // Premium tab with dynamically discovered sub-tabs
+                // Premium tab with sub-tabs
                 var premiumTab = new TabItem { Title = "Premium", IsEnabled = false };
-                premiumTab.SubTabs = DiscoverPremiumSubTabs();
+                premiumTab.SubTabs = new List<TabItem>
+                {
+                    new TabItem
+                    {
+                        Title = "Exposure Calc",
+                        PageType = typeof(Views.Premium.ExposureCalculator),
+                        IsEnabled = false
+                    },
+                    new TabItem
+                    {
+                        Title = "Sun Location",
+                        PageType = typeof(Views.Premium.SunLocation),
+                        IsEnabled = false
+                    },
+                    new TabItem
+                    {
+                        Title = "Field of View",
+                        PageType = typeof(Views.Premium.FieldOfView),
+                        IsEnabled = false
+                    }
+                };
                 TopTabs.Tabs.Add(premiumTab);
 
-                // Professional tab with dynamically discovered sub-tabs  
+                // Professional tab with sub-tabs
                 var professionalTab = new TabItem { Title = "Professional", IsEnabled = false };
-                professionalTab.SubTabs = DiscoverProfessionalSubTabs();
+                professionalTab.SubTabs = new List<TabItem>
+                {
+                    new TabItem
+                    {
+                        Title = "Scene Eval",
+                        PageType = typeof(Views.Professional.SceneEvaluation),
+                        IsEnabled = false
+                    },
+                    new TabItem
+                    {
+                        Title = "Sun Calc",
+                        PageType = typeof(Views.Professional.SunCalculator),
+                        IsEnabled = false
+                    },
+                    new TabItem
+                    {
+                        Title = "Light Meter",
+                        PageType = typeof(Views.Professional.LightMeter),
+                        IsEnabled = false
+                    }
+                };
                 TopTabs.Tabs.Add(professionalTab);
 
-                // Settings tab (no sub-tabs)
+                // Settings tab
                 TopTabs.Tabs.Add(new TabItem
                 {
                     Title = "Settings",
@@ -146,101 +181,12 @@ namespace Location.Photography.Maui
                 TopTabs.TabSelected += OnMainTabSelected;
                 TopTabs.SubTabSelected += OnSubTabSelected;
 
-                _logger.LogInformation("Nested tabs initialized successfully");
+                _logger.LogInformation("Tabs initialized successfully");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error initializing nested tabs");
+                _logger.LogError(ex, "Error initializing tabs");
             }
-        }
-
-        private List<TabItem> DiscoverPremiumSubTabs()
-        {
-            var subTabs = new List<TabItem>();
-
-            try
-            {
-                // Use the TabDiscoveryService to find Premium tabs
-                var assembly = Assembly.GetExecutingAssembly();
-                subTabs = TabDiscoveryService.DiscoverPremiumTabs(assembly);
-
-                // If discovery fails, add manually
-                if (subTabs.Count == 0)
-                {
-                    subTabs.Add(new TabItem
-                    {
-                        Title = "Exposure Calc",
-                        PageType = typeof(Views.Premium.ExposureCalculator),
-                        IsEnabled = false
-                    });
-
-                    subTabs.Add(new TabItem
-                    {
-                        Title = "Sun Location",
-                        PageType = typeof(Views.Premium.SunLocation),
-                        IsEnabled = false
-                    });
-
-                    subTabs.Add(new TabItem
-                    {
-                        Title = "Field of View",
-                        PageType = typeof(Views.Premium.FieldOfView),
-                        IsEnabled = false
-                    });
-                }
-
-                _logger.LogInformation($"Discovered {subTabs.Count} Premium sub-tabs: {string.Join(", ", subTabs.Select(s => s.Title))}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error discovering Premium sub-tabs");
-            }
-
-            return subTabs;
-        }
-
-        private List<TabItem> DiscoverProfessionalSubTabs()
-        {
-            var subTabs = new List<TabItem>();
-
-            try
-            {
-                // Use the TabDiscoveryService to find Professional tabs
-                var assembly = Assembly.GetExecutingAssembly();
-                subTabs = TabDiscoveryService.DiscoverProfessionalTabs(assembly);
-
-                // If discovery fails, add manually
-                if (subTabs.Count == 0)
-                {
-                    subTabs.Add(new TabItem
-                    {
-                        Title = "Scene Eval",
-                        PageType = typeof(Views.Professional.SceneEvaluation),
-                        IsEnabled = false
-                    });
-
-                    subTabs.Add(new TabItem
-                    {
-                        Title = "Sun Calc",
-                        PageType = typeof(Views.Professional.SunCalculator),
-                        IsEnabled = false
-                    });
-                    subTabs.Add(new TabItem
-                    {
-                        Title = "Light Meter",
-                        PageType = typeof(Views.Professional.LightMeter),
-                        IsEnabled = false
-                    });
-                }
-
-                _logger.LogInformation($"Discovered {subTabs.Count} Professional sub-tabs: {string.Join(", ", subTabs.Select(s => s.Title))}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error discovering Professional sub-tabs");
-            }
-
-            return subTabs;
         }
 
         private void OnMainTabSelected(object sender, TabItem selectedTab)
@@ -267,13 +213,11 @@ namespace Location.Photography.Maui
                     }
                     else
                     {
-                        // No enabled sub-tabs, show upgrade message
                         ShowUpgradeMessage(selectedTab.Title);
                     }
                 }
                 else
                 {
-                    // Regular tab without sub-tabs
                     LoadPage(selectedTab);
                 }
             }
@@ -315,18 +259,15 @@ namespace Location.Photography.Maui
                     return;
                 }
 
-                // Get the page instance from the service provider
                 var page = _serviceProvider.GetService(tab.PageType) as ContentPage;
 
                 if (page == null)
                 {
-                    // If not registered in DI, try to create manually
                     page = CreatePageInstance(tab.PageType);
                 }
 
                 if (page != null)
                 {
-                    // Update the content area with the page content
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
                         try
@@ -357,7 +298,6 @@ namespace Location.Photography.Maui
         {
             try
             {
-                // Handle special cases that need specific constructor parameters
                 if (pageType == typeof(Location.Core.Maui.Views.AddLocation))
                 {
                     var mediator = _serviceProvider.GetRequiredService<MediatR.IMediator>();
@@ -369,14 +309,7 @@ namespace Location.Photography.Maui
                 }
                 else if (pageType == typeof(Location.Core.Maui.Views.LocationsPage))
                 {
-                    var mediator = _serviceProvider.GetRequiredService<MediatR.IMediator>();
-                    var navService = _serviceProvider.GetRequiredService<INavigationService>();
-                    var mediaService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IMediaService>();
-                    var geoService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IGeolocationService>();
-                    var errorService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IErrorDisplayService>();
-                    var weatherService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IWeatherService>();
-
-                    return (ContentPage)_serviceProvider.GetRequiredService<Location.Core.Maui.Views.LocationsPage>(); // Location.Core.Maui.Views.LocationsPage(mediator, navService, mediaService, geoService, errorService, weatherService);
+                    return (ContentPage)_serviceProvider.GetRequiredService<Location.Core.Maui.Views.LocationsPage>();
                 }
                 else if (pageType == typeof(Location.Core.Maui.Views.TipsPage))
                 {
@@ -389,12 +322,10 @@ namespace Location.Photography.Maui
                 }
                 else
                 {
-                    // Try to get from DI container first
                     var instance = _serviceProvider.GetService(pageType) as ContentPage;
                     if (instance != null)
                         return instance;
 
-                    // Fallback: try parameterless constructor
                     return (ContentPage)Activator.CreateInstance(pageType);
                 }
             }
@@ -507,20 +438,17 @@ namespace Location.Photography.Maui
             {
                 _logger.LogInformation("ConfigureSubscriptionBasedTabsAsync starting");
 
-                // Move subscription checks to background thread
                 var subscriptionData = await Task.Run(async () =>
                 {
                     try
                     {
-                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // Reasonable timeout
+                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
-                        // Check email for special access
                         var email = await SecureStorage.GetAsync(MagicStrings.Email);
                         bool hasSpecialAccess = !string.IsNullOrEmpty(email) &&
                             email.ToLower() == "brokerandy25@gmail.com";
 
 #if DEBUG
-                        // Debug mode: always enable
                         return new
                         {
                             CanAccessPremium = true,
@@ -528,54 +456,48 @@ namespace Location.Photography.Maui
                             Source = "Debug"
                         };
 #else
-                // Production mode: check subscription or special access
-                if (hasSpecialAccess)
-                {
-                    return new { 
-                        CanAccessPremium = true, 
-                        CanAccessPro = true,
-                        Source = "SpecialAccess"
-                    };
-                }
+                        if (hasSpecialAccess)
+                        {
+                            return new { 
+                                CanAccessPremium = true, 
+                                CanAccessPro = true,
+                                Source = "SpecialAccess"
+                            };
+                        }
 
-                // Normal subscription check
-                var premiumTask = _subscriptionStatusService.CanAccessPremiumFeaturesAsync();
-                var proTask = _subscriptionStatusService.CanAccessProFeaturesAsync();
-                
-                // Wait for both with timeout
-                var completedTask = await Task.WhenAny(
-                    Task.WhenAll(premiumTask, proTask),
-                    Task.Delay(TimeSpan.FromSeconds(5), cts.Token)
-                );
+                        var premiumTask = _subscriptionStatusService.CanAccessPremiumFeaturesAsync();
+                        var proTask = _subscriptionStatusService.CanAccessProFeaturesAsync();
+                        
+                        var completedTask = await Task.WhenAny(
+                            Task.WhenAll(premiumTask, proTask),
+                            Task.Delay(TimeSpan.FromSeconds(5), cts.Token)
+                        );
 
-                if (completedTask == Task.WhenAll(premiumTask, proTask))
-                {
-                    // Subscription check completed
-                    var premiumResult = await premiumTask;
-                    var proResult = await proTask;
-                    
-                    return new { 
-                        CanAccessPremium = premiumResult.IsSuccess && premiumResult.Data,
-                        CanAccessPro = proResult.IsSuccess && proResult.Data,
-                        Source = "Subscription"
-                    };
-                }
-                else
-                {
-                    // Timeout - default to enabled to avoid blocking user
-                    _logger.LogWarning("Subscription check timed out, defaulting to enabled");
-                    return new { 
-                        CanAccessPremium = true, 
-                        CanAccessPro = true,
-                        Source = "Timeout"
-                    };
-                }
+                        if (completedTask == Task.WhenAll(premiumTask, proTask))
+                        {
+                            var premiumResult = await premiumTask;
+                            var proResult = await proTask;
+                            
+                            return new { 
+                                CanAccessPremium = premiumResult.IsSuccess && premiumResult.Data,
+                                CanAccessPro = proResult.IsSuccess && proResult.Data,
+                                Source = "Subscription"
+                            };
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Subscription check timed out, defaulting to enabled");
+                            return new { 
+                                CanAccessPremium = true, 
+                                CanAccessPro = true,
+                                Source = "Timeout"
+                            };
+                        }
 #endif
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Subscription check failed, defaulting to enabled");
-                        // On error, default to enabled to avoid blocking user experience
                         return new
                         {
                             CanAccessPremium = true,
@@ -585,7 +507,6 @@ namespace Location.Photography.Maui
                     }
                 }).ConfigureAwait(false);
 
-                // Quick UI update on main thread
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     try
@@ -595,7 +516,6 @@ namespace Location.Photography.Maui
                         var premiumTab = TopTabs.Tabs.FirstOrDefault(t => t.Title == "Premium");
                         var professionalTab = TopTabs.Tabs.FirstOrDefault(t => t.Title == "Professional");
 
-                        // Enable Premium tab and its sub-tabs
                         if (premiumTab != null)
                         {
                             premiumTab.IsEnabled = subscriptionData.CanAccessPremium;
@@ -606,7 +526,6 @@ namespace Location.Photography.Maui
                             _logger.LogInformation($"Premium tab enabled: {premiumTab.IsEnabled}");
                         }
 
-                        // Enable Professional tab and its sub-tabs
                         if (professionalTab != null)
                         {
                             professionalTab.IsEnabled = subscriptionData.CanAccessPro;
@@ -617,7 +536,6 @@ namespace Location.Photography.Maui
                             _logger.LogInformation($"Professional tab enabled: {professionalTab.IsEnabled}");
                         }
 
-                        // If premium is enabled, professional is also enabled (business rule)
                         if (subscriptionData.CanAccessPremium && professionalTab != null)
                         {
                             professionalTab.IsEnabled = true;
@@ -628,9 +546,7 @@ namespace Location.Photography.Maui
                             _logger.LogInformation("Professional tab enabled via Premium access");
                         }
 
-                        // Refresh the UI
                         TopTabs.RefreshTabs();
-
                         _logger.LogInformation("Subscription-based tabs configured successfully");
                     }
                     catch (Exception ex)
@@ -643,7 +559,6 @@ namespace Location.Photography.Maui
             {
                 _logger.LogError(ex, "Error in ConfigureSubscriptionBasedTabsAsync");
 
-                // Fallback: ensure tabs are enabled if everything fails
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     try

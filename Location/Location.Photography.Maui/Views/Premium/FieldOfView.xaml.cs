@@ -119,9 +119,36 @@ namespace Location.Photography.Maui.Views.Premium
         {
             foreach (var x in CameraPreview.Cameras)
             {
-                if(x.Position == CameraPosition.Back)
+                if (x.Position == CameraPosition.Back)
                 {
                     CameraPreview.Camera = x;
+
+                    // Get actual camera resolution and calculate real aspect ratio
+                    if (x.AvailableResolutions != null && x.AvailableResolutions.Any())
+                    {
+                        // Use the highest resolution available (usually the native resolution)
+                        var maxResolution = x.AvailableResolutions.OrderByDescending(r => r.Width * r.Height).First();
+                        var cameraAspectRatio = (double)maxResolution.Width / maxResolution.Height;
+
+                        var containerWidth = 500.0; // From WidthRequest
+                        var calculatedHeight = containerWidth / cameraAspectRatio;
+
+                        _imageWidth = containerWidth;
+                        _imageHeight = calculatedHeight;
+
+                        _logger.LogInformation("Camera resolution: {Width}x{Height}, Aspect ratio: {Ratio:F2}, Calculated height: {Height:F1}",
+                            maxResolution.Width, maxResolution.Height, cameraAspectRatio, calculatedHeight);
+                    }
+                    else
+                    {
+                        // Fallback to common mobile camera aspect ratio
+                        var fallbackAspectRatio = 16.0 / 9.0;
+                        _imageWidth = 500.0;
+                        _imageHeight = 500.0 / fallbackAspectRatio;
+
+                        _logger.LogWarning("No camera resolutions available, using fallback 16:9 aspect ratio");
+                    }
+
                     break;
                 }
             }
@@ -414,11 +441,12 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 if (SelectedLens?.Lens != null)
                 {
-                    CalculateSelectedCameraFOV();
+                    CalculateSelectedCameraFOV(); OverlayGraphicsView.IsVisible = true; // Add this line
                 }
                 else
                 {
                     _selectedCameraFOV = 0;
+                    OverlayGraphicsView.IsVisible = false; // Add this line
                 }
 
                 UpdateFOVDisplay();
@@ -454,8 +482,8 @@ namespace Location.Photography.Maui.Views.Premium
                     drawable.WideFOV = wideFOV;
                     drawable.TelephotoFOV = telephotoFOV;
                     drawable.IsPrimeLens = !SelectedLens.Lens.MaxMM.HasValue || SelectedLens.Lens.MaxMM.Value <= SelectedLens.Lens.MinMM;
-                    drawable.ImageWidth = _imageWidth;
-                    drawable.ImageHeight = _imageHeight;
+                    //drawable.ImageWidth = _imageWidth;
+                    //drawable.ImageHeight = _imageHeight;
                 }
 
                 _selectedCameraFOV = wideFOV; // Use wide FOV for display
@@ -649,26 +677,49 @@ namespace Location.Photography.Maui.Views.Premium
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
-            if (WideFOV <= 0 || ImageWidth <= 0 || ImageHeight <= 0) return;
+            if (WideFOV <= 0) return;
 
-            // Calculate actual image display area within the container (AspectFit behavior)
-            var imageRect = CalculateImageDisplayRect(dirtyRect);
+            var imageRect = dirtyRect; // Simplified - no aspect ratio calculation needed
 
-            // Calculate reference FOV for scaling
-            var referenceFOV = 60.0; // Standard reference
-
-            // Calculate outer box (wide FOV) within the image bounds
+            var referenceFOV = 60.0;
             var outerBox = CalculateFOVBox(WideFOV, imageRect, referenceFOV);
+            var innerBox = CalculateFOVBox(TelephotoFOV, imageRect, referenceFOV);
+            //var outerBox = CalculateFOVBox(WideFOV, imageRect, referenceFOV);
             DrawSolidRectangle(canvas, outerBox, Colors.Red);
 
-            // Calculate and draw inner brackets (telephoto FOV) only for zoom lenses
             if (!IsPrimeLens && TelephotoFOV > 0 && TelephotoFOV != WideFOV)
             {
-                var innerBox = CalculateFOVBox(TelephotoFOV, imageRect, referenceFOV);
+               // var innerBox = CalculateFOVBox(TelephotoFOV, imageRect, referenceFOV);
+                FillAreaBetweenBoxes(canvas, outerBox, innerBox);
                 DrawCornerBrackets(canvas, innerBox, Colors.Red);
             }
         }
+        private void FillAreaBetweenBoxes(ICanvas canvas, RectF outerBox, RectF innerBox)
+        {
+            // Create 10% alpha gray color
+            var fillColor = Color.FromRgba(128, 128, 128, 128); // 26 = 10% of 255
 
+            canvas.FillColor = fillColor;
+
+            // Create a path that represents the area between the two rectangles
+            var path = new PathF();
+
+            // Add outer rectangle
+            path.MoveTo(outerBox.Left, outerBox.Top);
+            path.LineTo(outerBox.Right, outerBox.Top);
+            path.LineTo(outerBox.Right, outerBox.Bottom);
+            path.LineTo(outerBox.Left, outerBox.Bottom);
+            path.Close();
+
+            // Subtract inner rectangle (hole)
+            path.MoveTo(innerBox.Left, innerBox.Top);
+            path.LineTo(innerBox.Left, innerBox.Bottom);
+            path.LineTo(innerBox.Right, innerBox.Bottom);
+            path.LineTo(innerBox.Right, innerBox.Top);
+            path.Close();
+
+            canvas.FillPath(path);
+        }
         private RectF CalculateImageDisplayRect(RectF containerRect)
         {
             // Calculate how the image is displayed with AspectFit
