@@ -117,10 +117,10 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
 
                 // Step 4: Apply paging
                 var totalCount = sortedCameras.Count;
-                var pagedCameras = sortedCameras
-                    .Skip(request.Skip)
-                    .Take(request.Take)
-                    .ToList();
+                var pagedCameras = sortedCameras;
+//                    .Skip(request.Skip)
+  //                  .Take(request.Take)
+    //                .ToList();
 
                 var result = new GetCameraBodiesResultDto
                 {

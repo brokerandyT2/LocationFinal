@@ -77,6 +77,14 @@ namespace Location.Photography.Application.Services
             int lensId,
             List<int> compatibleCameraIds,
             CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Gets user's saved camera bodies with infinite scroll support
+        /// </summary>
+        Task<Result<GetCameraBodiesResultDto>> GetUserCameraBodiesAsync(
+            string userId,
+            int skip = 0,
+            int take = 20,
+            CancellationToken cancellationToken = default);
     }
 
     public class MountTypeDto

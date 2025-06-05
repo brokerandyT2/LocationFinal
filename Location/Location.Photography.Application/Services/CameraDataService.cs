@@ -22,19 +22,20 @@ namespace Location.Photography.Infrastructure.Services
         private readonly ILensRepository _lensRepository;
         private readonly ILensCameraCompatibilityRepository _compatibilityRepository;
         private readonly ILogger<CameraDataService> _logger;
-
+        private readonly IUserCameraBodyRepository _userCameraBodyRepository;
         public CameraDataService(
             IMediator mediator,
             ICameraBodyRepository cameraBodyRepository,
             ILensRepository lensRepository,
             ILensCameraCompatibilityRepository compatibilityRepository,
-            ILogger<CameraDataService> logger)
+            ILogger<CameraDataService> logger, IUserCameraBodyRepository userCameraBodyRepository)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _cameraBodyRepository = cameraBodyRepository ?? throw new ArgumentNullException(nameof(cameraBodyRepository));
             _lensRepository = lensRepository ?? throw new ArgumentNullException(nameof(lensRepository));
             _compatibilityRepository = compatibilityRepository ?? throw new ArgumentNullException(nameof(compatibilityRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _userCameraBodyRepository = userCameraBodyRepository ?? throw new ArgumentNullException(nameof(userCameraBodyRepository));
         }
 
         public async Task<Result<GetCameraBodiesResultDto>> GetCameraBodiesAsync(
@@ -212,7 +213,68 @@ namespace Location.Photography.Infrastructure.Services
                 return Result<List<LensDto>>.Failure($"Error checking duplicates: {ex.Message}");
             }
         }
+        public async Task<Result<GetCameraBodiesResultDto>> GetUserCameraBodiesAsync(
+    string userId,
+    int skip = 0,
+    int take = 20,
+    CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Get user's saved camera IDs
+                var userCamerasResult = await _userCameraBodyRepository.GetByUserIdAsync(userId, cancellationToken);
+                if (!userCamerasResult.IsSuccess)
+                {
+                    return Result<GetCameraBodiesResultDto>.Failure(userCamerasResult.ErrorMessage ?? "Failed to get user cameras");
+                }
 
+                var userCameraIds = userCamerasResult.Data.Select(uc => uc.CameraBodyId).ToList();
+
+                if (!userCameraIds.Any())
+                {
+                    return Result<GetCameraBodiesResultDto>.Success(new GetCameraBodiesResultDto
+                    {
+                        CameraBodies = new List<CameraBodyDto>(),
+                        TotalCount = 0,
+                        HasMore = false
+                    });
+                }
+
+                // Get all cameras and filter by user's saved ones
+                var allCamerasResult = await GetCameraBodiesAsync(0, int.MaxValue, false, cancellationToken);
+                if (!allCamerasResult.IsSuccess)
+                {
+                    return Result<GetCameraBodiesResultDto>.Failure(allCamerasResult.ErrorMessage ?? "Failed to get cameras");
+                }
+
+                // Filter to only user's cameras
+                var userCameras = allCamerasResult.Data.CameraBodies
+                    .Where(c => userCameraIds.Contains(c.Id))
+                    .OrderBy(c => c.DisplayName)
+                    .ToList();
+
+                // Apply paging
+                var totalCount = userCameras.Count;
+                var pagedCameras = userCameras
+                    .Skip(skip)
+                    .Take(take)
+                    .ToList();
+
+                var result = new GetCameraBodiesResultDto
+                {
+                    CameraBodies = pagedCameras,
+                    TotalCount = totalCount,
+                    HasMore = (skip + take) < totalCount
+                };
+
+                return Result<GetCameraBodiesResultDto>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting user camera bodies for user: {UserId}", userId);
+                return Result<GetCameraBodiesResultDto>.Failure($"Error getting user cameras: {ex.Message}");
+            }
+        }
         public async Task<Result<List<MountTypeDto>>> GetMountTypesAsync(CancellationToken cancellationToken = default)
         {
             try

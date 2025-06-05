@@ -62,15 +62,7 @@ namespace Location.Photography.Infrastructure.Repositories
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (string.IsNullOrWhiteSpace(userId))
-                {
-                    return Result<List<UserCameraBody>>.Failure("UserId cannot be null or empty");
-                }
-
                 var userCameraBodies = await _context.Table<UserCameraBody>()
-                    .Where(ucb => ucb.UserId == userId)
-                    .OrderBy(ucb => ucb.IsFavorite ? 0 : 1) // Favorites first
-                    .ThenBy(ucb => ucb.DateSaved)
                     .ToListAsync();
 
                 return Result<List<UserCameraBody>>.Success(userCameraBodies);

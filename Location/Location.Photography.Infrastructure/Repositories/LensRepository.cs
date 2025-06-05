@@ -246,8 +246,8 @@ namespace Location.Photography.Infrastructure.Repositories
 
                     var lenses = await _context.Table<Lens>()
                         .Where(l => lensIds.Contains(l.Id))
-                        .OrderBy(l => l.IsUserCreated ? 0 : 1)
-                        .ThenBy(l => l.MinMM)
+                        .OrderBy(l => l.MinMM)
+                        .ThenBy(l => l.MaxMM)
                         .ToListAsync().ConfigureAwait(false);
 
                     return lenses;

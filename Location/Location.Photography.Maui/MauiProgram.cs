@@ -197,6 +197,7 @@ namespace Location.Photography.Maui
                 var cameraDataService = sp.GetRequiredService<ICameraDataService>();
                 var cameraSensorProfileService = sp.GetRequiredService<ICameraSensorProfileService>();
                 var userCameraShit = sp.GetRequiredService<IUserCameraBodyRepository>();
+              //CameraBodyRepo = sp.GetRequiredService<IUserCameraBodyRepository>();
                 return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService, cameraDataService, cameraSensorProfileService, userCameraShit);
             });
 

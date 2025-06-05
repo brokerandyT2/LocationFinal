@@ -66,7 +66,10 @@ namespace Location.Photography.Maui.Views.Premium
                     AvailableCameras.Clear();
                 }
 
-                var result = await _cameraDataService.GetCameraBodiesAsync(_currentSkip, _pageSize);
+                // Get current user ID
+                var currentUserId = await SecureStorage.GetAsync("Email") ?? "default_user";
+
+                var result = await _cameraDataService.GetUserCameraBodiesAsync(currentUserId, _currentSkip, _pageSize);
                 if (result.IsSuccess)
                 {
                     foreach (var camera in result.Data.CameraBodies)
