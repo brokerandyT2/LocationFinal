@@ -43,15 +43,13 @@ namespace Location.Photography.Maui
                 .ConfigureMauiHandlers(handlers =>
                 {
 #if ANDROID
-                    handlers.AddHandler<Location.Photography.Maui.Controls.ColorTemperatureDial,
-                        SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
-                    handlers.AddHandler<Location.Photography.Maui.Controls.TintDial,
-                        SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+                    handlers.AddHandler<Controls.ColorTemperatureDial, SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+                    handlers.AddHandler<Controls.TintDial, SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
 #else
-                    handlers.AddHandler<Location.Photography.Maui.Controls.ColorTemperatureDial, 
-                        SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
-                    handlers.AddHandler<Location.Photography.Maui.Controls.TintDial, 
-                        SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+                   handlers.AddHandler<Location.Photography.Maui.Controls.ColorTemperatureDial, 
+                       SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+                   handlers.AddHandler<Location.Photography.Maui.Controls.TintDial, 
+                       SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
 #endif
                 });
 
@@ -114,9 +112,9 @@ namespace Location.Photography.Maui
             // ==================== CORE VIEWMODELS ====================
             // Core ViewModels (transient for fresh instances)
             builder.Services.AddTransient<Core.ViewModels.LocationViewModel>();
-            builder.Services.AddTransient<Core.ViewModels.LocationsViewModel>();
-            builder.Services.AddTransient<Core.ViewModels.TipsViewModel>();
-            builder.Services.AddTransient<Core.ViewModels.WeatherViewModel>();
+            builder.Services.AddTransient<LocationsViewModel>();
+            builder.Services.AddTransient<TipsViewModel>();
+            builder.Services.AddTransient<WeatherViewModel>();
 
             // ==================== PHOTOGRAPHY VIEWMODELS ====================
             // Photography ViewModels
@@ -179,26 +177,38 @@ namespace Location.Photography.Maui
 
             // ==================== PHOTOGRAPHY PAGES ====================
             // Premium Pages
-            builder.Services.AddTransient<Views.Premium.ExposureCalculator>(sp =>
+            builder.Services.AddTransient<ExposureCalculator>(sp =>
             {
-                var exposureService = sp.GetService<Location.Photography.Application.Services.IExposureCalculatorService>();
+                var exposureService = sp.GetService<Application.Services.IExposureCalculatorService>();
                 var alertService = sp.GetRequiredService<IAlertService>();
                 var errorService = sp.GetRequiredService<IErrorDisplayService>();
                 var mediator = sp.GetRequiredService<IMediator>();
-                return new Views.Premium.ExposureCalculator(exposureService, alertService, errorService, mediator);
+                return new ExposureCalculator(exposureService, alertService, errorService, mediator);
             });
 
-            builder.Services.AddTransient<Views.Premium.FieldOfView>(sp =>
+            builder.Services.AddTransient<FieldOfView>(sp =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
-                var logger = sp.GetRequiredService<ILogger<Views.Premium.FieldOfView>>();
+                var logger = sp.GetRequiredService<ILogger<FieldOfView>>();
                 var fovCalculationService = sp.GetRequiredService<IFOVCalculationService>();
                 var alertService = sp.GetRequiredService<IAlertService>();
                 var cameraDataService = sp.GetRequiredService<ICameraDataService>();
                 var cameraSensorProfileService = sp.GetRequiredService<ICameraSensorProfileService>();
-                var userCameraShit = sp.GetRequiredService<IUserCameraBodyRepository>();
-              //CameraBodyRepo = sp.GetRequiredService<IUserCameraBodyRepository>();
-                return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService, cameraDataService, cameraSensorProfileService, userCameraShit);
+                var userCameraBodyRepository = sp.GetRequiredService<IUserCameraBodyRepository>();
+                var serviceProvider = sp;
+                return new FieldOfView(mediator, logger, fovCalculationService, alertService, cameraDataService, cameraSensorProfileService, userCameraBodyRepository, serviceProvider);
+            });
+
+            // Camera Lens Management Page
+            builder.Services.AddTransient<CameraLensManagement>(sp =>
+            {
+                var cameraDataService = sp.GetRequiredService<ICameraDataService>();
+                var compatibilityRepository = sp.GetRequiredService<ILensCameraCompatibilityRepository>();
+                var alertService = sp.GetRequiredService<IAlertService>();
+                var logger = sp.GetRequiredService<ILogger<CameraLensManagement>>();
+                var mediator = sp.GetRequiredService<IMediator>();
+                var serviceProvider = sp;
+                return new CameraLensManagement(cameraDataService, compatibilityRepository, alertService, logger, mediator, serviceProvider);
             });
 
             // Modal Pages for Field of View feature
@@ -218,12 +228,12 @@ namespace Location.Photography.Maui
                 return new AddLensModal(cameraDataService, alertService, logger);
             });
 
-            builder.Services.AddTransient<Views.Premium.SunLocation>(sp =>
+            builder.Services.AddTransient<SunLocation>(sp =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 var alertService = sp.GetRequiredService<IAlertService>();
-                var locationRepo = sp.GetRequiredService<Location.Core.Application.Common.Interfaces.ILocationRepository>();
-                var sunCalcService = sp.GetService<Location.Photography.Domain.Services.ISunCalculatorService>();
+                var locationRepo = sp.GetRequiredService<Core.Application.Common.Interfaces.ILocationRepository>();
+                var sunCalcService = sp.GetService<Domain.Services.ISunCalculatorService>();
                 var settingRepo = sp.GetRequiredService<ISettingRepository>();
                 var errorService = sp.GetRequiredService<IErrorDisplayService>();
                 var timezoneService = sp.GetRequiredService<ITimezoneService>();
@@ -243,7 +253,7 @@ namespace Location.Photography.Maui
                 var lightSensorService = sp.GetRequiredService<Platforms.Android.ILightSensorService>();
                 return new Views.Professional.LightMeter(mediator, alertService, settingRepo, lightSensorService, expService, sceneEvalService);
 #else
-                return new Views.Professional.LightMeter();
+               return new Views.Professional.LightMeter();
 #endif
             });
 
@@ -306,7 +316,7 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<AppShell>(sp =>
             {
                 var serviceProvider = sp;
-                var subscriptionService = sp.GetService<Location.Photography.Application.Services.ISubscriptionStatusService>();
+                var subscriptionService = sp.GetService<ISubscriptionStatusService>();
                 var logger = sp.GetRequiredService<ILogger<AppShell>>();
                 return new AppShell(serviceProvider, subscriptionService, logger);
             });
@@ -325,7 +335,7 @@ namespace Location.Photography.Maui
             builder.Logging.AddDebug();
             builder.Logging.SetMinimumLevel(LogLevel.Debug);
 #else
-            builder.Logging.SetMinimumLevel(LogLevel.Information);
+           builder.Logging.SetMinimumLevel(LogLevel.Information);
 #endif
 
             // ==================== BUILD AND INITIALIZE ====================

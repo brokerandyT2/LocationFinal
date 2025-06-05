@@ -1,5 +1,6 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Common.Interfaces;
+using Location.Photography.Application.Notifications;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Enums;
 using MediatR;
@@ -37,13 +38,15 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
     {
         private readonly ICameraBodyRepository _cameraBodyRepository;
         private readonly ILogger<CreateCameraBodyCommandHandler> _logger;
+        private readonly IMediator _mediator;
 
         public CreateCameraBodyCommandHandler(
             ICameraBodyRepository cameraBodyRepository,
-            ILogger<CreateCameraBodyCommandHandler> logger)
+            ILogger<CreateCameraBodyCommandHandler> logger, IMediator mediator)
         {
             _cameraBodyRepository = cameraBodyRepository ?? throw new ArgumentNullException(nameof(cameraBodyRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mediator = mediator;
         }
 
         public async Task<Result<CameraBodyDto>> Handle(CreateCameraBodyCommand request, CancellationToken cancellationToken)
@@ -87,6 +90,10 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                     DateAdded = createResult.Data.DateAdded,
                     DisplayName = createResult.Data.GetDisplayName()
                 };
+
+                // Publish notification
+                var currentUserId = await SecureStorage.GetAsync("Email") ?? "default_user";
+                await _mediator.Publish(new CameraCreatedNotification(dto, currentUserId), cancellationToken);
 
                 _logger.LogInformation("Successfully created camera body: {Name}", request.Name);
                 return Result<CameraBodyDto>.Success(dto);

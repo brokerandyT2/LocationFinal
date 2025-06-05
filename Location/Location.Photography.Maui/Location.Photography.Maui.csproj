@@ -146,6 +146,9 @@
     <MauiXaml Update="Views\Premium\AddLensModal.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\Premium\CameraLensManagement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Premium\ExposureCalculator.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

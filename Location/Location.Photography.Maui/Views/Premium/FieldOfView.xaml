@@ -169,7 +169,15 @@
                           TextColor="Yellow" 
                           FontSize="14" />
                 </StackLayout>
-
+                <Button x:Name="CameraManagementButton"
+               Text="Manage Camera &amp; Lens Compatibility"
+               FontSize="16"
+               FontAttributes="Bold"
+               BackgroundColor="#17a2b8"
+               TextColor="White"
+               HeightRequest="50"
+               CornerRadius="25"
+               Clicked="OnCameraManagementClicked" />
                 <!-- Help Text -->
                 <Label Text="The outer box shows your lens' largest view area.  The inner box represents the smallest area that your lens will zoom into. The gray area represents what all permutations of your lens' focal length and aperture allow.  If you are using a prime lens, then the only box is what you will see through your lens.  These calculation are only as accurate as your calibrated phone camera.  It is recommended you use this for shot planning, but validate with your specific setup."
                       FontSize="12"

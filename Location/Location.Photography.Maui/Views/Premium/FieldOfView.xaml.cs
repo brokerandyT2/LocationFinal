@@ -3,6 +3,7 @@ using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Common.Interfaces;
+using Location.Photography.Application.Notifications;
 using Location.Photography.Application.Queries.CameraEvaluation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
@@ -16,7 +17,8 @@ using System.ComponentModel;
 
 namespace Location.Photography.Maui.Views.Premium
 {
-    public partial class FieldOfView : ContentPage, INotifyPropertyChanged, INavigationAware
+    public partial class FieldOfView : ContentPage, INotifyPropertyChanged, INotificationHandler<CameraCreatedNotification>,
+       INotificationHandler<LensCreatedNotification>
     {
         private readonly IMediator _mediator;
         private readonly ILogger<FieldOfView> _logger;
@@ -90,7 +92,7 @@ namespace Location.Photography.Maui.Views.Premium
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-
+        private readonly IServiceProvider _serviceProvider;
         public FieldOfView(
             IMediator mediator,
             ILogger<FieldOfView> logger,
@@ -98,7 +100,7 @@ namespace Location.Photography.Maui.Views.Premium
             IAlertService alertService,
             ICameraDataService cameraDataService,
             ICameraSensorProfileService cameraSensorProfileService,
-            IUserCameraBodyRepository userCameraBodyRepository)
+            IUserCameraBodyRepository userCameraBodyRepository, IServiceProvider serviceProvider)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -107,13 +109,61 @@ namespace Location.Photography.Maui.Views.Premium
             _cameraDataService = cameraDataService ?? throw new ArgumentNullException(nameof(cameraDataService));
             _cameraSensorProfileService = cameraSensorProfileService;
             _userCameraBodyRepository = userCameraBodyRepository ?? throw new ArgumentNullException(nameof(userCameraBodyRepository));
-
+            _serviceProvider = serviceProvider;
             InitializeComponent();
             BindingContext = this;
             InitializeFieldOfView();
             LoadCurrentUserIdAsync();
             LoadCamerasAsync();
             CameraPreview.CamerasLoaded += CameraView_CamerasLoaded;
+        }
+        private async void OnCameraManagementClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                var cameraManagementPage = _serviceProvider.GetRequiredService<CameraLensManagement>();
+                await Shell.Current.Navigation.PushModalAsync(cameraManagementPage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error navigating to Camera Management page");
+                await _alertService.ShowErrorAlertAsync("Error opening Camera Management", "Error");
+            }
+        }
+        public async Task Handle(CameraCreatedNotification notification, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (notification.UserId == _currentUserId)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await LoadCamerasAsync();
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling camera created notification");
+            }
+        }
+
+        public async Task Handle(LensCreatedNotification notification, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (notification.UserId == _currentUserId)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await LoadLensesAsync();
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling lens created notification");
+            }
         }
         private async void CameraView_CamerasLoaded(object? sender, EventArgs e)
         {
@@ -322,7 +372,8 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                await Shell.Current.GoToAsync("AddCameraModal");
+                var addCameraModal = _serviceProvider.GetRequiredService<AddCameraModal>();
+                await Shell.Current.Navigation.PushModalAsync(addCameraModal);
             }
             catch (Exception ex)
             {
@@ -335,13 +386,8 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                await Shell.Current.GoToAsync("AddLensModal");
-
-                // Refresh lenses when returning from modal
-                if (SelectedCamera?.Camera != null)
-                {
-                    await LoadLensesAsync();
-                }
+                var addLensModal = _serviceProvider.GetRequiredService<AddLensModal>();
+                await Shell.Current.Navigation.PushModalAsync(addLensModal);
             }
             catch (Exception ex)
             {
@@ -550,7 +596,7 @@ namespace Location.Photography.Maui.Views.Premium
 
                 _currentImagePath = newFile;
                 //CapturedImage.Source = ImageSource.FromFile(newFile);
-               // PlaceholderStack.IsVisible = false;
+                // PlaceholderStack.IsVisible = false;
                 OverlayGraphicsView.IsVisible = true;
 
                 UpdateFOVDisplay();
@@ -689,7 +735,7 @@ namespace Location.Photography.Maui.Views.Premium
 
             if (!IsPrimeLens && TelephotoFOV > 0 && TelephotoFOV != WideFOV)
             {
-               // var innerBox = CalculateFOVBox(TelephotoFOV, imageRect, referenceFOV);
+                // var innerBox = CalculateFOVBox(TelephotoFOV, imageRect, referenceFOV);
                 FillAreaBetweenBoxes(canvas, outerBox, innerBox);
                 DrawCornerBrackets(canvas, innerBox, Colors.Red);
             }

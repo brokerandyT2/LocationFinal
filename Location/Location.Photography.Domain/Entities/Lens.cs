@@ -24,6 +24,8 @@ namespace Location.Photography.Domain.Entities
 
         public DateTime DateAdded { get; set; }
 
+        public string NameForLens { get; set; }
+
         public Lens()
         {
             DateAdded = DateTime.UtcNow;

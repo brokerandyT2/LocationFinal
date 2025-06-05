@@ -1,13 +1,9 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Common.Interfaces;
+using Location.Photography.Application.Notifications;
 using Location.Photography.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Commands.CameraEvaluation
 {
@@ -47,15 +43,17 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
         private readonly ILensRepository _lensRepository;
         private readonly ILensCameraCompatibilityRepository _compatibilityRepository;
         private readonly ILogger<CreateLensCommandHandler> _logger;
-
+        private readonly IMediator _mediator;
         public CreateLensCommandHandler(
             ILensRepository lensRepository,
             ILensCameraCompatibilityRepository compatibilityRepository,
-            ILogger<CreateLensCommandHandler> logger)
+            ILogger<CreateLensCommandHandler> logger,
+            IMediator mediator)
         {
             _lensRepository = lensRepository ?? throw new ArgumentNullException(nameof(lensRepository));
             _compatibilityRepository = compatibilityRepository ?? throw new ArgumentNullException(nameof(compatibilityRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mediator = mediator;
         }
 
         public async Task<Result<CreateLensResultDto>> Handle(CreateLensCommand request, CancellationToken cancellationToken)
@@ -108,23 +106,29 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                         compatibilityResult.ErrorMessage);
                 }
 
+                var lensDto = new LensDto
+                {
+                    Id = createResult.Data.Id,
+                    MinMM = createResult.Data.MinMM,
+                    MaxMM = createResult.Data.MaxMM,
+                    MinFStop = createResult.Data.MinFStop,
+                    MaxFStop = createResult.Data.MaxFStop,
+                    IsPrime = createResult.Data.IsPrime,
+                    IsUserCreated = createResult.Data.IsUserCreated,
+                    DateAdded = createResult.Data.DateAdded,
+                    DisplayName = createResult.Data.GetDisplayName()
+                };
+
                 var resultDto = new CreateLensResultDto
                 {
-                    Lens = new LensDto
-                    {
-                        Id = createResult.Data.Id,
-                        MinMM = createResult.Data.MinMM,
-                        MaxMM = createResult.Data.MaxMM,
-                        MinFStop = createResult.Data.MinFStop,
-                        MaxFStop = createResult.Data.MaxFStop,
-                        IsPrime = createResult.Data.IsPrime,
-                        IsUserCreated = createResult.Data.IsUserCreated,
-                        DateAdded = createResult.Data.DateAdded,
-                        DisplayName = createResult.Data.GetDisplayName()
-                    },
+                    Lens = lensDto,
                     CompatibleCameraIds = request.CompatibleCameraIds,
                     IsSuccessful = true
                 };
+
+                // Publish notification
+                var currentUserId = await SecureStorage.GetAsync("Email") ?? "default_user";
+                await _mediator.Publish(new LensCreatedNotification(lensDto, currentUserId), cancellationToken);
 
                 _logger.LogInformation("Successfully created lens: {DisplayName} with {CameraCount} compatible cameras",
                     createResult.Data.GetDisplayName(), request.CompatibleCameraIds.Count);
