@@ -1,15 +1,30 @@
 ﻿// Location.Photography.Domain/Entities/UserCameraBody.cs
+using SQLite;
+
 namespace Location.Photography.Domain.Entities
 {
-    public class UserCameraBody 
+    [Table("UserCameraBodies")]
+    public class UserCameraBody
     {
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
+
+        [Indexed]
         public int CameraBodyId { get; set; }
+
+        [MaxLength(100), NotNull, Indexed]
         public string UserId { get; set; } = string.Empty;
+
+        [NotNull]
         public DateTime DateSaved { get; set; }
+
         public bool IsFavorite { get; set; }
+
+        [MaxLength(500)]
         public string? Notes { get; set; }
 
-        // Navigation property
+        // Navigation property - not stored in database
+        [Ignore]
         public CameraBody? CameraBody { get; set; }
 
         public UserCameraBody()

@@ -194,7 +194,7 @@ namespace Location.Core.Infrastructure.Data
            "CREATE INDEX IF NOT EXISTS idx_lens_focal ON Lenses (MinMM, MaxMM)",
            "CREATE INDEX IF NOT EXISTS idx_compatibility_lens ON LensCameraCompatibility (LensId)",
            "CREATE INDEX IF NOT EXISTS idx_compatibility_camera ON LensCameraCompatibility (CameraBodyId)",
-           "CREATE INDEX IF NOT EXISTS idx_user_camera_body ON UserCameraBody (UserId, CameraBodyId, IsFavorite, DateSaved)"
+           "CREATE INDEX IF NOT EXISTS idx_user_camera_body ON UserCameraBodies (UserId, CameraBodyId, IsFavorite, DateSaved)"
        };
 
                 // Execute index creation commands concurrently for better performance
