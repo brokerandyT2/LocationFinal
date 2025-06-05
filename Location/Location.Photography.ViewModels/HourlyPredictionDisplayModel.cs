@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-
+using System.Globalization;
 using System.Runtime.CompilerServices;
 namespace Location.Photography.ViewModels
 {
@@ -21,7 +21,9 @@ namespace Location.Photography.ViewModels
         public string TimeFormat { get; set; } = "HH:mm";
 
         // Enhanced weather integration properties
-        public string WeatherDescription { get; set; } = string.Empty;
+        private string _wd = string.Empty;
+        private TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
+        public string WeatherDescription { get { return textInfo.ToTitleCase(_wd); } set { _wd = value; } }
         public int CloudCover { get; set; }
         public double PrecipitationProbability { get; set; }
         public string WindInfo { get; set; } = string.Empty;
@@ -30,7 +32,7 @@ namespace Location.Photography.ViewModels
 
         // Display properties
         public string FormattedPrediction => $"EV {PredictedEV:F1} ±{EVConfidenceMargin:F1}";
-        public string ConfidenceDisplay => $"{ConfidenceLevel:P0} confidence";
+        public string ConfidenceDisplay => $"Weather Prediction has a {ConfidenceLevel:P0} confidence level";
         public string WeatherSummary => !string.IsNullOrEmpty(WeatherDescription)
             ? $"{WeatherDescription}, {CloudCover}% clouds"
             : string.Empty;

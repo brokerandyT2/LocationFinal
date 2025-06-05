@@ -129,8 +129,11 @@ namespace Location.Photography.Maui.Controls
 
                 foreach (var subTab in SelectedTab.SubTabs)
                 {
-                    var subTabButton = CreateSubTabButton(subTab);
-                    _subTabContainer.Children.Add(subTabButton);
+                    if (!subTab.Title.Contains("Add"))
+                    {
+                        var subTabButton = CreateSubTabButton(subTab);
+                        _subTabContainer.Children.Add(subTabButton);
+                    }
                 }
 
                 // Auto-select first enabled sub-tab if none selected

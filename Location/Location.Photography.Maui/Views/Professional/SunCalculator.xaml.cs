@@ -64,7 +64,7 @@ namespace Location.Photography.Maui.Views.Professional
 
         private async void LoadLocations()
         {
-            InitializeSunPathCanvas();
+            //InitializeSunPathCanvas();
 
             try
             {
@@ -78,7 +78,7 @@ namespace Location.Photography.Maui.Views.Professional
                     if (_viewModel.SelectedLocation != null)
                     {
                         await _viewModel.CalculateEnhancedSunDataAsync();
-                        UpdateSunPathCanvas();
+                        //UpdateSunPathCanvas();
                     }
                     else
                     {

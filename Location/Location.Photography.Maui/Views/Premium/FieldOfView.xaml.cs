@@ -1,7 +1,9 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Commands.CameraEvaluation;
+using Location.Photography.Application.Queries.CameraEvaluation;
 using Location.Photography.Application.Services;
+using Location.Photography.ViewModels.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
@@ -9,7 +11,7 @@ using System.ComponentModel;
 
 namespace Location.Photography.Maui.Views.Premium
 {
-    public partial class FieldOfView : ContentPage, INotifyPropertyChanged
+    public partial class FieldOfView : ContentPage, INotifyPropertyChanged, INavigationAware
     {
         private readonly IMediator _mediator;
         private readonly ILogger<FieldOfView> _logger;
@@ -97,13 +99,26 @@ namespace Location.Photography.Maui.Views.Premium
             InitializeComponent();
             BindingContext = this;
             InitializeFieldOfView();
+             LoadPhoneCameraProfileAsync();
+             LoadCamerasAsync();
         }
 
-        protected override async void OnAppearing()
+        // INavigationAware implementation
+        public async void OnNavigatedToAsync()
         {
-            base.OnAppearing();
             await LoadPhoneCameraProfileAsync();
             await LoadCamerasAsync();
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            // Cleanup if needed
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            // Remove the async calls from here since we're using INavigationAware
         }
 
         private void InitializeFieldOfView()
@@ -158,6 +173,7 @@ namespace Location.Photography.Maui.Views.Premium
                     _hasMoreCameras = result.Data.HasMore;
                     LoadMoreCamerasButton.IsVisible = _hasMoreCameras;
                     _currentCameraSkip += _pageSize;
+                    CameraPicker.SelectedIndex = -1;
                 }
             }
             catch (Exception ex)
@@ -610,7 +626,4 @@ namespace Location.Photography.Maui.Views.Premium
         }
     }
 
-    public class GetPhoneCameraProfileQuery : IRequest<Result<PhoneCameraProfileDto>>
-    {
-    }
 }

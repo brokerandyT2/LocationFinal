@@ -100,9 +100,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <MauiAsset Include="Resources\CameraSensorProfiles\2010.json" />
-    <MauiAsset Include="Resources\CameraSensorProfiles\2011.json" />
-    <MauiAsset Include="Resources\CameraSensorProfiles\2012.json" />
+    <EmbeddedResource Include="Resources\CameraSensorProfiles\*.json" />
   </ItemGroup>
 
   <ItemGroup>

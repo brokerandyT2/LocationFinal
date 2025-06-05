@@ -12,6 +12,7 @@ using Location.Core.ViewModels;
 using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
+using Location.Photography.Infrastructure.Services;
 using MediatR;
 using System.Collections.ObjectModel;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
@@ -415,14 +416,14 @@ namespace Location.Photography.ViewModels
         #region Events
         public new event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
         #endregion
-
+        private IExposureCalculatorService _exposureCalculatorService;
         #region Constructor
         public EnhancedSunCalculatorViewModel(
             IMediator mediator,
             IErrorDisplayService errorDisplayService,
             IPredictiveLightService predictiveLightService,
             IUnitOfWork unitOfWork,
-            ITimezoneService timezoneService, IWeatherService weatherService)
+            ITimezoneService timezoneService, IWeatherService weatherService, IExposureCalculatorService exposureCalculatorService)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -431,7 +432,8 @@ namespace Location.Photography.ViewModels
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
             _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
-            InitializeTimezoneDisplays();
+            _exposureCalculatorService = exposureCalculatorService;
+           
         }
         #endregion
 
@@ -564,7 +566,7 @@ namespace Location.Photography.ViewModels
                     {
                         // Load timezone first
                         await LoadLocationTimezoneOptimizedAsync();
-
+                        InitializeTimezoneDisplays();
                         // Update timezone displays on UI thread
                         await MainThread.InvokeOnMainThreadAsync(() =>
                         {
@@ -841,9 +843,11 @@ namespace Location.Photography.ViewModels
                     try
                     {
                         LocationTimeZone = _timezoneService.GetTimeZoneInfo(weather.Timezone);
+                        DeviceTimeZone = _timezoneService.GetTimeZoneInfo(TimeZoneInfo.Local.StandardName.ToString());
                         await MainThread.InvokeOnMainThreadAsync(() =>
                         {
                             LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+                            DeviceTimeZoneDisplay = $"Local: {DeviceTimeZone.DisplayName}";
                         });
                         return;
                     }
@@ -1679,12 +1683,20 @@ namespace Location.Photography.ViewModels
             var aperture = Math.Max(1.4, Math.Min(16, ev / 2));
             var shutterSpeed = CalculateShutterSpeedOptimized(ev, aperture);
             var iso = CalculateISOOptimized(ev, aperture, shutterSpeed);
+            var allApertures = Apetures.Thirds.Select(a => Convert.ToDouble(a.Replace("f/", ""))).ToList();
+            var allShutterSpeeds = ShutterSpeeds.Thirds.Select(a => Convert.ToDouble(a.Replace("1/", "").Replace("\"",""))).ToList();
+
+            var closestAperture = allApertures.OrderBy(x => Math.Abs(x - aperture)).First();
+            var closestShutter = allShutterSpeeds.OrderBy(x => Math.Abs(x - shutterSpeed)).First();
+
+            var ec = _exposureCalculatorService.CalculateIsoAsync(new ExposureTriangleDto() { Aperture = "f/"+aperture.ToString(), Iso = iso.ToString(), ShutterSpeed = "1/"+shutterSpeed }, closestShutter.ToString(), closestAperture.ToString(), ExposureIncrements.Third);
+            
 
             return new ExposureTriangle
             {
-                Aperture = $"f/{aperture:F1}",
-                ShutterSpeed = FormatShutterSpeedOptimized(shutterSpeed),
-                ISO = $"ISO {iso}"
+                Aperture = $"f/{ec.Result.Data.Aperture:F1}",
+                ShutterSpeed = $"{ec.Result.Data.ShutterSpeed} seconds",
+                ISO = $"ISO {ec.Result.Data.Iso}"
             };
         }
 

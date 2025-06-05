@@ -10,6 +10,15 @@
     xmlns:controls="clr-namespace:Location.Photography.Maui.Controls"
     Title="PixMap">
 
+    <!-- Shell Routes for Modal Navigation -->
+    <Shell.Resources>
+        <ResourceDictionary>
+            <!-- Register modal routes -->
+            <x:String x:Key="AddCameraModal">AddCameraModal</x:String>
+            <x:String x:Key="AddLensModal">AddLensModal</x:String>
+        </ResourceDictionary>
+    </Shell.Resources>
+
     <!-- Shell Visual Styles for Rounded Rectangle Tabs at Top -->
     <ShellContent>
         <ContentPage>

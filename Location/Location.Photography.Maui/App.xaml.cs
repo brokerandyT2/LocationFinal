@@ -35,7 +35,7 @@ namespace Location.Photography.Maui
                 BackgroundColor = Colors.White,
                 Content = new Label
                 {
-                    Text = "Loading...",
+                    Text = "Configuring your Application for the first time",
                     HorizontalOptions = LayoutOptions.Center,
                     VerticalOptions = LayoutOptions.Center,
                     FontSize = 16

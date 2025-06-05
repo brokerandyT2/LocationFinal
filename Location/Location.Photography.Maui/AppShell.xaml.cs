@@ -1,11 +1,16 @@
-﻿// AppShell.xaml.cs - Fixed implementation
+﻿// AppShell.xaml.cs - FIXED VERSION with Modal Integration
 using Location.Core.Maui.Services;
-using Location.Photography.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
 using Location.Photography.Maui.Controls;
+using Location.Photography.Maui.Views;
+using Location.Photography.Maui.Views.Premium;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Storage;
+using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Location.Photography.Maui
 {
@@ -30,6 +35,9 @@ namespace Location.Photography.Maui
                 _logger.LogInformation("AppShell constructor starting");
                 InitializeComponent();
                 _logger.LogInformation("AppShell InitializeComponent completed");
+
+                // Register modal routes for navigation
+                RegisterModalRoutes();
 
                 // Initialize tabs with nested structure
                 InitializeNestedTabs();
@@ -65,6 +73,22 @@ namespace Location.Photography.Maui
             }
         }
 
+        private void RegisterModalRoutes()
+        {
+            try
+            {
+                // Register modal routes for Field of View feature
+                Routing.RegisterRoute("AddCameraModal", typeof(AddCameraModal));
+                Routing.RegisterRoute("AddLensModal", typeof(AddLensModal));
+
+                _logger.LogInformation("Modal routes registered successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error registering modal routes");
+            }
+        }
+
         private void InitializeNestedTabs()
         {
             try
@@ -72,23 +96,23 @@ namespace Location.Photography.Maui
                 _logger.LogInformation("Initializing nested tabs");
 
                 // Core tabs (no sub-tabs) - Create instances properly
-                TopTabs.Tabs.Add(new TabItem 
-                { 
-                    Title = "Add Location", 
+                TopTabs.Tabs.Add(new TabItem
+                {
+                    Title = "Add Location",
                     PageType = typeof(Location.Core.Maui.Views.AddLocation),
                     IsEnabled = true
                 });
-                
-                TopTabs.Tabs.Add(new TabItem 
-                { 
-                    Title = "List Locations", 
+
+                TopTabs.Tabs.Add(new TabItem
+                {
+                    Title = "List Locations",
                     PageType = typeof(Location.Core.Maui.Views.LocationsPage),
                     IsEnabled = true
                 });
-                
-                TopTabs.Tabs.Add(new TabItem 
-                { 
-                    Title = "Tips", 
+
+                TopTabs.Tabs.Add(new TabItem
+                {
+                    Title = "Tips",
                     PageType = typeof(Location.Core.Maui.Views.TipsPage),
                     IsEnabled = true
                 });
@@ -104,9 +128,9 @@ namespace Location.Photography.Maui
                 TopTabs.Tabs.Add(professionalTab);
 
                 // Settings tab (no sub-tabs)
-                TopTabs.Tabs.Add(new TabItem 
-                { 
-                    Title = "Settings", 
+                TopTabs.Tabs.Add(new TabItem
+                {
+                    Title = "Settings",
                     PageType = typeof(Views.Settings),
                     IsEnabled = true
                 });
@@ -139,7 +163,7 @@ namespace Location.Photography.Maui
                 // Use the TabDiscoveryService to find Premium tabs
                 var assembly = Assembly.GetExecutingAssembly();
                 subTabs = TabDiscoveryService.DiscoverPremiumTabs(assembly);
-                
+
                 // If discovery fails, add manually
                 if (subTabs.Count == 0)
                 {
@@ -157,7 +181,12 @@ namespace Location.Photography.Maui
                         IsEnabled = false
                     });
 
-                   
+                    subTabs.Add(new TabItem
+                    {
+                        Title = "Field of View",
+                        PageType = typeof(Views.Premium.FieldOfView),
+                        IsEnabled = false
+                    });
                 }
 
                 _logger.LogInformation($"Discovered {subTabs.Count} Premium sub-tabs: {string.Join(", ", subTabs.Select(s => s.Title))}");
@@ -179,7 +208,7 @@ namespace Location.Photography.Maui
                 // Use the TabDiscoveryService to find Professional tabs
                 var assembly = Assembly.GetExecutingAssembly();
                 subTabs = TabDiscoveryService.DiscoverProfessionalTabs(assembly);
-                
+
                 // If discovery fails, add manually
                 if (subTabs.Count == 0)
                 {
@@ -288,7 +317,7 @@ namespace Location.Photography.Maui
 
                 // Get the page instance from the service provider
                 var page = _serviceProvider.GetService(tab.PageType) as ContentPage;
-                
+
                 if (page == null)
                 {
                     // If not registered in DI, try to create manually
@@ -335,7 +364,7 @@ namespace Location.Photography.Maui
                     var mediaService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IMediaService>();
                     var geoService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IGeolocationService>();
                     var errorService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IErrorDisplayService>();
-                    
+
                     return new Location.Core.Maui.Views.AddLocation(mediator, mediaService, geoService, errorService);
                 }
                 else if (pageType == typeof(Location.Core.Maui.Views.LocationsPage))
@@ -355,7 +384,7 @@ namespace Location.Photography.Maui
                     var errorService = _serviceProvider.GetRequiredService<Location.Core.Application.Services.IErrorDisplayService>();
                     var tipRepo = _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ITipRepository>();
                     var tipTypeRepo = _serviceProvider.GetRequiredService<Location.Core.Application.Common.Interfaces.Persistence.ITipTypeRepository>();
-                    
+
                     return new Location.Core.Maui.Views.TipsPage(mediator, errorService, tipRepo, tipTypeRepo);
                 }
                 else

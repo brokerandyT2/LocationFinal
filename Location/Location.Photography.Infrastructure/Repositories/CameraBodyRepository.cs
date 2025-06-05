@@ -90,12 +90,17 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 var cameraBodies = await Task.Run(async () =>
                 {
+                    // Get all cameras without complex ordering first
                     var allCameras = await _context.Table<CameraBody>()
-                        .OrderBy(c => c.IsUserCreated ? 0 : 1)
-                        .ThenBy(c => c.Name)
                         .ToListAsync().ConfigureAwait(false);
 
-                    return allCameras.Skip(skip).Take(take).ToList();
+                    // Do the conditional sorting in memory
+                    return allCameras
+                        .OrderBy(c => c.IsUserCreated ? 0 : 1)
+                        .ThenBy(c => c.Name)
+                        .Skip(skip)
+                        .Take(take)
+                        .ToList();
                 }, cancellationToken).ConfigureAwait(false);
 
                 return Result<List<CameraBody>>.Success(cameraBodies);

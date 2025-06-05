@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
 using System.Linq;
+using System.Net.Mail;
 
 namespace Location.Photography.Maui.Views
 {
@@ -19,12 +20,13 @@ namespace Location.Photography.Maui.Views
         private readonly IServiceProvider _serviceProvider;
         private string _guid;
         private bool _saveAttempted = false;
+        private bool _isDatabaseInitialized = false;
 
         public UserOnboarding(
-    IAlertService alertService,
-    DatabaseInitializer databaseInitializer,
-    ILogger<UserOnboarding> logger,
-    IServiceProvider serviceProvider)
+            IAlertService alertService,
+            DatabaseInitializer databaseInitializer,
+            ILogger<UserOnboarding> logger,
+            IServiceProvider serviceProvider)
         {
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _databaseInitializer = databaseInitializer ?? throw new ArgumentNullException(nameof(databaseInitializer));
@@ -39,9 +41,43 @@ namespace Location.Photography.Maui.Views
                 InitializeComponent();
                 _logger.LogInformation("UserOnboarding InitializeComponent completed");
 
-                // Defer GetSetting to after the page is loaded
-                //this.Loaded += OnPageLoaded;
+                // Initialize page UI
                 GetSetting();
+
+                // Initialize database with static data in background - non-blocking
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        _logger.LogInformation("Starting background database initialization with static data");
+
+                        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+                        await _databaseInitializer.InitializeDatabaseWithStaticDataAsync(cts.Token);
+
+                        _isDatabaseInitialized = true;
+                        _logger.LogInformation("Background database initialization completed successfully");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _logger.LogWarning("Database initialization was cancelled");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error during background database initialization");
+
+                        // Show error on UI thread
+                        await MainThread.InvokeOnMainThreadAsync(async () =>
+                        {
+                            await _alertService.ShowErrorAlertAsync(
+                                "Failed to initialize application data. Please restart the app.",
+                                "Initialization Error");
+                        });
+                    }
+                });
+
+                // Check for existing email and navigate if found
+                CheckExistingEmailAndNavigate();
+
                 _logger.LogInformation("UserOnboarding constructor completed");
             }
             catch (Exception ex)
@@ -49,44 +85,40 @@ namespace Location.Photography.Maui.Views
                 _logger.LogError(ex, "Error in UserOnboarding constructor");
                 throw;
             }
+        }
 
+        private async void CheckExistingEmailAndNavigate()
+        {
+            try
+            {
+                var sq = new GetSettingByKeyQuery { Key = MagicStrings.Email };
+                var mediator = new Mediator(_serviceProvider);
+                var result = await mediator.Send(sq);
+
+                if (result != null && result.Data?.Value != null && !string.IsNullOrEmpty(result.Data.Value))
+                {
+                    _logger.LogInformation("Existing email found, navigating to CameraEvaluation: {Email}", result.Data.Value);
+                    await Navigation.PushAsync((ContentPage)_serviceProvider.GetRequiredService<CameraEvaluation>());
+                }
+                else
+                {
+                    _logger.LogInformation("No existing email found, staying on onboarding page");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error checking existing email, continuing with onboarding");
+            }
         }
 
         private void OnPageLoaded(object sender, EventArgs e)
         {
-            try
-            {
-                _logger.LogInformation("UserOnboarding page loaded, calling GetSetting");
-                GetSetting();
-                _logger.LogInformation("GetSetting completed");
-
-                var sq = new GetSettingByKeyQuery
-                {
-                    Key = MagicStrings.Email
-                };
-                Mediator m = new Mediator(_serviceProvider);
-                var result = m.Send(sq).Result;
-                if(result != null && result.Data.Value != null)
-                {
-                   Navigation.PushAsync((ContentPage)_serviceProvider.GetRequiredService<CameraEvaluation>());
-                    _logger.LogInformation("Navigating to CameraEvaluation with email: {Email}", result.Data.Value);
-                }
-                else
-                {
-                    _logger.LogWarning("No email address found in settings");
-                }
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in OnPageLoaded");
-            }
+            // No longer needed - initialization moved to constructor
         }
 
         protected override void OnNavigatedTo(NavigatedToEventArgs args)
         {
             base.OnNavigatedTo(args);
-            //GetSetting();
         }
 
         private void GetSetting()
@@ -171,25 +203,36 @@ namespace Location.Photography.Maui.Views
 
                 try
                 {
-                    var guid = Guid.NewGuid().ToString();
-                    await SecureStorage.SetAsync(MagicStrings.UniqueID, guid);
-
-                    CancellationTokenSource cts = new CancellationTokenSource();
-
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
                         loadingIndicator.IsRunning = true;
                     });
 
-                    await Task.Delay(50);
+                    // Wait for database initialization to complete if still running
+                    var timeout = TimeSpan.FromSeconds(30);
+                    var startTime = DateTime.Now;
 
+                    while (!_isDatabaseInitialized && DateTime.Now - startTime < timeout)
+                    {
+                        await Task.Delay(100);
+                    }
+
+                    if (!_isDatabaseInitialized)
+                    {
+                        throw new TimeoutException("Database initialization did not complete within expected time");
+                    }
+
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+                    // Only save user-specific settings captured from the form
                     await Task.Run(async () =>
                     {
-                        await _databaseInitializer.InitializeDatabaseAsync(
-                            cts.Token, hemisphere, temperatureFormat, dateFormat,
-                            timeFormat, windDirection, email, _guid);
+                        await _databaseInitializer.CreateUserSettingsAsync(
+                            hemisphere, temperatureFormat, dateFormat,
+                            timeFormat, windDirection, email, _guid, cts.Token);
                     });
 
+                    _logger.LogInformation("User settings saved successfully, navigating to CameraEvaluation");
                     await Navigation.PushAsync(_serviceProvider.GetRequiredService<CameraEvaluation>());
                 }
                 catch (Exception ex)

@@ -12,32 +12,12 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header with camera selection -->
-        <Frame Grid.Row="0" 
-               BackgroundColor="#80000000" 
-               Margin="20,40,20,10" 
-               Padding="20"
-               CornerRadius="10">
-            <StackLayout>
-                <Label Text="Field of View Preview" 
-                       FontSize="22" 
-                       FontAttributes="Bold"
-                       TextColor="White"
-                       HorizontalOptions="Center" />
-
-                <Label Text="Capture a photo to see field of view comparison with different camera lenses"
-                       FontSize="14"
-                       TextColor="White"
-                       HorizontalTextAlignment="Center"
-                       Margin="0,10,0,0" />
-            </StackLayout>
-        </Frame>
-
+       
         <!-- Image preview with overlay -->
         <Grid Grid.Row="1" Margin="10">
             <!-- Captured Image Display -->
             <Image x:Name="CapturedImage" 
-                   Aspect="AspectFill"
+                   Aspect="AspectFit"
                    VerticalOptions="FillAndExpand"
                    HorizontalOptions="FillAndExpand"
                    BackgroundColor="#333333" />

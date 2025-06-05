@@ -1,4 +1,4 @@
-﻿// Location.Photography.Maui/MauiProgram.cs - Complete implementation
+﻿// Location.Photography.Maui/MauiProgram.cs - Complete implementation with Modal Registration
 using Camera.MAUI;
 using CommunityToolkit.Maui;
 using Location.Core.Application;
@@ -17,6 +17,7 @@ using Location.Photography.Infrastructure;
 using Location.Photography.Infrastructure.Repositories;
 using Location.Photography.Infrastructure.Services;
 using Location.Photography.Maui.Views;
+using Location.Photography.Maui.Views.Premium;
 using Location.Photography.ViewModels;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -79,6 +80,7 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<IFOVCalculationService, FOVCalculationService>();
             builder.Services.AddSingleton<IPhoneCameraProfileRepository, PhoneCameraProfileRepository>();
             builder.Services.AddSingleton<ICameraDataService, CameraDataService>();
+            builder.Services.AddSingleton<ICameraSensorProfileService, CameraSensorProfileService>();
 
 #if ANDROID
             // Android-specific services
@@ -196,16 +198,33 @@ namespace Location.Photography.Maui
                 return new Views.Premium.FieldOfView(mediator, logger, fovCalculationService, alertService, cameraDataService);
             });
 
+            // Modal Pages for Field of View feature
+            builder.Services.AddTransient<AddCameraModal>(sp =>
+            {
+                var cameraDataService = sp.GetRequiredService<ICameraDataService>();
+                var alertService = sp.GetRequiredService<IAlertService>();
+                var logger = sp.GetRequiredService<ILogger<AddCameraModal>>();
+                return new AddCameraModal(cameraDataService, alertService, logger);
+            });
+
+            builder.Services.AddTransient<AddLensModal>(sp =>
+            {
+                var cameraDataService = sp.GetRequiredService<ICameraDataService>();
+                var alertService = sp.GetRequiredService<IAlertService>();
+                var logger = sp.GetRequiredService<ILogger<AddLensModal>>();
+                return new AddLensModal(cameraDataService, alertService, logger);
+            });
+
             builder.Services.AddTransient<Views.Premium.SunLocation>(sp =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 var alertService = sp.GetRequiredService<IAlertService>();
-                var locationRepo = sp.GetRequiredService <Location.Core.Application.Common.Interfaces.ILocationRepository>();
+                var locationRepo = sp.GetRequiredService<Location.Core.Application.Common.Interfaces.ILocationRepository>();
                 var sunCalcService = sp.GetService<Location.Photography.Domain.Services.ISunCalculatorService>();
                 var settingRepo = sp.GetRequiredService<ISettingRepository>();
                 var errorService = sp.GetRequiredService<IErrorDisplayService>();
                 var timezoneService = sp.GetRequiredService<ITimezoneService>();
-                
+
                 return new Views.Premium.SunLocation(mediator, alertService, locationRepo, sunCalcService, settingRepo, errorService, timezoneService);
             });
 
@@ -277,7 +296,7 @@ namespace Location.Photography.Maui
             });
 
             builder.Services.AddSingleton<MainPage>();
-            
+
 
             // ==================== APP SHELL ====================
             // AppShell with all dependencies

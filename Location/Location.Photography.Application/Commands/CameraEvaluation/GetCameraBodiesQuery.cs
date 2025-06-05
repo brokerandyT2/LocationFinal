@@ -1,6 +1,8 @@
-﻿using Location.Core.Application.Common.Models;
+﻿// Location.Photography.Application/Queries/CameraEvaluation/GetCameraBodiesQuery.cs
+using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Common.Interfaces;
+using Location.Photography.Application.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -28,13 +30,16 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
     public class GetCameraBodiesQueryHandler : IRequestHandler<GetCameraBodiesQuery, Result<GetCameraBodiesResultDto>>
     {
         private readonly ICameraBodyRepository _cameraBodyRepository;
+        private readonly ICameraSensorProfileService _cameraSensorProfileService;
         private readonly ILogger<GetCameraBodiesQueryHandler> _logger;
 
         public GetCameraBodiesQueryHandler(
             ICameraBodyRepository cameraBodyRepository,
+            ICameraSensorProfileService cameraSensorProfileService,
             ILogger<GetCameraBodiesQueryHandler> logger)
         {
             _cameraBodyRepository = cameraBodyRepository ?? throw new ArgumentNullException(nameof(cameraBodyRepository));
+            _cameraSensorProfileService = cameraSensorProfileService ?? throw new ArgumentNullException(nameof(cameraSensorProfileService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -44,9 +49,9 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                List<Domain.Entities.CameraBody> cameraBodies;
-                int totalCount;
+                var allCameras = new List<CameraBodyDto>();
 
+                // Step 1: Load user-created cameras from database
                 if (request.UserCamerasOnly)
                 {
                     var userCamerasResult = await _cameraBodyRepository.GetUserCamerasAsync(cancellationToken);
@@ -55,43 +60,71 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
                         return Result<GetCameraBodiesResultDto>.Failure(userCamerasResult.ErrorMessage ?? "Failed to retrieve user cameras");
                     }
 
-                    cameraBodies = userCamerasResult.Data.Skip(request.Skip).Take(request.Take).ToList();
-                    totalCount = userCamerasResult.Data.Count;
+                    var userCameraDtos = userCamerasResult.Data.Select(c => new CameraBodyDto
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        SensorType = c.SensorType,
+                        SensorWidth = c.SensorWidth,
+                        SensorHeight = c.SensorHeight,
+                        MountType = c.MountType,
+                        IsUserCreated = c.IsUserCreated,
+                        DateAdded = c.DateAdded,
+                        DisplayName = c.GetDisplayName()
+                    }).ToList();
+
+                    allCameras.AddRange(userCameraDtos);
                 }
                 else
                 {
-                    var pagedResult = await _cameraBodyRepository.GetPagedAsync(request.Skip, request.Take, cancellationToken);
-                    if (!pagedResult.IsSuccess)
+                    // Load all database cameras (user + system)
+                    var allDbCamerasResult = await _cameraBodyRepository.GetPagedAsync(0, int.MaxValue, cancellationToken);
+                    if (allDbCamerasResult.IsSuccess)
                     {
-                        return Result<GetCameraBodiesResultDto>.Failure(pagedResult.ErrorMessage ?? "Failed to retrieve cameras");
+                        var dbCameraDtos = allDbCamerasResult.Data.Select(c => new CameraBodyDto
+                        {
+                            Id = c.Id,
+                            Name = c.Name,
+                            SensorType = c.SensorType,
+                            SensorWidth = c.SensorWidth,
+                            SensorHeight = c.SensorHeight,
+                            MountType = c.MountType,
+                            IsUserCreated = c.IsUserCreated,
+                            DateAdded = c.DateAdded,
+                            DisplayName = c.GetDisplayName()
+                        }).ToList();
+
+                        allCameras.AddRange(dbCameraDtos);
                     }
 
-                    var countResult = await _cameraBodyRepository.GetTotalCountAsync(cancellationToken);
-                    if (!countResult.IsSuccess)
+                    // Step 2: Load cameras from JSON sensor profiles
+                    var jsonCamerasResult = await _cameraSensorProfileService.LoadCameraSensorProfilesAsync(cancellationToken);
+                    if (jsonCamerasResult.IsSuccess)
                     {
-                        return Result<GetCameraBodiesResultDto>.Failure(countResult.ErrorMessage ?? "Failed to get total count");
+                        allCameras.AddRange(jsonCamerasResult.Data);
                     }
-
-                    cameraBodies = pagedResult.Data;
-                    totalCount = countResult.Data;
+                    else
+                    {
+                        _logger.LogWarning("Failed to load JSON camera profiles: {Error}", jsonCamerasResult.ErrorMessage);
+                    }
                 }
 
-                var cameraDtos = cameraBodies.Select(c => new CameraBodyDto
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    SensorType = c.SensorType,
-                    SensorWidth = c.SensorWidth,
-                    SensorHeight = c.SensorHeight,
-                    MountType = c.MountType,
-                    IsUserCreated = c.IsUserCreated,
-                    DateAdded = c.DateAdded,
-                    DisplayName = c.GetDisplayName()
-                }).ToList();
+                // Step 3: Sort cameras (user cameras first, then JSON cameras, then alphabetically)
+                var sortedCameras = allCameras
+                    .OrderBy(c => c.IsUserCreated ? 0 : 1) // User cameras first
+                    .ThenBy(c => c.DisplayName)
+                    .ToList();
+
+                // Step 4: Apply paging
+                var totalCount = sortedCameras.Count;
+                var pagedCameras = sortedCameras
+                    .Skip(request.Skip)
+                    .Take(request.Take)
+                    .ToList();
 
                 var result = new GetCameraBodiesResultDto
                 {
-                    CameraBodies = cameraDtos,
+                    CameraBodies = pagedCameras,
                     TotalCount = totalCount,
                     HasMore = (request.Skip + request.Take) < totalCount
                 };

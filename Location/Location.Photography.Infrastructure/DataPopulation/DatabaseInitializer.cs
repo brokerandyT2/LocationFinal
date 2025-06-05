@@ -28,6 +28,112 @@ namespace Location.Photography.Infrastructure
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
         }
 
+        /// <summary>
+        /// Initializes database and populates with static data (tip types, sample locations, base settings)
+        /// This is called during app startup and does not include user-specific settings
+        /// </summary>
+        public async Task InitializeDatabaseWithStaticDataAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                _logger.LogInformation("Starting database initialization with static data");
+
+                // Initialize database structure
+                var databaseContext = (_unitOfWork as Location.Core.Infrastructure.UnitOfWork.UnitOfWork)?.GetDatabaseContext();
+                if (databaseContext != null)
+                {
+                    await databaseContext.InitializeDatabaseAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    _logger.LogWarning("DatabaseContext not available through UnitOfWork");
+                }
+
+                // Parallelize independent database operations to improve performance
+                var initializationTasks = new List<Task>
+                {
+                    CreateTipTypesAsync(cancellationToken),
+                    CreateSampleLocationsAsync(cancellationToken),
+                    CreateBaseSettingsAsync(cancellationToken)
+                };
+
+                await Task.WhenAll(initializationTasks).ConfigureAwait(false);
+
+                _logger.LogInformation("Database initialization with static data completed successfully");
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Database initialization was cancelled");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during database initialization with static data");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Creates user-specific settings based on onboarding form input
+        /// This is called when the user completes the onboarding process
+        /// </summary>
+        public async Task CreateUserSettingsAsync(
+            string hemisphere,
+            string tempFormat,
+            string dateFormat,
+            string timeFormat,
+            string windDirection,
+            string email,
+            string guid,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                _logger.LogInformation("Creating user-specific settings");
+
+                var userSettings = new List<(string Key, string Value, string Description)>
+                {
+                    // User-specific settings from onboarding form
+                    (MagicStrings.Hemisphere, hemisphere, "User's hemisphere (north/south)"),
+                    (MagicStrings.WindDirection, windDirection, "Wind direction setting (towardsWind/withWind)"),
+                    (MagicStrings.TimeFormat, timeFormat, "Time format (12h/24h)"),
+                    (MagicStrings.DateFormat, dateFormat, "Date format (US/International)"),
+                    (MagicStrings.TemperatureType, tempFormat, "Temperature format (F/C)"),
+                    (MagicStrings.Email, email, "User's email address"),
+                    (MagicStrings.UniqueID, guid, "Unique identifier for the installation")
+                };
+
+                // Process user settings
+                var settingTasks = userSettings.Select(async settingData =>
+                {
+                    var (key, value, description) = settingData;
+                    var setting = new Setting(key, value, description);
+                    var result = await _unitOfWork.Settings.CreateAsync(setting).ConfigureAwait(false);
+
+                    if (!result.IsSuccess)
+                    {
+                        _logger.LogWarning("Failed to create user setting {Key}: {Error}", key, result.ErrorMessage);
+                    }
+                });
+
+                await Task.WhenAll(settingTasks).ConfigureAwait(false);
+
+                _logger.LogInformation("Created {Count} user-specific settings", userSettings.Count);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating user-specific settings");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Legacy method for backward compatibility - now calls both static and user data initialization
+        /// </summary>
         public async Task InitializeDatabaseAsync(
             CancellationToken ctx,
             string hemisphere = "north",
@@ -41,43 +147,17 @@ namespace Location.Photography.Infrastructure
         {
             try
             {
-                // Move entire database initialization to background thread to prevent UI blocking
-                await Task.Run(async () =>
-                {
-                    var databaseContext = (_unitOfWork as Location.Core.Infrastructure.UnitOfWork.UnitOfWork)?.GetDatabaseContext();
-                    if (databaseContext != null)
-                    {
-                        await databaseContext.InitializeDatabaseAsync().ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("DatabaseContext not available through UnitOfWork");
-                    }
+                // Initialize with static data first
+                await InitializeDatabaseWithStaticDataAsync(ctx).ConfigureAwait(false);
 
-                    _logger.LogInformation("Starting database population");
+                // Then create user settings
+                await CreateUserSettingsAsync(hemisphere, tempFormat, dateFormat, timeFormat, windDirection, email, guid, ctx).ConfigureAwait(false);
 
-                    // Parallelize independent database operations to improve performance
-                    var initializationTasks = new List<Task>
-                   {
-                       CreateTipTypesAsync(ctx),
-                       CreateSampleLocationsAsync(ctx),
-                       CreateSettingsAsync(hemisphere, tempFormat, dateFormat, timeFormat, windDirection, email, ctx)
-                   };
-
-                    await Task.WhenAll(initializationTasks).ConfigureAwait(false);
-
-                    _logger.LogInformation("Database population completed successfully");
-
-                }, ctx).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("Database initialization was cancelled");
-                throw;
+                _logger.LogInformation("Complete database initialization completed successfully");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during database population");
+                _logger.LogError(ex, "Error during complete database initialization");
                 await _alertService.ShowErrorAlertAsync("Failed to initialize database: " + ex.Message, "Error").ConfigureAwait(false);
                 throw;
             }
@@ -217,111 +297,98 @@ namespace Location.Photography.Infrastructure
             }
         }
 
-        private async Task CreateSettingsAsync(
-            string hemisphere,
-            string tempFormat,
-            string dateFormat,
-            string timeFormat,
-            string windDirection,
-            string email,
-            CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Creates base application settings that are not user-specific
+        /// </summary>
+        private async Task CreateBaseSettingsAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                var guid = Guid.NewGuid().ToString();
+                var baseSettings = new List<(string Key, string Value, string Description)>
+                {
+                    // Application settings (not user-specific)
+                    (MagicStrings.FirstName, "", "User's first name"),
+                    (MagicStrings.LastName, "", "User's last name"),
+                    (MagicStrings.LastBulkWeatherUpdate, DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
+                    (MagicStrings.DefaultLanguage, "en-US", "Default language setting"),
+                    (MagicStrings.CameraRefresh, "500", "Camera refresh rate in milliseconds"),
+                    (MagicStrings.AppOpenCounter, "1", "Number of times the app has been opened"),
+                    (MagicStrings.WeatherURL, "https://api.openweathermap.org/data/3.0/onecall", "Weather API URL"),
+                    (MagicStrings.Weather_API_Key, "aa24f449cced50c0491032b2f955d610", "Weather API key"),
+                    (MagicStrings.FreePremiumAdSupported, "false", "Whether the app is running in ad-supported mode"),
+                    (MagicStrings.DeviceInfo, "", "Device information"),
+                };
 
-                var settings = new List<(string Key, string Value, string Description)>
-               {
-                   // Core settings
-                   (MagicStrings.Hemisphere, hemisphere, "User's hemisphere (north/south)"),
-                   (MagicStrings.FirstName, "", "User's first name"),
-                   (MagicStrings.LastName, "", "User's last name"),
-                   (MagicStrings.UniqueID, guid, "Unique identifier for the installation"),
-                   (MagicStrings.LastBulkWeatherUpdate, DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
-                   (MagicStrings.DefaultLanguage, "en-US", "Default language setting"),
-                   (MagicStrings.WindDirection, windDirection, "Wind direction setting (towardsWind/withWind)"),
-                   (MagicStrings.CameraRefresh, "500", "Camera refresh rate in milliseconds"),
-                   (MagicStrings.AppOpenCounter, "1", "Number of times the app has been opened"),
-                   (MagicStrings.TimeFormat, timeFormat, "Time format (12h/24h)"),
-                   (MagicStrings.DateFormat, dateFormat, "Date format (US/International)"),
-                   (MagicStrings.WeatherURL, "https://api.openweathermap.org/data/3.0/onecall", "Weather API URL"),
-                   (MagicStrings.Weather_API_Key, "aa24f449cced50c0491032b2f955d610", "Weather API key"),
-                   (MagicStrings.FreePremiumAdSupported, "false", "Whether the app is running in ad-supported mode"),
-                   (MagicStrings.TemperatureType, tempFormat, "Temperature format (F/C)"),
-                   (MagicStrings.DeviceInfo, "", "Device information"),
-                   (MagicStrings.Email, email, "User's email address"),
-               };
-
-                // Add additional settings based on the build configuration
+                // Add build-specific settings
 #if DEBUG
-                // Debug mode settings - features already viewed and premium subscription
                 var debugSettings = new List<(string Key, string Value, string Description)>
-               {
-                   (MagicStrings.SettingsViewed, MagicStrings.True_string, "Whether the settings page has been viewed"),
-                   (MagicStrings.HomePageViewed, MagicStrings.True_string, "Whether the home page has been viewed"),
-                   (MagicStrings.LocationListViewed, MagicStrings.True_string, "Whether the location list has been viewed"),
-                   (MagicStrings.TipsViewed, MagicStrings.True_string, "Whether the tips page has been viewed"),
-                   (MagicStrings.ExposureCalcViewed, MagicStrings.True_string, "Whether the exposure calculator has been viewed"),
-                   (MagicStrings.LightMeterViewed, MagicStrings.True_string, "Whether the light meter has been viewed"),
-                   (MagicStrings.SceneEvaluationViewed, MagicStrings.True_string, "Whether the scene evaluation has been viewed"),
-                   (MagicStrings.AddLocationViewed, MagicStrings.True_string, "Whether the add location page has been viewed"),
-                   (MagicStrings.WeatherDisplayViewed, MagicStrings.True_string, "Whether the weather display has been viewed"),
-                   (MagicStrings.SunCalculatorViewed, MagicStrings.True_string, "Whether the sun calculator has been viewed"),
-                   (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last exposure calculator ad view"),
-                   (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last light meter ad view"),
-                   (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last scene evaluation ad view"),
-                   (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun calculator ad view"),
-                   (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun location ad view"),
-                   (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last weather display ad view"),
-                   (MagicStrings.SubscriptionType, MagicStrings.Premium, "Subscription type (Free/Premium)"),
-                   (MagicStrings.SubscriptionExpiration, DateTime.Now.AddYears(1).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
-                   (MagicStrings.SubscriptionProductId, "premium_yearly_subscription", "Subscription product ID"),
-                   (MagicStrings.SubscriptionPurchaseDate, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "Subscription purchase date"),
-                   (MagicStrings.SubscriptionTransactionId, $"debug_transaction_{Guid.NewGuid():N}", "Subscription transaction ID"),
-                   (MagicStrings.AdGivesHours, "24", "Hours of premium access granted per ad view"),
-                   (MagicStrings.SunLocationViewed, MagicStrings.True_string, "Whether the SunLocation Page has been viewed." ),
-                   (MagicStrings.LastUploadTimeStamp, DateTime.Now.ToString(), "Last Time that data was backed up to cloud")
-               };
-                settings.AddRange(debugSettings);
+                {
+                    // Debug mode settings - features already viewed and premium subscription
+                    (MagicStrings.SettingsViewed, MagicStrings.True_string, "Whether the settings page has been viewed"),
+                    (MagicStrings.HomePageViewed, MagicStrings.True_string, "Whether the home page has been viewed"),
+                    (MagicStrings.LocationListViewed, MagicStrings.True_string, "Whether the location list has been viewed"),
+                    (MagicStrings.TipsViewed, MagicStrings.True_string, "Whether the tips page has been viewed"),
+                    (MagicStrings.ExposureCalcViewed, MagicStrings.True_string, "Whether the exposure calculator has been viewed"),
+                    (MagicStrings.LightMeterViewed, MagicStrings.True_string, "Whether the light meter has been viewed"),
+                    (MagicStrings.SceneEvaluationViewed, MagicStrings.True_string, "Whether the scene evaluation has been viewed"),
+                    (MagicStrings.AddLocationViewed, MagicStrings.True_string, "Whether the add location page has been viewed"),
+                    (MagicStrings.WeatherDisplayViewed, MagicStrings.True_string, "Whether the weather display has been viewed"),
+                    (MagicStrings.SunCalculatorViewed, MagicStrings.True_string, "Whether the sun calculator has been viewed"),
+                    (MagicStrings.SunLocationViewed, MagicStrings.True_string, "Whether the SunLocation Page has been viewed."),
+                    (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last exposure calculator ad view"),
+                    (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last light meter ad view"),
+                    (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last scene evaluation ad view"),
+                    (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun calculator ad view"),
+                    (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last sun location ad view"),
+                    (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.ToString(), "Timestamp of last weather display ad view"),
+                    (MagicStrings.SubscriptionType, MagicStrings.Premium, "Subscription type (Free/Premium)"),
+                    (MagicStrings.SubscriptionExpiration, DateTime.Now.AddYears(1).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
+                    (MagicStrings.SubscriptionProductId, "premium_yearly_subscription", "Subscription product ID"),
+                    (MagicStrings.SubscriptionPurchaseDate, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "Subscription purchase date"),
+                    (MagicStrings.SubscriptionTransactionId, $"debug_transaction_{Guid.NewGuid():N}", "Subscription transaction ID"),
+                    (MagicStrings.AdGivesHours, "24", "Hours of premium access granted per ad view"),
+                    (MagicStrings.LastUploadTimeStamp, DateTime.Now.ToString(), "Last Time that data was backed up to cloud")
+                };
+                baseSettings.AddRange(debugSettings);
 #else
-               // Release mode settings - features not viewed and expired subscription
-               var releaseSettings = new List<(string Key, string Value, string Description)>
-               {
-                   (MagicStrings.SettingsViewed, MagicStrings.False_string, "Whether the settings page has been viewed"),
-                   (MagicStrings.HomePageViewed, MagicStrings.False_string, "Whether the home page has been viewed"),
-                   (MagicStrings.LocationListViewed, MagicStrings.False_string, "Whether the location list has been viewed"),
-                   (MagicStrings.TipsViewed, MagicStrings.False_string, "Whether the tips page has been viewed"),
-                   (MagicStrings.ExposureCalcViewed, MagicStrings.False_string, "Whether the exposure calculator has been viewed"),
-                   (MagicStrings.LightMeterViewed, MagicStrings.False_string, "Whether the light meter has been viewed"),
-                   (MagicStrings.SceneEvaluationViewed, MagicStrings.False_string, "Whether the scene evaluation has been viewed"),
-                   (MagicStrings.AddLocationViewed, MagicStrings.False_string, "Whether the add location page has been viewed"),
-                   (MagicStrings.WeatherDisplayViewed, MagicStrings.False_string, "Whether the weather display has been viewed"),
-                   (MagicStrings.SunCalculatorViewed, MagicStrings.False_string, "Whether the sun calculator has been viewed"),
-                   (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last exposure calculator ad view"),
-                   (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last light meter ad view"),
-                   (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last scene evaluation ad view"),
-                   (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun calculator ad view"),
-                   (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun location ad view"),
-                   (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last weather display ad view"),
-                   (MagicStrings.SubscriptionType, MagicStrings.Free, "Subscription type (Free/Premium)"),
-                   (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(-3).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
-                   ("SubscriptionProductId", "", "Subscription product ID"),
-                   ("SubscriptionPurchaseDate", "", "Subscription purchase date"),
-                   ("SubscriptionTransactionId", "", "Subscription transaction ID"),
-                   (MagicStrings.AdGivesHours, "12", "Hours of premium access granted per ad view"),
-                   (MagicStrings.SunLocationViewed, MagicStrings.False_string, "Whether the SunLocation Page has been viewed." ),
-                   (MagicStrings.LastUploadTimeStamp, DateTime.Now.AddDays(-1).ToString(), "Last Time that data was backed up to cloud")
-               };
-               settings.AddRange(releaseSettings);
+                var releaseSettings = new List<(string Key, string Value, string Description)>
+                {
+                    // Release mode settings - features not viewed and expired subscription
+                    (MagicStrings.SettingsViewed, MagicStrings.False_string, "Whether the settings page has been viewed"),
+                    (MagicStrings.HomePageViewed, MagicStrings.False_string, "Whether the home page has been viewed"),
+                    (MagicStrings.LocationListViewed, MagicStrings.False_string, "Whether the location list has been viewed"),
+                    (MagicStrings.TipsViewed, MagicStrings.False_string, "Whether the tips page has been viewed"),
+                    (MagicStrings.ExposureCalcViewed, MagicStrings.False_string, "Whether the exposure calculator has been viewed"),
+                    (MagicStrings.LightMeterViewed, MagicStrings.False_string, "Whether the light meter has been viewed"),
+                    (MagicStrings.SceneEvaluationViewed, MagicStrings.False_string, "Whether the scene evaluation has been viewed"),
+                    (MagicStrings.AddLocationViewed, MagicStrings.False_string, "Whether the add location page has been viewed"),
+                    (MagicStrings.WeatherDisplayViewed, MagicStrings.False_string, "Whether the weather display has been viewed"),
+                    (MagicStrings.SunCalculatorViewed, MagicStrings.False_string, "Whether the sun calculator has been viewed"),
+                    (MagicStrings.SunLocationViewed, MagicStrings.False_string, "Whether the SunLocation Page has been viewed."),
+                    (MagicStrings.ExposureCalcAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last exposure calculator ad view"),
+                    (MagicStrings.LightMeterAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last light meter ad view"),
+                    (MagicStrings.SceneEvaluationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last scene evaluation ad view"),
+                    (MagicStrings.SunCalculatorViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun calculator ad view"),
+                    (MagicStrings.SunLocationAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last sun location ad view"),
+                    (MagicStrings.WeatherDisplayAdViewed_TimeStamp, DateTime.Now.AddDays(-1).ToString(), "Timestamp of last weather display ad view"),
+                    (MagicStrings.SubscriptionType, MagicStrings.Free, "Subscription type (Free/Premium)"),
+                    (MagicStrings.SubscriptionExpiration, DateTime.Now.AddDays(-3).ToString("yyyy-MM-dd HH:mm:ss"), "Subscription expiration date"),
+                    ("SubscriptionProductId", "", "Subscription product ID"),
+                    ("SubscriptionPurchaseDate", "", "Subscription purchase date"),
+                    ("SubscriptionTransactionId", "", "Subscription transaction ID"),
+                    (MagicStrings.AdGivesHours, "12", "Hours of premium access granted per ad view"),
+                    (MagicStrings.LastUploadTimeStamp, DateTime.Now.AddDays(-1).ToString(), "Last Time that data was backed up to cloud")
+                };
+                baseSettings.AddRange(releaseSettings);
 #endif
 
-                // Process settings in batches to improve performance and reduce database contention
+                // Process base settings in batches to improve performance and reduce database contention
                 const int batchSize = 10;
-                for (int i = 0; i < settings.Count; i += batchSize)
+                for (int i = 0; i < baseSettings.Count; i += batchSize)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var batch = settings.Skip(i).Take(batchSize);
+                    var batch = baseSettings.Skip(i).Take(batchSize);
                     var settingTasks = batch.Select(async settingData =>
                     {
                         var (key, value, description) = settingData;
@@ -330,14 +397,14 @@ namespace Location.Photography.Infrastructure
 
                         if (!result.IsSuccess)
                         {
-                            _logger.LogWarning("Failed to create setting {Key}: {Error}", key, result.ErrorMessage);
+                            _logger.LogWarning("Failed to create base setting {Key}: {Error}", key, result.ErrorMessage);
                         }
                     });
 
                     await Task.WhenAll(settingTasks).ConfigureAwait(false);
                 }
 
-                _logger.LogInformation("Created {Count} settings", settings.Count);
+                _logger.LogInformation("Created {Count} base settings", baseSettings.Count);
             }
             catch (OperationCanceledException)
             {
@@ -345,7 +412,7 @@ namespace Location.Photography.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating settings");
+                _logger.LogError(ex, "Error creating base settings");
                 throw;
             }
         }
