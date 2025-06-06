@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CosineKitty.AstronomyEngine" Version="2.1.19" />
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.50" />
