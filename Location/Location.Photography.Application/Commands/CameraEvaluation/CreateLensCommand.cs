@@ -14,6 +14,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
         public double? MinFStop { get; set; }
         public double? MaxFStop { get; set; }
         public bool IsUserCreated { get; set; } = true;
+        public string LensName { get; set; } = string.Empty;
         public List<int> CompatibleCameraIds { get; set; } = new List<int>();
     }
 
@@ -74,7 +75,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                 if (existingResult.IsSuccess && existingResult.Data.Count > 0)
                 {
                     var similarLens = existingResult.Data.FirstOrDefault();
-                    return Result<CreateLensResultDto>.Failure($"A similar lens '{similarLens?.GetDisplayName()}' already exists. Continue anyway?");
+               
                 }
 
                 // Create the lens
@@ -83,8 +84,9 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                     request.MaxMM,
                     request.MinFStop,
                     request.MaxFStop,
-                    request.IsUserCreated);
-
+                    request.IsUserCreated,
+                    request.LensName);
+                lens.NameForLens = request.LensName;
                 var createResult = await _lensRepository.CreateAsync(lens, cancellationToken);
 
                 if (!createResult.IsSuccess)

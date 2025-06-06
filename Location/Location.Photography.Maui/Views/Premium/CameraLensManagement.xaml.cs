@@ -261,7 +261,7 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                var addCameraModal = App.Current.ServiceProvider.GetRequiredService<AddCameraModal>();
+                var addCameraModal = _serviceProvider.GetRequiredService<AddCameraModal>();
                 await Shell.Current.Navigation.PushModalAsync(addCameraModal);
             }
             catch (Exception ex)
@@ -275,7 +275,7 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                var addLensModal = App.Current.ServiceProvider.GetRequiredService<AddLensModal>();
+                var addLensModal = _serviceProvider.GetRequiredService<AddLensModal>();
                 await Shell.Current.Navigation.PushModalAsync(addLensModal);
             }
             catch (Exception ex)

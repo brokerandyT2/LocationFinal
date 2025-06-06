@@ -1,6 +1,7 @@
 using Location.Core.Application.Services;
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Services;
+using Location.Photography.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -14,12 +15,11 @@ namespace Location.Photography.Maui.Views.Premium
         private readonly ILogger<AddLensModal> _logger;
 
         private ObservableCollection<CameraSelectionItem> _availableCameras = new();
-        private bool _isValidating = false;
-        private bool _isDuplicateWarningShown = false;
         private bool _isLoadingCameras = false;
         private int _currentSkip = 0;
         private const int _pageSize = 20;
         private bool _hasMoreCameras = true;
+        private bool _isUserEditingName = false;
 
         public ObservableCollection<CameraSelectionItem> AvailableCameras
         {
@@ -106,19 +106,34 @@ namespace Location.Photography.Maui.Views.Premium
             await LoadCamerasAsync(true);
         }
 
-        private async void OnFocalLengthChanged(object sender, TextChangedEventArgs e)
+        private void OnFocalLengthChanged(object sender, TextChangedEventArgs e)
         {
             CheckPrimeLensStatus();
+            GenerateLensName();
+            ValidateForm();
+        }
 
-            if (_isValidating || !ShouldCheckForDuplicates())
+        private void OnFStopChanged(object sender, TextChangedEventArgs e)
+        {
+            var entry = sender as Entry;
+            if (entry != null && !string.IsNullOrEmpty(e.NewTextValue))
             {
-                DuplicateWarningFrame.IsVisible = false;
-                _isDuplicateWarningShown = false;
-                ValidateForm();
-                return;
+                // Remove "f/" if user tries to enter it
+                if (e.NewTextValue.StartsWith("f/", StringComparison.OrdinalIgnoreCase))
+                {
+                    var cleanValue = e.NewTextValue.Substring(2);
+                    entry.Text = cleanValue;
+                    return;
+                }
             }
 
-            await CheckForDuplicatesAsync();
+            GenerateLensName();
+            ValidateForm();
+        }
+
+        private void OnLensNameChanged(object sender, TextChangedEventArgs e)
+        {
+            _isUserEditingName = !string.IsNullOrEmpty(e.NewTextValue);
             ValidateForm();
         }
 
@@ -129,48 +144,122 @@ namespace Location.Photography.Maui.Views.Premium
             PrimeLensInfoFrame.IsVisible = showPrimeInfo;
         }
 
-        private bool ShouldCheckForDuplicates()
+        private void OnCameraSelectionChanged(object sender, CheckedChangedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(MinFocalLengthEntry.Text)) return false;
-            if (!double.TryParse(MinFocalLengthEntry.Text, out _)) return false;
-            return true;
+            var selectedCameras = AvailableCameras.Where(c => c.IsSelected).ToList();
+
+            // Show lens name field if at least one camera is selected
+            LensNameStack.IsVisible = selectedCameras.Any();
+
+            GenerateLensName();
+            ValidateForm();
         }
 
-        private async Task CheckForDuplicatesAsync()
+        private void GenerateLensName()
         {
+            if (_isUserEditingName) return; // Don't override user's custom name
+
+            var selectedCameras = AvailableCameras.Where(c => c.IsSelected).ToList();
+            if (!selectedCameras.Any() || string.IsNullOrWhiteSpace(MinFocalLengthEntry.Text))
+            {
+                LensNameEntry.Text = string.Empty;
+                return;
+            }
+
             try
             {
-                _isValidating = true;
+                if (!double.TryParse(MinFocalLengthEntry.Text, out double minMM))
+                    return;
+                // Get mount type from first selected camera
+                var firstCamera = selectedCameras.First().Camera;
+                var mountTypeName = GetMountTypeName(firstCamera.MountType);
 
-                var focalLength = double.Parse(MinFocalLengthEntry.Text);
-                var result = await _cameraDataService.CheckDuplicateLensAsync(focalLength);
+                // Build focal length part
+                var focalLengthPart = "";
+                var isPrime = PrimeLensInfoFrame.IsVisible;
 
-                if (result.IsSuccess && result.Data.Any())
+                if (isPrime)
                 {
-                    var duplicateNames = string.Join(", ", result.Data.Take(3).Select(l => l.DisplayName));
-                    DuplicateWarningText.Text = $"Similar lenses found: {duplicateNames}";
-                    DuplicateWarningFrame.IsVisible = true;
-                    _isDuplicateWarningShown = true;
+                    focalLengthPart = $"{minMM:G29}mm";
+                }
+                else if (double.TryParse(MaxFocalLengthEntry.Text, out double maxMM))
+                {
+                    focalLengthPart = $"{minMM:G29}-{maxMM:G29}mm";
                 }
                 else
                 {
-                    DuplicateWarningFrame.IsVisible = false;
-                    _isDuplicateWarningShown = false;
+                    focalLengthPart = $"{minMM:G29}mm";
                 }
+
+                // Build aperture part
+                var aperturePart = "";
+                bool hasMinFStop = !string.IsNullOrWhiteSpace(MinFStopEntry.Text);
+                bool hasMaxFStop = !string.IsNullOrWhiteSpace(MaxFStopEntry.Text);
+                double minFStop = 0;
+                double maxFStop = 0;
+
+                if (hasMinFStop)
+                    hasMinFStop = double.TryParse(MinFStopEntry.Text, out minFStop);
+                if (hasMaxFStop)
+                    hasMaxFStop = double.TryParse(MaxFStopEntry.Text, out maxFStop);
+
+                if (hasMinFStop)
+                {
+                    if (isPrime || !hasMaxFStop || Math.Abs(maxFStop - minFStop) < 0.1)
+                    {
+                        aperturePart = $" f/{minFStop:G29}";
+                    }
+                    else
+                    {
+                        aperturePart = $" f/{minFStop:G29}-{maxFStop:G29}";
+                    }
+                }
+
+                // Combine parts
+                var generatedName = $"{mountTypeName} {focalLengthPart}{aperturePart}";
+                LensNameEntry.Text = generatedName;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking for duplicate lenses");
-            }
-            finally
-            {
-                _isValidating = false;
+                _logger.LogError(ex, "Error generating lens name");
             }
         }
 
-        private void OnCameraSelectionChanged(object sender, CheckedChangedEventArgs e)
+        private string GetMountTypeName(MountType mountType)
         {
-            ValidateForm();
+            return mountType switch
+            {
+                MountType.CanonEF => "Canon EF",
+                MountType.CanonEFS => "Canon EF-S",
+                MountType.CanonEFM => "Canon EF-M",
+                MountType.CanonRF => "Canon RF",
+                MountType.CanonFD => "Canon FD",
+                MountType.NikonF => "Nikon F",
+                MountType.NikonZ => "Nikon Z",
+                MountType.Nikon1 => "Nikon 1",
+                MountType.SonyE => "Sony E",
+                MountType.SonyFE => "Sony FE",
+                MountType.SonyA => "Sony A",
+                MountType.FujifilmX => "Fujifilm X",
+                MountType.FujifilmGFX => "Fujifilm GFX",
+                MountType.PentaxK => "Pentax K",
+                MountType.PentaxQ => "Pentax Q",
+                MountType.MicroFourThirds => "M4/3",
+                MountType.LeicaM => "Leica M",
+                MountType.LeicaL => "Leica L",
+                MountType.LeicaSL => "Leica SL",
+                MountType.LeicaTL => "Leica TL",
+                MountType.OlympusFourThirds => "4/3",
+                MountType.PanasonicL => "Panasonic L",
+                MountType.SigmaSA => "Sigma SA",
+                MountType.TamronAdaptall => "Tamron",
+                MountType.C => "C Mount",
+                MountType.CS => "CS Mount",
+                MountType.M42 => "M42",
+                MountType.T2 => "T2",
+                MountType.Other => "Generic",
+                _ => "Unknown"
+            };
         }
 
         private void ValidateForm()
@@ -211,7 +300,7 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 if (!double.TryParse(MinFStopEntry.Text, out double minFStop) || minFStop <= 0)
                 {
-                    ShowError(MinFStopError, "Valid minimum f-stop is required");
+                    ShowError(MinFStopError, "Valid minimum f-stop is required (numbers only, no f/)");
                     isValid = false;
                 }
             }
@@ -220,7 +309,7 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 if (!double.TryParse(MaxFStopEntry.Text, out double maxFStop) || maxFStop <= 0)
                 {
-                    ShowError(MaxFStopError, "Valid maximum f-stop is required");
+                    ShowError(MaxFStopError, "Valid maximum f-stop is required (numbers only, no f/)");
                     isValid = false;
                 }
                 else if (!string.IsNullOrWhiteSpace(MinFStopEntry.Text) &&
@@ -230,6 +319,13 @@ namespace Location.Photography.Maui.Views.Premium
                     ShowError(MaxFStopError, "Maximum f-stop must be greater than or equal to minimum");
                     isValid = false;
                 }
+            }
+
+            // Validate lens name
+            if (LensNameStack.IsVisible && string.IsNullOrWhiteSpace(LensNameEntry.Text))
+            {
+                ShowError(LensNameError, "Lens name is required");
+                isValid = false;
             }
 
             // Validate camera selection
@@ -255,30 +351,12 @@ namespace Location.Photography.Maui.Views.Premium
             MaxFocalLengthError.IsVisible = false;
             MinFStopError.IsVisible = false;
             MaxFStopError.IsVisible = false;
+            LensNameError.IsVisible = false;
             CameraSelectionError.IsVisible = false;
-        }
-
-        private void OnCancelDuplicateClicked(object sender, EventArgs e)
-        {
-            DuplicateWarningFrame.IsVisible = false;
-            _isDuplicateWarningShown = false;
-            MinFocalLengthEntry.Focus();
-        }
-
-        private async void OnSaveAnywayClicked(object sender, EventArgs e)
-        {
-            DuplicateWarningFrame.IsVisible = false;
-            _isDuplicateWarningShown = false;
-            await SaveLensAsync();
         }
 
         private async void OnSaveClicked(object sender, EventArgs e)
         {
-            if (_isDuplicateWarningShown)
-            {
-                return; // Let user handle duplicate warning first
-            }
-
             await SaveLensAsync();
         }
 
@@ -291,9 +369,11 @@ namespace Location.Photography.Maui.Views.Premium
                 var minMM = double.Parse(MinFocalLengthEntry.Text);
                 var maxMM = string.IsNullOrWhiteSpace(MaxFocalLengthEntry.Text) ? (double?)null : double.Parse(MaxFocalLengthEntry.Text);
                 var minFStop = string.IsNullOrWhiteSpace(MinFStopEntry.Text) ? (double?)null : double.Parse(MinFStopEntry.Text);
-                var maxFStop = string.IsNullOrWhiteSpace(MaxFStopEntry.Text) ? (double?)null : double.Parse(MaxFStopEntry.Text); var selectedCameraIds = AvailableCameras.Where(c => c.IsSelected).Select(c => c.Camera.Id).ToList();
+                var maxFStop = string.IsNullOrWhiteSpace(MaxFStopEntry.Text) ? (double?)null : double.Parse(MaxFStopEntry.Text);
+                var lensName = LensNameEntry.Text?.Trim();
+                var selectedCameraIds = AvailableCameras.Where(c => c.IsSelected).Select(c => c.Camera.Id).ToList();
 
-                var result = await _cameraDataService.CreateLensAsync(minMM, maxMM, minFStop, maxFStop, selectedCameraIds);
+                var result = await _cameraDataService.CreateLensAsync(minMM, maxMM, minFStop, maxFStop, selectedCameraIds, lensName);
 
                 if (result.IsSuccess)
                 {

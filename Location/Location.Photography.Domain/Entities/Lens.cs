@@ -36,7 +36,7 @@ namespace Location.Photography.Domain.Entities
             double? maxMM = null,
             double? minFStop = null,
             double? maxFStop = null,
-            bool isUserCreated = false)
+            bool isUserCreated = false, string nameForLens = null)
         {
             if (minMM <= 0)
                 throw new ArgumentException("Minimum focal length must be positive", nameof(minMM));
@@ -48,7 +48,7 @@ namespace Location.Photography.Domain.Entities
                 throw new ArgumentException("Maximum f-stop must be positive", nameof(maxFStop));
             if (minFStop.HasValue && maxFStop.HasValue && maxFStop.Value < minFStop.Value)
                 throw new ArgumentException("Maximum f-stop must be greater than or equal to minimum f-stop", nameof(maxFStop));
-
+            NameForLens = nameForLens ?? string.Empty;
             MinMM = minMM;
             MaxMM = maxMM;
             MinFStop = minFStop;

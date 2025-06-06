@@ -48,7 +48,7 @@ namespace Location.Photography.Application.Services
             double? maxMM,
             double? minFStop,
             double? maxFStop,
-            List<int> compatibleCameraIds,
+            List<int> compatibleCameraIds, string LenseName,
             CancellationToken cancellationToken = default);
 
         /// <summary>

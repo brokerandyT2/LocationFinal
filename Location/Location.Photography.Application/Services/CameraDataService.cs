@@ -122,7 +122,7 @@ namespace Location.Photography.Infrastructure.Services
             double? maxMM,
             double? minFStop,
             double? maxFStop,
-            List<int> compatibleCameraIds,
+            List<int> compatibleCameraIds, string lensName,
             CancellationToken cancellationToken = default)
         {
             try
@@ -134,7 +134,8 @@ namespace Location.Photography.Infrastructure.Services
                     MinFStop = minFStop,
                     MaxFStop = maxFStop,
                     IsUserCreated = true,
-                    CompatibleCameraIds = compatibleCameraIds
+                    CompatibleCameraIds = compatibleCameraIds, 
+                    LensName = lensName
                 };
 
                 return await _mediator.Send(command, cancellationToken);
