@@ -52,13 +52,18 @@ namespace Location.Core.Application.Tips.Queries.GetAllTipTypes
                 {
                     return Result<List<TipTypeDto>>.Failure("Failed to retrieve tip types");
                 }
+                List<TipTypeDto> tipTypeDtos = new List<TipTypeDto>();
 
-                var tipTypeDtos = result.Select(t => new TipTypeDto
+                foreach (var tipType in result)
                 {
-                    Id = t.Id,
-                    Name = t.Name,
-                    I8n = t.I8n
-                }).ToList();
+                    tipTypeDtos.Add(new TipTypeDto
+                    {
+                        Id = tipType.Id,
+                        Name = tipType.Name,
+                        I8n = tipType.I8n
+                    });
+                }
+               
 
                 return Result<List<TipTypeDto>>.Success(tipTypeDtos);
             }

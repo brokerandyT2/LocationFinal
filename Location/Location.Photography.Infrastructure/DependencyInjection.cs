@@ -47,6 +47,12 @@ namespace Location.Photography.Infrastructure
             services.AddScoped<IExifService, ExifService>();
             services.AddScoped<IImageAnalysisService, ImageAnalysisService>();
 
+            services.AddScoped<IAstroCalculationService>(provider =>
+    new AstroCalculationService(
+        provider.GetRequiredService<ILogger<AstroCalculationService>>(),
+        provider.GetRequiredService<ISunCalculatorService>()
+    ));
+
             // ViewModels registered as transient for better memory management
             services.AddTransient<SunCalculationsViewModel>();
             services.AddTransient<SunCalculatorViewModel>();

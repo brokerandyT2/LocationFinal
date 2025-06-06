@@ -490,8 +490,10 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
             // Create initialization expressions for setting private properties
             var tipTypeVar = Expression.Variable(typeof(TipType), "tipType");
+
             var initExpressions = new List<Expression>
            {
+
                Expression.Assign(tipTypeVar, tipTypeNew),
                tipTypeVar
            };
