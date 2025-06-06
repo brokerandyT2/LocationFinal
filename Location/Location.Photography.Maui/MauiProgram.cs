@@ -13,6 +13,7 @@ using Location.Core.ViewModels;
 using Location.Photography.Application;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
+using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure;
 using Location.Photography.Infrastructure.Repositories;
 using Location.Photography.Infrastructure.Services;
@@ -134,6 +135,12 @@ namespace Location.Photography.Maui
                 var errorService = sp.GetRequiredService<IErrorDisplayService>();
                 return new Location.Core.Maui.Views.AddLocation(mediator, mediaService, geoService, errorService);
             });
+
+           builder.Services.AddScoped<IAstroCalculationService>(provider =>
+    new AstroCalculationService(
+        provider.GetRequiredService<ILogger<AstroCalculationService>>(),
+        provider.GetRequiredService<ISunCalculatorService>()
+    ));
 
             builder.Services.AddTransient<Location.Core.Maui.Views.LocationsPage>(sp =>
             {
