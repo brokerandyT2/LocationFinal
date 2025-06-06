@@ -30,6 +30,7 @@ namespace Location.Photography.ViewModels.Events
         Sensor,
         Permission,
         Device,
-        MediaService
+        MediaService,
+        Navigation
     }
 }

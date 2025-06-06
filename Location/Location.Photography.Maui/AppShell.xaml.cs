@@ -152,7 +152,14 @@ namespace Location.Photography.Maui
                         Title = "Light Meter",
                         PageType = typeof(Views.Professional.LightMeter),
                         IsEnabled = false
+                    },
+                    new TabItem
+                    {
+                        Title = "Astro Calc",
+                        PageType = typeof(Views.Professional.AstroPhotographyCalculator),
+                        IsEnabled = false
                     }
+
                 };
                 TopTabs.Tabs.Add(professionalTab);
 

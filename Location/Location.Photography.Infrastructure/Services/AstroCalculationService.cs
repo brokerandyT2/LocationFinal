@@ -2283,7 +2283,7 @@ namespace Location.Photography.Infrastructure.Services
         private AstroExposureRecommendation CalculateLunarExposureSettings(CameraEquipmentData equipment, AstroConditions conditions)
         {
             // Moon is very bright - use low ISO and fast shutter speeds
-            var recommendedISO = Math.Max(100, Math.Min(800, equipment.ISORange / 10));
+            var recommendedISO = 100;
             var recommendedAperture = Math.Max(equipment.Aperture, 5.6); // Stop down for sharpness
 
             return new AstroExposureRecommendation
@@ -2588,7 +2588,7 @@ namespace Location.Photography.Infrastructure.Services
             var adjustedISO = (int)(baseISO * bortleAdjustment * sensorAdjustment);
 
             // Clamp to reasonable range
-            return Math.Max(100, Math.Min(adjustedISO, equipment.ISORange));
+            return Math.Max(100, adjustedISO);
         }
 
         private double CalculateMaxTrackedExposure(CameraEquipmentData equipment, AstroConditions conditions)

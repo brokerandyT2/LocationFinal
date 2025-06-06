@@ -156,6 +156,9 @@
     <MauiXaml Update="Views\Premium\FieldOfView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\Professional\AstroPhotographyCalculator.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Professional\LightMeter.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

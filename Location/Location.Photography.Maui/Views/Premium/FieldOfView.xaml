@@ -24,7 +24,7 @@
            HasShadow="False">
                 <camera:CameraView x:Name="CameraPreview" 
                           HorizontalOptions="Fill"
-                          WidthRequest="500"
+                         
                           VerticalOptions="Center"
                          />
             </Frame>

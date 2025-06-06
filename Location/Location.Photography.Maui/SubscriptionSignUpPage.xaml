@@ -36,8 +36,12 @@
                         <!-- Newline -->
                         <Span Text="Scene Evaluation" />
                         <Span Text="&#10;" />
+                        <Span Text="Light Meter" />
+                        <Span Text="&#10;" />
+                        <Span Text="Astrological Event Calulator" />
+                        <Span Text="&#10;" />
                         <!-- Newline -->
-                        <Span Text="and Sun Event Calculations." />
+                        <Span Text="and a Sun Event Calculations." />
                     </FormattedString>
                 </Label.FormattedText>
             </Label>
@@ -56,7 +60,9 @@
                         <Span Text="&#10;" />
                         <Span Text="Exposure Calculator" />
                         <Span Text="&#10;" />
-                        <Span Text="and Sun Locations." />
+                        <Span Text="Field of View Visualizer (using your camera equipment!)" />
+                        <Span Text="&#10;" />
+                        <Span Text="and Sun and Astrological Events Calculations and Locations." />
                         <Span Text="&#10;" />
                         <Span Text="Your data will be backed up to the cloud." />
                     </FormattedString>

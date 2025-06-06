@@ -137,10 +137,9 @@ namespace Location.Photography.Maui
             });
 
            builder.Services.AddScoped<IAstroCalculationService>(provider =>
-    new AstroCalculationService(
-        provider.GetRequiredService<ILogger<AstroCalculationService>>(),
-        provider.GetRequiredService<ISunCalculatorService>()
-    ));
+                new AstroCalculationService(
+                    provider.GetRequiredService<ILogger<AstroCalculationService>>(),
+                    provider.GetRequiredService<ISunCalculatorService>()));
 
             builder.Services.AddTransient<Location.Core.Maui.Views.LocationsPage>(sp =>
             {
@@ -278,7 +277,28 @@ namespace Location.Photography.Maui
                 var expCalc = sp.GetRequiredService<IExposureCalculatorService>();
                 return new Views.Professional.SunCalculator(viewModel, alertService, mediator, expCalc);
             });
+            builder.Services.AddTransient<Views.Professional.AstroPhotographyCalculator>(sp =>
+            {
+                var mediator = sp.GetRequiredService<IMediator>();
+                var alertService = sp.GetRequiredService<IAlertService>();
+                var astroCalculationService = sp.GetRequiredService<IAstroCalculationService>();
+                var logger = sp.GetRequiredService<ILogger<Views.Professional.AstroPhotographyCalculator>>();
+                var errorService = sp.GetRequiredService<IErrorDisplayService>();
+                var settingRepo = sp.GetRequiredService<ISettingRepository>();
+                var locationRepo = sp.GetRequiredService<Core.Application.Common.Interfaces.ILocationRepository>();
+                var timezoneService = sp.GetRequiredService<ITimezoneService>();
 
+                return new Views.Professional.AstroPhotographyCalculator(
+                    mediator,
+                    alertService,
+                    astroCalculationService,
+                    logger,
+                    errorService,
+                    settingRepo,
+                    locationRepo,
+                    timezoneService
+                );
+            });
             // Settings and Onboarding Pages
             builder.Services.AddTransient<Views.Settings>(sp =>
             {

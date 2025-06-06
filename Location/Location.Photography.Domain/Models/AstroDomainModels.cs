@@ -14,7 +14,22 @@ namespace Location.Photography.Domain.Models
         Neptune,
         Pluto
     }
-
+    public class AstroCalculationResult
+    {
+        public AstroTarget Target { get; set; }
+        public DateTime CalculationTime { get; set; }
+        public DateTime LocalTime { get; set; }
+        public bool IsVisible { get; set; }
+        public double Azimuth { get; set; }
+        public double Altitude { get; set; }
+        public DateTime? RiseTime { get; set; }
+        public DateTime? SetTime { get; set; }
+        public DateTime? OptimalTime { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public string PhotographyNotes { get; set; } = string.Empty;
+        public PlanetPositionData PlanetData { get; set; }
+        public string Equipment { get; set; }
+    }
     public enum ConstellationType
     {
         Orion,
@@ -298,7 +313,7 @@ namespace Location.Photography.Domain.Models
         public double SensorWidth { get; set; } // mm
         public double SensorHeight { get; set; } // mm
         public double PixelSize { get; set; } // microns
-        public int ISORange { get; set; }
+
         public string LensModel { get; set; } = string.Empty;
         public double FocalLength { get; set; } // mm
         public double Aperture { get; set; } // f-stop

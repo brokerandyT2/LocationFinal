@@ -13,11 +13,11 @@
     <ContentPage.Resources>
         <Style x:Key="ValidEntryStyle" TargetType="Entry">
             <Setter Property="TextColor" Value="{StaticResource SuccessGreen}" />
-            <Setter Property="BackgroundColor" Value="{StaticResource LightGreen}" />
+            <Setter Property="Background" Value="{StaticResource LightGreen}" />
         </Style>
         <Style x:Key="InvalidEntryStyle" TargetType="Entry">
             <Setter Property="TextColor" Value="{StaticResource ErrorRed}" />
-            <Setter Property="BackgroundColor" Value="{StaticResource LightRed}" />
+            <Setter Property="Background" Value="{StaticResource LightRed}" />
         </Style>
     </ContentPage.Resources>
 

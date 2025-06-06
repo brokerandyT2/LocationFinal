@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:maui="clr-namespace:epj.Expander.Maui;assembly=epj.Expander.Maui"
+            xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
+            xmlns:domain="clr-namespace:Location.Photography.Domain.Models;assembly=Location.Photography.Domain"
+            x:Class="Location.Photography.Maui.Views.Professional.AstroPhotographyCalculator"
+            x:DataType="viewmodels:AstroPhotographyCalculatorViewModel"
+            Title="Astrophotography Calculator">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- Ensure we have the string to bool converter -->
+            <x:String x:Key="StringToBoolConverter">StringToBoolConverter</x:String>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid Padding="10" Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Main Content -->
+        <ScrollView Grid.Row="0">
+            <StackLayout Spacing="15">
+
+                <!-- Location and Date Selection -->
+                <Frame BackgroundColor="#F8F9FA" HasShadow="True" CornerRadius="10" Padding="15">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="200"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Text="Location &amp; Date" FontSize="18" FontAttributes="Bold" Margin="0,0,0,10"/>
+
+                        <!-- Location Image -->
+                        <Image Grid.Row="1" Source="{Binding LocationPhoto}" 
+                              HeightRequest="200" Aspect="AspectFill"/>
+
+                        <!-- Location Picker -->
+                        <Grid Grid.Row="2" Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Label Grid.Row="0" Text="Choose your location" FontSize="14"/>
+                            <Picker Grid.Row="1" ItemsSource="{Binding Locations, Mode=TwoWay}" 
+                                   SelectedItem="{Binding SelectedLocation}"
+                                   ItemDisplayBinding="{Binding Title}" x:Name="LocationPicker"
+                                   FontSize="14" Margin="0,5,0,0"/>
+                        </Grid>
+
+                        <!-- Date Picker -->
+                        <Grid Grid.Row="3" Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Label Grid.Row="0" Text="Choose observation date" FontSize="14"/>
+                            <DatePicker Grid.Row="1" Date="{Binding SelectedDate}"
+                                       DateSelected="OnDateSelectionChanged"
+                                       FontSize="14" Margin="0,5,0,0"/>
+                        </Grid>
+                    </Grid>
+                </Frame>
+
+                <!-- Equipment Selection -->
+                <Frame BackgroundColor="#E3F2FD" HasShadow="True" CornerRadius="10" Padding="15">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Text="Equipment Selection" FontSize="18" FontAttributes="Bold" TextColor="#1976D2" Margin="0,0,0,10"/>
+
+                        <!-- Camera Selection -->
+                        <Grid Grid.Row="1" Margin="0,0,0,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Label Grid.Row="0" Text="Camera Body" FontSize="14"/>
+                            <Picker Grid.Row="1" ItemsSource="{Binding AvailableCameras}" 
+                                   SelectedItem="{Binding SelectedCamera}"
+                                   ItemDisplayBinding="{Binding Name}" x:Name="CameraPicker"
+                                   FontSize="14" Margin="0,5,0,0"/>
+                        </Grid>
+
+                        <!-- Lens Selection -->
+                        <Grid Grid.Row="2" Margin="0,0,0,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Label Grid.Row="0" Text="Lens" FontSize="14"/>
+                            <Picker Grid.Row="1" ItemsSource="{Binding AvailableLenses}" 
+                                   SelectedItem="{Binding SelectedLens}"
+                                   ItemDisplayBinding="{Binding Name}" x:Name="LensPicker"
+                                   FontSize="14" Margin="0,5,0,0"/>
+                        </Grid>
+
+                        <!-- Equipment Loading Indicator -->
+                        <Grid Grid.Row="3" IsVisible="{Binding IsLoadingEquipment}">
+                            <StackLayout Orientation="Horizontal" Spacing="10">
+                                <ActivityIndicator IsRunning="{Binding IsLoadingEquipment}" 
+                                                  HeightRequest="20" WidthRequest="20" Color="#1976D2"/>
+                                <Label Text="Loading equipment..." FontSize="12" TextColor="#1976D2" VerticalOptions="Center"/>
+                            </StackLayout>
+                        </Grid>
+                    </Grid>
+                </Frame>
+
+                <!-- Astrophotography Target Selection -->
+                <Frame BackgroundColor="#E8F5E8" HasShadow="True" CornerRadius="10" Padding="15">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Text="Astrophotography Target" FontSize="18" FontAttributes="Bold" TextColor="#2E7D32" Margin="0,0,0,10"/>
+
+                        <!-- Target Selection -->
+                        <Grid Grid.Row="1" Margin="0,0,0,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Label Grid.Row="0" Text="Select target type" FontSize="14"/>
+                            <Picker Grid.Row="1" ItemsSource="{Binding AvailableTargets}" 
+                                   SelectedItem="{Binding SelectedTarget}"
+                                   ItemDisplayBinding="{Binding DisplayName}" x:Name="TargetPicker"
+                                   FontSize="14" Margin="0,5,0,0"/>
+                        </Grid>
+
+                        <!-- Target Description -->
+                        <Label Grid.Row="2" Text="{Binding SelectedTargetDisplay}" 
+                              FontSize="12" TextColor="#66BB6A" FontAttributes="Italic"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Field of View Information -->
+                <Frame BackgroundColor="#FFF3E0" HasShadow="True" CornerRadius="10" Padding="15" 
+                      IsVisible="{Binding HasEquipmentSelected}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Text="Field of View Analysis" FontSize="16" FontAttributes="Bold" TextColor="#F57C00"/>
+
+                        <Grid Grid.Row="1" Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackLayout Grid.Column="0">
+                                <Label Text="Field of View" FontSize="12" TextColor="Gray"/>
+                                <Label Text="{Binding FieldOfViewDisplay}" FontSize="14" FontAttributes="Bold"/>
+                            </StackLayout>
+                            <StackLayout Grid.Column="1">
+                                <Label Text="Target Coverage" FontSize="12" TextColor="Gray"/>
+                                <Label Text="{Binding TargetFitsInFrame, Converter={StaticResource BoolToTextConverter}}" 
+                                      FontSize="14" FontAttributes="Bold"/>
+                            </StackLayout>
+                        </Grid>
+
+                        <Label Grid.Row="2" Text="{Binding EquipmentRecommendation}" 
+                              FontSize="12" TextColor="#FF9800" Margin="0,10,0,0"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Calculate Button -->
+                <Button Text="Calculate Astrophotography Data" 
+                       Command="{Binding CalculateAstroDataCommand}"
+                       IsEnabled="{Binding CanCalculate}"
+                       BackgroundColor="#4CAF50" TextColor="White"
+                       FontSize="16" FontAttributes="Bold"
+                       HeightRequest="50" CornerRadius="10"/>
+
+                <!-- Calculation Status -->
+                <Frame BackgroundColor="#F3E5F5" HasShadow="True" CornerRadius="10" Padding="15"
+                      IsVisible="{Binding IsCalculating}">
+                    <Grid>
+                        <StackLayout Orientation="Horizontal" Spacing="15" HorizontalOptions="Center">
+                            <ActivityIndicator IsRunning="{Binding IsCalculating}" 
+                                              HeightRequest="30" WidthRequest="30" Color="#7B1FA2"/>
+                            <Label Text="{Binding CalculationStatus}" 
+                                  FontSize="14" TextColor="#7B1FA2" VerticalOptions="Center"/>
+                        </StackLayout>
+                    </Grid>
+                </Frame>
+
+                <!-- Exposure Recommendations -->
+                <Frame BackgroundColor="#E1F5FE" HasShadow="True" CornerRadius="10" Padding="15"
+                      IsVisible="{Binding ExposureRecommendation, Converter={StaticResource CustomStringToBoolConverter}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Text="Camera Settings Recommendation" FontSize="16" FontAttributes="Bold" TextColor="#0277BD"/>
+                        <Label Grid.Row="1" Text="{Binding ExposureRecommendation}" 
+                              FontSize="14" TextColor="#0288D1" Margin="0,5,0,0"/>
+                        <Label Grid.Row="2" Text="{Binding PhotographyNotes}" 
+                              FontSize="12" TextColor="#039BE5" Margin="0,5,0,0"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Calculation Results with Loading Overlay -->
+                <Frame BackgroundColor="#F9FBE7" HasShadow="True" CornerRadius="10" Padding="15" HeightRequest="400"
+                      IsVisible="{Binding CurrentCalculations, Converter={StaticResource CollectionToBoolConverter}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Text="Astronomical Calculations" FontSize="16" FontAttributes="Bold" TextColor="#689F38" Margin="0,0,0,10"/>
+
+                        <Grid Grid.Row="1">
+                            <CollectionView ItemsSource="{Binding CurrentCalculations}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="domain:AstroCalculationResult">
+                                        <maui:Expander Animated="True" Margin="0,2,0,2">
+                                            <maui:Expander.HeaderContent>
+                                                <Grid BackgroundColor="{Binding IsVisible, Converter={StaticResource BoolToColorConverterAstro}}" Padding="15">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="60"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Label Grid.Column="0" 
+                                                          Text="{Binding Description}" 
+                                                          FontSize="16" 
+                                                          FontAttributes="Bold" 
+                                                          TextColor="White" 
+                                                          VerticalOptions="Center"/>
+
+                                                    <Label Grid.Column="1" 
+                                                          Text="{Binding IsVisible, Converter={StaticResource BoolToVisibilityTextConverter}}" 
+                                                          FontSize="12" 
+                                                          TextColor="White" 
+                                                          VerticalOptions="Center"/>
+
+                                                    <!-- Visibility Indicator -->
+                                                    <StackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center">
+                                                        <Label Text="{Binding IsVisible, Converter={StaticResource BoolToSymbolConverter}}" 
+                                                              FontSize="24" 
+                                                              TextColor="White" 
+                                                              HorizontalTextAlignment="Center"/>
+                                                    </StackLayout>
+                                                </Grid>
+                                            </maui:Expander.HeaderContent>
+
+                                            <!-- Enhanced Expanded Content -->
+                                            <Grid Padding="15" BackgroundColor="White">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Position Information -->
+                                                <Label Grid.Row="0" Grid.ColumnSpan="2" 
+                                                      Text="Current Position" 
+                                                      FontSize="14" 
+                                                      FontAttributes="Bold" 
+                                                      TextColor="#2E7D32" 
+                                                      Margin="0,0,0,10"/>
+
+                                                <StackLayout Grid.Row="1" Grid.Column="0">
+                                                    <Label Text="Azimuth" FontSize="12" TextColor="Gray"/>
+                                                    <Label Text="{Binding Azimuth, StringFormat='{0:F1}°'}" FontSize="16" FontAttributes="Bold"/>
+                                                </StackLayout>
+
+                                                <StackLayout Grid.Row="1" Grid.Column="1">
+                                                    <Label Text="Altitude" FontSize="12" TextColor="Gray"/>
+                                                    <Label Text="{Binding Altitude, StringFormat='{0:F1}°'}" FontSize="16" FontAttributes="Bold"/>
+                                                </StackLayout>
+
+                                                <!-- Timing Information -->
+                                                <Label Grid.Row="2" Grid.ColumnSpan="2" 
+                                                      Text="Timing Information" 
+                                                      FontSize="14" 
+                                                      FontAttributes="Bold" 
+                                                      TextColor="#FF9800" 
+                                                      Margin="0,10,0,5"/>
+
+                                                <StackLayout Grid.Row="3" Grid.Column="0" IsVisible="{Binding RiseTime, Converter={StaticResource NullToBoolConverter}}">
+                                                    <Label Text="Rise Time" FontSize="12" TextColor="Gray"/>
+                                                    <Label Text="{Binding RiseTime, StringFormat='{0:HH:mm}'}" FontSize="14" FontAttributes="Bold"/>
+                                                </StackLayout>
+
+                                                <StackLayout Grid.Row="3" Grid.Column="1" IsVisible="{Binding SetTime, Converter={StaticResource NullToBoolConverter}}">
+                                                    <Label Text="Set Time" FontSize="12" TextColor="Gray"/>
+                                                    <Label Text="{Binding SetTime, StringFormat='{0:HH:mm}'}" FontSize="14" FontAttributes="Bold"/>
+                                                </StackLayout>
+
+                                                <StackLayout Grid.Row="4" Grid.ColumnSpan="2" IsVisible="{Binding OptimalTime, Converter={StaticResource NullToBoolConverter}}">
+                                                    <Label Text="Optimal Viewing Time" FontSize="12" TextColor="Gray"/>
+                                                    <Label Text="{Binding OptimalTime, StringFormat='{0:HH:mm}'}" FontSize="14" FontAttributes="Bold"/>
+                                                </StackLayout>
+
+                                                <!-- Photography Notes -->
+                                                <Label Grid.Row="5" Grid.ColumnSpan="2" 
+                                                      Text="{Binding PhotographyNotes}" 
+                                                      FontSize="12" 
+                                                      TextColor="#666666" 
+                                                      Margin="0,10,0,0"/>
+                                            </Grid>
+                                        </maui:Expander>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                            <!-- Calculations Loading Overlay -->
+                            <Grid IsVisible="{Binding IsCalculating}" BackgroundColor="#80000000">
+                                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
+                                    <ActivityIndicator IsRunning="{Binding IsCalculating}" HeightRequest="40" WidthRequest="40" Color="#2196F3" />
+                                    <Label Text="Calculating astronomical data..." FontSize="12" TextColor="White" HorizontalTextAlignment="Center"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Frame>
+
+                <!-- Refresh Button -->
+                <Button Text="Refresh Calculations" 
+                       Command="{Binding RefreshCalculationsCommand}"
+                       IsEnabled="{Binding HasValidSelection}"
+                       BackgroundColor="#FF9800" TextColor="White"
+                       FontSize="14" FontAttributes="Bold"
+                       HeightRequest="40" CornerRadius="8"
+                       IsVisible="{Binding CurrentCalculations, Converter={StaticResource CollectionToBoolConverter}}"/>
+
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Error message display (keep global for errors) -->
+        <Grid Grid.Row="0" 
+             IsVisible="{Binding HasError}"
+             BackgroundColor="#FFCDD2"
+             Padding="15"
+             Margin="5"
+             VerticalOptions="End">
+            <StackLayout Orientation="Horizontal" Spacing="10">
+                <Label Text="⚠️" FontSize="16" VerticalOptions="Center"/>
+                <Label Text="{Binding ErrorMessage}"
+                      TextColor="#D32F2F"
+                      FontSize="14"
+                      VerticalOptions="Center"
+                      HorizontalOptions="FillAndExpand"/>
+                <Button Text="Retry" 
+                       Command="{Binding RetryLastCommandCommand}"
+                       BackgroundColor="#D32F2F" TextColor="White"
+                       FontSize="12" Padding="10,5"/>
+            </StackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

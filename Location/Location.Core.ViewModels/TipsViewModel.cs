@@ -10,7 +10,7 @@ using System.Collections.ObjectModel;
 
 namespace Location.Core.ViewModels
 {
-    public partial class TipsViewModel : BaseViewModel, INavigationAware
+    public partial class TipsViewModel : BaseViewModel
     {
         private readonly IMediator _mediator;
         private readonly ITipTypeRepository _tiptyperepo;
@@ -151,7 +151,7 @@ namespace Location.Core.ViewModels
             if (value != null)
             {
                 SelectedTipTypeId = value.Id;
-                LoadTipsByTypeCommand.Execute(value.Id);
+                _ = LoadTipsByTypeAsync(value.Id, CancellationToken.None);
             }
         }
 
