@@ -1,12 +1,8 @@
 ﻿// Location.Photography.ViewModels/SunLocationViewModel.cs
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Core.Application.Weather.Queries.GetHourlyForecast;
-using Location.Core.ViewModels;
 using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;

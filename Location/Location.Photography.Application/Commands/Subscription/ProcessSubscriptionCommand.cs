@@ -3,9 +3,6 @@ using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Commands.Subscription
 {

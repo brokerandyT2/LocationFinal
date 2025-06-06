@@ -2,12 +2,11 @@
 using AutoMapper;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.Infrastructure.Data.Entities;
-using Location.Core.Domain.ValueObjects;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 
 namespace Location.Photography.Infrastructure.Mappers
 {

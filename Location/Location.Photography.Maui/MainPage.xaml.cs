@@ -1,12 +1,7 @@
-﻿using Location.Core.Infrastructure.Data;
-using Location.Photography.Application.Common.Models;
+﻿using Location.Photography.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
-using Location.Photography.Infrastructure.Repositories;
-using Location.Photography.Infrastructure.Services;
-using Location.Photography.Maui.Views.Premium;
 using Location.Photography.Maui.Views.Professional;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using core = Location.Core.Maui.Views;
 
@@ -152,77 +147,6 @@ namespace Location.Photography.Maui
             }
         }
 
-        private void AddFeatureTabs(Core.Application.Common.Models.Result<SubscriptionStatusResult> statusResult, Result<bool> canAccessPremium, Result<bool> canAccessPro)
-        {
-            if (canAccessPremium.Data)
-            {
-                canAccessPro = canAccessPremium;
-            }
-            // Professional features
-            var sceneEvaluation = _serviceProvider.GetRequiredService<Views.Professional.SceneEvaluation>();
-            if (canAccessPro.IsSuccess && canAccessPro.Data)
-            {
-                this.Children.Add(new NavigationPage(sceneEvaluation) { Title = sceneEvaluation.Title, IconImageSource = sceneEvaluation.IconImageSource});
-                var lm = _serviceProvider.GetRequiredService<LightMeter>();
-                this.Children.Add(new NavigationPage(lm) { Title = lm.Title, IconImageSource = lm.IconImageSource});
-            }
-            else
-            {
-                sceneEvaluation.IsEnabled = false;
-
-                this.Children.Add(new NavigationPage(sceneEvaluation));
-            }
-
-            var sunCalculator = _serviceProvider.GetRequiredService<Views.Professional.SunCalculator>();
-            if (canAccessPro.IsSuccess && canAccessPro.Data)
-            {
-                this.Children.Add(new NavigationPage(sunCalculator));
-            }
-            else
-            {
-                sunCalculator.IsEnabled = false;
-                this.Children.Add(new NavigationPage(sunCalculator));
-            }
-
-            // Premium features
-            var sunLocation = _serviceProvider.GetRequiredService<Views.Premium.SunLocation>();
-            if (canAccessPremium.IsSuccess && canAccessPremium.Data)
-            {
-                this.Children.Add(new NavigationPage(sunLocation));
-            }
-            else
-            {
-                sunLocation.IsEnabled = false;
-                this.Children.Add(new NavigationPage(sunLocation));
-            }
-
-            var exposureCalculator = _serviceProvider.GetRequiredService<Views.Premium.ExposureCalculator>();
-            if (canAccessPremium.IsSuccess && canAccessPremium.Data)
-            {
-                this.Children.Add(new NavigationPage(exposureCalculator));
-            }
-            else
-            {
-                exposureCalculator.IsEnabled = false;
-                exposureCalculator.Title = "Exposure Calculator (Premium)";
-                this.Children.Add(new NavigationPage(exposureCalculator));
-            }
-
-            // Settings - always available
-            this.Children.Add(_serviceProvider.GetRequiredService<Views.Settings>());
-
-            this.MinimumWidthRequest = 1000;
-
-            // Log subscription status for debugging
-            if (statusResult.IsSuccess)
-            {
-                _logger.LogInformation("Subscription Status: {Type}, Expires: {Expiration}, Grace: {Grace}",
-                    statusResult.Data.SubscriptionType,
-                    statusResult.Data.ExpirationDate,
-                    statusResult.Data.IsInGracePeriod);
-            }
-
-            //return canAccessPro;
-        }
+        
     }
 }

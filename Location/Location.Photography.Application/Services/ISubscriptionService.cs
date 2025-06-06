@@ -2,9 +2,6 @@
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Commands.Subscription;
 using Location.Photography.Application.Queries.Subscription;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

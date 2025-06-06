@@ -2,9 +2,6 @@
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Settings.Commands.UpdateSetting
 {

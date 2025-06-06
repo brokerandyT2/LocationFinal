@@ -1,6 +1,5 @@
 ﻿using Location.Photography.Domain.Enums;
 using SQLite;
-using System;
 
 namespace Location.Photography.Domain.Entities
 {

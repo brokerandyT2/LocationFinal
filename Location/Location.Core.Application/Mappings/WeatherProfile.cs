@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
-using Location.Core.Domain.Entities;
 using Location.Core.Application.Weather.DTOs;
-using System.Linq;
+using Location.Core.Domain.Entities;
 
 namespace Location.Core.Application.Mappings
 {

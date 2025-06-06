@@ -1,7 +1,6 @@
 ﻿using Location.Core.Application.Alerts;
 using Location.Core.Application.Services;
 using MediatR;
-using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Services
 {

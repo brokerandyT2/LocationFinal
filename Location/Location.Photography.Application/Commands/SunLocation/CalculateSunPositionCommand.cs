@@ -2,9 +2,6 @@
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Commands.SunLocation
 {

@@ -1,8 +1,5 @@
 ﻿// Location.Photography.Application/Services/ISubscriptionStatusService.cs
 using Location.Core.Application.Common.Models;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

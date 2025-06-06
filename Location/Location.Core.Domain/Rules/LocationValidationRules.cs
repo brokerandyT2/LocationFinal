@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Location.Core.Domain.Entities;
-
-namespace Location.Core.Domain.Rules
+﻿namespace Location.Core.Domain.Rules
 {
     /// <summary>
     /// Business rules for location validation

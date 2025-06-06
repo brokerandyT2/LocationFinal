@@ -1,6 +1,4 @@
 ﻿// Location.Core.Application/Events/ErrorOccurredEvent.cs
-using System;
-
 namespace Location.Core.Application.Events
 {
     /// <summary>

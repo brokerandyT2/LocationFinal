@@ -5,9 +5,6 @@ using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Domain.ValueObjects;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Commands.Locations
 {

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Location.Core.Domain.ValueObjects
+﻿namespace Location.Core.Domain.ValueObjects
 {
     /// <summary>
     /// Base class for value objects

@@ -1,8 +1,5 @@
 ﻿// Location.Photography.Application/Services/IExifService.cs
 using Location.Core.Application.Common.Models;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

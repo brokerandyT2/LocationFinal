@@ -1,15 +1,8 @@
-﻿using Location.Core.Domain.Common;
-using Location.Core.Domain.Entities;
-using Location.Core.Infrastructure.Data.Entities;
+﻿using Location.Core.Infrastructure.Data.Entities;
 using Location.Photography.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using SQLite;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data
 {

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
-using System.Collections.Generic;
 
 namespace Location.Core.Application.Tips.Commands.CreateTip
 {

@@ -1,5 +1,4 @@
-﻿using System;
-using Location.Core.Domain.Common;
+﻿using Location.Core.Domain.Common;
 using Location.Core.Domain.Events;
 using Location.Core.Domain.ValueObjects;
 

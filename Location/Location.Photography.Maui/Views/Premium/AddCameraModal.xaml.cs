@@ -1,6 +1,5 @@
 using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
-using Location.Photography.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 

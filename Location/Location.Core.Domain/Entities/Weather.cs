@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Location.Core.Domain.Common;
+﻿using Location.Core.Domain.Common;
 using Location.Core.Domain.Events;
 using Location.Core.Domain.ValueObjects;
 

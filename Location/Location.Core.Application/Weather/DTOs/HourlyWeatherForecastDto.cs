@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Location.Core.Application.Weather.DTOs
+﻿namespace Location.Core.Application.Weather.DTOs
 {
     /// <summary>
     /// Data transfer object for hourly weather forecast

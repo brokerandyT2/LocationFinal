@@ -1,6 +1,4 @@
 ﻿using Location.Core.Application.Common.Models;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

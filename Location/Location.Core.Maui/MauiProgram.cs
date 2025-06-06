@@ -1,12 +1,10 @@
 ﻿using CommunityToolkit.Maui;
 using Location.Core.Application;
-using Location.Core.Application.Alerts;
 using Location.Core.Application.Services;
 using Location.Core.Infrastructure;
 using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using Location.Photography.ViewModels;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using LocationViewModel = Location.Core.ViewModels.LocationViewModel;
 

@@ -3,11 +3,6 @@ using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -583,44 +578,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
         #endregion
 
         #region Legacy Mapping Methods (Kept for Backward Compatibility)
-
-        private Tip MapToDomain(TipEntity entity)
-        {
-            var tip = _compiledEntityToDomain(entity);
-
-            // Set additional properties that may not be handled by compiled mapper
-            SetOptimizedProperty(tip, "Id", entity.Id);
-            SetOptimizedProperty(tip, "_fstop", entity.Fstop);
-            SetOptimizedProperty(tip, "_shutterSpeed", entity.ShutterSpeed);
-            SetOptimizedProperty(tip, "_iso", entity.Iso);
-            SetOptimizedProperty(tip, "I8n", entity.I8n);
-
-            return tip;
-        }
-
-        private TipEntity MapToEntity(Tip tip)
-        {
-            return _compiledDomainToEntity(tip);
-        }
-
-        private Tip CreateTipViaReflection(int tipTypeId, string title, string content)
-        {
-            var type = typeof(Tip);
-            var constructor = type.GetConstructor(
-                new[] { typeof(int), typeof(string), typeof(string) });
-
-            if (constructor == null)
-            {
-                throw new InvalidOperationException("Cannot find Tip constructor");
-            }
-
-            return (Tip)constructor.Invoke(new object[] { tipTypeId, title, content });
-        }
-
-        private void SetPrivateProperty(object obj, string propertyName, object value)
-        {
-            SetOptimizedProperty(obj, propertyName, value);
-        }
 
         #endregion
 

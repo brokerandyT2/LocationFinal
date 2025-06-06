@@ -1,6 +1,5 @@
 ﻿// Location.Photography.Domain/Entities/Subscription.cs
 using SQLite;
-using System;
 
 namespace Location.Photography.Domain.Entities
 {

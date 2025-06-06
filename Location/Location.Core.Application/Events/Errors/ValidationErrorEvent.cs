@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 
 namespace Location.Core.Application.Events.Errors
 {

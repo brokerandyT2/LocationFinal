@@ -1,6 +1,5 @@
 ﻿// Location.Core.Infrastructure/Data/Entities/PhoneCameraProfileEntity.cs
 using SQLite;
-using System;
 
 namespace Location.Core.Infrastructure.Data.Entities
 {

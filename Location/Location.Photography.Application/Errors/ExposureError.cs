@@ -1,6 +1,4 @@
 ﻿// Location.Photography.Application/Errors/ExposureErrors.cs
-using System;
-
 namespace Location.Photography.Application.Errors
 {
     /// <summary>

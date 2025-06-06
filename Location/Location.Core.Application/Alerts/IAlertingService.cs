@@ -1,6 +1,4 @@
 ﻿// Location.Core.Application/Services/IAlertingService.cs
-using System.Threading.Tasks;
-
 namespace Location.Core.Application.Services
 {
     public interface IAlertService

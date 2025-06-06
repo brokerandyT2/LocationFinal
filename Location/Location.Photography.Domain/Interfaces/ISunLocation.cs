@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Location.Photography.Domain.Interfaces
+﻿namespace Location.Photography.Domain.Interfaces
 {
     public interface ISunLocation
     {

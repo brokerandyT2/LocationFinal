@@ -2,8 +2,6 @@
 using AutoMapper.QueryableExtensions;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
-using Location.Core.Domain.Entities;
-using System.Linq;
 
 namespace Location.Core.Application.Mappings
 {

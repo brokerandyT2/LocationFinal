@@ -1,10 +1,6 @@
 ﻿// Location.Photography.Infrastructure/Services/TimezoneService.cs
 using Location.Core.Application.Common.Models;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

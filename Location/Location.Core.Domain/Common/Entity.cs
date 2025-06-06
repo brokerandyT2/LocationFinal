@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Location.Core.Domain.Common
+﻿namespace Location.Core.Domain.Common
 {
     /// <summary>
     /// Base class for all domain entities

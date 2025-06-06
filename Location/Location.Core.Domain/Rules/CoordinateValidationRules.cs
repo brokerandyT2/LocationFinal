@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Location.Core.Domain.ValueObjects;
+﻿using Location.Core.Domain.ValueObjects;
 
 namespace Location.Core.Domain.Rules
 {

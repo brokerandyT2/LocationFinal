@@ -3,14 +3,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Commands.Subscription;
-using Location.Photography.Application.Queries.Subscription;
 using Location.Photography.Domain.Entities;
 using Location.Photography.ViewModels.Events;
-using Location.Photography.ViewModels.Interfaces;
 using MediatR;
-using System;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {

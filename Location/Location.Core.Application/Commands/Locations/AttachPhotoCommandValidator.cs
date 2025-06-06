@@ -1,7 +1,4 @@
 ﻿using FluentValidation;
-using System;
-using System.IO;
-using System.Text.RegularExpressions;
 
 namespace Location.Core.Application.Commands.Locations
 {

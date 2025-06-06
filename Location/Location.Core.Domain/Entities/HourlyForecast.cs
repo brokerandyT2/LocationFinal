@@ -1,5 +1,4 @@
-﻿using System;
-using Location.Core.Domain.Common;
+﻿using Location.Core.Domain.Common;
 using Location.Core.Domain.ValueObjects;
 
 namespace Location.Core.Domain.Entities

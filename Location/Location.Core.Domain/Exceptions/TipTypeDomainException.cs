@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Location.Core.Domain.Exceptions
+﻿namespace Location.Core.Domain.Exceptions
 {
     /// <summary>
     /// Exception thrown when tip type domain business rules are violated

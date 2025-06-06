@@ -1,11 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Location.Core.Application.Common.Models;
-using Location.Core.Domain.Entities;
-using AutoMapper;
-using System.Linq.Expressions;
-using System;
+﻿using Location.Core.Application.Common.Models;
 
 namespace Location.Core.Application.Common.Interfaces.Persistence
 {

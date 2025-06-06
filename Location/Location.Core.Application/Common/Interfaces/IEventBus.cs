@@ -1,7 +1,5 @@
 ﻿using Location.Core.Application.Services;
 using Location.Core.Domain.Interfaces;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Common.Interfaces
 {

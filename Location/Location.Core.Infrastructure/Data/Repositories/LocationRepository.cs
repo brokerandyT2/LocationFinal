@@ -1,19 +1,12 @@
-﻿using Location.Core.Application.Common.Interfaces.Persistence;
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Core.Domain.Rules;
 using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using SQLite;
-using System.Text;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
@@ -898,36 +891,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         #region Legacy Mapping Methods (Kept for Backward Compatibility)
 
-        private Domain.Entities.Location MapToDomain(LocationEntity entity)
-        {
-            return _compiledEntityToDomain(entity);
-        }
-
-        private LocationEntity MapToEntity(Domain.Entities.Location location)
-        {
-            return _compiledDomainToEntity(location);
-        }
-
-        private Domain.Entities.Location CreateLocationViaReflection(string title, string description, Coordinate coordinate, Address address)
-        {
-            // This method is kept for backward compatibility but now uses compiled mapping
-            var tempEntity = new LocationEntity
-            {
-                Title = title,
-                Description = description,
-                Latitude = coordinate.Latitude,
-                Longitude = coordinate.Longitude,
-                City = address.City,
-                State = address.State
-            };
-
-            return _compiledEntityToDomain(tempEntity);
-        }
-
-        private void SetPrivateProperty(object obj, string propertyName, object value)
-        {
-            SetOptimizedProperty(obj, propertyName, value);
-        }
 
         public async Task<PagedList<T>> GetPagedBySpecificationAsync<T>(Location.Core.Application.Common.Interfaces.Persistence.ISqliteSpecification<Domain.Entities.Location> specification, int pageNumber, int pageSize, string selectColumns, CancellationToken cancellationToken = default) where T : class, new()
         {

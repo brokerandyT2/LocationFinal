@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Location.Core.Application.Common.Models;
 using MediatR;
-using Location.Core.Application.Common.Models;
 
 namespace Location.Core.Application.Settings.Queries.GetAllSettings
 {

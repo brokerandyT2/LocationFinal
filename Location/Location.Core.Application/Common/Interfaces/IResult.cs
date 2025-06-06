@@ -1,5 +1,4 @@
 ﻿using Location.Core.Application.Common.Models;
-using System.Collections.Generic;
 
 namespace Location.Core.Application.Common.Interfaces
 {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Location.Core.Application.Locations.DTOs
+﻿namespace Location.Core.Application.Locations.DTOs
 {
     /// <summary>
     /// Data transfer object for location list items

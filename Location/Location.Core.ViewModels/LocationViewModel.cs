@@ -5,9 +5,6 @@ using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Locations.Queries.GetLocationById;
 using Location.Core.Application.Services;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.ViewModels
 {

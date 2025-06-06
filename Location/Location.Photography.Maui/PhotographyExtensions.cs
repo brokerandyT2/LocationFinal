@@ -3,7 +3,6 @@ using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure;
 using Location.Photography.Infrastructure.Services;
 using Location.Photography.ViewModels;
-using Microsoft.Extensions.Logging;
 
 namespace Location.Photography.Maui
 {

@@ -2,11 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
-using Location.Photography.ViewModels.Events;
-using Location.Photography.ViewModels.Interfaces;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 

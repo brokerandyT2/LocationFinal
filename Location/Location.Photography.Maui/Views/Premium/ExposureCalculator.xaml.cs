@@ -1,9 +1,8 @@
 // Location.Photography.Maui/Views/Premium/ExposureCalculator.xaml.cs
 using Location.Core.Application.Services;
-using Location.Photography.ViewModels;
 using Location.Photography.Application.Services;
+using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
-using Microsoft.Maui.Controls;
 using MediatR;
 
 namespace Location.Photography.Maui.Views.Premium

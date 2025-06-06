@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using Location.Core.Domain.Entities;
-using Location.Core.Application.Settings.DTOs;
 using Location.Core.Application.Settings.Commands.CreateSetting;
 using Location.Core.Application.Settings.Commands.UpdateSetting;
-using Location.Core.Application.Settings.Queries.GetSettingByKey;
+using Location.Core.Application.Settings.DTOs;
 using Location.Core.Application.Settings.Queries.GetAllSettings;
+using Location.Core.Application.Settings.Queries.GetSettingByKey;
+using Location.Core.Domain.Entities;
 
 namespace Location.Core.Application.Mappings
 {

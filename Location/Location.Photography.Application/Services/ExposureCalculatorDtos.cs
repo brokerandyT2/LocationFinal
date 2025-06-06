@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Location.Photography.Application.Services
+﻿namespace Location.Photography.Application.Services
 {
     public class ExposureTriangleDto
     {

@@ -3,14 +3,8 @@ using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
@@ -661,41 +655,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         #region Legacy Mapping Methods (Kept for Backward Compatibility)
 
-        private TipType MapToDomain(TipTypeEntity entity)
-        {
-            var tipType = _compiledTipTypeEntityToDomain(entity);
-            SetOptimizedProperty(tipType, "Id", entity.Id);
-            SetOptimizedProperty(tipType, "I8n", entity.I8n);
-            return tipType;
-        }
-
-        private TipTypeEntity MapToEntity(TipType tipType)
-        {
-            return _compiledTipTypeDomainToEntity(tipType);
-        }
-
-        private TipEntity MapTipToEntity(Tip tip)
-        {
-            return _compiledTipDomainToEntity(tip);
-        }
-
-        private TipType CreateTipTypeViaReflection(string name)
-        {
-            var type = typeof(TipType);
-            var constructor = type.GetConstructor(new[] { typeof(string) });
-
-            if (constructor == null)
-            {
-                throw new InvalidOperationException("Cannot find TipType constructor");
-            }
-
-            return (TipType)constructor.Invoke(new object[] { name });
-        }
-
-        private void SetPrivateProperty(object obj, string propertyName, object value)
-        {
-            SetOptimizedProperty(obj, propertyName, value);
-        }
 
         #endregion
 

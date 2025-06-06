@@ -1,7 +1,4 @@
 ﻿// Location.Photography.Domain/Models/EnhancedSunDomainModels.cs
-using System;
-using System.Collections.Generic;
-
 namespace Location.Photography.Domain.Models
 {
     // Enhanced Sun Times with precise calculations

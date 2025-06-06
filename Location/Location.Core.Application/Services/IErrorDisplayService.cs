@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Location.Core.Application.Events.Errors;
+﻿using Location.Core.Application.Events.Errors;
 
 namespace Location.Core.Application.Services
 {

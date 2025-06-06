@@ -1,6 +1,5 @@
 ﻿// Location.Photography.Application/Queries/SunLocation/GetSunTimesQueryValidator.cs
 using FluentValidation;
-using System;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {

@@ -3,15 +3,9 @@ using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace Location.Core.Infrastructure.Data.Repositories
 {
@@ -775,37 +769,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         #region Legacy Mapping Methods (Kept for Backward Compatibility)
 
-        private Setting MapToDomain(SettingEntity entity)
-        {
-            var setting = _compiledEntityToDomain(entity);
-            SetOptimizedProperty(setting, "Id", entity.Id);
-            SetOptimizedProperty(setting, "Timestamp", entity.Timestamp);
-            return setting;
-        }
-
-        private SettingEntity MapToEntity(Setting setting)
-        {
-            return _compiledDomainToEntity(setting);
-        }
-
-        private Setting CreateSettingViaReflection(string key, string value, string description)
-        {
-            var type = typeof(Setting);
-            var constructor = type.GetConstructor(
-                new[] { typeof(string), typeof(string), typeof(string) });
-
-            if (constructor == null)
-            {
-                throw new InvalidOperationException("Cannot find Setting constructor");
-            }
-
-            return (Setting)constructor.Invoke(new object[] { key, value, description });
-        }
-
-        private void SetPrivateProperty(object obj, string propertyName, object value)
-        {
-            SetOptimizedProperty(obj, propertyName, value);
-        }
 
         #endregion
 

@@ -5,8 +5,6 @@ using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
 using Location.Photography.ViewModels.Events;
 using Location.Photography.ViewModels.Interfaces;
-using System;
-using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {

@@ -5,11 +5,6 @@ using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Queries.CameraEvaluation
 {
@@ -118,9 +113,7 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
                 // Step 4: Apply paging
                 var totalCount = sortedCameras.Count;
                 var pagedCameras = sortedCameras;
-//                    .Skip(request.Skip)
-  //                  .Take(request.Take)
-    //                .ToList();
+
 
                 var result = new GetCameraBodiesResultDto
                 {

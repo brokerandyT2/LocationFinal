@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Threading.Channels;
-using Location.Core.Application.Events.Errors;
+﻿using Location.Core.Application.Events.Errors;
 using MediatR;
+using System.Collections.Concurrent;
+using System.Threading.Channels;
 
 namespace Location.Core.Application.Services
 {

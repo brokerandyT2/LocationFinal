@@ -1,10 +1,7 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
-using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using MediatR;
 
 namespace Location.Core.Application.Settings.Commands.CreateSetting
 {

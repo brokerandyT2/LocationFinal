@@ -1,9 +1,6 @@
 ﻿// Location.Photography.Application/Services/ICameraSensorProfileService.cs
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Commands.CameraEvaluation;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

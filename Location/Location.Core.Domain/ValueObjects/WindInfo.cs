@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Location.Core.Domain.ValueObjects
+﻿namespace Location.Core.Domain.ValueObjects
 {
     /// <summary>
     /// Value object representing wind information

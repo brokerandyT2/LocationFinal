@@ -1,24 +1,13 @@
 ﻿// Location.Photography.ViewModels.Premium/SunCalculatorViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Models;
-using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using Location.Core.ViewModels;
 using Location.Photography.Application.Queries.SunLocation;
-using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
-using Location.Photography.ViewModels.Events;
-using Location.Photography.ViewModels.Interfaces;
 using MediatR;
-using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 

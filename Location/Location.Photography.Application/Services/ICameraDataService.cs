@@ -2,9 +2,6 @@
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Queries.CameraEvaluation;
 using Location.Photography.Domain.Enums;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

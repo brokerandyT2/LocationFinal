@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using Location.Core.Domain.Entities;
-using Location.Core.Application.Tips.DTOs;
 using Location.Core.Application.Tips.Commands.CreateTip;
 using Location.Core.Application.Tips.Commands.UpdateTip;
-using Location.Core.Application.Tips.Queries.GetTipById;
+using Location.Core.Application.Tips.DTOs;
 using Location.Core.Application.Tips.Queries.GetAllTips;
+using Location.Core.Application.Tips.Queries.GetTipById;
 using Location.Core.Application.Tips.Queries.GetTipsByType;
+using Location.Core.Domain.Entities;
 
 namespace Location.Core.Application.Mappings
 {

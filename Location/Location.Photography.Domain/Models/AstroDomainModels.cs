@@ -1,7 +1,4 @@
 ﻿// Location.Photography.Domain/Models/AstroDomainModels.cs
-using System;
-using System.Collections.Generic;
-
 namespace Location.Photography.Domain.Models
 {
     // === ENUMS ===

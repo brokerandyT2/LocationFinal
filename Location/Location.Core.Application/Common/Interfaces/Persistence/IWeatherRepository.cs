@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Location.Core.Application.Common.Interfaces.Persistence
+﻿namespace Location.Core.Application.Common.Interfaces.Persistence
 {
     /// <summary>
     /// Repository interface for Weather aggregate root

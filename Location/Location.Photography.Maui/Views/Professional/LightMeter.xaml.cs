@@ -1,12 +1,12 @@
 #if ANDROID
 using Location.Core.Application.Common.Interfaces.Persistence;
+using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
+using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
+using Location.Photography.Maui.Platforms.Android;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
-using Location.Photography.Maui.Platforms.Android;
-using Location.Photography.Application.Services;
-using Location.Core.Application.Common.Models;
 using MediatR;
 using System.Threading.Tasks;
 using System.Timers;

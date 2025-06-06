@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Location.Core.Domain.Common;
+﻿using Location.Core.Domain.Common;
 
 namespace Location.Core.Domain.Entities
 {

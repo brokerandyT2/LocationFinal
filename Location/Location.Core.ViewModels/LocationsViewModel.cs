@@ -1,14 +1,10 @@
 ﻿// Location.Core.ViewModels/LocationsViewModel.cs
-using System;
-using System.Collections.ObjectModel;
-using System.Threading;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Locations.Queries.GetLocationById;
 using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using MediatR;
+using System.Collections.ObjectModel;
 
 namespace Location.Core.ViewModels
 {

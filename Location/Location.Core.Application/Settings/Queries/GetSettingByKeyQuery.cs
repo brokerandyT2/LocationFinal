@@ -1,6 +1,5 @@
-﻿using System;
+﻿using Location.Core.Application.Common.Models;
 using MediatR;
-using Location.Core.Application.Common.Models;
 
 namespace Location.Core.Application.Settings.Queries.GetSettingByKey
 {

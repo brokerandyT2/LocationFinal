@@ -1,14 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Common.Interfaces.Persistence;
-using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
 using Location.Photography.ViewModels.Events;
-using Location.Photography.ViewModels.Interfaces;
 using MediatR;
-using System;
-using System.Threading.Tasks;
 
 namespace Location.Photography.ViewModels
 {

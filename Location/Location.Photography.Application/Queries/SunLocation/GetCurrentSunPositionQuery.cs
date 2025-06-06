@@ -3,9 +3,6 @@ using Location.Core.Application.Common.Models;
 using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {

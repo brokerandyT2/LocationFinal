@@ -1,8 +1,4 @@
 ﻿using SkiaSharp;
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

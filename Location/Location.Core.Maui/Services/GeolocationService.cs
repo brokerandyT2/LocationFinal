@@ -1,6 +1,5 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
-using Microsoft.Maui.Devices.Sensors;
 
 namespace Location.Core.Maui.Services
 {

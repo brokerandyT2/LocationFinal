@@ -1,12 +1,7 @@
 ﻿using Location.Core.Application.Common.Models;
-using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {

@@ -1,8 +1,4 @@
 ﻿// Location.Photography.Domain/Services/ISunCalculatorService.cs
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace Location.Photography.Domain.Services
 {
     /// <summary>

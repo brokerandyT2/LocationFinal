@@ -1,9 +1,6 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Settings.Queries.GetSettingByKey
 {

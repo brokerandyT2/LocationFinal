@@ -1,6 +1,5 @@
 ﻿// Location.Photography.Application/Commands/Subscription/ProcessSubscriptionCommandValidator.cs
 using FluentValidation;
-using Location.Photography.Domain.Entities;
 
 namespace Location.Photography.Application.Commands.Subscription
 {

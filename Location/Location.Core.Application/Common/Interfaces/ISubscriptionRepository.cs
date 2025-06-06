@@ -1,8 +1,6 @@
 ﻿// Location.Core.Application/Common/Interfaces/ISubscriptionRepository.cs
 using Location.Core.Application.Common.Models;
 using Location.Photography.Domain.Entities;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Common.Interfaces
 {

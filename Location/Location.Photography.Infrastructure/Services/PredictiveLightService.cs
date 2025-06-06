@@ -1,19 +1,17 @@
 ﻿// Location.Photography.Infrastructure/Services/PredictiveLightService.cs
+using Location.Core.Application.Weather.DTOs;
+using Location.Photography.Application.Services;
+using Location.Photography.Domain.Models;
+using Location.Photography.Domain.Services;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Location.Core.Application.Weather.DTOs;
-using Location.Photography.Application.Services;
-using Location.Photography.Domain.Models;
-using Location.Photography.Domain.Services;
-using Location.Photography.Infrastructure.Services;
-using Microsoft.Extensions.Logging;
 using ExposureTriangle = Location.Photography.Domain.Models.ExposureTriangle;
 using HourlyLightPrediction = Location.Photography.Domain.Models.HourlyLightPrediction;
 using LightCharacteristics = Location.Photography.Domain.Models.LightCharacteristics;
-using SunPosition = Location.Photography.Domain.Models.SunPosition;
 
 namespace Location.Photography.Infrastructure.Services
 {
@@ -27,8 +25,6 @@ namespace Location.Photography.Infrastructure.Services
 
         // Enhanced lux-based constants
         private const double BaseLuxDirectSunlight = 100000.0; // Lux at noon, clear sky, sea level
-        private const double BaseLuxShade = 15000.0; // Indirect daylight in shade
-        private const double BaseLuxOvercast = 1000.0; // Overcast day
         private const double CalibrationWeight = 0.7;
         private const double HistoricalWeight = 0.3;
 

@@ -1,6 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Core.Application.Weather.DTOs;
 
 namespace Location.Core.Application.Services

@@ -1,9 +1,6 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Enums;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Common.Interfaces
 {

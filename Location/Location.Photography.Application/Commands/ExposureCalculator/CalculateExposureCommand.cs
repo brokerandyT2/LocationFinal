@@ -2,9 +2,6 @@
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Commands.ExposureCalculator
 {

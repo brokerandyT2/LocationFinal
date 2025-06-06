@@ -1,5 +1,4 @@
 ﻿using Location.Core.Domain.Interfaces;
-using System.Collections.Generic;
 
 namespace Location.Core.Domain.Common
 {

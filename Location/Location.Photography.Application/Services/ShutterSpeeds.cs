@@ -1,7 +1,4 @@
 ﻿// Location.Photography.Application/Services/ExposureCalculatorUtils.cs
-using System;
-using System.Collections.Generic;
-
 namespace Location.Photography.Application.Services
 {
     public static class ShutterSpeeds

@@ -1,9 +1,5 @@
 ﻿// Location.Photography.Application/Services/IAstroCalculationService.cs
 using Location.Photography.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

@@ -3,12 +3,10 @@ using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {
+
     public class GetSunTimesQuery : IRequest<Result<SunTimesDto>>
     {
         public double Latitude { get; set; }

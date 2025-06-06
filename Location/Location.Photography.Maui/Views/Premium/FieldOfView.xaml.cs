@@ -58,7 +58,10 @@ namespace Location.Photography.Maui.Views.Premium
                 OnPropertyChanged();
             }
         }
-
+        ~FieldOfView()
+        {
+          var x=  CameraPreview.StopCameraAsync().Result;
+        }
         public ObservableCollection<LensDisplayItem> AvailableLenses
         {
             get => _availableLenses;

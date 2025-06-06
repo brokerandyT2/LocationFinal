@@ -1,9 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Location.Core.Application.Common.Interfaces.Persistence;
-
-namespace Location.Core.Application.Common.Interfaces
+﻿namespace Location.Core.Application.Common.Interfaces
 {
     /// <summary>
     /// Unit of Work pattern interface for managing database transactions

@@ -1,13 +1,9 @@
 ﻿// Location.Photography.ViewModels/SunCalculationsViewModel.cs
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Services;
 using Location.Photography.Domain.Services;
 using Location.Photography.ViewModels.Events;
 using Location.Photography.ViewModels.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 

@@ -2,9 +2,6 @@
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Commands.Tips
 {

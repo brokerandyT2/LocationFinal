@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Location.Core.Application.Settings.DTOs
+﻿namespace Location.Core.Application.Settings.DTOs
 {
     public class SettingDto
     {

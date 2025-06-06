@@ -2,13 +2,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Events;
 using Location.Core.Application.Services;
-using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.ViewModels
 {

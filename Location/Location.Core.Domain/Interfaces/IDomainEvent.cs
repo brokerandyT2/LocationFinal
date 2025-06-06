@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Location.Core.Domain.Interfaces
+﻿namespace Location.Core.Domain.Interfaces
 {
     /// <summary>
     /// Marker interface for domain events

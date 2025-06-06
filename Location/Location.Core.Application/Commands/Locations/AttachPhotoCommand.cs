@@ -3,11 +3,7 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Locations.DTOs;
-using Location.Core.Application.Services;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Commands.Locations
 {

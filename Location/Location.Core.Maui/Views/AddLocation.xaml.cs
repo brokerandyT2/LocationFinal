@@ -1,11 +1,8 @@
 using Location.Core.Application.Locations.Queries.GetLocationById;
 using Location.Core.Application.Services;
-using Location.Core.ViewModels;
 using Location.Core.Maui.Resources;
+using Location.Core.ViewModels;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Maui.Views
 {

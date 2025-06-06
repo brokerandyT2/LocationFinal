@@ -4,13 +4,7 @@ using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Enums;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls.PlatformConfiguration;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Infrastructure.Services
 {

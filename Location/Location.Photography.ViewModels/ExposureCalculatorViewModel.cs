@@ -20,7 +20,6 @@ namespace Location.Photography.ViewModels
         #region Fields
         private readonly IMediator _mediator;
         private readonly IExposureCalculatorService _exposureCalculatorService;
-        private readonly IErrorDisplayService _errorDisplayService;
 
         // PERFORMANCE: Threading and caching
         private readonly SemaphoreSlim _calculationLock = new(1, 1);
@@ -276,7 +275,6 @@ namespace Location.Photography.ViewModels
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
-            _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
 
             InitializeCommands();
             InitializeDefaults();

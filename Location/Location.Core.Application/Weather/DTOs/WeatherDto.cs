@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Location.Core.Application.Weather.DTOs
+﻿namespace Location.Core.Application.Weather.DTOs
 {
     /// <summary>
     /// Data transfer object for weather information

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Location.Core.Application.Common.Models
+﻿namespace Location.Core.Application.Common.Models
 {
     /// <summary>
     /// Represents a paged list of items with optimized construction

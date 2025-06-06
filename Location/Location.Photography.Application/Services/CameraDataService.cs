@@ -7,11 +7,6 @@ using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Enums;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Infrastructure.Services
 {

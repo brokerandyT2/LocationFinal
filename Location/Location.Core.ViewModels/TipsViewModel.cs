@@ -1,9 +1,4 @@
 ﻿// Location.Core.ViewModels/TipsViewModel.cs
-using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Common.Interfaces.Persistence;
@@ -11,6 +6,7 @@ using Location.Core.Application.Services;
 using Location.Core.Application.Tips.Queries.GetAllTipTypes;
 using Location.Core.Application.Tips.Queries.GetTipsByType;
 using MediatR;
+using System.Collections.ObjectModel;
 
 namespace Location.Core.ViewModels
 {

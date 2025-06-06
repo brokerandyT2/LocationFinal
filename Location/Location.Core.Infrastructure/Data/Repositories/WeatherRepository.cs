@@ -4,11 +4,6 @@ using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -841,106 +836,6 @@ namespace Location.Core.Infrastructure.Data.Repositories
 
         #region Legacy Mapping Methods (Kept for Backward Compatibility)
 
-        private Weather MapToDomain(WeatherEntity entity, List<WeatherForecastEntity> forecastEntities, List<HourlyForecastEntity> hourlyForecastEntities)
-        {
-            return MapToDomainWithRelations(entity, forecastEntities, hourlyForecastEntities);
-        }
-
-        private WeatherForecast MapForecastToDomain(WeatherForecastEntity entity)
-        {
-            var forecast = _compiledForecastEntityToDomain(entity);
-            SetOptimizedProperty(forecast, "Id", entity.Id);
-
-            if (entity.Precipitation.HasValue)
-            {
-                forecast.SetPrecipitation(entity.Precipitation.Value);
-            }
-            forecast.SetMoonData(entity.MoonRise, entity.MoonSet, entity.MoonPhase);
-
-            return forecast;
-        }
-
-        private HourlyForecast MapHourlyForecastToDomain(HourlyForecastEntity entity)
-        {
-            var hourly = _compiledHourlyEntityToDomain(entity);
-            SetOptimizedProperty(hourly, "Id", entity.Id);
-            return hourly;
-        }
-
-        private WeatherEntity MapToEntity(Weather weather)
-        {
-            return _compiledWeatherDomainToEntity(weather);
-        }
-
-        private WeatherForecastEntity MapForecastToEntity(WeatherForecast forecast, int weatherId)
-        {
-            var entity = _compiledForecastDomainToEntity(forecast);
-            entity.WeatherId = weatherId;
-            return entity;
-        }
-
-        private HourlyForecastEntity MapHourlyForecastToEntity(HourlyForecast hourlyForecast, int weatherId)
-        {
-            var entity = _compiledHourlyDomainToEntity(hourlyForecast);
-            entity.WeatherId = weatherId;
-            return entity;
-        }
-
-        private Weather CreateWeatherViaReflection(int locationId, Coordinate coordinate, string timezone, int timezoneOffset)
-        {
-            var type = typeof(Weather);
-            var constructor = type.GetConstructor(new[] { typeof(int), typeof(Coordinate), typeof(string), typeof(int) });
-            if (constructor == null)
-                throw new InvalidOperationException("Cannot find Weather constructor");
-            return (Weather)constructor.Invoke(new object[] { locationId, coordinate, timezone, timezoneOffset });
-        }
-
-        private WeatherForecast CreateWeatherForecastViaReflection(int weatherId, DateTime date, DateTime sunrise, DateTime sunset,
-            double temperature, double minTemperature, double maxTemperature, string description, string icon,
-            WindInfo wind, int humidity, int pressure, int clouds, double uvIndex)
-        {
-            var type = typeof(WeatherForecast);
-            var constructor = type.GetConstructor(new[]
-            {
-               typeof(int), typeof(DateTime), typeof(DateTime), typeof(DateTime),
-               typeof(double), typeof(double), typeof(double),
-               typeof(string), typeof(string), typeof(WindInfo),
-               typeof(int), typeof(int), typeof(int), typeof(double)
-           });
-            if (constructor == null)
-                throw new InvalidOperationException("Cannot find WeatherForecast constructor");
-            return (WeatherForecast)constructor.Invoke(new object[]
-            {
-               weatherId, date, sunrise, sunset, temperature, minTemperature, maxTemperature,
-               description, icon, wind, humidity, pressure, clouds, uvIndex
-            });
-        }
-
-        private HourlyForecast CreateHourlyForecastViaReflection(int weatherId, DateTime dateTime, double temperature, double feelsLike,
-            string description, string icon, WindInfo wind, int humidity, int pressure, int clouds, double uvIndex,
-            double probabilityOfPrecipitation, int visibility, double dewPoint)
-        {
-            var type = typeof(HourlyForecast);
-            var constructor = type.GetConstructor(new[]
-            {
-               typeof(int), typeof(DateTime), typeof(double), typeof(double),
-               typeof(string), typeof(string), typeof(WindInfo),
-               typeof(int), typeof(int), typeof(int), typeof(double),
-               typeof(double), typeof(int), typeof(double)
-           });
-            if (constructor == null)
-                throw new InvalidOperationException("Cannot find HourlyForecast constructor");
-            return (HourlyForecast)constructor.Invoke(new object[]
-            {
-               weatherId, dateTime, temperature, feelsLike, description, icon, wind,
-               humidity, pressure, clouds, uvIndex, probabilityOfPrecipitation, visibility, dewPoint
-            });
-        }
-
-        private void SetPrivateProperty(object obj, string propertyName, object value)
-        {
-            SetOptimizedProperty(obj, propertyName, value);
-        }
 
         #endregion
     }

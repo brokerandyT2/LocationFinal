@@ -1,11 +1,7 @@
 ﻿// Location.Photography.Maui/App.xaml.cs - FIXED VERSION
 using Location.Photography.Infrastructure;
 using Location.Photography.Maui.Views;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Storage;
-using System;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Maui
 {

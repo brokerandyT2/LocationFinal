@@ -1,14 +1,8 @@
 ﻿using FluentValidation;
-using FluentValidation.Internal;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
 using MediatR;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Common.Behaviors
 {

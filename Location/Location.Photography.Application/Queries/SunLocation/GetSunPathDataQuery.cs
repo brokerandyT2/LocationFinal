@@ -1,9 +1,5 @@
 ﻿using Location.Core.Application.Common.Models;
-using Location.Photography.Application.Services;
-using Location.Photography.Domain.Models;
 using MediatR;
-using System;
-using System.Collections.Generic;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {

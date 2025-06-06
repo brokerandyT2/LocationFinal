@@ -1,6 +1,5 @@
 ﻿// Location.Photography.Infrastructure/DataPopulation/DatabaseInitializer.cs
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Domain.Entities;
 using Location.Photography.Domain.Entities;

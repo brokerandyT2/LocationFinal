@@ -1,7 +1,6 @@
 // Location.Photography.Maui/Views/Premium/SunLocation.xaml.cs
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Services;
-using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;

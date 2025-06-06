@@ -1,6 +1,4 @@
 ﻿// Location.Photography.Application/Common/Models/Result.cs
-using System;
-
 namespace Location.Photography.Application.Common.Models
 {
     public class Result<T>

@@ -1,9 +1,6 @@
 ﻿using Location.Core.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using SQLite;
-using System;
-using System.Net;
-using System.Net.Http;
 
 namespace Location.Core.Infrastructure.Services
 {

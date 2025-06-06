@@ -1,13 +1,8 @@
 ﻿// Location.Photography.Infrastructure/Services/SunService.cs
 using Location.Core.Application.Common.Models;
-using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Services
 {

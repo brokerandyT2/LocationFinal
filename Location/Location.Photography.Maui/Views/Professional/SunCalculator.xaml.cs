@@ -21,15 +21,7 @@ namespace Location.Photography.Maui.Views.Professional
         private SunPathDrawable _sunPathDrawable;
         private bool _isPopupVisible = false;
 
-        /*    public SunCalculator()
-            {
-                InitializeComponent();
-                _viewModel = new EnhancedSunCalculatorViewModel();
-                BindingContext = _viewModel;
-                InitializeSunPathCanvas();
-            } */
-
-        public SunCalculator(
+              public SunCalculator(
             EnhancedSunCalculatorViewModel viewModel,
             IAlertService alertService,
             IMediator mediator,
@@ -135,34 +127,10 @@ namespace Location.Photography.Maui.Views.Professional
             }
         }
 
-        private void InitializeSunPathCanvas()
-        {
-            try
-            {
-                _sunPathDrawable = new SunPathDrawable(_viewModel);
-                //SunPathCanvas.Drawable = _sunPathDrawable;
-
-                // Add tap gesture recognizer for sun event interaction
-                var tapGesture = new TapGestureRecognizer();
-
-                //SunPathCanvas.GestureRecognizers.Add(tapGesture);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error initializing sun path canvas: {ex.Message}");
-            }
-        }
-
         private void UpdateSunPathCanvas()
         {
             var time = new GetSettingByKeyQuery() { Key = MagicStrings.TimeFormat };
             var date = new GetSettingByKeyQuery() { Key = MagicStrings.DateFormat };
-
-            //   var timeFormat =  _mediator.Send(time).Result.Data.Value;
-            //    var dateFormat = _mediator.Send(date).Result.Data.Value;
-            //   _sunPathDrawable.DateFormat = dateFormat ?? "MM/dd/yyyy";
-            //   _sunPathDrawable.TimeFormat = timeFormat ?? "HH:mm:ss";
-
 
             try
             {
@@ -179,47 +147,6 @@ namespace Location.Photography.Maui.Views.Professional
         }
 
        
-
-        private async Task ShowSunEventPopup(SunEventPoint sunEvent)
-        {
-            try
-            {
-                _isPopupVisible = true;
-
-                var eventName = GetEventDisplayName(sunEvent.EventType);
-                var message = $"{eventName}\n" +
-                             $"Time: {sunEvent.Time}\n" +
-                             $"Azimuth: {sunEvent.Azimuth:F1}°\n" +
-                             $"Elevation: {sunEvent.Elevation:F1}°";
-
-                await DisplayAlert("Sun Event", message, "OK");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error showing sun event popup: {ex.Message}");
-            }
-            finally
-            {
-                _isPopupVisible = false;
-            }
-        }
-
-        private string GetEventDisplayName(SunEventType eventType)
-        {
-            return eventType switch
-            {
-                SunEventType.Sunrise => "🌅 Sunrise",
-                SunEventType.Sunset => "🌅 Sunset",
-                SunEventType.SolarNoon => "☀️ Solar Noon",
-                SunEventType.CivilDawn => "🌄 Civil Dawn",
-                SunEventType.CivilDusk => "🌆 Civil Dusk",
-                SunEventType.GoldenHourStart => "✨ Golden Hour Start",
-                SunEventType.GoldenHourEnd => "✨ Golden Hour End",
-                SunEventType.Current => "📍 Current Position",
-                _ => "Sun Event"
-            };
-        }
-
         private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
             try

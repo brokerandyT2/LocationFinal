@@ -1,15 +1,9 @@
 ﻿// AppShell.xaml.cs - Simplified Version
-using Location.Core.Maui.Services;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
 using Location.Photography.Maui.Controls;
-using Location.Photography.Maui.Views;
 using Location.Photography.Maui.Views.Premium;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Storage;
-using System;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Maui
 {

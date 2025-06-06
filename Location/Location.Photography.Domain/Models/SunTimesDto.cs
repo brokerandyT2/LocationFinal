@@ -1,6 +1,4 @@
 ﻿// Location.Photography.Domain/Models/SunTimesDto.cs
-using System;
-
 namespace Location.Photography.Domain.Models
 {
     public class SunTimesDto

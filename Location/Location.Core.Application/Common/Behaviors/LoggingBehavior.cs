@@ -1,13 +1,10 @@
-﻿using System;
-using System.Diagnostics;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Location.Core.Application.Common.Interfaces;
+using Location.Core.Application.Common.Models;
+using Location.Core.Application.Events.Errors;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Events.Errors;
-using Location.Core.Application.Common.Models;
+using System.Diagnostics;
+using System.Text.Json;
 
 namespace Location.Core.Application.Common.Behaviors
 {

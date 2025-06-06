@@ -7,7 +7,6 @@ using Location.Photography.Infrastructure;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
 using MediatR;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Maui.Views
 {

@@ -6,9 +6,6 @@ using Location.Photography.Maui.Resources;
 using Location.Photography.ViewModels;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Storage;
-using System.Linq;
-using System.Net.Mail;
 
 namespace Location.Photography.Maui.Views
 {

@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Location.Core.Domain.Entities;
-
-namespace Location.Core.Application.Common.Interfaces.Persistence
+﻿namespace Location.Core.Application.Common.Interfaces.Persistence
 {
     /// <summary>
     /// Repository interface for Setting entity

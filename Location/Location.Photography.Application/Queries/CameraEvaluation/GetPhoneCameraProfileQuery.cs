@@ -4,9 +4,6 @@ using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Queries.CameraEvaluation
 {

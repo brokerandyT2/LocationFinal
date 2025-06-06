@@ -1,7 +1,4 @@
-﻿using Location.Core.Domain.Common;
-using System.Collections.Generic;
-
-namespace Location.Core.Domain.Interfaces
+﻿namespace Location.Core.Domain.Interfaces
 {
     /// <summary>
     /// Marker interface for aggregate roots

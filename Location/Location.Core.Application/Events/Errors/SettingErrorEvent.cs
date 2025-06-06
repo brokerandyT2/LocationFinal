@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Location.Core.Application.Events.Errors
+﻿namespace Location.Core.Application.Events.Errors
 {
     public class SettingErrorEvent : DomainErrorEvent
     {

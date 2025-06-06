@@ -1,6 +1,4 @@
 ﻿using MediatR;
-using System;
-using System.Collections.Generic;
 
 namespace Location.Core.Application.Events.Errors
 {

@@ -20,9 +20,7 @@ using Location.Photography.Maui.Views;
 using Location.Photography.Maui.Views.Premium;
 using Location.Photography.ViewModels;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Camera.MAUI;
 
 namespace Location.Photography.Maui
 {

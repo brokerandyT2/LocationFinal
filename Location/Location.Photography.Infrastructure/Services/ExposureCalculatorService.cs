@@ -2,7 +2,6 @@
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Errors;
 using Location.Photography.Application.Services;
-using Location.Photography.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;

@@ -1,6 +1,5 @@
 ﻿// Location.Photography.Application/Queries/ExposureCalculator/GetExposureValuesQueryValidator.cs
 using FluentValidation;
-using Location.Photography.Application.Services;
 
 namespace Location.Photography.Application.Queries.ExposureCalculator
 {

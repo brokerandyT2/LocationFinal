@@ -1,10 +1,9 @@
-﻿using Location.Core.Application.Common.Behaviors;
+﻿using AutoMapper;
+using FluentValidation;
+using Location.Core.Application.Common.Behaviors;
 using Location.Core.Application.Services;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using FluentValidation;
-using AutoMapper;
 
 namespace Location.Core.Application
 {
