@@ -19,7 +19,7 @@ namespace Location.Photography.ViewModels
         // Event Collections
         public List<AstroEventDisplayModel> AstroEvents { get; set; } = new();
         public List<SolarEventDisplayModel> SolarEvents { get; set; } = new();
-
+        public string WeatherConfidence { get; set; } = string.Empty;
         // Overall Assessment
         public string OverallQuality { get; set; } = string.Empty;
         public string ConfidenceDisplay { get; set; } = string.Empty;

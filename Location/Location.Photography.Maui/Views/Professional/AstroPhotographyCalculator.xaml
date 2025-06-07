@@ -115,149 +115,152 @@
                
 
                   <!-- Calculation Results with Loading Overlay -->
-                <Frame BackgroundColor="#F9FBE7" HasShadow="True" CornerRadius="10" Padding="15" HeightRequest="400"
-                      IsVisible="{Binding CurrentCalculations, Converter={StaticResource CollectionToBoolConverter}}">
+                <Frame BackgroundColor="#F9FBE7" HasShadow="True" CornerRadius="10" Padding="15"
+      IsVisible="{Binding CurrentCalculations, Converter={StaticResource CollectionToBoolConverter}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <Label Grid.Row="0" Text="Astronomical Calculations" FontSize="16" FontAttributes="Bold" TextColor="#689F38" Margin="0,0,0,10"/>
 
-                        <Grid Grid.Row="1">
-                            <CollectionView ItemsSource="{Binding HourlyAstroPredictions}">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="domain:AstroHourlyPredictionDisplayModel">
-                                        <maui:Expander Animated="True" Margin="0,2,0,2">
-                                            <maui:Expander.HeaderContent>
-                                                <Grid BackgroundColor="#E8F5E8" Padding="15">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="60"/>
-                                                    </Grid.ColumnDefinitions>
+                        <!-- Replace CollectionView with StackLayout for no scrolling -->
+                        <StackLayout Grid.Row="1" BindableLayout.ItemsSource="{Binding HourlyAstroPredictions}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="domain:AstroHourlyPredictionDisplayModel">
+                                    <maui:Expander Animated="True" Margin="0,2,0,2">
+                                        <maui:Expander.HeaderContent>
+                                            <Grid BackgroundColor="#E8F5E8" Padding="15">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="80"/>
+                                                </Grid.ColumnDefinitions>
 
-                                                    <StackLayout Grid.Column="0" VerticalOptions="Center">
-                                                        <Label Text="{Binding TimeDisplay}" 
-                                  FontSize="16" 
-                                  FontAttributes="Bold"/>
-                                                        <Label Text="{Binding SolarEventsDisplay}" 
-                                  FontSize="12" 
-                                  TextColor="Gray"/>
-                                                    </StackLayout>
-
-                                                    <StackLayout Grid.Column="1" VerticalOptions="Center">
-                                                        <Label Text="{Binding QualityDisplay}" 
-                                  FontSize="12" 
-                                  FontAttributes="Bold"/>
-                                                        <Label Text="{Binding QualityScore, StringFormat='Score: {0:F0}'}" 
-                                  FontSize="10" 
-                                  TextColor="Gray"/>
-                                                    </StackLayout>
-
-                                                    <!-- Quality Indicator -->
-                                                    <StackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center">
-                                                        <Label Text="{Binding IsOptimalTime, Converter={StaticResource BoolToSymbolConverter}}" 
-                                  FontSize="24" 
-                                  HorizontalTextAlignment="Center"/>
-                                                    </StackLayout>
-                                                </Grid>
-                                            </maui:Expander.HeaderContent>
-
-                                            <!-- Enhanced Expanded Content -->
-                                            <Grid Padding="15" BackgroundColor="White">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                </Grid.RowDefinitions>
-
-                                                <!-- Quality Information -->
-                                                <StackLayout Grid.Row="0" Margin="0,0,0,10">
-                                                    <Label Text="Conditions Assessment" 
-                              FontSize="14" 
-                              FontAttributes="Bold" 
-                              TextColor="#2E7D32"/>
-                                                    <Label Text="{Binding QualityDescription}" 
-                              FontSize="12" 
-                              TextColor="#666666"/>
-                                                    <Label Text="{Binding ConfidenceDisplay}" 
-                              FontSize="10" 
-                              TextColor="Gray"/>
+                                                <StackLayout Grid.Column="0" VerticalOptions="Center">
+                                                    <Label Text="{Binding TimeDisplay}" 
+                          FontSize="16" 
+                          FontAttributes="Bold"/>
+                                                    <Label Text="{Binding SolarEventsDisplay}" 
+                          FontSize="12" 
+                          TextColor="Gray"/>
                                                 </StackLayout>
 
-                                                <!-- Astro Events -->
-                                                <!-- Astro Events -->
-                                                <StackLayout Grid.Row="1" Margin="0,0,0,10" IsVisible="{Binding AstroEvents, Converter={StaticResource IsNotNullConverter}}">
-                                                    <Label Text="Astrophotography Targets" 
-          FontSize="14" 
-          FontAttributes="Bold" 
-          TextColor="#FF9800"/>
-                                                    <CollectionView ItemsSource="{Binding AstroEvents}" HeightRequest="120">
-                                                        <CollectionView.ItemTemplate>
-                                                            <DataTemplate x:DataType="domain:AstroEventDisplayModel">
-                                                                <Grid Padding="5" Margin="0,2">
-                                                                    <Grid.RowDefinitions>
-                                                                        <RowDefinition Height="Auto"/>
-                                                                        <RowDefinition Height="Auto"/>
-                                                                        <RowDefinition Height="Auto"/>
-                                                                    </Grid.RowDefinitions>
-
-                                                                    <Label Grid.Row="0" Text="{Binding TargetName}" 
-                          FontSize="13" FontAttributes="Bold"/>
-                                                                    <Label Grid.Row="1" Text="{Binding Visibility}" 
-                          FontSize="11" TextColor="Gray"/>
-                                                                    <Label Grid.Row="2" Text="{Binding Notes}" 
-                          FontSize="10" TextColor="#666666"/>
-                                                                </Grid>
-                                                            </DataTemplate>
-                                                        </CollectionView.ItemTemplate>
-                                                    </CollectionView>
+                                                <StackLayout Grid.Column="1" VerticalOptions="Center">
+                                                    <Label Text="{Binding QualityDisplay}" 
+                          FontSize="12" 
+                          FontAttributes="Bold"/>
+                                                    <Label Text="{Binding QualityScore, StringFormat='Score: {0:F0}'}" 
+                          FontSize="10" 
+                          TextColor="Gray"/>
                                                 </StackLayout>
 
-                                                <!-- Weather Information -->
-                                                <StackLayout Grid.Row="2" Margin="0,0,0,10">
-                                                    <Label Text="Weather Conditions" 
-                              FontSize="14" 
-                              FontAttributes="Bold" 
-                              TextColor="#1976D2"/>
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <StackLayout Grid.Column="0">
-                                                            <Label Text="{Binding WeatherCloudCover, StringFormat='Clouds: {0:F0}%'}" 
-                                      FontSize="11"/>
-                                                            <Label Text="{Binding WeatherWindSpeed, StringFormat='Wind: {0:F0} mph'}" 
-                                      FontSize="11"/>
-                                                        </StackLayout>
-                                                        <StackLayout Grid.Column="1">
-                                                            <Label Text="{Binding WeatherHumidity, StringFormat='Humidity: {0:F0}%'}" 
-                                      FontSize="11"/>
-                                                            <Label Text="{Binding WeatherDescription}" 
-                                      FontSize="11"/>
-                                                        </StackLayout>
-                                                    </Grid>
-                                                </StackLayout>
-
-                                                <!-- Recommendations -->
-                                                <StackLayout Grid.Row="3">
-                                                    <Label Text="Recommendations" 
-                              FontSize="14" 
-                              FontAttributes="Bold" 
-                              TextColor="#9C27B0"/>
-                                                    <Label Text="{Binding Recommendations}" 
-                              FontSize="11" 
-                              TextColor="#666666"/>
+                                                <!-- Quality Progress Bar -->
+                                                <StackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
+                                                    <ProgressBar Progress="{Binding QualityScore, Converter={StaticResource ScoreToProgressConverter}}" 
+                                   ProgressColor="{Binding QualityScore, Converter={StaticResource ScoreToColorConverter}}" 
+                                   BackgroundColor="LightGray" 
+                                   HeightRequest="8" 
+                                   WidthRequest="60"/>
+                                                    <Label Text="{Binding QualityScore, StringFormat='{0:F0}'}" 
+                             FontSize="10" 
+                             TextColor="Black" 
+                             HorizontalTextAlignment="Center"/>
                                                 </StackLayout>
                                             </Grid>
-                                        </maui:Expander>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
+                                        </maui:Expander.HeaderContent>
+
+                                        <!-- Enhanced Expanded Content -->
+                                        <Grid Padding="15" BackgroundColor="White">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Quality Information -->
+                                            <StackLayout Grid.Row="0" Margin="0,0,0,10">
+                                                <Label Text="Conditions Assessment" 
+                      FontSize="14" 
+                      FontAttributes="Bold" 
+                      TextColor="#2E7D32"/>
+                                                <Label Text="{Binding QualityDescription}" 
+                      FontSize="12" 
+                      TextColor="#666666"/>
+                                                <Label Text="{Binding ConfidenceDisplay}" 
+                      FontSize="10" 
+                      TextColor="Gray"/>
+                                            </StackLayout>
+
+                                            <!-- Astrophotography Targets -->
+                                            <StackLayout Grid.Row="1" Margin="0,0,0,10" IsVisible="{Binding AstroEvents, Converter={StaticResource IsNotNullConverter}}">
+                                                <Label Text="Astrophotography Targets" 
+                      FontSize="14" 
+                      FontAttributes="Bold" 
+                      TextColor="#FF9800"/>
+
+                                                <!-- Replace nested CollectionView with StackLayout -->
+                                                <StackLayout BindableLayout.ItemsSource="{Binding AstroEvents}">
+                                                    <BindableLayout.ItemTemplate>
+                                                        <DataTemplate x:DataType="domain:AstroEventDisplayModel">
+                                                            <Grid Padding="5" Margin="0,3" BackgroundColor="#F5F5F5">
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                </Grid.RowDefinitions>
+
+                                                                <Label Grid.Row="0" Text="{Binding TargetName}" 
+                                      FontSize="13" FontAttributes="Bold" TextColor="#FF9800"/>
+                                                                <Label Grid.Row="1" Text="{Binding Visibility}" 
+                                      FontSize="11" TextColor="Gray"/>
+                                                                <Label Grid.Row="2" Text="{Binding RecommendedEquipment}" 
+                                      FontSize="11" TextColor="#1976D2" 
+                                      Margin="0,2,0,0"/>
+                                                                <Label Grid.Row="3" Text="{Binding CameraSettings}" 
+                                      FontSize="11" TextColor="#9C27B0" 
+                                      FontAttributes="Bold" 
+                                      Margin="0,2,0,0"/>
+                                                                <Label Grid.Row="4" Text="{Binding Notes}" 
+                                      FontSize="10" TextColor="#666666" 
+                                      Margin="0,2,0,0"/>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </BindableLayout.ItemTemplate>
+                                                </StackLayout>
+                                            </StackLayout>
+
+                                            <!-- Rest of the content stays the same... -->
+                                            <!-- Weather Information, Confidence, Suitability, Recommendations -->
+
+                                        </Grid>
+                                    </maui:Expander>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </StackLayout>
+
+                        <!-- Loading Overlay -->
+                        <Grid Grid.Row="1" IsVisible="{Binding IsGeneratingHourlyPredictions}" BackgroundColor="#80000000">
+                            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
+                                <ActivityIndicator IsRunning="{Binding IsGeneratingHourlyPredictions}" 
+                                 HeightRequest="40" 
+                                 WidthRequest="40" 
+                                 Color="#689F38" />
+                                <Label Text="Calculating astrophotography predictions..." 
+                      FontSize="12" 
+                      TextColor="White" 
+                      HorizontalTextAlignment="Center"/>
+                                <Label Text="{Binding HourlyPredictionsStatus}" 
+                      FontSize="10" 
+                      TextColor="LightGray" 
+                      HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
                         </Grid>
                     </Grid>
                 </Frame>

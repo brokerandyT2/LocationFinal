@@ -7,10 +7,7 @@
             x:DataType="viewmodels:EnhancedSunCalculatorViewModel"
             Title="Location Calculator">
     <ContentPage.Resources>
-        <ResourceDictionary>
-            <!-- Ensure we have the string to bool converter -->
-            <x:String x:Key="StringToBoolConverter">StringToBoolConverter</x:String>
-        </ResourceDictionary>
+     
     </ContentPage.Resources>
 
     <Grid Padding="10" Margin="5">

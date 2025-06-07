@@ -156,6 +156,7 @@ namespace Location.Photography.Maui
                 var predictiveLightService = sp.GetRequiredService<IPredictiveLightService>();
                 var exposureCalculatorService = sp.GetRequiredService<IExposureCalculatorService>();
                 var mappingService = sp.GetRequiredService<Location.Photography.Application.Common.Interfaces.IAstroHourlyPredictionMappingService>();
+                var sunCalculatorService = sp.GetRequiredService<Domain.Services.ISunCalculatorService>();
                 return new AstroPhotographyCalculatorViewModel(
                     mediator,
                     errorDisplayService,
@@ -166,7 +167,8 @@ namespace Location.Photography.Maui
                     equipmentRecommendationService,
                     predictiveLightService,
                     exposureCalculatorService,
-                    mappingService);
+                    mappingService,
+                    sunCalculatorService);
             });
 
             // ==================== CORE PAGES ====================
