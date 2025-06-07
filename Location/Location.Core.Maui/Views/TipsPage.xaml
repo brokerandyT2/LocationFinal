@@ -4,80 +4,232 @@
              x:Class="Location.Core.Maui.Views.TipsPage"
              xmlns:viewmodels="clr-namespace:Location.Core.ViewModels;assembly=Location.Core.ViewModels"
              x:DataType="viewmodels:TipsViewModel"
+             Title="Photography Tips"
              IconImageSource="clipboard.png">
 
-    <Grid RowDefinitions="Auto, *, Auto">
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
         <!-- Tip Type Picker -->
-        <Picker Grid.Row="0"
-                Title="Select Tip Category"
-                ItemsSource="{Binding TipTypes}"
-                SelectedItem="{Binding SelectedTipType}"
-                ItemDisplayBinding="{Binding Name}"
-                Margin="10"/>
+        <Frame Grid.Row="0" 
+               BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+               HasShadow="False"
+               Padding="15,10"
+               Margin="10,5">
+            <Picker Title="Select Tip Category"
+                    ItemsSource="{Binding TipTypes}"
+                    SelectedItem="{Binding SelectedTipType}"
+                    ItemDisplayBinding="{Binding Name}"
+                    FontSize="16"
+                    AutomationProperties.Name="Tip category selector"
+                    AutomationProperties.HelpText="Choose a photography tip category to view related tips"/>
+        </Frame>
 
-        <!-- Tips List -->
-        <CollectionView Grid.Row="1"
-                       ItemsSource="{Binding Tips}"
-                       SelectionMode="Single">
-            <CollectionView.EmptyView>
-                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
-                    <Label Text="No tips available for this category" HorizontalOptions="Center" />
-                    <Label Text="Try selecting a different category or add new tips" HorizontalOptions="Center" />
-                </VerticalStackLayout>
-            </CollectionView.EmptyView>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="viewmodels:TipItemViewModel">
-                    <Frame Margin="10" Padding="10" CornerRadius="10">
-                        <Grid RowDefinitions="Auto, Auto, *">
-                            <Label Grid.Row="0" 
-                                   Text="{Binding Title}" 
-                                   FontAttributes="Bold" 
-                                   FontSize="Medium"/>
-
-                            <Label Grid.Row="1" 
-                                   Text="{Binding CameraSettingsDisplay}" 
-                                   FontSize="Small"
-                                   Margin="0,5,0,5"
-                                   IsVisible="{Binding HasCameraSettings}"/>
-
-                            <Label Grid.Row="2" 
-                                   Text="{Binding Content}" 
-                                   TextType="Html"
-                                   Margin="0,5,0,0"/>
-                        </Grid>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-
-        <!-- Add Button 
-        <Button Grid.Row="2"
-                Text="+"
-                HorizontalOptions="End"
-                Margin="0,0,20,20"
-                WidthRequest="60"
-                HeightRequest="60"
-                CornerRadius="30"
-                Clicked="OnAddTipClicked"/>-->
-
-        <!-- Busy indicator overlay -->
-        <Grid IsVisible="{Binding IsBusy}" 
-              Grid.RowSpan="3"
-              BackgroundColor="{StaticResource TransparentOverlayBrush}">
-            <ActivityIndicator IsRunning="{Binding IsBusy}" 
+        <!-- Validation Error Display -->
+              <!-- Tips List with Pull to Refresh -->
+        <RefreshView Grid.Row="2"
+                     IsRefreshing="{Binding IsBusy}"
+                     Command="{Binding LoadTipsByTypeCommand}"
+                     CommandParameter="{Binding SelectedTipTypeId}">
+            <CollectionView ItemsSource="{Binding Tips}"
+                           SelectionMode="None"
+                           AutomationProperties.Name="Photography tips list">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout HorizontalOptions="Center" 
+                                       VerticalOptions="Center"
+                                       Spacing="10"
+                                       Margin="20">
+                        <Image Source="camera_outline.png" 
+                               WidthRequest="64" 
+                               HeightRequest="64"
+                               Opacity="0.5"/>
+                        <Label Text="No tips available for this category" 
                                HorizontalOptions="Center"
-                               VerticalOptions="Center" Color="Blue"/>
+                               FontSize="16"
+                               FontAttributes="Bold"/>
+                        <Label Text="Try selecting a different category or check back later" 
+                               HorizontalOptions="Center"
+                               FontSize="14"
+                               Opacity="0.7"/>
+                        <Button Text="Retry"
+                                Command="{Binding LoadTipsByTypeCommand}"
+                                CommandParameter="{Binding SelectedTipTypeId}"
+                                HorizontalOptions="Center"
+                                Margin="0,10,0,0"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewmodels:TipItemViewModel">
+                        <Frame Margin="10,5"
+                               Padding="0"
+                               CornerRadius="12"
+                               HasShadow="True"
+                               BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}">
+                            <Grid RowDefinitions="Auto, Auto, Auto, *"
+                                  Padding="15">
+
+                                <!-- Tip Title -->
+                                <Label Grid.Row="0" 
+                                       Text="{Binding Title}" 
+                                       FontAttributes="Bold" 
+                                       FontSize="18"
+                                       LineBreakMode="WordWrap"
+                                       AutomationProperties.Name="Tip title"
+                                       AutomationProperties.HelpText="{Binding Title}"/>
+
+                                <!-- Camera Settings Section -->
+                                <Grid Grid.Row="1" 
+                                      IsVisible="true"
+                                      ColumnDefinitions="*, *, *"
+                                      Margin="0,10,0,10"
+                                      AutomationProperties.Name="Camera settings">
+
+                                    <!-- F-Stop -->
+                                    <Frame Grid.Column="0" 
+                                           BackgroundColor="{StaticResource Primary}"
+                                           Padding="8,4"
+                                           CornerRadius="6"
+                                           HasShadow="False"
+                                           IsVisible="true"
+                                           Margin="0,0,5,0">
+                                        <StackLayout Orientation="Vertical" 
+                                                   Spacing="2"
+                                                   HorizontalOptions="Center">
+                                            <Label Text="F-STOP" 
+                                                   FontSize="10" 
+                                                   FontAttributes="Bold"
+                                                   TextColor="White"
+                                                   HorizontalOptions="Center"/>
+                                            <Label Text="{Binding Fstop}" 
+                                                   FontSize="14"
+                                                   FontAttributes="Bold"
+                                                   TextColor="White"
+                                                   HorizontalOptions="Center"
+                                                   AutomationProperties.Name="{Binding Fstop, StringFormat='F-stop {0}'}"/>
+                                        </StackLayout>
+                                    </Frame>
+
+                                    <!-- Shutter Speed -->
+                                    <Frame Grid.Column="1" 
+                                           BackgroundColor="{StaticResource Secondary}"
+                                           Padding="8,4"
+                                           CornerRadius="6"
+                                           HasShadow="False"
+                                           IsVisible="True"
+                                           Margin="2.5,0">
+                                        <StackLayout Orientation="Vertical" 
+                                                   Spacing="2"
+                                                   HorizontalOptions="Center">
+                                            <Label Text="SHUTTER" 
+                                                   FontSize="10" 
+                                                   FontAttributes="Bold"
+                                                   TextColor="White"
+                                                   HorizontalOptions="Center"/>
+                                            <Label Text="{Binding ShutterSpeed}" 
+                                                   FontSize="14"
+                                                   FontAttributes="Bold"
+                                                   TextColor="White"
+                                                   HorizontalOptions="Center"
+                                                   AutomationProperties.Name="{Binding ShutterSpeed, StringFormat='Shutter speed {0}'}"/>
+                                        </StackLayout>
+                                    </Frame>
+
+                                    <!-- ISO -->
+                                    <Frame Grid.Column="2" 
+                                           BackgroundColor="{StaticResource Tertiary}"
+                                           Padding="8,4"
+                                           CornerRadius="6"
+                                           HasShadow="False"
+                                           IsVisible="True"
+                                           Margin="5,0,0,0">
+                                        <StackLayout Orientation="Vertical" 
+                                                   Spacing="2"
+                                                   HorizontalOptions="Center">
+                                            <Label Text="ISO" 
+                                                   FontSize="10" 
+                                                   FontAttributes="Bold"
+                                                   TextColor="White"
+                                                   HorizontalOptions="Center"/>
+                                            <Label Text="{Binding Iso}" 
+                                                   FontSize="14"
+                                                   FontAttributes="Bold"
+                                                   TextColor="White"
+                                                   HorizontalOptions="Center"
+                                                   AutomationProperties.Name="{Binding Iso, StringFormat='ISO {0}'}"/>
+                                        </StackLayout>
+                                    </Frame>
+                                </Grid>
+
+                                <!-- Separator Line -->
+                                <BoxView Grid.Row="2"
+                                         HeightRequest="1"
+                                         BackgroundColor="{StaticResource Gray200}"
+                                         Margin="0,5,0,10"
+                                         IsVisible="{Binding HasCameraSettings}"/>
+
+                                <!-- Tip Content -->
+                                <Label Grid.Row="3" 
+                                       Text="{Binding Content}" 
+                                       TextType="Html"
+                                       FontSize="14"
+                                       LineHeight="1.4"
+                                       LineBreakMode="WordWrap"
+                                       AutomationProperties.Name="Tip content"
+                                       AutomationProperties.HelpText="{Binding Content}"/>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Loading indicator overlay -->
+        <Grid Grid.Row="2"
+              IsVisible="{Binding IsBusy}" 
+              BackgroundColor="{StaticResource TransparentOverlayBrush}"
+              InputTransparent="False">
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}"
+                   CornerRadius="10"
+                   HasShadow="True"
+                   Padding="20"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   AutomationProperties.Name="Loading tips">
+                <StackLayout Orientation="Horizontal" Spacing="15">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                                     Color="{StaticResource Primary}"
+                                     WidthRequest="24"
+                                     HeightRequest="24"/>
+                    <Label Text="Loading tips..." 
+                           FontSize="16"
+                           VerticalOptions="Center"/>
+                </StackLayout>
+            </Frame>
         </Grid>
 
-        <!-- Error message -->
-        <Grid IsVisible="{Binding IsError}" 
-              Grid.RowSpan="3"
-              BackgroundColor="{StaticResource TransparentErrorBrush}"
-              VerticalOptions="End">
-            <Label Text="{Binding ErrorMessage}" 
-                   TextColor="{StaticResource ErrorRed}"
-                   Margin="20"
-                   FontSize="14"/>
-        </Grid>
+        <!-- System Error Display -->
+        <Frame Grid.Row="3"
+               IsVisible="{Binding IsError}" 
+               BackgroundColor="{StaticResource ErrorLight}"
+               BorderColor="{StaticResource ErrorRed}"
+               Margin="10"
+               Padding="15">
+            <Grid ColumnDefinitions="*, Auto">
+                <Label Grid.Column="0"
+                       Text="{Binding ErrorMessage}" 
+                       TextColor="{StaticResource ErrorRed}"
+                       FontSize="14"
+                       VerticalOptions="Center"
+                       AutomationProperties.Name="System error message"/>
+                <Button Grid.Column="1"
+                        Text="Retry"
+                        Command="{Binding RetryLastCommand}"
+                        BackgroundColor="{StaticResource ErrorRed}"
+                        TextColor="White"
+                        FontSize="12"
+                        Padding="15,5"
+                        CornerRadius="6"
+                        AutomationProperties.Name="Retry last operation"/>
+            </Grid>
+        </Frame>
     </Grid>
 </ContentPage>

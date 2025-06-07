@@ -21,12 +21,12 @@
            BackgroundColor="Transparent" 
            BorderColor="Transparent" 
            Padding="0" 
-           HasShadow="False">
+           HasShadow="False"           
+                   HorizontalOptions="FillAndExpand"
+           VerticalOptions="FillAndExpand">
                 <camera:CameraView x:Name="CameraPreview" 
-                          HorizontalOptions="Fill"
-                         
-                          VerticalOptions="Center"
-                         />
+                          HorizontalOptions="Center"
+                          VerticalOptions="Center" />
             </Frame>
            
 

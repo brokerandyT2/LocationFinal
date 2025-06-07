@@ -488,15 +488,27 @@ namespace Location.Core.Infrastructure.Data.Repositories
             var tipTypeNew = Expression.New(tipTypeConstructor,
                 Expression.Property(entityParam, nameof(TipTypeEntity.Name)));
 
-            // Create initialization expressions for setting private properties
+            // Create initialization expressions for setting properties
             var tipTypeVar = Expression.Variable(typeof(TipType), "tipType");
 
             var initExpressions = new List<Expression>
-           {
+               {
+                   Expression.Assign(tipTypeVar, tipTypeNew),
+       
+                   // Set the Id property using direct property access
+                   Expression.Assign(
+                       Expression.Property(tipTypeVar, "Id"),
+                       Expression.Property(entityParam, nameof(TipTypeEntity.Id))
+                   ),
+       
+                   // Set the I8n property using direct property access
+                   Expression.Assign(
+                       Expression.Property(tipTypeVar, "I8n"),
+                       Expression.Property(entityParam, nameof(TipTypeEntity.I8n))
+                   ),
 
-               Expression.Assign(tipTypeVar, tipTypeNew),
-               tipTypeVar
-           };
+                   tipTypeVar
+               };
 
             var body = Expression.Block(new[] { tipTypeVar }, initExpressions);
             return Expression.Lambda<Func<TipTypeEntity, TipType>>(body, entityParam).Compile();

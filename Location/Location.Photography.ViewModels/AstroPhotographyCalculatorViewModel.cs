@@ -1,9 +1,6 @@
 ﻿// Location.Photography.ViewModels/AstroPhotographyCalculatorViewModel.cs - Part 1
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Models;
-using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using Location.Core.ViewModels;
@@ -11,16 +8,10 @@ using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
-using Location.Photography.ViewModels.Events;
 using Location.Photography.ViewModels.Interfaces;
 using MediatR;
-using System;
 using System.Collections.ObjectModel;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 
@@ -74,13 +65,22 @@ namespace Location.Photography.ViewModels
         private double _fieldOfViewHeight;
         private bool _targetFitsInFrame;
         #endregion
+        // Add new properties for hourly predictions
+        [ObservableProperty]
+        private ObservableCollection<HourlyPredictionDisplayModel> _hourlyAstroPredictions = new();
 
+        [ObservableProperty]
+        private bool _isGeneratingHourlyPredictions;
+
+        [ObservableProperty]
+        private string _hourlyPredictionsStatus = string.Empty;
+
+      
         #region Constructor
-        public AstroPhotographyCalculatorViewModel() : base(null, null)
-        {
-            // Design-time constructor
-            InitializeDesignTimeData();
-        }
+
+
+        private readonly IEquipmentRecommendationService _equipmentRecommendationService;
+        private readonly IPredictiveLightService _predictiveLightService;
 
         public AstroPhotographyCalculatorViewModel(
             IMediator mediator,
@@ -88,7 +88,9 @@ namespace Location.Photography.ViewModels
             IAstroCalculationService astroCalculationService,
             ICameraBodyRepository cameraBodyRepository,
             ILensRepository lensRepository,
-            IUserCameraBodyRepository userCameraBodyRepository)
+            IUserCameraBodyRepository userCameraBodyRepository,
+            IEquipmentRecommendationService equipmentRecommendationService, // NEW
+            IPredictiveLightService predictiveLightService) // NEW
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -97,6 +99,8 @@ namespace Location.Photography.ViewModels
             _cameraBodyRepository = cameraBodyRepository ?? throw new ArgumentNullException(nameof(cameraBodyRepository));
             _lensRepository = lensRepository ?? throw new ArgumentNullException(nameof(lensRepository));
             _userCameraBodyRepository = userCameraBodyRepository ?? throw new ArgumentNullException(nameof(userCameraBodyRepository));
+            _equipmentRecommendationService = equipmentRecommendationService ?? throw new ArgumentNullException(nameof(equipmentRecommendationService)); // NEW
+            _predictiveLightService = predictiveLightService ?? throw new ArgumentNullException(nameof(predictiveLightService)); // NEW
 
             InitializeCommands();
             InitializeAstroTargets();
@@ -138,7 +142,7 @@ namespace Location.Photography.ViewModels
         {
 
 
-            LocationPhoto = "default_location.jpg";
+            LocationPhoto = string.Empty;
             SelectedDate = DateTime.Today;
             CalculationStatus = "Ready for calculations";
             ExposureRecommendation = "ISO 3200, f/2.8, 20 seconds";
@@ -265,7 +269,28 @@ namespace Location.Photography.ViewModels
         public LocationListItemViewModel SelectedLocation
         {
             get => _selectedLocation;
-            set => SetProperty(ref _selectedLocation, value);
+            set
+            {
+                if (SetProperty(ref _selectedLocation, value))
+                {
+                    // Update LocationPhoto when SelectedLocation changes
+                    LocationPhoto = value?.Photo ?? string.Empty;
+
+                    // Trigger recalculation if we have all required data
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            if (CanCalculate)
+                                await CalculateAstroDataAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            await HandleErrorAsync(OperationErrorSource.Validation, $"Error updating calculations: {ex.Message}");
+                        }
+                    });
+                }
+            }
         }
 
         public DateTime SelectedDate
@@ -406,7 +431,7 @@ namespace Location.Photography.ViewModels
             $"FOV: {FieldOfViewWidth:F1}° × {FieldOfViewHeight:F1}° - Target too large";
 
         // Status properties for UI feedback
-        public bool CanCalculate => SelectedLocation != null && SelectedCamera != null && SelectedLens != null && !IsCalculating;
+        public bool CanCalculate => SelectedLocation != null && !IsCalculating;
         public bool HasEquipmentSelected => SelectedCamera != null && SelectedLens != null;
         public bool HasValidSelection => SelectedLocation != null && HasEquipmentSelected;
         public string StatusMessage => IsCalculating ? CalculationStatus :
@@ -452,38 +477,52 @@ namespace Location.Photography.ViewModels
                 var query = new GetLocationsQuery();
                 var result = await _mediator.Send(query, _cancellationTokenSource.Token);
 
-                if (result.IsSuccess && result.Data.Items?.Any() == true)
+                if (result.IsSuccess && result.Data?.Items?.Any() == true)
                 {
-                    var locationViewModels = result.Data.Items.Select(location => new LocationListItemViewModel
-                    {
-                        Id = location.Id,
-                        Title = location.Title,
-                        Latitude = location.Latitude,
-                        Longitude = location.Longitude,
-                        Photo = location.PhotoPath
-                       
-                    }).ToList();
+                    var locationViewModels = result.Data.Items
+                        .Where(location => location != null) // Filter out null locations
+                        .Select(location => new LocationListItemViewModel
+                        {
+                            Id = location.Id,
+                            Title = location.Title ?? "Unknown Location",
+                            Latitude = location.Latitude,
+                            Longitude = location.Longitude,
+                            Photo = location.PhotoPath ?? string.Empty
+                        }).ToList();
 
-                    Locations = new ObservableCollection<LocationListItemViewModel>(locationViewModels);
-
-                    // Auto-select first location if none selected
-                    if (SelectedLocation == null && Locations.Any())
+                    // Check if we have any valid locations
+                    if (locationViewModels.Any())
                     {
-                        SelectedLocation = Locations.First();
-                        LocationPhoto = SelectedLocation.Photo ?? string.Empty;
+                        Locations = new ObservableCollection<LocationListItemViewModel>(locationViewModels);
+
+                        // Auto-select first location if none selected
+                        if (SelectedLocation == null && Locations.Any())
+                        {
+                            SelectedLocation = Locations.First();
+                            LocationPhoto = SelectedLocation?.Photo ?? string.Empty;
+                        }
+
+                        IsInitialized = true;
                     }
-
-                    IsInitialized = true;
+                    else
+                    {
+                        await HandleErrorAsync(OperationErrorSource.Database, "No valid locations found in the database");
+                    }
                 }
                 else
                 {
-                    var errorMsg = result.ErrorMessage ?? "No locations found";
+                    var errorMsg = result?.ErrorMessage ?? "Failed to retrieve locations from database";
                     await HandleErrorAsync(OperationErrorSource.Database, errorMsg);
                 }
             }
             catch (OperationCanceledException)
             {
                 // Operation was cancelled, this is normal
+                CalculationStatus = "Location loading cancelled";
+            }
+            catch (ArgumentNullException ex)
+            {
+                await HandleErrorAsync(OperationErrorSource.Database, $"Database configuration error: {ex.ParamName}");
             }
             catch (Exception ex)
             {
@@ -1360,24 +1399,12 @@ namespace Location.Photography.ViewModels
 
         private async Task CalculateFieldOfViewAsync()
         {
-            if (SelectedCamera == null || SelectedLens == null) return;
+            // Skip field of view calculation when no equipment is selected
+            FieldOfViewWidth = 0;
+            FieldOfViewHeight = 0;
+            TargetFitsInFrame = false;
 
-            try
-            {
-                var focalLength = SelectedLens.IsPrime ? SelectedLens.MinMM :
-                    (SelectedLens.MinMM + SelectedLens.MaxMM.GetValueOrDefault()) / 2;
-
-                var fovData = await _astroCalculationService.GetAstroFieldOfViewAsync(
-                    focalLength, SelectedCamera.SensorWidth, SelectedCamera.SensorHeight, SelectedTarget);
-
-                FieldOfViewWidth = fovData.FieldOfViewWidth;
-                FieldOfViewHeight = fovData.FieldOfViewHeight;
-                TargetFitsInFrame = fovData.TargetFitsInFrame;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error calculating field of view: {ex.Message}");
-            }
+            await Task.CompletedTask; // Keep async signature
         }
 
         #endregion
@@ -1410,7 +1437,6 @@ namespace Location.Photography.ViewModels
                 if (!IsInitialized)
                 {
                     await LoadLocationsAsync();
-                    await LoadEquipmentAsync();
                 }
             }
             catch (Exception ex)

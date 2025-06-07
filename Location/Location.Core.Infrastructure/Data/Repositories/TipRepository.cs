@@ -444,13 +444,36 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 Expression.Property(entityParam, nameof(TipEntity.Title)),
                 Expression.Property(entityParam, nameof(TipEntity.Content)));
 
-            // Create initialization expressions for setting private properties
+            // Create variable to hold the tip instance
             var tipVar = Expression.Variable(typeof(Tip), "tip");
+
+            // Get methods for setting camera settings and localization
+            var updatePhotographySettingsMethod = typeof(Tip).GetMethod("UpdatePhotographySettings");
+            var setLocalizationMethod = typeof(Tip).GetMethod("SetLocalization");
+
+            if (updatePhotographySettingsMethod == null || setLocalizationMethod == null)
+            {
+                throw new InvalidOperationException("Cannot find required Tip methods");
+            }
+
             var initExpressions = new List<Expression>
-           {
-               Expression.Assign(tipVar, tipNew),
-               tipVar
-           };
+    {
+        // Assign the new tip to variable
+        Expression.Assign(tipVar, tipNew),
+        
+        // Call UpdatePhotographySettings
+        Expression.Call(tipVar, updatePhotographySettingsMethod,
+            Expression.Property(entityParam, nameof(TipEntity.Fstop)),
+            Expression.Property(entityParam, nameof(TipEntity.ShutterSpeed)),
+            Expression.Property(entityParam, nameof(TipEntity.Iso))),
+        
+        // Call SetLocalization
+        Expression.Call(tipVar, setLocalizationMethod,
+            Expression.Property(entityParam, nameof(TipEntity.I8n))),
+        
+        // Return the tip
+        tipVar
+    };
 
             var body = Expression.Block(new[] { tipVar }, initExpressions);
             return Expression.Lambda<Func<TipEntity, Tip>>(body, entityParam).Compile();

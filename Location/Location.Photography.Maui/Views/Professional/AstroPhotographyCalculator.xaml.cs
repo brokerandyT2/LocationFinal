@@ -51,10 +51,10 @@ namespace Location.Photography.Maui.Views.Professional
 
                     // Load locations and equipment in parallel
                     var locationTask = _viewModel.LoadLocationsAsync();
-                    var equipmentTask = _viewModel.LoadEquipmentAsync();
+                    //var equipmentTask = _viewModel.LoadEquipmentAsync();
 
-                    await Task.WhenAll(locationTask, equipmentTask);
-
+                    //await Task.WhenAll(locationTask, equipmentTask);
+                    await Task.WhenAll(locationTask);
                     // Auto-calculate if we have valid selections
                     if (_viewModel.CanCalculate)
                     {

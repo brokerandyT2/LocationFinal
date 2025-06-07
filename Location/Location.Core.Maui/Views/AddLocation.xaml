@@ -159,7 +159,7 @@
 
         <!-- Busy indicator overlay -->
         <Grid IsVisible="{Binding IsBusy}" 
-              BackgroundColor="{StaticResource TransparentOverlayBrush}"
+               Background="{StaticResource TransparentOverlayBrush}"
               Padding="10"
               Margin="5">
             <VerticalStackLayout VerticalOptions="Center" 

@@ -21,6 +21,7 @@ using Location.Photography.Maui.Views;
 using Location.Photography.Maui.Views.Premium;
 using Location.Photography.ViewModels;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Location.Photography.Maui
@@ -105,8 +106,14 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<ILocationRepository, LocationRepository>();
             builder.Services.AddSingleton<IUserCameraBodyRepository, UserCameraBodyRepository>();
 
-            // Photography repositories (if any additional ones exist)
-            // Add photography-specific repositories here
+            // Photography repositories
+            builder.Services.AddSingleton<ICameraBodyRepository, CameraBodyRepository>();
+            builder.Services.AddSingleton<ILensRepository, LensRepository>();
+            builder.Services.AddSingleton<ILensCameraCompatibilityRepository, LensCameraCompatibilityRepository>();
+
+            // Use the Application layer interface that matches your implementation
+            builder.Services.AddSingleton<Location.Photography.Application.Services.IEquipmentRecommendationService, EquipmentRecommendationService>();
+            builder.Services.AddSingleton<IPredictiveLightService, PredictiveLightService>();
 
             // ==================== CORE VIEWMODELS ====================
             // Core ViewModels (transient for fresh instances)
@@ -124,6 +131,29 @@ namespace Location.Photography.Maui
             builder.Services.AddTransient<SubscriptionSignUpViewModel>();
             builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<LightMeterViewModel>();
+            builder.Services.AddTransient<EnhancedSunCalculatorViewModel>();
+            // Explicitly register AstroPhotographyCalculatorViewModel with factory
+            builder.Services.AddTransient<AstroPhotographyCalculatorViewModel>(sp =>
+            {
+                var mediator = sp.GetRequiredService<IMediator>();
+                var errorDisplayService = sp.GetRequiredService<IErrorDisplayService>();
+                var astroCalculationService = sp.GetRequiredService<IAstroCalculationService>();
+                var cameraBodyRepository = sp.GetRequiredService<ICameraBodyRepository>();
+                var lensRepository = sp.GetRequiredService<ILensRepository>();
+                var userCameraBodyRepository = sp.GetRequiredService<IUserCameraBodyRepository>();
+                var equipmentRecommendationService = sp.GetRequiredService<Location.Photography.Application.Services.IEquipmentRecommendationService>();
+                var predictiveLightService = sp.GetRequiredService<IPredictiveLightService>();
+
+                return new AstroPhotographyCalculatorViewModel(
+                    mediator,
+                    errorDisplayService,
+                    astroCalculationService,
+                    cameraBodyRepository,
+                    lensRepository,
+                    userCameraBodyRepository,
+                    equipmentRecommendationService,
+                    predictiveLightService);
+            });
 
             // ==================== CORE PAGES ====================
             // Core Pages - using factory pattern for proper DI
@@ -136,10 +166,10 @@ namespace Location.Photography.Maui
                 return new Location.Core.Maui.Views.AddLocation(mediator, mediaService, geoService, errorService);
             });
 
-           builder.Services.AddScoped<IAstroCalculationService>(provider =>
-                new AstroCalculationService(
-                    provider.GetRequiredService<ILogger<AstroCalculationService>>(),
-                    provider.GetRequiredService<ISunCalculatorService>()));
+            builder.Services.AddScoped<IAstroCalculationService>(provider =>
+                 new AstroCalculationService(
+                     provider.GetRequiredService<ILogger<AstroCalculationService>>(),
+                     provider.GetRequiredService<ISunCalculatorService>()));
 
             builder.Services.AddTransient<Location.Core.Maui.Views.LocationsPage>(sp =>
             {
@@ -277,28 +307,15 @@ namespace Location.Photography.Maui
                 var expCalc = sp.GetRequiredService<IExposureCalculatorService>();
                 return new Views.Professional.SunCalculator(viewModel, alertService, mediator, expCalc);
             });
+
             builder.Services.AddTransient<Views.Professional.AstroPhotographyCalculator>(sp =>
             {
-                var mediator = sp.GetRequiredService<IMediator>();
+                var viewModel = sp.GetRequiredService<AstroPhotographyCalculatorViewModel>();
                 var alertService = sp.GetRequiredService<IAlertService>();
-                var astroCalculationService = sp.GetRequiredService<IAstroCalculationService>();
-                var logger = sp.GetRequiredService<ILogger<Views.Professional.AstroPhotographyCalculator>>();
-                var errorService = sp.GetRequiredService<IErrorDisplayService>();
-                var settingRepo = sp.GetRequiredService<ISettingRepository>();
-                var locationRepo = sp.GetRequiredService<Core.Application.Common.Interfaces.ILocationRepository>();
-                var timezoneService = sp.GetRequiredService<ITimezoneService>();
-
-                return new Views.Professional.AstroPhotographyCalculator(
-                    mediator,
-                    alertService,
-                    astroCalculationService,
-                    logger,
-                    errorService,
-                    settingRepo,
-                    locationRepo,
-                    timezoneService
-                );
+                var mediator = sp.GetRequiredService<IMediator>();
+                return new Views.Professional.AstroPhotographyCalculator(viewModel,alertService, mediator);
             });
+
             // Settings and Onboarding Pages
             builder.Services.AddTransient<Views.Settings>(sp =>
             {

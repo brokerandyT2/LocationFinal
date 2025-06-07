@@ -1,10 +1,15 @@
-﻿using System.ComponentModel;
+﻿// Enhanced Location.Photography.ViewModels/HourlyPredictionDisplayModel.cs
+using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using Location.Photography.Application.Services;
+using Location.Photography.Domain.Entities;
+
 namespace Location.Photography.ViewModels
 {
     public class HourlyPredictionDisplayModel : INotifyPropertyChanged
     {
+        // Existing properties...
         public DateTime Time { get; set; }
         public string DeviceTimeDisplay { get; set; } = string.Empty;
         public string LocationTimeDisplay { get; set; } = string.Empty;
@@ -19,6 +24,7 @@ namespace Location.Photography.ViewModels
         public string Recommendations { get; set; } = string.Empty;
         public bool IsOptimalTime { get; set; }
         public string TimeFormat { get; set; } = "HH:mm";
+        public double ShootingQualityScore { get; set; }
 
         // Enhanced weather integration properties
         private string _wd = string.Empty;
@@ -29,6 +35,132 @@ namespace Location.Photography.ViewModels
         public string WindInfo { get; set; } = string.Empty;
         public double UvIndex { get; set; }
         public int Humidity { get; set; }
+
+        // NEW: Equipment recommendation properties
+        public HourlyEquipmentRecommendation? EquipmentRecommendation { get; set; }
+        public bool HasUserEquipment => EquipmentRecommendation?.HasUserEquipment ?? false;
+        public string EquipmentRecommendationText => EquipmentRecommendation?.Recommendation ?? "No equipment recommendation available";
+
+        // User equipment display properties
+        public string UserCameraLensRecommendation
+        {
+            get
+            {
+                if (EquipmentRecommendation?.RecommendedCombination != null)
+                {
+                    var combo = EquipmentRecommendation.RecommendedCombination;
+                    return $"📷 Use {combo.Camera.Name} with {combo.Lens.NameForLens}";
+                }
+                return EquipmentRecommendationText;
+            }
+        }
+
+        public string EquipmentMatchScore
+        {
+            get
+            {
+                if (EquipmentRecommendation?.RecommendedCombination != null)
+                {
+                    var score = EquipmentRecommendation.RecommendedCombination.MatchScore;
+                    return score >= 85 ? "Excellent Match" :
+                           score >= 70 ? "Very Good Match" :
+                           score >= 50 ? "Good Match" : "Workable";
+                }
+                return "";
+            }
+        }
+
+        public string EquipmentMatchColor
+        {
+            get
+            {
+                if (EquipmentRecommendation?.RecommendedCombination != null)
+                {
+                    var score = EquipmentRecommendation.RecommendedCombination.MatchScore;
+                    return score >= 85 ? "#4CAF50" : // Green - Excellent
+                           score >= 70 ? "#8BC34A" : // Light Green - Very Good
+                           score >= 50 ? "#FF9800" : // Orange - Good
+                           "#FF5722"; // Red - Workable
+                }
+                return "#9E9E9E"; // Gray - No recommendation
+            }
+        }
+
+        public List<string> EquipmentStrengths => EquipmentRecommendation?.RecommendedCombination?.Strengths ?? new List<string>();
+        public List<string> EquipmentLimitations => EquipmentRecommendation?.RecommendedCombination?.Limitations ?? new List<string>();
+
+        public string DetailedEquipmentRecommendation
+        {
+            get
+            {
+                if (EquipmentRecommendation?.RecommendedCombination != null)
+                {
+                    return EquipmentRecommendation.RecommendedCombination.DetailedRecommendation;
+                }
+                return EquipmentRecommendationText;
+            }
+        }
+
+        // Enhanced equipment display for UI
+        public string EquipmentSummary
+        {
+            get
+            {
+                if (HasUserEquipment && EquipmentRecommendation?.RecommendedCombination != null)
+                {
+                    var combo = EquipmentRecommendation.RecommendedCombination;
+                    var scoreText = EquipmentMatchScore;
+                    return $"{combo.Camera.Name} + {combo.Lens.NameForLens} ({scoreText})";
+                }
+                return EquipmentRecommendationText;
+            }
+        }
+
+        // Equipment recommendation priority for sorting
+        public int EquipmentPriority
+        {
+            get
+            {
+                if (EquipmentRecommendation?.RecommendedCombination != null)
+                {
+                    var score = EquipmentRecommendation.RecommendedCombination.MatchScore;
+                    if (score >= 85) return 4; // Excellent
+                    if (score >= 70) return 3; // Very Good
+                    if (score >= 50) return 2; // Good
+                    return 1; // Workable
+                }
+                return 0; // No equipment
+            }
+        }
+
+        // Combined equipment and weather assessment
+        public string OverallRecommendation
+        {
+            get
+            {
+                var parts = new List<string>();
+
+                // Light quality
+                if (IsOptimalTime)
+                    parts.Add($"✓ {LightQuality}");
+                else
+                    parts.Add($"○ {LightQuality}");
+
+                // Equipment recommendation
+                if (HasUserEquipment)
+                    parts.Add($"📷 {EquipmentMatchScore}");
+                else
+                    parts.Add("📷 Generic equipment needed");
+
+                // Weather impact
+                var weatherImpact = ConfidenceLevel >= 0.8 ? "Clear conditions" :
+                                  ConfidenceLevel >= 0.6 ? "Some weather impact" :
+                                  "Significant weather impact";
+                parts.Add($"🌤 {weatherImpact}");
+
+                return string.Join(" • ", parts);
+            }
+        }
 
         // Display properties
         public string FormattedPrediction => $"EV {PredictedEV:F1} ±{EVConfidenceMargin:F1}";
@@ -150,15 +282,14 @@ namespace Location.Photography.ViewModels
                 SuggestedISO = SuggestedISO,
                 ExpectedLightLevel = CalculateExpectedLightLevel(),
                 OptimalForPhotography = IsOptimalTime,
-                ConfidenceLevel = ConfidenceLevel
+                ConfidenceLevel = ConfidenceLevel,
+                EquipmentRecommendation = DetailedEquipmentRecommendation
             };
         }
 
         private double CalculateExpectedLightLevel()
         {
             // Convert EV to approximate lux value for light meter
-            // EV = log2(Lux * Aperture² / (ISO * t)) where t is shutter speed in seconds
-            // Simplified approximation for light meter preset
             return Math.Pow(2, PredictedEV) * 2.5; // Rough approximation
         }
 
@@ -174,7 +305,8 @@ namespace Location.Photography.ViewModels
                 TimePeriod = TimePeriod,
                 OptimalForPortraits = LightQuality.ToLower().Contains("soft") || LightQuality.ToLower().Contains("golden"),
                 OptimalForLandscapes = IsOptimalTime && (LightQuality.ToLower().Contains("golden") || LightQuality.ToLower().Contains("blue")),
-                WeatherCondition = WeatherImpactLevel
+                WeatherCondition = WeatherImpactLevel,
+                EquipmentRecommendation = DetailedEquipmentRecommendation
             };
         }
 
@@ -195,6 +327,20 @@ namespace Location.Photography.ViewModels
             get
             {
                 var recommendation = $"Best for: {LightQuality}";
+
+                if (HasUserEquipment)
+                {
+                    recommendation += $"\n📷 Equipment: {UserCameraLensRecommendation}";
+                    if (EquipmentStrengths.Any())
+                    {
+                        recommendation += $"\n✓ {string.Join(", ", EquipmentStrengths.Take(2))}";
+                    }
+                }
+                else
+                {
+                    recommendation += $"\n📷 Recommended: {EquipmentRecommendationText}";
+                }
+
                 if (!string.IsNullOrEmpty(Recommendations))
                 {
                     recommendation += $"\nTips: {Recommendations}";
@@ -208,8 +354,6 @@ namespace Location.Photography.ViewModels
         }
 
         public string CompactSummary => $"{FormattedPrediction} • {ConfidenceDisplay} • {LightQuality}";
-
-        public double ShootingQualityScore { get; internal set; }
 
         // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler PropertyChanged;
@@ -230,7 +374,7 @@ namespace Location.Photography.ViewModels
         }
     }
 
-    // Supporting classes for modal navigation
+    // Enhanced supporting classes for modal navigation
     public class LightMeterPreset
     {
         public double PredictedEV { get; set; }
@@ -240,6 +384,7 @@ namespace Location.Photography.ViewModels
         public double ExpectedLightLevel { get; set; }
         public bool OptimalForPhotography { get; set; }
         public double ConfidenceLevel { get; set; }
+        public string EquipmentRecommendation { get; set; } = string.Empty; // NEW
     }
 
     public class CameraTipCriteria
@@ -252,5 +397,6 @@ namespace Location.Photography.ViewModels
         public bool OptimalForPortraits { get; set; }
         public bool OptimalForLandscapes { get; set; }
         public string WeatherCondition { get; set; } = string.Empty;
+        public string EquipmentRecommendation { get; set; } = string.Empty; // NEW
     }
 }
