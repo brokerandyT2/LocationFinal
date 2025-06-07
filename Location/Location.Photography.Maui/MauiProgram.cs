@@ -122,6 +122,8 @@ namespace Location.Photography.Maui
                 return new EquipmentRecommendationServiceAdapter(applicationService);
             });
 
+            builder.Services.AddSingleton<Location.Photography.Application.Common.Interfaces.IAstroHourlyPredictionMappingService, Location.Photography.Infrastructure.Services.AstroHourlyPredictionMappingService>();
+
             builder.Services.AddSingleton<IPredictiveLightService, PredictiveLightService>();
 
             // ==================== CORE VIEWMODELS ====================
@@ -153,7 +155,7 @@ namespace Location.Photography.Maui
                 var equipmentRecommendationService = sp.GetRequiredService<Location.Photography.ViewModels.Interfaces.IEquipmentRecommendationService>();
                 var predictiveLightService = sp.GetRequiredService<IPredictiveLightService>();
                 var exposureCalculatorService = sp.GetRequiredService<IExposureCalculatorService>();
-
+                var mappingService = sp.GetRequiredService<Location.Photography.Application.Common.Interfaces.IAstroHourlyPredictionMappingService>();
                 return new AstroPhotographyCalculatorViewModel(
                     mediator,
                     errorDisplayService,
@@ -163,7 +165,8 @@ namespace Location.Photography.Maui
                     userCameraBodyRepository,
                     equipmentRecommendationService,
                     predictiveLightService,
-                    exposureCalculatorService);
+                    exposureCalculatorService,
+                    mappingService);
             });
 
             // ==================== CORE PAGES ====================

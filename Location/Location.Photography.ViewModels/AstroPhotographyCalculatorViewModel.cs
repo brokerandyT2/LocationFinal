@@ -1,28 +1,20 @@
 ﻿// Enhanced AstroPhotographyCalculatorViewModel with Twilight-Aware Calculations and Equipment Matching
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Models;
-using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.Queries.GetHourlyForecast;
 using Location.Core.ViewModels;
 using Location.Photography.Application.Common.Interfaces;
+using Location.Photography.Application.DTOs;
 using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
-using Location.Photography.ViewModels.Events;
 using Location.Photography.ViewModels.Interfaces;
 using MediatR;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErrorSource;
 using ShutterSpeeds = Location.Photography.ViewModels.Interfaces.ShutterSpeeds;
@@ -41,7 +33,7 @@ namespace Location.Photography.ViewModels
         private readonly IEquipmentRecommendationService _equipmentRecommendationService;
         private readonly IPredictiveLightService _predictiveLightService;
         private readonly IExposureCalculatorService _exposureCalculatorService;
-
+        private readonly IAstroHourlyPredictionMappingService _mappingService;
         // PERFORMANCE: Threading and caching
         private readonly SemaphoreSlim _operationLock = new(1, 1);
         private readonly Dictionary<string, CachedAstroCalculation> _calculationCache = new();
@@ -83,7 +75,6 @@ namespace Location.Photography.ViewModels
         private bool _targetFitsInFrame;
 
         // Hourly predictions backing fields
-        private ObservableCollection<AstroHourlyPrediction> _hourlyAstroPredictions = new();
         private bool _isGeneratingHourlyPredictions;
         private string _hourlyPredictionsStatus = string.Empty;
         #endregion
@@ -98,7 +89,10 @@ namespace Location.Photography.ViewModels
         [ObservableProperty]
         private string _hourlyPredictionsHeader = "Tonight's Astrophotography Windows";
 
-        public ObservableCollection<AstroHourlyPrediction> HourlyAstroPredictions
+        // Change from ObservableCollection<AstroHourlyPrediction> to:
+        private ObservableCollection<AstroHourlyPredictionDisplayModel> _hourlyAstroPredictions = new();
+
+        public ObservableCollection<AstroHourlyPredictionDisplayModel> HourlyAstroPredictions
         {
             get => _hourlyAstroPredictions;
             set => SetProperty(ref _hourlyAstroPredictions, value);
@@ -127,7 +121,7 @@ namespace Location.Photography.ViewModels
             IUserCameraBodyRepository userCameraBodyRepository,
             IEquipmentRecommendationService equipmentRecommendationService,
             IPredictiveLightService predictiveLightService,
-            IExposureCalculatorService exposureCalculatorService)
+            IExposureCalculatorService exposureCalculatorService, IAstroHourlyPredictionMappingService mappingService)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -139,7 +133,7 @@ namespace Location.Photography.ViewModels
             _equipmentRecommendationService = equipmentRecommendationService ?? throw new ArgumentNullException(nameof(equipmentRecommendationService));
             _predictiveLightService = predictiveLightService ?? throw new ArgumentNullException(nameof(predictiveLightService));
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
-
+            _mappingService = mappingService ?? throw new ArgumentNullException(nameof(mappingService));
             InitializeCommands();
             InitializeAstroTargets();
         }
@@ -192,8 +186,23 @@ namespace Location.Photography.ViewModels
                     HourlyPredictionsStatus = $"Generated {predictions.Count} shooting windows for tonight";
                 });
 
-                // Cache the results
-                _predictionCache[cacheKey] = predictions;
+                // Cache the results - convert display models back to domain for caching
+                var domainPredictions = predictions.Select(p => new AstroHourlyPrediction
+                {
+                    Hour = p.Hour,
+                    TimeDisplay = p.TimeDisplay,
+                    SolarEvent = p.SolarEventsDisplay,
+                    OverallScore = p.QualityScore,
+                    WeatherConditions = new WeatherConditions
+                    {
+                        CloudCover = p.WeatherCloudCover,
+                        Humidity = p.WeatherHumidity,
+                        WindSpeed = p.WeatherWindSpeed,
+                        Visibility = p.WeatherCloudCover,
+                        Description = p.WeatherDescription
+                    }
+                }).ToList();
+                _predictionCache[cacheKey] = domainPredictions;
                 _lastCalculationTime = DateTime.Now;
 
                 CalculationCompleted?.Invoke(this, EventArgs.Empty);
@@ -292,63 +301,56 @@ namespace Location.Photography.ViewModels
                 CivilTwilightStart = sunrise.AddMinutes(-20)         // Sun at -6°
             };
         }
-        private async Task<List<AstroHourlyPrediction>> GenerateTwilightAwareHourlyPredictionsAsync(ShootingWindow window)
+        private async Task<List<AstroHourlyPredictionDisplayModel>> GenerateTwilightAwareHourlyPredictionsAsync(ShootingWindow window)
         {
-            var predictions = new List<AstroHourlyPrediction>();
-
             try
             {
-                // Generate hourly predictions from sunset to sunrise
+                // Generate calculation results for each hour
+                var calculationResults = new List<AstroCalculationResult>();
                 var currentHour = new DateTime(window.Date.Year, window.Date.Month, window.Date.Day,
                     window.Sunset.Hour, 0, 0);
 
                 while (currentHour <= window.Sunrise.AddHours(1))
                 {
-                    // Determine solar event for this hour
                     var solarEvent = GetSolarEventForHour(currentHour, window);
-
-                    // Get all viable targets for this hour and solar event
                     var viableTargets = await GetViableTargetsForHourAsync(currentHour, solarEvent);
 
-                    if (viableTargets.Any())
+                    foreach (var target in viableTargets)
                     {
-                        // Calculate overall shooting score for this hour
-                        var overallScore = await CalculateOverallShootingScoreAsync(currentHour, viableTargets);
-
-                        // Create target events with equipment matching
-                        var targetEvents = new List<AstroTargetEvent>();
-                        foreach (var target in viableTargets)
+                        var visibility = await GetTargetVisibilityForHourAsync(target, currentHour);
+                        if (visibility.IsVisible && visibility.OptimalityScore > 0.5)
                         {
-                            var targetEvent = await CreateTargetEventAsync(currentHour, target);
-                            if (targetEvent != null)
+                            calculationResults.Add(new AstroCalculationResult
                             {
-                                targetEvents.Add(targetEvent);
-                            }
-                        }
-
-                        if (targetEvents.Any())
-                        {
-                            predictions.Add(new AstroHourlyPrediction
-                            {
-                                Hour = currentHour,
-                                TimeDisplay = currentHour.ToString("h:mm tt"),
-                                SolarEvent = solarEvent,
-                                OverallScore = overallScore,
-                                TargetEvents = targetEvents,
-                                WeatherConditions = await GetWeatherForHourAsync(currentHour)
+                                Target = target,
+                                CalculationTime = currentHour,
+                                LocalTime = currentHour,
+                                IsVisible = visibility.IsVisible,
+                                Azimuth = visibility.Azimuth,
+                                Altitude = visibility.Altitude,
+                                Description = solarEvent,
+                                PhotographyNotes = GetTargetDisplayName(target, visibility)
                             });
                         }
                     }
 
                     currentHour = currentHour.AddHours(1);
                 }
+
+                // Use mapping service to convert to display models
+                var displayModels = await _mappingService.MapFromDomainDataAsync(
+                    calculationResults,
+                    SelectedLocation.Latitude,
+                    SelectedLocation.Longitude,
+                    SelectedDate);
+
+                return ConvertDtosToDisplayModels(displayModels);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error generating twilight-aware predictions: {ex.Message}");
+                return new List<AstroHourlyPredictionDisplayModel>();
             }
-
-            return predictions;
         }
 
         private string GetSolarEventForHour(DateTime hour, ShootingWindow window)
@@ -893,13 +895,55 @@ namespace Location.Photography.ViewModels
                 };
             }
         }
-
+        private List<AstroHourlyPredictionDisplayModel> ConvertDtosToDisplayModels(List<AstroHourlyPredictionDto> dtos)
+        {
+            return dtos.Select(dto => new AstroHourlyPredictionDisplayModel
+            {
+                Hour = dto.Hour,
+                TimeDisplay = dto.TimeDisplay,
+                SolarEvent = dto.SolarEvent,
+                SolarEventsDisplay = dto.SolarEventsDisplay,
+                QualityScore = dto.QualityScore,
+                QualityDisplay = dto.QualityDisplay,
+                QualityDescription = dto.QualityDescription,
+                AstroEvents = dto.AstroEvents.Select(e => new AstroEventDisplayModel
+                {
+                    TargetName = e.TargetName,
+                    Visibility = e.Visibility,
+                    RecommendedEquipment = e.RecommendedEquipment,
+                    CameraSettings = e.CameraSettings,
+                    Notes = e.Notes
+                }).ToList(),
+                WeatherCloudCover = dto.Weather.CloudCover,
+                WeatherHumidity = dto.Weather.Humidity,
+                WeatherWindSpeed = dto.Weather.WindSpeed,
+                WeatherVisibility = dto.Weather.Visibility,
+                WeatherDescription = dto.Weather.Description,
+                WeatherDisplay = dto.Weather.WeatherDisplay,
+                WeatherSuitability = dto.Weather.WeatherSuitability
+            }).ToList();
+        }
         private async Task ApplyCachedPredictionsAsync(List<AstroHourlyPrediction> cachedPredictions)
         {
+            // Convert cached domain objects to display models
+            var calculationResults = cachedPredictions.Select(p => new AstroCalculationResult
+            {
+                CalculationTime = p.Hour,
+                LocalTime = p.Hour,
+                Description = p.SolarEvent,
+                IsVisible = true
+            }).ToList();
+
+            var displayModels = ConvertDtosToDisplayModels(await _mappingService.MapFromDomainDataAsync(
+                calculationResults,
+                SelectedLocation.Latitude,
+                SelectedLocation.Longitude,
+                SelectedDate));
+
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
                 HourlyAstroPredictions.Clear();
-                foreach (var prediction in cachedPredictions)
+                foreach (var prediction in displayModels)
                 {
                     HourlyAstroPredictions.Add(prediction);
                 }

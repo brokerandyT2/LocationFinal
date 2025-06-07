@@ -28,6 +28,16 @@ namespace Location.Photography.ViewModels
         // Original Domain Data
         public DateTime Hour { get; set; }
         public AstroHourlyPrediction DomainModel { get; set; } = new();
+        public string SolarEvent { get; internal set; }
+        public string QualityDisplay { get; internal set; }
+        public string QualityDescription { get; internal set; }
+        public double WeatherCloudCover { get; internal set; }
+        public double WeatherHumidity { get; internal set; }
+        public double WeatherWindSpeed { get; internal set; }
+        public string WeatherDescription { get; internal set; }
+        public double WeatherVisibility { get; internal set; }
+        public string WeatherDisplay { get; internal set; }
+        public string WeatherSuitability { get; internal set; }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -82,6 +92,10 @@ namespace Location.Photography.ViewModels
         // Event-Specific Notes
         public string PhotographyNotes { get; set; } = string.Empty;
         public string DifficultyLevel { get; set; } = string.Empty;
+        public string Visibility { get; internal set; }
+        public string CameraSettings { get; internal set; }
+        public string RecommendedEquipment { get; internal set; }
+        public string Notes { get; internal set; }
     }
 
     public class SolarEventDisplayModel
