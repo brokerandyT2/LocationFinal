@@ -31,6 +31,7 @@ namespace Location.Photography.ViewModels.Events
         Permission,
         Device,
         MediaService,
-        Navigation
+        Navigation,
+        Calculation
     }
 }

@@ -21,7 +21,6 @@ using Location.Photography.Maui.Views;
 using Location.Photography.Maui.Views.Premium;
 using Location.Photography.ViewModels;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Location.Photography.Maui
@@ -111,8 +110,18 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<ILensRepository, LensRepository>();
             builder.Services.AddSingleton<ILensCameraCompatibilityRepository, LensCameraCompatibilityRepository>();
 
-            // Use the Application layer interface that matches your implementation
-            builder.Services.AddSingleton<Location.Photography.Application.Services.IEquipmentRecommendationService, EquipmentRecommendationService>();
+            // Register the Application service first
+            builder.Services.AddSingleton<Location.Photography.Application.Services.IEquipmentRecommendationService, Location.Photography.Infrastructure.Services.EquipmentRecommendationService>();
+
+            // Create an adapter that wraps the Application service for ViewModels
+            builder.Services.AddSingleton<Location.Photography.ViewModels.Interfaces.IEquipmentRecommendationService>(sp =>
+            {
+                var applicationService = sp.GetRequiredService<Location.Photography.Application.Services.IEquipmentRecommendationService>();
+                // For now, we'll create a simple wrapper - you may need to implement this adapter class
+                // Return a wrapper that delegates to the application service
+                return new EquipmentRecommendationServiceAdapter(applicationService);
+            });
+
             builder.Services.AddSingleton<IPredictiveLightService, PredictiveLightService>();
 
             // ==================== CORE VIEWMODELS ====================
@@ -141,8 +150,9 @@ namespace Location.Photography.Maui
                 var cameraBodyRepository = sp.GetRequiredService<ICameraBodyRepository>();
                 var lensRepository = sp.GetRequiredService<ILensRepository>();
                 var userCameraBodyRepository = sp.GetRequiredService<IUserCameraBodyRepository>();
-                var equipmentRecommendationService = sp.GetRequiredService<Location.Photography.Application.Services.IEquipmentRecommendationService>();
+                var equipmentRecommendationService = sp.GetRequiredService<Location.Photography.ViewModels.Interfaces.IEquipmentRecommendationService>();
                 var predictiveLightService = sp.GetRequiredService<IPredictiveLightService>();
+                var exposureCalculatorService = sp.GetRequiredService<IExposureCalculatorService>();
 
                 return new AstroPhotographyCalculatorViewModel(
                     mediator,
@@ -152,7 +162,8 @@ namespace Location.Photography.Maui
                     lensRepository,
                     userCameraBodyRepository,
                     equipmentRecommendationService,
-                    predictiveLightService);
+                    predictiveLightService,
+                    exposureCalculatorService);
             });
 
             // ==================== CORE PAGES ====================
@@ -313,7 +324,7 @@ namespace Location.Photography.Maui
                 var viewModel = sp.GetRequiredService<AstroPhotographyCalculatorViewModel>();
                 var alertService = sp.GetRequiredService<IAlertService>();
                 var mediator = sp.GetRequiredService<IMediator>();
-                return new Views.Professional.AstroPhotographyCalculator(viewModel,alertService, mediator);
+                return new Views.Professional.AstroPhotographyCalculator(viewModel, alertService, mediator);
             });
 
             // Settings and Onboarding Pages

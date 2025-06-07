@@ -178,7 +178,8 @@
 
         <!-- Error message display -->
         <Grid IsVisible="{Binding IsError}"
-              BackgroundColor="{StaticResource TransparentErrorBrush}"
+              
+              Background="{StaticResource TransparentErrorBrush}"
               VerticalOptions="End"
               Padding="10"
               Margin="5">

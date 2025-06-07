@@ -172,7 +172,7 @@ namespace Location.Photography.Infrastructure.Services
         // Private helper methods
         private async Task<List<Lens>> FindMatchingLensesAsync(
             List<Lens> userLenses,
-            OptimalEquipmentSpecs specs,
+            ViewModels.OptimalEquipmentSpecs specs,
             CancellationToken cancellationToken)
         {
             var matchingLenses = new List<Lens>();
@@ -188,7 +188,7 @@ namespace Location.Photography.Infrastructure.Services
             return matchingLenses;
         }
 
-        private bool IsLensMatchingSpecs(Lens lens, OptimalEquipmentSpecs specs)
+        private bool IsLensMatchingSpecs(Lens lens, ViewModels.OptimalEquipmentSpecs specs)
         {
             // Check focal length compatibility
             bool focalLengthMatch = false;
@@ -238,7 +238,7 @@ namespace Location.Photography.Infrastructure.Services
         private async Task<CameraLensCombination> CreateCameraLensCombinationAsync(
             CameraBody camera,
             Lens lens,
-            OptimalEquipmentSpecs specs)
+            ViewModels.OptimalEquipmentSpecs specs)
         {
             var matchScore = CalculateMatchScore(camera, lens, specs);
             var strengths = IdentifyStrengths(camera, lens, specs);
@@ -257,7 +257,7 @@ namespace Location.Photography.Infrastructure.Services
             };
         }
 
-        private double CalculateMatchScore(CameraBody camera, Lens lens, OptimalEquipmentSpecs specs)
+        private double CalculateMatchScore(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs)
         {
             double score = 0;
 
@@ -277,7 +277,7 @@ namespace Location.Photography.Infrastructure.Services
             return Math.Min(100, Math.Max(0, score));
         }
 
-        private double CalculateFocalLengthScore(Lens lens, OptimalEquipmentSpecs specs)
+        private double CalculateFocalLengthScore(Lens lens, ViewModels.OptimalEquipmentSpecs specs)
         {
             if (lens.IsPrime)
             {
@@ -294,7 +294,7 @@ namespace Location.Photography.Infrastructure.Services
             }
         }
 
-        private double CalculateApertureScore(Lens lens, OptimalEquipmentSpecs specs)
+        private double CalculateApertureScore(Lens lens, ViewModels.OptimalEquipmentSpecs specs)
         {
             if (lens.MaxFStop <= specs.MaxAperture)
             {
@@ -305,7 +305,7 @@ namespace Location.Photography.Infrastructure.Services
             return Math.Max(0.0, (double)(1 - (apertureDeficit / 2.0))); // Penalty for slower aperture
         }
 
-        private double CalculateSensorScore(CameraBody camera, OptimalEquipmentSpecs specs)
+        private double CalculateSensorScore(CameraBody camera, ViewModels.OptimalEquipmentSpecs specs)
         {
             // Basic sensor score - could be enhanced based on target requirements
             var sensorArea = camera.SensorWidth * camera.SensorHeight;
@@ -316,7 +316,7 @@ namespace Location.Photography.Infrastructure.Services
             return Math.Min(1.0, sensorArea / fullFrameArea);
         }
 
-        private List<string> IdentifyStrengths(CameraBody camera, Lens lens, OptimalEquipmentSpecs specs)
+        private List<string> IdentifyStrengths(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs)
         {
             var strengths = new List<string>();
 
@@ -336,7 +336,7 @@ namespace Location.Photography.Infrastructure.Services
             return strengths;
         }
 
-        private List<string> IdentifyLimitations(CameraBody camera, Lens lens, OptimalEquipmentSpecs specs)
+        private List<string> IdentifyLimitations(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs)
         {
             var limitations = new List<string>();
 
@@ -352,7 +352,7 @@ namespace Location.Photography.Infrastructure.Services
             return limitations;
         }
 
-        private string GenerateRecommendationReason(CameraBody camera, Lens lens, OptimalEquipmentSpecs specs, double score)
+        private string GenerateRecommendationReason(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs, double score)
         {
             if (score >= 85)
                 return "Excellent match - optimal for this target";
@@ -364,7 +364,7 @@ namespace Location.Photography.Infrastructure.Services
             return "Functional but not ideal for this target";
         }
 
-        private string GenerateDetailedRecommendation(CameraBody camera, Lens lens, OptimalEquipmentSpecs specs, double score)
+        private string GenerateDetailedRecommendation(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs, double score)
         {
             var recommendation = $"Use your {camera.Name} with {lens.NameForLens}. ";
 
@@ -386,12 +386,12 @@ namespace Location.Photography.Infrastructure.Services
             return recommendation;
         }
 
-        private string GetTargetDescription(OptimalEquipmentSpecs specs)
+        private string GetTargetDescription(ViewModels.OptimalEquipmentSpecs specs)
         {
             return specs.Notes.Split('.').FirstOrDefault() ?? "astrophotography";
         }
 
-        private string GenerateRecommendationSummary(List<CameraLensCombination> combinations, OptimalEquipmentSpecs specs, AstroTarget target)
+        private string GenerateRecommendationSummary(List<CameraLensCombination> combinations, ViewModels.OptimalEquipmentSpecs specs, AstroTarget target)
         {
             if (!combinations.Any())
             {
@@ -411,7 +411,7 @@ namespace Location.Photography.Infrastructure.Services
             return $"⚠ Workable: {bestCombination.DisplayText} can work for {target} with compromises";
         }
 
-        private string GenerateGenericLensRecommendation(OptimalEquipmentSpecs specs)
+        private string GenerateGenericLensRecommendation(ViewModels.OptimalEquipmentSpecs specs)
         {
             var focalLengthDesc = specs.MinFocalLength == specs.MaxFocalLength
                 ? $"{specs.OptimalFocalLength}mm"
@@ -422,12 +422,12 @@ namespace Location.Photography.Infrastructure.Services
             return $"{focalLengthDesc} f/{specs.MaxAperture} {apertureDesc} lens";
         }
 
-        private string GenerateGenericCameraRecommendation(OptimalEquipmentSpecs specs)
+        private string GenerateGenericCameraRecommendation(ViewModels.OptimalEquipmentSpecs specs)
         {
             return "Camera with good high ISO performance (ISO " + specs.MinISO + "-" + specs.MaxISO + ")";
         }
 
-        private List<string> GenerateShoppingList(OptimalEquipmentSpecs specs, AstroTarget target)
+        private List<string> GenerateShoppingList(ViewModels.OptimalEquipmentSpecs specs, AstroTarget target)
         {
             var list = new List<string>
             {
@@ -445,11 +445,11 @@ namespace Location.Photography.Infrastructure.Services
             return list;
         }
 
-        private OptimalEquipmentSpecs GetOptimalEquipmentSpecs(AstroTarget target)
+        private ViewModels.OptimalEquipmentSpecs GetOptimalEquipmentSpecs(AstroTarget target)
         {
             return target switch
             {
-                AstroTarget.MilkyWayCore => new OptimalEquipmentSpecs
+                AstroTarget.MilkyWayCore => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 14,
                     MaxFocalLength = 35,
@@ -460,7 +460,7 @@ namespace Location.Photography.Infrastructure.Services
                     RecommendedSettings = "ISO 3200, f/2.8, 20-25 seconds",
                     Notes = "Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering."
                 },
-                AstroTarget.Moon => new OptimalEquipmentSpecs
+                AstroTarget.Moon => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 200,
                     MaxFocalLength = 800,
@@ -471,7 +471,7 @@ namespace Location.Photography.Infrastructure.Services
                     RecommendedSettings = "ISO 200, f/8, 1/125s",
                     Notes = "Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure."
                 },
-                AstroTarget.Planets => new OptimalEquipmentSpecs
+                AstroTarget.Planets => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 300,
                     MaxFocalLength = 1000,
@@ -482,7 +482,7 @@ namespace Location.Photography.Infrastructure.Services
                     RecommendedSettings = "ISO 1600, f/5.6, 1/60s",
                     Notes = "Long telephoto essential. Planets are small - maximum focal length recommended."
                 },
-                AstroTarget.DeepSkyObjects => new OptimalEquipmentSpecs
+                AstroTarget.DeepSkyObjects => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 50,
                     MaxFocalLength = 300,
@@ -493,7 +493,7 @@ namespace Location.Photography.Infrastructure.Services
                     RecommendedSettings = "ISO 6400, f/4, 4-8 minutes",
                     Notes = "Medium telephoto for framing. Very high ISO capability needed. Tracking mount essential."
                 },
-                AstroTarget.StarTrails => new OptimalEquipmentSpecs
+                AstroTarget.StarTrails => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 14,
                     MaxFocalLength = 50,
@@ -504,7 +504,7 @@ namespace Location.Photography.Infrastructure.Services
                     RecommendedSettings = "ISO 400, f/4, 30s intervals",
                     Notes = "Wide-angle for interesting compositions. Multiple exposures combined in post-processing."
                 },
-                AstroTarget.MeteorShowers => new OptimalEquipmentSpecs
+                AstroTarget.MeteorShowers => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 14,
                     MaxFocalLength = 35,
@@ -515,7 +515,7 @@ namespace Location.Photography.Infrastructure.Services
                     RecommendedSettings = "ISO 3200, f/2.8, 15-30s",
                     Notes = "Wide field to capture meteors. Point 45-60° away from radiant for longer trails."
                 },
-                AstroTarget.Constellations => new OptimalEquipmentSpecs
+                AstroTarget.Constellations => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 35,
                     MaxFocalLength = 135,
@@ -526,7 +526,7 @@ namespace Location.Photography.Infrastructure.Services
                     RecommendedSettings = "ISO 1600, f/4, 60s",
                     Notes = "Medium lens for constellation framing. Balance stars with constellation patterns."
                 },
-                AstroTarget.PolarAlignment => new OptimalEquipmentSpecs
+                AstroTarget.PolarAlignment => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 50,
                     MaxFocalLength = 200,
@@ -537,7 +537,7 @@ namespace Location.Photography.Infrastructure.Services
                     RecommendedSettings = "ISO 1600, f/5.6, 30s",
                     Notes = "Medium telephoto to see Polaris clearly. Used for mount alignment verification."
                 },
-                _ => new OptimalEquipmentSpecs
+                _ => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 24,
                     MaxFocalLength = 200,

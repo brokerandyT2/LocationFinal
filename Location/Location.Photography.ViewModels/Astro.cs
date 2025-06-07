@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Location.Photography.ViewModels.AstroPhotographyCalculatorViewModel;
+//using static Location.Photography.ViewModels.AstroPhotographyCalculatorViewModel;
 
 namespace Location.Photography.ViewModels
 {
@@ -31,6 +33,15 @@ namespace Location.Photography.ViewModels
         public string DetailedRecommendation { get; set; } = string.Empty;
     }
 
+    public class AstroHourlyPrediction
+    {
+        public DateTime Hour { get; set; }
+        public string TimeDisplay { get; set; } = string.Empty;
+        public string SolarEvent { get; set; } = string.Empty;
+        public double OverallScore { get; set; }
+        public List<AstroTargetEvent> TargetEvents { get; set; } = new();
+        public WeatherConditions WeatherConditions { get; set; } = new();
+    }
     public class HourlyEquipmentRecommendation
     {
         public DateTime PredictionTime { get; set; }
@@ -50,15 +61,4 @@ namespace Location.Photography.ViewModels
         public List<string> ShoppingList { get; set; } = new();
     }
 
-    public class OptimalEquipmentSpecs
-    {
-        public double MinFocalLength { get; set; }
-        public double MaxFocalLength { get; set; }
-        public double OptimalFocalLength { get; set; }
-        public double MaxAperture { get; set; }
-        public int MinISO { get; set; }
-        public int MaxISO { get; set; }
-        public string RecommendedSettings { get; set; } = string.Empty;
-        public string Notes { get; set; } = string.Empty;
-    }
 }

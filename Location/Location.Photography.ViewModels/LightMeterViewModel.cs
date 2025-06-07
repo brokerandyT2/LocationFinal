@@ -392,9 +392,9 @@ namespace Location.Photography.ViewModels
                             string stepString = GetStepStringOptimized();
                             result = new ExposureArrays
                             {
-                                Apertures = Apetures.GetScale(stepString),
-                                ISOs = ISOs.GetScale(stepString),
-                                ShutterSpeeds = ShutterSpeeds.GetScale(stepString)
+                                Apertures = Interfaces.Apetures.GetScale(stepString),
+                                ISOs = Interfaces.ISOs.GetScale(stepString),
+                                ShutterSpeeds = Interfaces.ShutterSpeeds.GetScale(stepString)
                             };
                         }
 

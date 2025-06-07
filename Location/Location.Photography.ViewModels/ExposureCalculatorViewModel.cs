@@ -12,6 +12,9 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using ShutterSpeeds = Location.Photography.ViewModels.Interfaces.ShutterSpeeds;
+using Apetures = Location.Photography.ViewModels.Interfaces.Apetures;
+using ISOs = Location.Photography.ViewModels.Interfaces.ISOs;
 
 namespace Location.Photography.ViewModels
 {

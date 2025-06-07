@@ -3,7 +3,7 @@
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             xmlns:maui="clr-namespace:epj.Expander.Maui;assembly=epj.Expander.Maui"
             xmlns:viewmodels="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
-            xmlns:domain="clr-namespace:Location.Photography.Domain.Models;assembly=Location.Photography.Domain"
+            xmlns:domain="clr-namespace:Location.Photography.ViewModels;assembly=Location.Photography.ViewModels"
             x:Class="Location.Photography.Maui.Views.Professional.AstroPhotographyCalculator"
             x:DataType="viewmodels:AstroPhotographyCalculatorViewModel"
             Title="Astrophotography Calculator">
@@ -69,34 +69,7 @@
 
                 <!-- Equipment Selection -->
                                 <!-- Astrophotography Target Selection -->
-                <Frame BackgroundColor="#E8F5E8" HasShadow="True" CornerRadius="10" Padding="15">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Label Grid.Row="0" Text="Astrophotography Target" FontSize="18" FontAttributes="Bold" TextColor="#2E7D32" Margin="0,0,0,10"/>
-
-                        <!-- Target Selection -->
-                        <Grid Grid.Row="1" Margin="0,0,0,10">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Label Grid.Row="0" Text="Select target type" FontSize="14"/>
-                            <Picker Grid.Row="1" ItemsSource="{Binding AvailableTargets}" 
-                                   SelectedItem="{Binding SelectedTarget}"
-                                   ItemDisplayBinding="{Binding DisplayName}" x:Name="TargetPicker"
-                                   FontSize="14" Margin="0,5,0,0"/>
-                        </Grid>
-
-                        <!-- Target Description -->
-                        <Label Grid.Row="2" Text="{Binding SelectedTargetDisplay}" 
-                              FontSize="12" TextColor="#66BB6A" FontAttributes="Italic"/>
-                    </Grid>
-                </Frame>
+                
 
                 <!-- Field of View Information -->
                 <Frame BackgroundColor="#FFF3E0" HasShadow="True" CornerRadius="10" Padding="15" 
@@ -131,46 +104,17 @@
                     </Grid>
                 </Frame>
 
-                <!-- Calculate Button -->
+                <!-- Calculate Button 
                 <Button Text="Calculate Astrophotography Data" 
                        Command="{Binding CalculateAstroDataCommand}"
                        
                        BackgroundColor="#4CAF50" TextColor="White"
                        FontSize="16" FontAttributes="Bold"
                        HeightRequest="50" CornerRadius="10"/>
+-->
+               
 
-                <!-- Calculation Status -->
-                <Frame BackgroundColor="#F3E5F5" HasShadow="True" CornerRadius="10" Padding="15"
-                      IsVisible="{Binding IsCalculating}">
-                    <Grid>
-                        <StackLayout Orientation="Horizontal" Spacing="15" HorizontalOptions="Center">
-                            <ActivityIndicator IsRunning="{Binding IsCalculating}" 
-                                              HeightRequest="30" WidthRequest="30" Color="#7B1FA2"/>
-                            <Label Text="{Binding CalculationStatus}" 
-                                  FontSize="14" TextColor="#7B1FA2" VerticalOptions="Center"/>
-                        </StackLayout>
-                    </Grid>
-                </Frame>
-
-                <!-- Exposure Recommendations -->
-                <Frame BackgroundColor="#E1F5FE" HasShadow="True" CornerRadius="10" Padding="15"
-                      IsVisible="{Binding ExposureRecommendation, Converter={StaticResource CustomStringToBoolConverter}}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Label Grid.Row="0" Text="Camera Settings Recommendation" FontSize="16" FontAttributes="Bold" TextColor="#0277BD"/>
-                        <Label Grid.Row="1" Text="{Binding ExposureRecommendation}" 
-                              FontSize="14" TextColor="#0288D1" Margin="0,5,0,0"/>
-                        <Label Grid.Row="2" Text="{Binding PhotographyNotes}" 
-                              FontSize="12" TextColor="#039BE5" Margin="0,5,0,0"/>
-                    </Grid>
-                </Frame>
-
-                <!-- Calculation Results with Loading Overlay -->
+                  <!-- Calculation Results with Loading Overlay -->
                 <Frame BackgroundColor="#F9FBE7" HasShadow="True" CornerRadius="10" Padding="15" HeightRequest="400"
                       IsVisible="{Binding CurrentCalculations, Converter={StaticResource CollectionToBoolConverter}}">
                     <Grid>
@@ -182,9 +126,9 @@
                         <Label Grid.Row="0" Text="Astronomical Calculations" FontSize="16" FontAttributes="Bold" TextColor="#689F38" Margin="0,0,0,10"/>
 
                         <Grid Grid.Row="1">
-                            <CollectionView ItemsSource="{Binding CurrentCalculations}">
+                            <CollectionView ItemsSource="{Binding HourlyAstroPredictions}">
                                 <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="domain:AstroCalculationResult">
+                                    <DataTemplate x:DataType="domain:AstroHourlyPrediction">
                                         <maui:Expander Animated="True" Margin="0,2,0,2">
                                             <maui:Expander.HeaderContent>
                                                 <Grid BackgroundColor="{Binding IsVisible, Converter={StaticResource BoolToColorConverterAstro}}" Padding="15">
@@ -296,14 +240,14 @@
                     </Grid>
                 </Frame>
 
-                <!-- Refresh Button -->
+                <!-- Refresh Button 
                 <Button Text="Refresh Calculations" 
                        Command="{Binding RefreshCalculationsCommand}"
                        IsEnabled="{Binding HasValidSelection}"
                        BackgroundColor="#FF9800" TextColor="White"
                        FontSize="14" FontAttributes="Bold"
                        HeightRequest="40" CornerRadius="8"
-                       IsVisible="{Binding CurrentCalculations, Converter={StaticResource CollectionToBoolConverter}}"/>
+                       IsVisible="{Binding CurrentCalculations, Converter={StaticResource CollectionToBoolConverter}}"/>-->
 
             </StackLayout>
         </ScrollView>
