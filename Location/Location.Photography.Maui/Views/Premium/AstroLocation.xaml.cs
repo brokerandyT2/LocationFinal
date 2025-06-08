@@ -1,7 +1,7 @@
-// Location.Photography.Maui/Views/Premium/SunLocation.xaml.cs
+﻿// Location.Photography.Maui/Views/Premium/AstroLocation.xaml.cs
+
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Services;
-using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure;
@@ -13,7 +13,7 @@ using ISettingRepository = Location.Core.Application.Common.Interfaces.Persisten
 
 namespace Location.Photography.Maui.Views.Premium
 {
-    public partial class SunLocation : ContentPage
+    public partial class AstroLocation : ContentPage
     {
         private readonly IMediator _mediator;
         private readonly IAlertService _alertService;
@@ -21,26 +21,17 @@ namespace Location.Photography.Maui.Views.Premium
         private readonly ISunCalculatorService _sunCalculatorService;
         private readonly ISettingRepository _settingRepository;
         private readonly ITimezoneService _timezoneService;
-        private readonly IExposureCalculatorService _exposureCalculatorService;
-        private SunLocationViewModel _viewModel;
-
-        public SunLocation(IMediator mediator, ISunCalculatorService sunCalculatorService, IErrorDisplayService error, ITimezoneService time, IExposureCalculatorService exposureCalculatorService)
-        {
-            _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
-            InitializeComponent();
-            _viewModel = new SunLocationViewModel(mediator, sunCalculatorService, error, time, exposureCalculatorService);
-            BindingContext = _viewModel;
-        }
-
-
-        public SunLocation(
+        private AstroLocationViewModel _viewModel;
+        private string _timeFormat;
+        private string _dateFormat;
+        public AstroLocation(
             IMediator mediator,
             IAlertService alertService,
             ILocationRepository locationRepository,
             ISunCalculatorService sunCalculatorService,
             ISettingRepository settingRepository,
             IErrorDisplayService errorDisplayService,
-            ITimezoneService timezoneService, IExposureCalculatorService exposureCalculatorService)
+            ITimezoneService timezoneService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
@@ -48,22 +39,28 @@ namespace Location.Photography.Maui.Views.Premium
             _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
             _settingRepository = settingRepository ?? throw new ArgumentNullException(nameof(settingRepository));
             _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
-            _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
+
             InitializeComponent();
             InitializeViewModel(errorDisplayService);
         }
 
-        private async void OnTimelineEventTapped(object sender, EventArgs e)
+        // Simplified constructor for dependency injection scenarios
+        public AstroLocation(
+            IMediator mediator,
+            ISunCalculatorService sunCalculatorService,
+            IErrorDisplayService errorDisplayService,
+            ITimezoneService timezoneService, ISettingRepository setting)
         {
-            if (sender is StackLayout stackLayout && stackLayout.BindingContext is TimelineEventViewModel timelineEvent)
-            {
-                if (_viewModel != null)
-                {
-                    // Update the selected date and time to match the timeline event
-                    _viewModel.SelectedDate = timelineEvent.EventTime.Date;
-                    _viewModel.SelectedTime = timelineEvent.EventTime.TimeOfDay;
-                }
-            }
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
+            _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
+
+            InitializeComponent();
+
+            var timeFormat = setting.GetByKeyAsync(MagicStrings.TimeFormat).Result.Value;
+            var dateFormat = setting.GetByKeyAsync(MagicStrings.DateFormat).Result.Value;
+            _viewModel = new AstroLocationViewModel(mediator, sunCalculatorService, errorDisplayService, timezoneService,dateFormat, timeFormat );
+            BindingContext = _viewModel;
         }
 
         protected override async void OnNavigatedTo(NavigatedToEventArgs args)
@@ -72,14 +69,14 @@ namespace Location.Photography.Maui.Views.Premium
 
             try
             {
+                // Load date/time format settings
                 var dateFormatResult = await _settingRepository.GetByKeyAsync(MagicStrings.DateFormat);
                 var timeFormatResult = await _settingRepository.GetByKeyAsync(MagicStrings.TimeFormat);
 
                 if (!string.IsNullOrEmpty(dateFormatResult.Value))
-                    date.Format = dateFormatResult.Value;
+                    datePicker.Format = dateFormatResult.Value;
 
-                if (!string.IsNullOrEmpty(timeFormatResult.Value))
-                    time.Format = timeFormatResult.Value;
+                // Note: Event picker doesn't need time format as it shows event names
             }
             catch (Exception ex)
             {
@@ -91,10 +88,11 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                _viewModel = new SunLocationViewModel(_mediator, _sunCalculatorService, errorDisplayService, _timezoneService,_exposureCalculatorService);
+                _dateFormat =  _settingRepository.GetByKeyAsync(MagicStrings.DateFormat).Result.Value;
+                _timeFormat = _settingRepository.GetByKeyAsync(MagicStrings.TimeFormat).Result.Value;
+                _viewModel = new AstroLocationViewModel(_mediator, _sunCalculatorService, errorDisplayService, _timezoneService, _dateFormat, _timeFormat);
                 _viewModel.BeginMonitoring = true;
                 _viewModel.StartSensors();
-                _viewModel.UpdateSunPositionCommand.Execute(errorDisplayService);
                 BindingContext = _viewModel;
                 LoadLocationsAsync();
             }
@@ -134,8 +132,6 @@ namespace Location.Photography.Maui.Views.Premium
                         locationPicker.SelectedIndex = 0;
                         var selectedLocation = _viewModel.Locations[0];
                         _viewModel.SelectedLocation = selectedLocation;
-
-                        await UpdateSunPositionAsync(_viewModel);
                     }
                 }
                 else
@@ -156,66 +152,6 @@ namespace Location.Photography.Maui.Views.Premium
             }
         }
 
-        private async Task UpdateSunPositionAsync(SunLocationViewModel viewModel)
-        {
-            try
-            {
-                if (viewModel.SelectedLocation == null)
-                    return;
-
-                var query = new GetCurrentSunPositionQuery
-                {
-                    Latitude = viewModel.SelectedLocation.Lattitude,
-                    Longitude = viewModel.SelectedLocation.Longitude,
-                    DateTime = viewModel.SelectedDate.Date.Add(viewModel.SelectedTime)
-                };
-
-                var result = await _mediator.Send(query);
-
-                if (result.IsSuccess && result.Data != null)
-                {
-                    // The ViewModel will handle updating sun direction through compass integration
-                    viewModel.SunElevation = result.Data.Elevation;
-                }
-                else
-                {
-                    viewModel.ErrorMessage = result.ErrorMessage ?? "Failed to calculate sun position";
-                }
-            }
-            catch (Exception ex)
-            {
-                HandleError(ex, "Error updating sun position");
-            }
-        }
-
-        private async void locationPicker_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (locationPicker.SelectedItem is LocationViewModel selectedLocation && _viewModel != null)
-            {
-                _viewModel.SelectedLocation = selectedLocation;
-
-                await UpdateSunPositionAsync(_viewModel);
-            }
-        }
-
-        private async void date_DateSelected(object sender, DateChangedEventArgs e)
-        {
-            if (_viewModel != null)
-            {
-                _viewModel.SelectedDate = e.NewDate;
-                await UpdateSunPositionAsync(_viewModel);
-            }
-        }
-
-        private async void time_TimeSelected(object sender, TimeChangedEventArgs e)
-        {
-            if (_viewModel != null)
-            {
-                _viewModel.SelectedTime = e.NewTime;
-                await UpdateSunPositionAsync(_viewModel);
-            }
-        }
-
         protected override void OnAppearing()
         {
             base.OnAppearing();
@@ -232,10 +168,6 @@ namespace Location.Photography.Maui.Views.Premium
                     if (_viewModel.Locations == null || _viewModel.Locations.Count == 0)
                     {
                         LoadLocationsAsync();
-                    }
-                    else
-                    {
-                        _ = UpdateSunPositionAsync(_viewModel);
                     }
                 }
             }
@@ -267,7 +199,7 @@ namespace Location.Photography.Maui.Views.Premium
         private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
             var retry = await DisplayAlert("Error", $"{e.Message}. Try again?", "OK", "Cancel");
-            if (retry && sender is SunLocationViewModel viewModel)
+            if (retry && sender is AstroLocationViewModel viewModel)
             {
                 await viewModel.RetryLastCommandAsync();
             }
@@ -293,6 +225,93 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 _viewModel.ErrorMessage = $"{message}: {ex.Message}";
                 _viewModel.IsBusy = false;
+            }
+        }
+
+        // Enhanced arrow positioning with time label
+        protected override void OnSizeAllocated(double width, double height)
+        {
+            base.OnSizeAllocated(width, height);
+
+            // Update time label position relative to arrow
+            UpdateTimeLabelPosition();
+        }
+
+        private void UpdateTimeLabelPosition()
+        {
+            try
+            {
+                if (_viewModel?.SelectedEvent != null)
+                {
+                    // Calculate position 10px from arrow point
+                    // Arrow points up, so label should be above it
+                    var arrowCenterX = arrow.Width / 2;
+                    var arrowCenterY = arrow.Height / 2;
+
+                    // Position label 10px above the arrow point (which points up)
+                    var labelOffsetY = -85; // 75 (half arrow height) + 10 (offset)
+
+                    timeLabel.Margin = new Thickness(0, labelOffsetY, 0, 0);
+
+                    // Update target icon based on event type
+                    UpdateTargetIcon();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating time label position: {ex.Message}");
+            }
+        }
+
+        private void UpdateTargetIcon()
+        {
+            if (_viewModel?.SelectedEvent == null) return;
+
+            var icon = _viewModel.SelectedEvent.Target switch
+            {
+                Photography.Domain.Models.AstroTarget.Moon => "🌙",
+                Photography.Domain.Models.AstroTarget.Planets => "🪐",
+                Photography.Domain.Models.AstroTarget.MilkyWayCore => "🌌",
+                Photography.Domain.Models.AstroTarget.DeepSkyObjects => "⭐",
+                Photography.Domain.Models.AstroTarget.MeteorShowers => "☄️",
+                Photography.Domain.Models.AstroTarget.Comets => "☄️",
+                Photography.Domain.Models.AstroTarget.Constellations => "✨",
+                Photography.Domain.Models.AstroTarget.NorthernLights => "🌌",
+                _ => "⭐"
+            };
+
+            //targetIcon.Text = icon;
+        }
+
+        // Event handlers for UI interactions
+        private void OnLocationPickerSelectedIndexChanged(object sender, EventArgs e)
+        {
+            // ViewModel binding handles this automatically
+            UpdateTimeLabelPosition();
+        }
+
+        private void OnDatePickerDateSelected(object sender, DateChangedEventArgs e)
+        {
+            // ViewModel binding handles this automatically
+            UpdateTimeLabelPosition();
+        }
+
+        private void OnEventPickerSelectedIndexChanged(object sender, EventArgs e)
+        {
+            // ViewModel binding handles this automatically
+            UpdateTimeLabelPosition();
+        }
+
+        // Handle property changes to update UI elements
+        private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AstroLocationViewModel.SelectedEvent) ||
+                e.PropertyName == nameof(AstroLocationViewModel.EventTimeLabel))
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    UpdateTimeLabelPosition();
+                });
             }
         }
     }

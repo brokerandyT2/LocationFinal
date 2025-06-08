@@ -23,6 +23,7 @@ namespace Location.Photography.ViewModels
         private readonly ISunCalculatorService _sunCalculatorService;
         private readonly IErrorDisplayService _errorDisplayService;
         private readonly ITimezoneService _timezoneService;
+        private readonly IExposureCalculatorService _exposureCalculatorService;
 
         private readonly ILogger<SunLocationViewModel>? _logger;
 
@@ -237,7 +238,7 @@ namespace Location.Photography.ViewModels
    IMediator mediator,
    ISunCalculatorService sunCalculatorService,
    IErrorDisplayService errorDisplayService,
-   ITimezoneService timezoneService,
+   ITimezoneService timezoneService, IExposureCalculatorService exposureCalculatorService,
    ILogger<SunLocationViewModel>? logger = null)
    : base(null, errorDisplayService)
         {
@@ -246,13 +247,217 @@ namespace Location.Photography.ViewModels
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
             _logger = logger;
-
+            _exposureCalculatorService = exposureCalculatorService??throw new ArgumentNullException(nameof(exposureCalculatorService));
             InitializeTimelineEvents();
             LoadUserSettingsAsync();
         }
         #endregion
 
         #region Compass and Sun Direction Methods
+
+
+        private async Task<string> GetNormalizedCameraSettingsAsync(double ev, SunPositionDto sunPosition, WeatherImpactFactor weatherImpact)
+        {
+            try
+            {
+                // Calculate base settings using existing logic
+                var baseAperture = Math.Max(1.4, Math.Min(16, ev / 2));
+                var baseShutterSpeed = CalculateShutterSpeedOptimized(ev, baseAperture);
+                var baseISO = CalculateISOOptimized(ev, baseAperture, baseShutterSpeed);
+
+                // Get standardized lists
+                var allApertures = Apetures.Thirds.Select(a => Convert.ToDouble(a.Replace("f/", ""))).ToList();
+                var allShutterSpeeds = ShutterSpeeds.Thirds.Select(s => ParseShutterSpeed(s)).ToList();
+                var allISOs = ISOs.Thirds.Select(i => Convert.ToInt32(i)).ToList();
+
+                // Find closest standardized values
+                var closestAperture = allApertures.OrderBy(x => Math.Abs(x - baseAperture)).First();
+                var closestShutter = allShutterSpeeds.OrderBy(x => Math.Abs(x - baseShutterSpeed)).First();
+                var closestISO = allISOs.OrderBy(x => Math.Abs(x - baseISO)).First();
+
+                // Create exposure triangle DTO for normalization
+                var exposureDto = new ExposureTriangleDto
+                {
+                    Aperture = $"f/{baseAperture:F1}",
+                    Iso = baseISO.ToString(),
+                    ShutterSpeed = FormatShutterSpeed(baseShutterSpeed)
+                };
+
+                // Use ExposureCalculatorService to normalize the triangle
+                var normalizedResult = await _exposureCalculatorService.CalculateIsoAsync(
+                    exposureDto,
+                    FormatShutterSpeed(closestShutter),
+                    $"f/{closestAperture:F1}",
+                    ExposureIncrements.Third);
+
+                if (normalizedResult.IsSuccess && normalizedResult.Data != null)
+                {
+                    return $"{normalizedResult.Data.Aperture}, {normalizedResult.Data.ShutterSpeed}, ISO {normalizedResult.Data.Iso}";
+                }
+
+                // Fallback to standardized values without service normalization
+                return $"f/{closestAperture:F1}, {FormatShutterSpeed(closestShutter)}, ISO {closestISO}";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error normalizing camera settings");
+                return $"f/{8:F1}, 1/125, ISO 400"; // Safe fallback
+            }
+        }
+
+        private double ParseShutterSpeed(string shutterSpeed)
+        {
+            try
+            {
+                if (shutterSpeed.Contains("/"))
+                {
+                    var parts = shutterSpeed.Replace("1/", "").Split('/');
+                    if (parts.Length == 1 && double.TryParse(parts[0], out var denominator))
+                    {
+                        return 1.0 / denominator;
+                    }
+                }
+                else if (shutterSpeed.Contains("\""))
+                {
+                    var seconds = shutterSpeed.Replace("\"", "");
+                    if (double.TryParse(seconds, out var sec))
+                    {
+                        return sec;
+                    }
+                }
+                else if (double.TryParse(shutterSpeed, out var value))
+                {
+                    return value;
+                }
+
+                return 1.0 / 125.0; // Default fallback
+            }
+            catch
+            {
+                return 1.0 / 125.0;
+            }
+        }
+
+        private string FormatShutterSpeed(double seconds)
+        {
+            if (seconds >= 1)
+                return $"{seconds:F0}\"";
+            else
+                return $"1/{Math.Round(1.0 / seconds):F0}";
+        }
+
+
+        public void StartAccelerometer()
+        {
+            try
+            {
+                if (Accelerometer.Default.IsSupported)
+                {
+                    Accelerometer.Default.ReadingChanged += OnAccelerometerReadingChanged;
+                    Accelerometer.Default.Start(SensorSpeed.UI);
+                    _logger?.LogDebug("Accelerometer started successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to start accelerometer");
+                OnSystemError($"Failed to start accelerometer: {ex.Message}");
+            }
+        }
+
+        public void StopAccelerometer()
+        {
+            try
+            {
+                if (Accelerometer.Default.IsSupported)
+                {
+                    Accelerometer.Default.ReadingChanged -= OnAccelerometerReadingChanged;
+                    Accelerometer.Default.Stop();
+                    _logger?.LogDebug("Accelerometer stopped successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error stopping accelerometer");
+            }
+        }
+
+        private void OnAccelerometerReadingChanged(object sender, AccelerometerChangedEventArgs e)
+        {
+            try
+            {
+                // Calculate device tilt from accelerometer data
+                var reading = e.Reading;
+                var tiltAngle = Math.Atan2(reading.Acceleration.Y, reading.Acceleration.Z) * 180.0 / Math.PI;
+
+                // Normalize to 0-90 degrees (phone held vertically to horizontally)
+                tiltAngle = Math.Abs(tiltAngle);
+                if (tiltAngle > 90) tiltAngle = 180 - tiltAngle;
+
+                DeviceTilt = tiltAngle;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error processing accelerometer reading");
+            }
+        }
+
+        private void CheckElevationAlignment()
+        {
+            var difference = Math.Abs(DeviceTilt - SunElevation);
+            var wasMatched = ElevationMatched;
+
+            ElevationMatched = difference <= 5.0;
+
+            // Trigger haptic feedback when alignment is achieved (but wasn't before)
+            if (ElevationMatched && !wasMatched)
+            {
+                TriggerElevationMatchVibration();
+            }
+        }
+
+        private void TriggerElevationMatchVibration()
+        {
+            try
+            {
+                // Two quick vibrations to indicate elevation match
+                Vibration.Default.Vibrate(TimeSpan.FromMilliseconds(200));
+                Task.Delay(100).ContinueWith(_ =>
+                {
+                    Vibration.Default.Vibrate(TimeSpan.FromMilliseconds(200));
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error triggering vibration");
+            }
+        }
+        private DateTime ConvertLocalTimeToUtc(DateTime localDateTime)
+        {
+            try
+            {
+                // Ensure the DateTime has the correct DateTimeKind
+                if (localDateTime.Kind == DateTimeKind.Utc)
+                {
+                    return localDateTime; // Already UTC
+                }
+
+                // If unspecified, assume it's local time from user input
+                if (localDateTime.Kind == DateTimeKind.Unspecified)
+                {
+                    localDateTime = DateTime.SpecifyKind(localDateTime, DateTimeKind.Local);
+                }
+
+                // Convert local time to UTC for sun calculations
+                return localDateTime.ToUniversalTime();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error converting local time to UTC");
+                // Fallback - treat as UTC if conversion fails
+                return DateTime.SpecifyKind(localDateTime, DateTimeKind.Utc);
+            }
+        }
         public void StartSensors()
         {
             try
@@ -268,14 +473,17 @@ namespace Location.Photography.ViewModels
 
                     _logger?.LogDebug("Compass service started successfully");
                 }
+
+                // Start accelerometer for tilt detection
+                StartAccelerometer();
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Failed to start compass service");
-                OnSystemError($"Failed to start compass: {ex.Message}");
+                _logger?.LogError(ex, "Failed to start sensors");
+                OnSystemError($"Failed to start sensors: {ex.Message}");
             }
         }
-        
+
         public void StopSensors()
         {
             try
@@ -290,13 +498,18 @@ namespace Location.Photography.ViewModels
                 _compassTimer?.Dispose();
                 _compassTimer = null;
 
-                _logger?.LogDebug("Compass service stopped successfully");
+                // Stop accelerometer
+                StopAccelerometer();
+
+                _logger?.LogDebug("Sensors stopped successfully");
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error stopping compass service");
+                _logger?.LogError(ex, "Error stopping sensors");
             }
         }
+
+        
 
         private void OnCompassReadingChanged(object? sender, CompassChangedEventArgs e)
         {
@@ -395,11 +608,14 @@ namespace Location.Photography.ViewModels
                 {
                     ClearErrors();
 
+                    // Convert user's local time to UTC for accurate sun calculations
+                    var utcDateTime = ConvertLocalTimeToUtc(_selectedDateTime);
+
                     var query = new GetCurrentSunPositionQuery
                     {
                         Latitude = SelectedLocation.Lattitude,
                         Longitude = SelectedLocation.Longitude,
-                        DateTime = _selectedDateTime
+                        DateTime = utcDateTime
                     };
 
                     var result = await _mediator.Send(query);
@@ -454,9 +670,9 @@ namespace Location.Photography.ViewModels
                     NextHourEV = Math.Round(nextBaseEV * weatherImpact.OverallLightReductionFactor, 1);
                 }
 
-                // Calculate exposure settings
-                var exposureSettings = CalculateExposureSettingsOptimized(adjustedEV);
-                RecommendedSettings = $"{exposureSettings.Aperture} @ {exposureSettings.ShutterSpeed} {exposureSettings.ISO}";
+                // Calculate normalized exposure settings
+                var normalizedSettings = await GetNormalizedCameraSettingsAsync(adjustedEV, sunPosition, weatherImpact);
+                RecommendedSettings = normalizedSettings;
 
                 // Calculate light quality
                 var lightCharacteristics = DetermineLightQualityOptimized(sunPosition, weatherImpact);
@@ -917,11 +1133,7 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        private void CheckElevationAlignment()
-        {
-            // Check if device tilt matches sun elevation (within 5 degrees)
-            ElevationMatched = Math.Abs(DeviceTilt - SunElevation) < 5.0;
-        }
+
 
         private void OnSystemError(string message)
         {

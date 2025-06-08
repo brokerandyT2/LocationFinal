@@ -1,5 +1,4 @@
-﻿// Location.Photography.Maui/Controls/ColorTemperatureDial.cs
-using SkiaSharp;
+﻿using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 
@@ -54,9 +53,9 @@ namespace Location.Photography.Maui.Controls
 
         public ColorTemperatureDial()
         {
-            // Set default size
-            HeightRequest = 200;
-            WidthRequest = 200;
+            // Set default size for horizontal layout
+            HeightRequest = 120;
+            WidthRequest = 380;
         }
 
         protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
@@ -67,80 +66,112 @@ namespace Location.Photography.Maui.Controls
             var info = e.Info;
             float width = info.Width;
             float height = info.Height;
-            float size = Math.Min(width, height);
-            float center = size / 2;
-            float strokeWidth = size / 20;
 
-            // Calculate position
-            float radius = (size / 2) - (strokeWidth / 2);
-            float dialRadius = radius - (strokeWidth / 2) - 5;
-            float needleLength = dialRadius - 10;
+            // Horizontal layout calculations
+            float margin = 20;
+            float sliderHeight = 40; // Double the height
+            float titleHeight = 35; // More space for title
+            float sliderY = titleHeight + 15; // Move slider down more to accommodate title
+            float sliderStartX = margin + 60; // More space for min value label
+            float sliderEndX = width - margin - 60; // More space for max value label
+            float sliderWidth = sliderEndX - sliderStartX;
 
             using (var paint = new SKPaint())
             {
-                // Create the gradient background
-                using (var shader = SKShader.CreateSweepGradient(
-                    new SKPoint(center, center),
-                    new SKColor[] { WarmColor, NeutralColor, CoolColor, WarmColor },
-                    new float[] { 0, 0.33f, 0.67f, 1.0f }))
+                // Draw title
+                using (var titlePaint = new SKPaint
                 {
-                    paint.Style = SKPaintStyle.Stroke;
-                    paint.StrokeWidth = strokeWidth;
+                    Color = SKColors.Black,
+                    TextSize = height / 8,
+                    IsAntialias = true,
+                    TextAlign = SKTextAlign.Center
+                })
+                {
+                    canvas.DrawText(Title, width / 2, 30, titlePaint);
+                }
+
+                // Create horizontal gradient for slider track
+                using (var shader = SKShader.CreateLinearGradient(
+                    new SKPoint(sliderStartX, sliderY),
+                    new SKPoint(sliderEndX, sliderY),
+                    new SKColor[] { WarmColor, NeutralColor, CoolColor },
+                    new float[] { 0, 0.5f, 1.0f },
+                    SKShaderTileMode.Clamp))
+                {
+                    paint.Style = SKPaintStyle.Fill;
                     paint.IsAntialias = true;
                     paint.Shader = shader;
 
-                    // Draw arc from 150 to 390 degrees (240-degree span)
-                    canvas.DrawArc(
-                        new SKRect(strokeWidth / 2, strokeWidth / 2, size - strokeWidth / 2, size - strokeWidth / 2),
-                        150, 240, false, paint);
+                    // Draw slider track with rounded ends
+                    var sliderRect = new SKRect(sliderStartX, sliderY, sliderEndX, sliderY + sliderHeight);
+                    canvas.DrawRoundRect(sliderRect, sliderHeight / 2, sliderHeight / 2, paint);
                 }
 
-                // Draw title
-                using (var textPaint = new SKPaint
+                // Draw min/max value labels
+                using (var labelPaint = new SKPaint
                 {
-                    Color = SKColors.Black,
-                    TextSize = size / 12,
+                    Color = SKColors.DarkGray,
+                    TextSize = height / 10,
                     IsAntialias = true,
                     TextAlign = SKTextAlign.Center
                 })
                 {
-                    canvas.DrawText(Title, center, size- 10, textPaint);
+                    canvas.DrawText($"{MinValue:F0}K", margin + 30, sliderY + sliderHeight + 20, labelPaint);
+                    canvas.DrawText($"{MaxValue:F0}K", width - margin - 30, sliderY + sliderHeight + 20, labelPaint);
                 }
 
-                // Draw value text
-                using (var textPaint = new SKPaint
-                {
-                    Color = SKColors.Black,
-                    TextSize = size / 14,
-                    IsAntialias = true,
-                    TextAlign = SKTextAlign.Center
-                })
-                {
-                    canvas.DrawText($"{Value:F0}K", center, center +40, textPaint);
-                }
-
-                // Calculate needle angle based on value
-                float angleRange = 240;
+                // Calculate thumb position based on value
                 float normalizedValue = (float)((Value - MinValue) / (MaxValue - MinValue));
-                float needleAngle = 150 + (normalizedValue * angleRange);
-                float rads = (float)(needleAngle * Math.PI / 180);
+                float thumbX = sliderStartX + (normalizedValue * sliderWidth);
+                float thumbY = sliderY + (sliderHeight / 2);
 
-                // Draw needle
-                using (var needlePaint = new SKPaint
+                // Draw thumb (slider handle)
+                using (var thumbPaint = new SKPaint
                 {
-                    Color = SKColors.Black,
-                    StrokeWidth = 3,
-                    IsAntialias = true,
-                    Style = SKPaintStyle.Stroke
+                    Color = SKColors.White,
+                    Style = SKPaintStyle.Fill,
+                    IsAntialias = true
                 })
                 {
-                    float needleX = center + needleLength * (float)Math.Cos(rads);
-                    float needleY = center + needleLength * (float)Math.Sin(rads);
-                    canvas.DrawLine(center, center, needleX, needleY, needlePaint);
+                    // Draw white circle with border - bigger for double height bar
+                    float thumbRadius = sliderHeight / 2 + 4;
+                    canvas.DrawCircle(thumbX, thumbY, thumbRadius, thumbPaint);
 
-                    // Draw needle circle
-                    needlePaint.Style = SKPaintStyle.Fill;
-                    canvas.DrawCircle(center, center, 5, needlePaint);
+                    thumbPaint.Color = SKColors.DarkGray;
+                    thumbPaint.Style = SKPaintStyle.Stroke;
+                    thumbPaint.StrokeWidth = 3;
+                    canvas.DrawCircle(thumbX, thumbY, thumbRadius, thumbPaint);
+                }
+
+                // Draw current value text
+                using (var valuePaint = new SKPaint
+                {
+                    Color = SKColors.Black,
+                    TextSize = height / 9,
+                    IsAntialias = true,
+                    TextAlign = SKTextAlign.Center,
+                    FakeBoldText = true
+                })
+                {
+                    canvas.DrawText($"{Value:F0}K", width / 2, height - 10, valuePaint);
+                }
+
+                // Draw tick marks
+                using (var tickPaint = new SKPaint
+                {
+                    Color = SKColors.Gray,
+                    StrokeWidth = 1,
+                    IsAntialias = true
+                })
+                {
+                    // Draw major ticks every 1000K
+                    for (double temp = MinValue; temp <= MaxValue; temp += 1000)
+                    {
+                        float tickNormalized = (float)((temp - MinValue) / (MaxValue - MinValue));
+                        float tickX = sliderStartX + (tickNormalized * sliderWidth);
+
+                        canvas.DrawLine(tickX, sliderY - 3, tickX, sliderY + sliderHeight + 3, tickPaint);
+                    }
                 }
             }
         }
@@ -164,6 +195,31 @@ namespace Location.Photography.Maui.Controls
         {
             var control = bindable as ColorTemperatureDial;
             control?.InvalidateSurface();
+        }
+
+        // Add touch handling for horizontal slider
+        protected override void OnTouch(SKTouchEventArgs e)
+        {
+            if (e.ActionType == SKTouchAction.Pressed || e.ActionType == SKTouchAction.Moved)
+            {
+                var info = CanvasSize;
+                float width = info.Width;
+                float margin = 20;
+                float sliderStartX = margin + 40;
+                float sliderEndX = width - margin - 40;
+                float sliderWidth = sliderEndX - sliderStartX;
+
+                // Calculate new value based on touch position
+                float touchX = Math.Max(sliderStartX, Math.Min(sliderEndX, e.Location.X));
+                float normalizedPosition = (touchX - sliderStartX) / sliderWidth;
+                double newValue = MinValue + (normalizedPosition * (MaxValue - MinValue));
+
+                // Round to nearest 100K for better UX
+                newValue = Math.Round(newValue / 100) * 100;
+
+                Value = newValue;
+                e.Handled = true;
+            }
         }
     }
 }

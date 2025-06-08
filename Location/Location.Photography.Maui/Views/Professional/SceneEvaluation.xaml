@@ -40,6 +40,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -58,54 +59,77 @@
             <RadioButton Content="Red" GroupName="histogram" 
                          Grid.Row="2" Grid.Column="0" x:Name="RedRadioButton" 
                          CheckedChanged="RadioButton_CheckedChanged"
+                         IsEnabled="{Binding DisplayAll, Converter={StaticResource InvertedBoolConverter}}"
                          Style="{StaticResource RadioButtonStyle}"/>
 
             <RadioButton Content="Green" x:Name="GreenRadioButton" GroupName="histogram" 
                          Grid.Row="2" Grid.Column="1" 
                          CheckedChanged="RadioButton_CheckedChanged"
+                         IsEnabled="{Binding DisplayAll, Converter={StaticResource InvertedBoolConverter}}"
                          Style="{StaticResource RadioButtonStyle}"/>
 
             <RadioButton Content="Blue" GroupName="histogram" 
                          Grid.Row="2" Grid.Column="2" x:Name="BlueRadioButton" 
                          CheckedChanged="RadioButton_CheckedChanged"
+                         IsEnabled="{Binding DisplayAll, Converter={StaticResource InvertedBoolConverter}}"
                          Style="{StaticResource RadioButtonStyle}"/>
 
             <RadioButton Content="Luma" x:Name="LuminanceRadioButton" GroupName="histogram" 
                          Grid.Row="2" Grid.Column="3" 
                          CheckedChanged="RadioButton_CheckedChanged"
+                         IsEnabled="{Binding DisplayAll, Converter={StaticResource InvertedBoolConverter}}"
                          Style="{StaticResource RadioButtonStyle}"/>
 
-            <!-- Color Temperature and Tint Dials -->
+            <!-- Display All Checkbox -->
+            <CheckBox x:Name="DisplayAllCheckBox"
+                      Grid.Row="3" 
+                      Grid.Column="0"
+                      IsChecked="{Binding DisplayAll}"
+                      VerticalOptions="Center"
+                      HorizontalOptions="Start"
+                      Margin="5"/>
+
+            <Label Text="Display All Channels"
+                   Grid.Row="3"
+                   Grid.Column="1"
+                   Grid.ColumnSpan="2"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Start"
+                   FontSize="14"
+                   Margin="0,5,5,5"/>
+
+            <!-- Color Temperature and Tint Controls -->
             <controls:ColorTemperatureDial 
-                       Grid.Row="3" 
+                       Grid.Row="4" 
                        Grid.Column="0" 
-                       Grid.ColumnSpan="2"
+                       Grid.ColumnSpan="4"
                        Value="{Binding ColorTemperature}"
                        MinValue="2700"
                        MaxValue="9000"
                        Title="Color Temperature"
                        Margin="10"
-                       HeightRequest="180"
-                       WidthRequest="180"
-                       HorizontalOptions="Center"/>
+                       HeightRequest="120"
+                       WidthRequest="380"
+                       HorizontalOptions="Fill"/>
 
             <controls:TintDial 
-                       Grid.Row="3" 
-                       Grid.Column="2" 
-                       Grid.ColumnSpan="2"
+                       Grid.Row="5" 
+                       Grid.Column="0" 
+                       Grid.ColumnSpan="4"
                        Value="{Binding TintValue}"
                        MinValue="-1"
                        MaxValue="1"
                        Title="White Balance Tint"
                        Margin="10"
-                       HeightRequest="180"
-                       WidthRequest="180"
-                       HorizontalOptions="Center"/>
+                       
+                       HeightRequest="120"
+                       WidthRequest="380"
+                       HorizontalOptions="Fill"/>
 
             <!-- Evaluate Scene Button -->
             <Button Text="Evaluate Scene" 
                         Command="{Binding EvaluateSceneCommand}" 
-                        Grid.Row="4" 
+                        Grid.Row="6" 
                         Grid.ColumnSpan="4"
                         Padding="5"
                         CornerRadius="10"
@@ -115,7 +139,7 @@
                         IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertedBoolConverter}}"/>
 
             <!-- Analysis Metrics Section -->
-            <Grid Grid.Row="5" Grid.ColumnSpan="4" Margin="10" 
+            <Grid Grid.Row="7" Grid.ColumnSpan="4" Margin="10" 
                   IsVisible="{Binding AnalysisResult, Converter={StaticResource NotNullToBoolConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -178,7 +202,7 @@
                       VerticalOptions="End"
                       Padding="10"
                       Margin="5"
-                      Grid.Row="6"
+                      Grid.Row="8"
                       Grid.ColumnSpan="4">
                 <Label Text="{Binding ErrorMessage}"
                            TextColor="#FF0000"
@@ -189,7 +213,7 @@
             <!-- Processing indicator overlay -->
             <Grid IsVisible="{Binding IsProcessing}" 
                       BackgroundColor="#80000000"
-                      Grid.RowSpan="10"
+                      Grid.RowSpan="11"
                       Grid.ColumnSpan="4"
                       Padding="10"
                       Margin="5">
@@ -197,10 +221,10 @@
                     <ActivityIndicator IsRunning="{Binding IsProcessing}" 
                                            HeightRequest="50" 
                                            WidthRequest="50" 
-                                           Color="Blue" />
+                                            />
                     <Label Text="Analyzing image, please wait..." 
                                FontSize="16"
-                               TextColor="White"
+                               
                                HorizontalOptions="Center"
                                Margin="5"/>
                 </VerticalStackLayout>

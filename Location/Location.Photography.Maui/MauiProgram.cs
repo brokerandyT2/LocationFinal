@@ -237,7 +237,30 @@ namespace Location.Photography.Maui
                 var mediator = sp.GetRequiredService<IMediator>();
                 return new ExposureCalculator(exposureService, alertService, errorService, mediator);
             });
+            builder.Services.AddTransient<AstroLocation>(sp =>
+            {
+                var mediator = sp.GetRequiredService<IMediator>();
+                var alertService = sp.GetRequiredService<IAlertService>();
+                var locationRepo = sp.GetRequiredService<Core.Application.Common.Interfaces.ILocationRepository>();
+                var sunCalcService = sp.GetService<Domain.Services.ISunCalculatorService>();
+                var settingRepo = sp.GetRequiredService<ISettingRepository>();
+                var errorService = sp.GetRequiredService<IErrorDisplayService>();
+                var timezoneService = sp.GetRequiredService<ITimezoneService>();
 
+                return new Views.Premium.AstroLocation(mediator, alertService, locationRepo, sunCalcService, settingRepo, errorService, timezoneService);
+            });
+
+            // NEW: AstroLocationViewModel Registration
+            builder.Services.AddTransient<AstroLocationViewModel>(sp =>
+            {
+                var mediator = sp.GetRequiredService<IMediator>();
+                var sunCalculatorService = sp.GetRequiredService<Domain.Services.ISunCalculatorService>();
+                var errorDisplayService = sp.GetRequiredService<IErrorDisplayService>();
+                var timezoneService = sp.GetRequiredService<ITimezoneService>();
+                var logger = sp.GetRequiredService<ILogger<AstroLocationViewModel>>();
+
+                return new AstroLocationViewModel(mediator, sunCalculatorService, errorDisplayService, timezoneService, null, null, logger);
+            });
             builder.Services.AddTransient<FieldOfView>(sp =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
@@ -289,8 +312,8 @@ namespace Location.Photography.Maui
                 var settingRepo = sp.GetRequiredService<ISettingRepository>();
                 var errorService = sp.GetRequiredService<IErrorDisplayService>();
                 var timezoneService = sp.GetRequiredService<ITimezoneService>();
-
-                return new Views.Premium.SunLocation(mediator, alertService, locationRepo, sunCalcService, settingRepo, errorService, timezoneService);
+                var exposureCalculatorService = sp.GetRequiredService<IExposureCalculatorService>();
+                return new Views.Premium.SunLocation(mediator, alertService, locationRepo, sunCalcService, settingRepo, errorService, timezoneService, exposureCalculatorService);
             });
 
             builder.Services.AddTransient<Views.Professional.LightMeter>(sp =>

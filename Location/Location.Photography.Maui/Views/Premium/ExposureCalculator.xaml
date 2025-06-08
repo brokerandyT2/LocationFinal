@@ -395,9 +395,9 @@
                     <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                        HeightRequest="50" 
                                        WidthRequest="50" 
-                                       Color="Blue" />
+                                        />
                     <Label Text="Processing, please wait..." 
-                           TextColor="White" 
+                           
                            FontSize="12"
                            Margin="5"/>
                 </VerticalStackLayout>

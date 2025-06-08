@@ -98,12 +98,12 @@
                         Spacing="10">
                 <ActivityIndicator x:Name="ProcessingIndicator"
                                   IsRunning="False"
-                                  Color="White"
+                                  
                                   WidthRequest="30"
                                   HeightRequest="30" />
                 <Label x:Name="ProcessingLabel"
                        Text="Processing image..."
-                       TextColor="White"
+                      
                        FontSize="16"
                        VerticalOptions="Center" />
             </StackLayout>

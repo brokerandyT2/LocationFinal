@@ -5,7 +5,48 @@ namespace Location.Photography.Application.Services
     public class ImageAnalysisService : IImageAnalysisService
     {
         private const double CalibrationConstant = 12.5;
+        public async Task<string> GenerateStackedHistogramImageAsync(
+    double[] redHistogram,
+    double[] greenHistogram,
+    double[] blueHistogram,
+    double[] luminanceHistogram,
+    string fileName)
+        {
+            return await Task.Run(() =>
+            {
+                string filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+                int width = 512;
+                int height = 256;
+                int margin = 10;
 
+                using var surface = SKSurface.Create(new SKImageInfo(width, height));
+                var canvas = surface.Canvas;
+                canvas.Clear(SKColors.White);
+
+                // Draw axes
+                using var axisPaint = new SKPaint { Color = SKColors.Black, StrokeWidth = 2, IsAntialias = true };
+                canvas.DrawLine(margin, height - margin, width - margin, height - margin, axisPaint);
+                canvas.DrawLine(margin, height - margin, margin, margin, axisPaint);
+
+                // Draw each histogram with transparency
+                var colors = new[] { SKColors.Red, SKColors.Green, SKColors.Blue, SKColors.Gray };
+                var histograms = new[] { redHistogram, greenHistogram, blueHistogram, luminanceHistogram };
+
+                for (int h = 0; h < histograms.Length; h++)
+                {
+                    var color = colors[h].WithAlpha(128); // Semi-transparent
+                    DrawHistogramLine(canvas, histograms[h], color, width, height, margin);
+                }
+
+                // Save image
+                using var image = surface.Snapshot();
+                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                using var stream = File.OpenWrite(filePath);
+                data.SaveTo(stream);
+
+                return filePath;
+            });
+        }
         public async Task<ImageAnalysisResult> AnalyzeImageAsync(Stream imageStream, CancellationToken cancellationToken = default)
         {
             return await Task.Run(() =>

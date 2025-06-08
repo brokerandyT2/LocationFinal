@@ -215,5 +215,18 @@ namespace Location.Photography.Infrastructure.Repositories
                 return Result<List<UserCameraBody>>.Failure($"Error retrieving favorite cameras: {ex.Message}");
             }
         }
+        public async Task<Result<List<UserCameraBody>>> GetAll()
+        {
+            try
+            {
+                var allCameraBodies = await _context.Table<UserCameraBody>().ToListAsync();
+                return Result<List<UserCameraBody>>.Success(allCameraBodies);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all user camera bodies");
+                throw new Exception($"Error retrieving all user camera bodies: {ex.Message}");
+            }
+        }
     }
 }

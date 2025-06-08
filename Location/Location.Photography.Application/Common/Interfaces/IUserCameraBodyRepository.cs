@@ -40,5 +40,6 @@ namespace Location.Photography.Application.Common.Interfaces
         /// Gets user's favorite camera bodies
         /// </summary>
         Task<Result<List<UserCameraBody>>> GetFavoritesByUserIdAsync(string userId, CancellationToken cancellationToken = default);
+        Task<Result<List<UserCameraBody>>> GetAll();
     }
 }

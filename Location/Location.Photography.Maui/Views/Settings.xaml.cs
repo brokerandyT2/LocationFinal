@@ -17,11 +17,21 @@ namespace Location.Photography.Maui.Views
         private readonly ISettingRepository _settingRepository;
         private SettingsViewModel _viewModel;
 
+        // Store response objects from query
+        private GetAllSettingsQueryResponse _hemisphereSetting;
+        private GetAllSettingsQueryResponse _timeFormatSetting;
+        private GetAllSettingsQueryResponse _dateFormatSetting;
+        private GetAllSettingsQueryResponse _windDirectionSetting;
+        private GetAllSettingsQueryResponse _temperatureFormatSetting;
+        private GetAllSettingsQueryResponse _subscriptionTypeSetting;
+        private GetAllSettingsQueryResponse _subscriptionExpirationSetting;
+        private GetAllSettingsQueryResponse _adSupportSetting;
+
         public Settings()
         {
             InitializeComponent();
             _viewModel = new SettingsViewModel();
-            
+
             BindingContext = _viewModel;
             InitializeViewModel();
         }
@@ -68,97 +78,104 @@ namespace Location.Photography.Maui.Views
                         switch (setting.Key)
                         {
                             case var key when key == MagicStrings.Hemisphere:
+                                _hemisphereSetting = setting;
                                 _viewModel.Hemisphere = new SettingViewModel()
                                 {
                                     Id = setting.Id,
                                     Key = setting.Key,
                                     Value = setting.Value,
                                     Description = setting.Description,
-                                    Timestamp = DateTime.Now
+                                    Timestamp = setting.Timestamp
                                 };
                                 _viewModel.HemisphereNorth = setting.Value == MagicStrings.North;
                                 break;
 
                             case var key when key == MagicStrings.TimeFormat:
+                                _timeFormatSetting = setting;
                                 _viewModel.TimeFormat = new SettingViewModel()
                                 {
                                     Id = setting.Id,
                                     Key = setting.Key,
                                     Value = setting.Value,
                                     Description = setting.Description,
-                                    Timestamp = DateTime.Now
+                                    Timestamp = setting.Timestamp
                                 };
                                 _viewModel.TimeFormatToggle = setting.Value == MagicStrings.USTimeformat;
                                 TimeFormatPattern.Text = setting.Value;
-                                
+
                                 GetFormattedExpiration();
                                 break;
 
                             case var key when key == MagicStrings.DateFormat:
+                                _dateFormatSetting = setting;
                                 _viewModel.DateFormat = new SettingViewModel()
                                 {
                                     Id = setting.Id,
                                     Key = setting.Key,
                                     Value = setting.Value,
                                     Description = setting.Description,
-                                    Timestamp = DateTime.Now
+                                    Timestamp = setting.Timestamp
                                 };
                                 _viewModel.DateFormatToggle = setting.Value == MagicStrings.USDateFormat;
                                 break;
 
                             case var key when key == MagicStrings.WindDirection:
+                                _windDirectionSetting = setting;
                                 _viewModel.WindDirection = new SettingViewModel()
                                 {
                                     Id = setting.Id,
                                     Key = setting.Key,
                                     Value = setting.Value,
                                     Description = setting.Description,
-                                    Timestamp = DateTime.Now
+                                    Timestamp = setting.Timestamp
                                 };
                                 _viewModel.WindDirectionBoolean = setting.Value == MagicStrings.TowardsWind;
                                 WindDirection.Text = setting.Value == MagicStrings.TowardsWind ? "Towards Wind" : "With Wind";
                                 break;
 
                             case var key when key == MagicStrings.TemperatureType:
+                                _temperatureFormatSetting = setting;
                                 _viewModel.TemperatureFormat = new SettingViewModel()
                                 {
                                     Id = setting.Id,
                                     Key = setting.Key,
                                     Value = setting.Value,
                                     Description = setting.Description,
-                                    Timestamp = DateTime.Now
+                                    Timestamp = setting.Timestamp
                                 };
                                 _viewModel.TemperatureFormatToggle = setting.Value == MagicStrings.Fahrenheit;
                                 break;
 
                             case var key when key == MagicStrings.SubscriptionType:
+                                _subscriptionTypeSetting = setting;
                                 _viewModel.Subscription = new SettingViewModel()
                                 {
                                     Id = setting.Id,
                                     Key = setting.Key,
                                     Value = setting.Value,
                                     Description = setting.Description,
-                                    Timestamp = DateTime.Now
+                                    Timestamp = setting.Timestamp
                                 };
                                 break;
 
                             case var key when key == MagicStrings.SubscriptionExpiration:
+                                _subscriptionExpirationSetting = setting;
                                 _viewModel.SubscriptionExpiration = new SettingViewModel()
                                 {
                                     Id = setting.Id,
                                     Key = setting.Key,
                                     Value = setting.Value,
                                     Description = setting.Description,
-                                    Timestamp = DateTime.Now
+                                    Timestamp = setting.Timestamp
                                 };
                                 GetFormattedExpiration();
                                 break;
-                               
+
                             case var key when key == MagicStrings.FreePremiumAdSupported:
+                                _adSupportSetting = setting;
                                 _viewModel.AdSupportboolean = setting.Value == MagicStrings.True_string;
                                 break;
                         }
-
                     }
 
                     HemisphereSwitch.Toggled += HemisphereSwitch_Toggled;
@@ -242,15 +259,16 @@ namespace Location.Photography.Maui.Views
 
         private async void HemisphereSwitch_Toggled(object sender, ToggledEventArgs e)
         {
-            if (_viewModel?.Hemisphere != null)
+            if (_hemisphereSetting != null)
             {
                 try
                 {
                     string newValue = e.Value ? MagicStrings.North : MagicStrings.South;
-                    bool success = await UpdateSettingAsync(MagicStrings.Hemisphere, newValue, _viewModel.Hemisphere.Description);
+                    bool success = await UpdateSettingAsync(_hemisphereSetting.Key, newValue, _hemisphereSetting.Description);
 
                     if (success)
                     {
+                        _hemisphereSetting.Value = newValue;
                         _viewModel.Hemisphere.Value = newValue;
                         _viewModel.HemisphereNorth = e.Value;
                     }
@@ -270,18 +288,18 @@ namespace Location.Photography.Maui.Views
 
         private async void TimeSwitch_Toggled(object sender, ToggledEventArgs e)
         {
-            if (_viewModel?.TimeFormat != null)
+            if (_timeFormatSetting != null)
             {
                 try
                 {
                     string newValue = e.Value ? MagicStrings.USTimeformat : MagicStrings.InternationalTimeFormat;
-                    bool success = await UpdateSettingAsync(MagicStrings.TimeFormat, newValue, _viewModel.TimeFormat.Description);
+                    bool success = await UpdateSettingAsync(_timeFormatSetting.Key, newValue, _timeFormatSetting.Description);
 
                     if (success)
                     {
+                        _timeFormatSetting.Value = newValue;
                         _viewModel.TimeFormat.Value = newValue;
                         _viewModel.TimeFormatToggle = e.Value;
-                        var format = Failure.Text + ' ' + newValue;
                         GetFormattedExpiration();
                     }
                     else
@@ -300,19 +318,19 @@ namespace Location.Photography.Maui.Views
 
         private async void DateFormat_Toggled(object sender, ToggledEventArgs e)
         {
-            if (_viewModel?.DateFormat != null)
+            if (_dateFormatSetting != null)
             {
                 try
                 {
                     string newValue = e.Value ? MagicStrings.USDateFormat : MagicStrings.InternationalFormat;
-                    bool success = await UpdateSettingAsync(MagicStrings.DateFormat, newValue, _viewModel.DateFormat.Description);
+                    bool success = await UpdateSettingAsync(_dateFormatSetting.Key, newValue, _dateFormatSetting.Description);
 
                     if (success)
                     {
+                        _dateFormatSetting.Value = newValue;
                         _viewModel.DateFormat.Value = newValue;
                         _viewModel.DateFormatToggle = e.Value;
                         GetFormattedExpiration();
-
                     }
                     else
                     {
@@ -330,15 +348,16 @@ namespace Location.Photography.Maui.Views
 
         private async void WindDirectionSwitch_Toggled(object sender, ToggledEventArgs e)
         {
-            if (_viewModel?.WindDirection != null)
+            if (_windDirectionSetting != null)
             {
                 try
                 {
                     string newValue = e.Value ? MagicStrings.TowardsWind : MagicStrings.WithWind;
-                    bool success = await UpdateSettingAsync(MagicStrings.WindDirection, newValue, _viewModel.WindDirection.Description);
+                    bool success = await UpdateSettingAsync(_windDirectionSetting.Key, newValue, _windDirectionSetting.Description);
 
                     if (success)
                     {
+                        _windDirectionSetting.Value = newValue;
                         _viewModel.WindDirection.Value = newValue;
                         _viewModel.WindDirectionBoolean = e.Value;
                         WindDirection.Text = e.Value ? "Towards Wind" : "With Wind";
@@ -359,15 +378,16 @@ namespace Location.Photography.Maui.Views
 
         private async void TempFormatSwitch_Toggled(object sender, ToggledEventArgs e)
         {
-            if (_viewModel?.TemperatureFormat != null)
+            if (_temperatureFormatSetting != null)
             {
                 try
                 {
                     string newValue = e.Value ? MagicStrings.Fahrenheit : MagicStrings.Celsius;
-                    bool success = await UpdateSettingAsync(MagicStrings.TemperatureType, newValue, _viewModel.TemperatureFormat.Description);
+                    bool success = await UpdateSettingAsync(_temperatureFormatSetting.Key, newValue, _temperatureFormatSetting.Description);
 
                     if (success)
                     {
+                        _temperatureFormatSetting.Value = newValue;
                         _viewModel.TemperatureFormat.Value = newValue;
                         _viewModel.TemperatureFormatToggle = e.Value;
                     }
@@ -387,8 +407,33 @@ namespace Location.Photography.Maui.Views
 
         private async void AdSupport_Toggled(object sender, ToggledEventArgs e)
         {
-            if (_viewModel != null)
+            if (_adSupportSetting != null)
             {
+                try
+                {
+                    string newValue = e.Value ? MagicStrings.True_string : MagicStrings.False_string;
+                    bool success = await UpdateSettingAsync(_adSupportSetting.Key, newValue, _adSupportSetting.Description);
+
+                    if (success)
+                    {
+                        _adSupportSetting.Value = newValue;
+                        _viewModel.AdSupportboolean = e.Value;
+                    }
+                    else
+                    {
+                        adsupport.Toggled -= AdSupport_Toggled;
+                        adsupport.IsToggled = !e.Value;
+                        adsupport.Toggled += AdSupport_Toggled;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await _alertService.ShowErrorAlertAsync($"Error updating ad support: {ex.Message}", "Error");
+                }
+            }
+            else
+            {
+                // Fallback to original method if setting not found
                 try
                 {
                     string newValue = e.Value ? MagicStrings.True_string : MagicStrings.False_string;
@@ -420,7 +465,7 @@ namespace Location.Photography.Maui.Views
 
         private async void Button_Pressed(object sender, EventArgs e)
         {
-            await Shell.Current.Navigation.PushAsync(new SubscriptionSignUpPage(), true);// Navigation.PushAsync(new NavigationPage(new SubscriptionSignUpPage()));
+            await Shell.Current.Navigation.PushAsync(new SubscriptionSignUpPage(), true);
         }
     }
 }

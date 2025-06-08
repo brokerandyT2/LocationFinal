@@ -260,7 +260,7 @@
                     <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                        HeightRequest="50" 
                                        WidthRequest="50" 
-                                       Color="Blue"/>
+                                    />
                     <Label Text="Processing, please wait..." 
                            FontSize="14"
                            Margin="5"/>

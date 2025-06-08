@@ -195,11 +195,11 @@
                        HorizontalOptions="Center"
                        Spacing="15">
                 <ActivityIndicator IsRunning="True" 
-                                 Color="White" 
+                                 
                                  HeightRequest="50" 
                                  WidthRequest="50"/>
                 <Label Text="Processing..." 
-                      TextColor="White" 
+                      
                       FontSize="16"/>
             </StackLayout>
         </Grid>

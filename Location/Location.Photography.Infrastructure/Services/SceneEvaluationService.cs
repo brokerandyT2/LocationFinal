@@ -132,6 +132,69 @@ namespace Location.Photography.Infrastructure.Services
             }
         }
 
+        public async Task<string> GenerateStackedHistogramImageAsync(
+            double[] redHistogram,
+            double[] greenHistogram,
+            double[] blueHistogram,
+            double[] luminanceHistogram,
+            string fileName)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    int width = HistogramBuckets;
+                    int height = 200;
+
+                    // Find maximum value across all histograms for scaling
+                    double maxValue = 1.0; // Avoid division by zero
+                    foreach (var histogram in new[] { redHistogram, greenHistogram, blueHistogram, luminanceHistogram })
+                    {
+                        foreach (double value in histogram)
+                        {
+                            maxValue = Math.Max(maxValue, value);
+                        }
+                    }
+
+                    using SKBitmap stackedBitmap = new SKBitmap(width, height);
+                    using SKCanvas canvas = new SKCanvas(stackedBitmap);
+
+                    canvas.Clear(SKColors.White);
+
+                    var colors = new[] { SKColors.Red, SKColors.Green, SKColors.Blue, SKColors.Gray };
+                    var histograms = new[] { redHistogram, greenHistogram, blueHistogram, luminanceHistogram };
+
+                    // Draw each histogram with transparency
+                    for (int h = 0; h < histograms.Length; h++)
+                    {
+                        using SKPaint paint = new SKPaint
+                        {
+                            Color = colors[h].WithAlpha(128), // Semi-transparent
+                            StrokeWidth = 1,
+                            IsAntialias = true
+                        };
+
+                        for (int i = 0; i < HistogramBuckets; i++)
+                        {
+                            float barHeight = (float)(histograms[h][i] / maxValue * height);
+                            canvas.DrawLine(i, height, i, height - barHeight, paint);
+                        }
+                    }
+
+                    string filePath = Path.Combine(_cacheDirectory, fileName);
+                    using SKFileWStream fileStream = new SKFileWStream(filePath);
+                    stackedBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
+
+                    return filePath;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error generating stacked histogram image");
+                    throw;
+                }
+            });
+        }
+
         private async Task<SceneEvaluationStatsDto> CalculateHistogramsAsync(
             SKBitmap bitmap,
             int[] redHistogram,

@@ -683,7 +683,37 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 Expression.Property(entityParam, nameof(SettingEntity.Value)),
                 Expression.Property(entityParam, nameof(SettingEntity.Description)));
 
-            return Expression.Lambda<Func<SettingEntity, Setting>>(settingNew, entityParam).Compile();
+            // Create variable to hold the new Setting instance
+            var settingVar = Expression.Variable(typeof(Setting), "setting");
+
+            // Get property info for Id and Timestamp
+            var idProperty = typeof(Setting).GetProperty("Id");
+            var timestampProperty = typeof(Setting).GetProperty("Timestamp");
+
+            if (idProperty == null || timestampProperty == null)
+            {
+                throw new InvalidOperationException("Cannot find Id or Timestamp properties on Setting");
+            }
+
+            // Create expressions to set the properties
+            var assignId = Expression.Assign(
+                Expression.Property(settingVar, idProperty),
+                Expression.Property(entityParam, nameof(SettingEntity.Id)));
+
+            var assignTimestamp = Expression.Assign(
+                Expression.Property(settingVar, timestampProperty),
+                Expression.Property(entityParam, nameof(SettingEntity.Timestamp)));
+
+            // Create the complete expression block
+            var block = Expression.Block(
+                new[] { settingVar },
+                Expression.Assign(settingVar, settingNew),
+                assignId,
+                assignTimestamp,
+                settingVar
+            );
+
+            return Expression.Lambda<Func<SettingEntity, Setting>>(block, entityParam).Compile();
         }
 
         private static Func<Setting, SettingEntity> CompileDomainToEntityMapper()

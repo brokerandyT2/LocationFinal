@@ -130,11 +130,11 @@
                                  Spacing="10">
                 <ActivityIndicator x:Name="loadingIndicator"
                                   IsRunning="True" 
-                                  Color="Blue" 
+                                
                                   HeightRequest="50" 
                                   WidthRequest="50"/>
                 <Label Text="Processing data, please wait..." 
-                       TextColor="Blue" 
+                       
                        FontSize="14"/>
             </VerticalStackLayout>
         </Grid>

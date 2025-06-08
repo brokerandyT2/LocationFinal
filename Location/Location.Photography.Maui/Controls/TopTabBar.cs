@@ -166,7 +166,7 @@ namespace Location.Photography.Maui.Controls
                 Text = displayText,
                 FontSize = 12,
                 FontAttributes = isSelected ? FontAttributes.Bold : FontAttributes.None,
-                TextColor = isSelected ? Colors.White : (isEnabled ? Colors.Black : Colors.Gray),
+                TextColor = isSelected ? Colors.White : Color.FromHex("#FF3D20"),
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center
             };
@@ -175,7 +175,7 @@ namespace Location.Photography.Maui.Controls
             {
                 StrokeThickness = 1,
                 Stroke = isSelected ? Colors.Blue : Colors.LightGray,
-                BackgroundColor = isSelected ? Colors.Blue : (isEnabled ? Colors.White : Colors.LightGray),
+                BackgroundColor = isSelected ? Colors.Black : Colors.Transparent,
                 Content = label,
                 StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle() { CornerRadius = 20 },
 
@@ -215,7 +215,7 @@ namespace Location.Photography.Maui.Controls
                 Text = subTab.Title,
                 FontSize = 11,
                 FontAttributes = isSelected ? FontAttributes.Bold : FontAttributes.None,
-                TextColor = isSelected ? Colors.White : (isEnabled ? Colors.DarkBlue : Colors.Gray),
+                TextColor = isSelected ? Colors.White : Color.FromHex("#FF3D20"),
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center
             };
@@ -223,8 +223,8 @@ namespace Location.Photography.Maui.Controls
             var border = new Border
             {
                 StrokeThickness = 1,
-                Stroke = isSelected ? Colors.DarkBlue : Colors.LightBlue,
-                BackgroundColor = isSelected ? Colors.DarkBlue : (isEnabled ? Colors.LightBlue.WithAlpha(0.3f) : Colors.LightGray),
+                Stroke = isSelected ? Color.FromHex("#FF3D20") : Colors.Transparent,
+                BackgroundColor = isSelected ? Color.FromHex("#FF3D20") : Colors.Transparent,
                 Content = label,
                 StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle() { CornerRadius = 20 },
                 HeightRequest = 30,

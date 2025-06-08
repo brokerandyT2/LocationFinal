@@ -47,16 +47,16 @@ namespace Location.Photography.Maui.Controls
             set => SetValue(TitleProperty, value);
         }
 
-        // Colors for the tint gradient
-        private static readonly SKColor GreenTint = new SKColor(76, 175, 80);    // Green
-        private static readonly SKColor NeutralTint = new SKColor(220, 220, 220); // Neutral
-        private static readonly SKColor MagentaTint = new SKColor(216, 27, 96);   // Magenta
+        // Colors for the tint gradient (Green to Magenta)
+        private static readonly SKColor GreenColor = new SKColor(0, 255, 0);     // Pure Green
+        private static readonly SKColor NeutralColor = new SKColor(255, 255, 255); // White/neutral
+        private static readonly SKColor MagentaColor = new SKColor(255, 0, 255);   // Pure Magenta
 
         public TintDial()
         {
-            // Set default size
-            HeightRequest = 200;
-            WidthRequest = 200;
+            // Set default size for horizontal layout
+            HeightRequest = 120;
+            WidthRequest = 380;
         }
 
         protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
@@ -67,118 +67,113 @@ namespace Location.Photography.Maui.Controls
             var info = e.Info;
             float width = info.Width;
             float height = info.Height;
-            float size = Math.Min(width, height);
-            float center = size / 2;
-            float strokeWidth = size / 20;
 
-            // Calculate position
-            float radius = (size / 2) - (strokeWidth / 2);
-            float dialRadius = radius - (strokeWidth / 2) - 5;
-            float needleLength = dialRadius - 10;
+            // Horizontal layout calculations
+            float margin = 20;
+            float sliderHeight = 40; // Double the height to match ColorTemperatureDial
+            float titleHeight = 35; // More space for title
+            float sliderY = titleHeight + 15; // Move slider down more to accommodate title
+            float sliderStartX = margin + 60; // More space for min value label
+            float sliderEndX = width - margin - 60; // More space for max value label
+            float sliderWidth = sliderEndX - sliderStartX;
 
             using (var paint = new SKPaint())
             {
-                // Create the gradient background
-                using (var shader = SKShader.CreateSweepGradient(
-                    new SKPoint(center, center),
-                    new SKColor[] { MagentaTint, NeutralTint, GreenTint, NeutralTint, MagentaTint },
-                    new float[] { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f }))
+                // Draw title
+                using (var titlePaint = new SKPaint
                 {
-                    paint.Style = SKPaintStyle.Stroke;
-                    paint.StrokeWidth = strokeWidth;
+                    Color = SKColors.Black,
+                    TextSize = height / 8,
+                    IsAntialias = true,
+                    TextAlign = SKTextAlign.Center
+                })
+                {
+                    canvas.DrawText(Title, width / 2, 30, titlePaint);
+                }
+
+                // Create horizontal gradient for slider track (Green to Magenta)
+                using (var shader = SKShader.CreateLinearGradient(
+                    new SKPoint(sliderStartX, sliderY),
+                    new SKPoint(sliderEndX, sliderY),
+                    new SKColor[] { GreenColor, NeutralColor, MagentaColor },
+                    new float[] { 0, 0.5f, 1.0f },
+                    SKShaderTileMode.Clamp))
+                {
+                    paint.Style = SKPaintStyle.Fill;
                     paint.IsAntialias = true;
                     paint.Shader = shader;
 
-                    // Draw arc from 150 to 390 degrees (240-degree span)
-                    canvas.DrawArc(
-                        new SKRect(strokeWidth / 2, strokeWidth / 2, size - strokeWidth / 2, size - strokeWidth / 2),
-                        150, 240, false, paint);
+                    // Draw slider track with rounded ends
+                    var sliderRect = new SKRect(sliderStartX, sliderY, sliderEndX, sliderY + sliderHeight);
+                    canvas.DrawRoundRect(sliderRect, sliderHeight / 2, sliderHeight / 2, paint);
                 }
 
-                // Draw title
-                using (var textPaint = new SKPaint
+                // Draw min/max value labels
+                using (var labelPaint = new SKPaint
                 {
-                    Color = SKColors.Black,
-                    TextSize = size / 12,
+                    Color = SKColors.DarkGray,
+                    TextSize = height / 10,
                     IsAntialias = true,
                     TextAlign = SKTextAlign.Center
                 })
                 {
-                    canvas.DrawText(Title, center, size - 10, textPaint);
+                    canvas.DrawText("Green", margin + 30, sliderY + sliderHeight + 20, labelPaint);
+                    canvas.DrawText("Magenta", width - margin - 30, sliderY + sliderHeight + 20, labelPaint);
                 }
 
-                // Draw markers for Magenta, Neutral, Green
-                using (var textPaint = new SKPaint
-                {
-                    Color = SKColors.Black,
-                    TextSize = size / 16,
-                    IsAntialias = true,
-                    TextAlign = SKTextAlign.Center
-                })
-                {
-                    // Calculate marker positions
-                    float leftAngle = 150 * (float)(Math.PI / 180); // Magenta
-                    float midAngle = 270 * (float)(Math.PI / 180);  // Neutral
-                    float rightAngle = 30 * (float)(Math.PI / 180); // Green
-
-                    float textRadius = radius + 10;
-
-                    // Draw marker texts
-                    float leftX = center + textRadius * (float)Math.Cos(leftAngle);
-                    float leftY = center + textRadius * (float)Math.Sin(leftAngle);
-                    canvas.DrawText("M", leftX, leftY, textPaint);
-
-                    float midX = center + textRadius * (float)Math.Cos(midAngle);
-                    float midY = center + textRadius * (float)Math.Sin(midAngle);
-                    canvas.DrawText("N", midX, midY - 10, textPaint);
-
-                    float rightX = center + textRadius * (float)Math.Cos(rightAngle);
-                    float rightY = center + textRadius * (float)Math.Sin(rightAngle);
-                    canvas.DrawText("G", rightX, rightY, textPaint);
-                }
-
-                // Calculate needle angle based on value
-                float angleRange = 240;
+                // Calculate thumb position based on value
                 float normalizedValue = (float)((Value - MinValue) / (MaxValue - MinValue));
-                float needleAngle = 150 + (normalizedValue * angleRange);
-                float rads = (float)(needleAngle * Math.PI / 180);
+                float thumbX = sliderStartX + (normalizedValue * sliderWidth);
+                float thumbY = sliderY + (sliderHeight / 2);
 
-                // Draw needle
-                using (var needlePaint = new SKPaint
+                // Draw thumb (slider handle)
+                using (var thumbPaint = new SKPaint
                 {
-                    Color = SKColors.Black,
-                    StrokeWidth = 3,
-                    IsAntialias = true,
-                    Style = SKPaintStyle.Stroke
+                    Color = SKColors.White,
+                    Style = SKPaintStyle.Fill,
+                    IsAntialias = true
                 })
                 {
-                    float needleX = center + needleLength * (float)Math.Cos(rads);
-                    float needleY = center + needleLength * (float)Math.Sin(rads);
-                    canvas.DrawLine(center, center, needleX, needleY, needlePaint);
+                    // Draw white circle with border - bigger for double height bar
+                    float thumbRadius = sliderHeight / 2 + 4;
+                    canvas.DrawCircle(thumbX, thumbY, thumbRadius, thumbPaint);
 
-                    // Draw needle circle
-                    needlePaint.Style = SKPaintStyle.Fill;
-                    canvas.DrawCircle(center, center, 5, needlePaint);
+                    thumbPaint.Color = SKColors.DarkGray;
+                    thumbPaint.Style = SKPaintStyle.Stroke;
+                    thumbPaint.StrokeWidth = 3;
+                    canvas.DrawCircle(thumbX, thumbY, thumbRadius, thumbPaint);
                 }
 
-                // Show current value
-                string valueText;
-                if (Value < 0)
-                    valueText = $"M{Math.Abs(Value):F2}";
-                else if (Value > 0)
-                    valueText = $"G{Value:F2}";
-                else
-                    valueText = "Neutral";
-
-                using (var textPaint = new SKPaint
+                // Draw current value text
+                using (var valuePaint = new SKPaint
                 {
                     Color = SKColors.Black,
-                    TextSize = size / 14,
+                    TextSize = height / 9,
                     IsAntialias = true,
-                    TextAlign = SKTextAlign.Center
+                    TextAlign = SKTextAlign.Center,
+                    FakeBoldText = true
                 })
                 {
-                    canvas.DrawText(valueText, center, center + 40, textPaint);
+                    // Format value to show decimal places for tint
+                    canvas.DrawText($"{Value:F1}", width / 2, height - 10, valuePaint);
+                }
+
+                // Draw tick marks
+                using (var tickPaint = new SKPaint
+                {
+                    Color = SKColors.Gray,
+                    StrokeWidth = 1,
+                    IsAntialias = true
+                })
+                {
+                    // Draw major ticks at -1, -0.5, 0, 0.5, 1
+                    for (double tint = MinValue; tint <= MaxValue; tint += 0.5)
+                    {
+                        float tickNormalized = (float)((tint - MinValue) / (MaxValue - MinValue));
+                        float tickX = sliderStartX + (tickNormalized * sliderWidth);
+
+                        canvas.DrawLine(tickX, sliderY - 3, tickX, sliderY + sliderHeight + 3, tickPaint);
+                    }
                 }
             }
         }

@@ -127,6 +127,12 @@ namespace Location.Photography.Maui
                         Title = "Field of View",
                         PageType = typeof(Views.Premium.FieldOfView),
                         IsEnabled = false
+                    }, 
+                    new TabItem
+                    {
+                        Title = "Astro Location",
+                        PageType = typeof(Views.Premium.AstroLocation),
+                        IsEnabled = false
                     }
                 };
                 TopTabs.Tabs.Add(premiumTab);
@@ -524,7 +530,7 @@ namespace Location.Photography.Maui
                             {
                                 subTab.IsEnabled = premiumTab.IsEnabled;
                             }
-                            _logger.LogInformation($"Premium tab enabled: {premiumTab.IsEnabled}");
+                            _logger.LogInformation($"Premium tab enabled: {premiumTab.Title} - IsEnabled: {premiumTab.IsEnabled}");
                         }
 
                         if (professionalTab != null)
@@ -534,7 +540,7 @@ namespace Location.Photography.Maui
                             {
                                 subTab.IsEnabled = professionalTab.IsEnabled;
                             }
-                            _logger.LogInformation($"Professional tab enabled: {professionalTab.IsEnabled}");
+                            _logger.LogInformation($"Professional tab enabled: {professionalTab.Title} - IsEnabled: {professionalTab.IsEnabled}");
                         }
 
                         if (subscriptionData.CanAccessPremium && professionalTab != null)

@@ -361,8 +361,8 @@
                             <!-- Hourly Forecasts Loading Overlay -->
                             <Grid IsVisible="{Binding IsHourlyForecastsLoading}" BackgroundColor="#80000000">
                                 <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                                    <ActivityIndicator IsRunning="{Binding IsHourlyForecastsLoading}" HeightRequest="40" WidthRequest="40" Color="#2196F3" />
-                                    <Label Text="Loading hourly predictions..." FontSize="12" TextColor="White" HorizontalTextAlignment="Center"/>
+                                    <ActivityIndicator IsRunning="{Binding IsHourlyForecastsLoading}" HeightRequest="40" WidthRequest="40"  />
+                                    <Label Text="Loading hourly predictions..." FontSize="12" HorizontalTextAlignment="Center"/>
                                 </VerticalStackLayout>
                             </Grid>
                         </Grid>
@@ -433,8 +433,8 @@
                             <!-- Optimal Events Loading Overlay -->
                             <Grid IsVisible="{Binding IsOptimalEventsLoading}" BackgroundColor="#80000000">
                                 <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                                    <ActivityIndicator IsRunning="{Binding IsOptimalEventsLoading}" HeightRequest="40" WidthRequest="40" Color="#2196F3" />
-                                    <Label Text="Loading optimal windows..." FontSize="12" TextColor="White" HorizontalTextAlignment="Center"/>
+                                    <ActivityIndicator IsRunning="{Binding IsOptimalEventsLoading}" HeightRequest="40" WidthRequest="40"  />
+                                    <Label Text="Loading optimal windows..." FontSize="12" HorizontalTextAlignment="Center"/>
                                 </VerticalStackLayout>
                             </Grid>
                         </Grid>

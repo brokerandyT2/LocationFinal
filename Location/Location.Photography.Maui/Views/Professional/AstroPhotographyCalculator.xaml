@@ -251,10 +251,10 @@
                                 <ActivityIndicator IsRunning="{Binding IsGeneratingHourlyPredictions}" 
                                  HeightRequest="40" 
                                  WidthRequest="40" 
-                                 Color="#689F38" />
+                                 />
                                 <Label Text="Calculating astrophotography predictions..." 
                       FontSize="12" 
-                      TextColor="White" 
+                
                       HorizontalTextAlignment="Center"/>
                                 <Label Text="{Binding HourlyPredictionsStatus}" 
                       FontSize="10" 

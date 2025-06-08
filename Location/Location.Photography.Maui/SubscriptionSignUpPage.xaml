@@ -168,12 +168,10 @@
                                  HorizontalOptions="Center"
                                  Spacing="10">
                 <ActivityIndicator IsRunning="{Binding IsBusy}" 
-                                  Color="Blue" 
                                   HeightRequest="50" 
                                   WidthRequest="50"/>
                 <Label Text="Processing subscription, please wait..." 
-                       TextColor="Blue" 
-                       FontSize="14"/>
+                         FontSize="14"/>
             </VerticalStackLayout>
         </Grid>
     </Grid>

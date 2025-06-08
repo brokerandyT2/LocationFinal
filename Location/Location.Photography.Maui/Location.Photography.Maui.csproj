@@ -147,6 +147,9 @@
     <MauiXaml Update="Views\Premium\AddLensModal.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\Premium\AstroLocation.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Premium\CameraLensManagement.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

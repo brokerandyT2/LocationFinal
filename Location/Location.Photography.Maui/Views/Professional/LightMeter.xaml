@@ -293,9 +293,9 @@
                 <ActivityIndicator IsRunning="{Binding IsBusy}" 
                                    HeightRequest="50" 
                                    WidthRequest="50" 
-                                   Color="White" />
+                                   />
                 <Label Text="Loading..." 
-                       TextColor="White" 
+                       
                        FontSize="14"/>
             </VerticalStackLayout>
         </Grid>

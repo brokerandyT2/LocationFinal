@@ -7,7 +7,7 @@ using OperationErrorSource = Location.Photography.ViewModels.Events.OperationErr
 
 namespace Location.Photography.ViewModels
 {
-    public partial class SceneEvaluationViewModel : ViewModelBase,  IDisposable
+    public partial class SceneEvaluationViewModel : ViewModelBase, IDisposable
     {
         #region Fields
         private readonly IImageAnalysisService _imageAnalysisService;
@@ -22,6 +22,7 @@ namespace Location.Photography.ViewModels
         private readonly Dictionary<string, ImageAnalysisResult> _analysisCache = new();
         private readonly Dictionary<HistogramDisplayMode, string> _histogramImageCache = new();
         private string _lastAnalyzedImageHash = string.Empty;
+        private string _stackedHistogramImagePath = string.Empty;
         #endregion
 
         #region Events
@@ -49,6 +50,9 @@ namespace Location.Photography.ViewModels
 
         [ObservableProperty]
         private double _tintValue = 0;
+
+        [ObservableProperty]
+        private bool _displayAll = false;
 
         // Professional analysis properties
         [ObservableProperty]
@@ -122,6 +126,9 @@ namespace Location.Photography.ViewModels
         [RelayCommand]
         private async Task EvaluateSceneAsync()
         {
+            // Clear previous analysis data when starting new analysis
+            ClearPreviousAnalysisData();
+
             // Prevent concurrent processing
             if (!await _processingLock.WaitAsync(100))
             {
@@ -155,6 +162,16 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region PERFORMANCE OPTIMIZED METHODS
+
+        /// <summary>
+        /// Clear previous analysis data when starting new analysis
+        /// </summary>
+        private void ClearPreviousAnalysisData()
+        {
+            _histogramImageCache.Clear();
+            _stackedHistogramImagePath = string.Empty;
+            _lastAnalyzedImageHash = string.Empty;
+        }
 
         /// <summary>
         /// PERFORMANCE OPTIMIZATION: Streamlined scene evaluation with progress tracking
@@ -265,11 +282,13 @@ namespace Location.Photography.ViewModels
                     {
                         var recommendations = GenerateRecommendationsOptimized(analysisResult);
                         var histogramImages = await GenerateHistogramImagesBatchAsync(analysisResult);
+                        var stackedHistogram = await GenerateStackedHistogramImageAsync(analysisResult);
 
                         return new
                         {
                             Recommendations = recommendations,
-                            HistogramImages = histogramImages
+                            HistogramImages = histogramImages,
+                            StackedHistogramPath = stackedHistogram
                         };
                     }
                     catch (Exception ex)
@@ -308,6 +327,9 @@ namespace Location.Photography.ViewModels
                         {
                             _histogramImageCache[kvp.Key] = kvp.Value;
                         }
+
+                        // Cache stacked histogram
+                        _stackedHistogramImagePath = enhancedData.StackedHistogramPath;
 
                         _processingProgress = 90.0;
                         _processingStatus = "Finalizing display...";
@@ -433,7 +455,7 @@ namespace Location.Photography.ViewModels
         }
 
         /// <summary>
-        /// PERFORMANCE OPTIMIZATION: Optimized display updates with caching
+        /// PERFORMANCE OPTIMIZATION: Optimized display updates with caching and stacked histogram support
         /// </summary>
         private async Task UpdateDisplayOptimizedAsync()
         {
@@ -441,28 +463,39 @@ namespace Location.Photography.ViewModels
 
             try
             {
-                // Check histogram cache first
-                if (_histogramImageCache.TryGetValue(SelectedHistogramMode, out var cachedImagePath))
+                if (DisplayAll)
                 {
-                    CurrentHistogramImage = cachedImagePath;
-                    UpdateAnalysisMetricsOptimized();
-                    return;
+                    // Show stacked histogram
+                    if (!string.IsNullOrEmpty(_stackedHistogramImagePath))
+                    {
+                        CurrentHistogramImage = _stackedHistogramImagePath;
+                    }
                 }
-
-                // Generate on demand if not cached
-                var histogram = SelectedHistogramMode switch
+                else
                 {
-                    HistogramDisplayMode.Red => AnalysisResult.RedHistogram,
-                    HistogramDisplayMode.Green => AnalysisResult.GreenHistogram,
-                    HistogramDisplayMode.Blue => AnalysisResult.BlueHistogram,
-                    HistogramDisplayMode.Luminance => AnalysisResult.LuminanceHistogram,
-                    _ => AnalysisResult.RedHistogram
-                };
+                    // Check histogram cache first for individual histogram
+                    if (_histogramImageCache.TryGetValue(SelectedHistogramMode, out var cachedImagePath))
+                    {
+                        CurrentHistogramImage = cachedImagePath;
+                    }
+                    else
+                    {
+                        // Generate on demand if not cached
+                        var histogram = SelectedHistogramMode switch
+                        {
+                            HistogramDisplayMode.Red => AnalysisResult.RedHistogram,
+                            HistogramDisplayMode.Green => AnalysisResult.GreenHistogram,
+                            HistogramDisplayMode.Blue => AnalysisResult.BlueHistogram,
+                            HistogramDisplayMode.Luminance => AnalysisResult.LuminanceHistogram,
+                            _ => AnalysisResult.RedHistogram
+                        };
 
-                if (histogram?.ImagePath != null)
-                {
-                    CurrentHistogramImage = histogram.ImagePath;
-                    _histogramImageCache[SelectedHistogramMode] = histogram.ImagePath;
+                        if (histogram?.ImagePath != null)
+                        {
+                            CurrentHistogramImage = histogram.ImagePath;
+                            _histogramImageCache[SelectedHistogramMode] = histogram.ImagePath;
+                        }
+                    }
                 }
 
                 UpdateAnalysisMetricsOptimized();
@@ -629,6 +662,28 @@ namespace Location.Photography.ViewModels
             }
         }
 
+        /// <summary>
+        /// Generate stacked histogram image showing all channels
+        /// </summary>
+        private async Task<string> GenerateStackedHistogramImageAsync(ImageAnalysisResult analysisResult)
+        {
+            if (analysisResult == null) return string.Empty;
+
+            try
+            {
+                return await _imageAnalysisService.GenerateStackedHistogramImageAsync(
+                    analysisResult.RedHistogram.Values,
+                    analysisResult.GreenHistogram.Values,
+                    analysisResult.BlueHistogram.Values,
+                    analysisResult.LuminanceHistogram.Values,
+                    "stacked_histogram.png");
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error generating stacked histogram: {ex.Message}", ex);
+            }
+        }
+
         #endregion
 
         #region Methods
@@ -661,6 +716,7 @@ namespace Location.Photography.ViewModels
         {
             // Initialize default state
             SelectedHistogramMode = HistogramDisplayMode.Red;
+            DisplayAll = false;
             UpdateHistogramVisibility();
 
             // Clear any processing state
@@ -701,7 +757,15 @@ namespace Location.Photography.ViewModels
         #region Partial Methods
         partial void OnSelectedHistogramModeChanged(HistogramDisplayMode value)
         {
-            UpdateHistogramVisibility();
+            if (!DisplayAll)
+            {
+                UpdateHistogramVisibility();
+                _ = UpdateDisplayOptimizedAsync();
+            }
+        }
+
+        partial void OnDisplayAllChanged(bool value)
+        {
             _ = UpdateDisplayOptimizedAsync();
         }
 
