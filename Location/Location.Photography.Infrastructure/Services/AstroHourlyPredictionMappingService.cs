@@ -153,10 +153,10 @@ namespace Location.Photography.Infrastructure.Services
         }
 
         private async Task<AstroHourlyPredictionDto> GeneratePredictionForHourAsync(
-            DateTime hour,
-            double latitude,
-            double longitude,
-            DateTime selectedDate)
+   DateTime hour,
+   double latitude,
+   double longitude,
+   DateTime selectedDate)
         {
             try
             {
@@ -166,7 +166,7 @@ namespace Location.Photography.Infrastructure.Services
                 // Calculate quality score
                 var qualityScore = await CalculateHourQualityAsync(hour, latitude, longitude, new List<AstroCalculationResult>());
 
-                // Generate basic prediction
+                // Generate basic prediction using enhanced primary method with empty calculation results
                 var dto = new AstroHourlyPredictionDto
                 {
                     Hour = hour,
@@ -176,7 +176,7 @@ namespace Location.Photography.Infrastructure.Services
                     QualityScore = qualityScore,
                     QualityDisplay = GetQualityDisplay(qualityScore),
                     QualityDescription = GetQualityDescription(qualityScore),
-                    AstroEvents = await GenerateAstroEventsForHourAsync(hour, latitude, longitude),
+                    AstroEvents = await GenerateAstroEventsFromCalculationsAsync(new List<AstroCalculationResult>(), hour, latitude, longitude),
                     Weather = await GetWeatherDtoAsync(hour, latitude, longitude)
                 };
 
@@ -208,11 +208,11 @@ namespace Location.Photography.Infrastructure.Services
                 var civilDawn = _sunCalculatorService.GetCivilDawn(nextDay, latitude, longitude, "UTC");
                 var sunrise = _sunCalculatorService.GetSunrise(nextDay, latitude, longitude, "UTC");
 
-                // Check current sun elevation for additional validation
+                // Check current sun elevation for validation
                 var sunElevation = _sunCalculatorService.GetSolarElevation(hour, latitude, longitude, "UTC");
 
-                // Determine which event period we're in
-                if (sunElevation > 0)
+                // Determine which event period we're in based on time comparison
+                if (hour < sunset)
                 {
                     return "Daylight";
                 }
@@ -230,7 +230,7 @@ namespace Location.Photography.Infrastructure.Services
                 }
                 else if (hour >= astronomicalDusk && hour < astronomicalDawn)
                 {
-                    return "Astronomical Twilight";
+                    return "True Night";
                 }
                 else if (hour >= astronomicalDawn && hour < nauticalDawn)
                 {
@@ -321,15 +321,21 @@ namespace Location.Photography.Infrastructure.Services
         }
 
         private async Task<List<AstroEventDto>> GenerateAstroEventsFromCalculationsAsync(
-            List<AstroCalculationResult> calculationResults,
-            DateTime hour,
-            double latitude,
-            double longitude)
+   List<AstroCalculationResult> calculationResults,
+   DateTime hour,
+   double latitude,
+   double longitude)
         {
             var events = new List<AstroEventDto>();
 
             try
             {
+                // Get sun altitude to determine what targets are viable
+                var sunAltitude = _sunCalculatorService.GetSolarElevation(hour, latitude, longitude, "UTC");
+
+                // Process provided calculation results first
+                var processedTargets = new HashSet<AstroTarget>();
+
                 foreach (var result in calculationResults.Where(r => r.IsVisible))
                 {
                     var equipmentRec = await GetEquipmentRecommendationsAsync(result.Target, latitude, longitude);
@@ -344,9 +350,53 @@ namespace Location.Photography.Infrastructure.Services
                         CameraSettings = cameraSettings,
                         Notes = notes
                     });
+
+                    processedTargets.Add(result.Target);
                 }
 
-                return events;
+                // Now check for missing targets that should be available at this hour
+                if (sunAltitude < -6) // Dark enough for astrophotography
+                {
+                    // Check Moon if not already processed
+                    if (!processedTargets.Contains(AstroTarget.Moon))
+                    {
+                        var moonData = await GetMoonDataForHourAsync(hour, latitude, longitude);
+                        if (moonData != null)
+                        {
+                            events.Add(moonData);
+                        }
+                    }
+
+                    // Check Milky Way if not already processed
+                    if (!processedTargets.Contains(AstroTarget.MilkyWayCore) && sunAltitude < -18)
+                    {
+                        var milkyWayData = await GetMilkyWayDataForHourAsync(hour, latitude, longitude);
+                        if (milkyWayData != null)
+                        {
+                            events.Add(milkyWayData);
+                        }
+                    }
+
+                    // Check planets if not already processed
+                    if (!processedTargets.Contains(AstroTarget.Planets))
+                    {
+                        var visiblePlanets = await GetRealVisiblePlanetsForHourAsync(hour, latitude, longitude);
+                        events.AddRange(visiblePlanets);
+                    }
+
+                    // Check DSOs if not already processed
+                    if (!processedTargets.Contains(AstroTarget.DeepSkyObjects) && sunAltitude < -18)
+                    {
+                        var visibleDSOs = await GetRealVisibleDSOsForHourAsync(hour, latitude, longitude);
+                        events.AddRange(visibleDSOs);
+                    }
+                }
+
+                // Deduplicate events by target name (case-insensitive)
+                return events
+                    .GroupBy(e => e.TargetName.ToLowerInvariant())
+                    .Select(g => g.First())
+                    .ToList();
             }
             catch (Exception ex)
             {
@@ -361,19 +411,22 @@ namespace Location.Photography.Infrastructure.Services
 
             try
             {
+                // This method now serves as a fallback when no calculation results are provided
+                // Primary event generation is handled by GenerateAstroEventsFromCalculationsAsync
+
                 var sunAltitude = _sunCalculatorService.GetSolarElevation(hour, latitude, longitude, "UTC");
 
                 if (sunAltitude < -6) // Dark enough for astrophotography
                 {
-                    // Check Moon visibility and add if appropriate
+                    // Generate minimal event set as fallback
                     var moonData = await GetMoonDataForHourAsync(hour, latitude, longitude);
                     if (moonData != null)
                     {
                         events.Add(moonData);
                     }
 
-                    // Check Milky Way visibility
-                    if (sunAltitude < -18) // True night
+                    // Only check Milky Way during true night
+                    if (sunAltitude < -18)
                     {
                         var milkyWayData = await GetMilkyWayDataForHourAsync(hour, latitude, longitude);
                         if (milkyWayData != null)
@@ -382,15 +435,16 @@ namespace Location.Photography.Infrastructure.Services
                         }
                     }
 
-                    // Check for REAL visible planets (fixed)
+                    // Check for visible planets
                     var visiblePlanets = await GetRealVisiblePlanetsForHourAsync(hour, latitude, longitude);
                     events.AddRange(visiblePlanets);
 
-                    // Get REAL visible DSOs for this specific hour
-                    var visibleDSOs = await GetRealVisibleDSOsForHourAsync(hour, latitude, longitude);
-                    events.AddRange(visibleDSOs);
-
-                    // REMOVED: Meteor showers (will only add when there's an actual shower active)
+                    // Check for visible DSOs during true night
+                    if (sunAltitude < -18)
+                    {
+                        var visibleDSOs = await GetRealVisibleDSOsForHourAsync(hour, latitude, longitude);
+                        events.AddRange(visibleDSOs);
+                    }
                 }
 
                 return events;

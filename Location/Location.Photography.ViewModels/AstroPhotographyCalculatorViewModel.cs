@@ -312,20 +312,35 @@ namespace Location.Photography.ViewModels
             try
             {
                 var calculationResults = new List<AstroCalculationResult>();
-                var currentHour = new DateTime(window.Date.Year, window.Date.Month, window.Date.Day,
-                    window.Sunset.Hour, 0, 0);
 
-                while (currentHour <= window.Sunrise.AddHours(1))
+                // Round sunset UP to next hour, sunrise DOWN to previous hour
+                var startHour = new DateTime(window.Sunset.Year, window.Sunset.Month, window.Sunset.Day,
+                    window.Sunset.Hour + (window.Sunset.Minute > 0 ? 1 : 0), 0, 0);
+
+                var endHour = new DateTime(window.Sunrise.Year, window.Sunrise.Month, window.Sunrise.Day,
+                    window.Sunrise.Hour, 0, 0);
+
+                // Calculate twilight phase hours
+                var civilDuskHour = new DateTime(window.CivilTwilightEnd.Year, window.CivilTwilightEnd.Month, window.CivilTwilightEnd.Day, window.CivilTwilightEnd.Hour, 0, 0);
+                var nauticalDuskHour = new DateTime(window.NauticalTwilightEnd.Year, window.NauticalTwilightEnd.Month, window.NauticalTwilightEnd.Day, window.NauticalTwilightEnd.Hour, 0, 0);
+                var astronomicalDuskHour = new DateTime(window.AstronomicalTwilightEnd.Year, window.AstronomicalTwilightEnd.Month, window.AstronomicalTwilightEnd.Day, window.AstronomicalTwilightEnd.Hour, 0, 0);
+                var astronomicalDawnHour = new DateTime(window.AstronomicalTwilightStart.Year, window.AstronomicalTwilightStart.Month, window.AstronomicalTwilightStart.Day, window.AstronomicalTwilightStart.Hour, 0, 0);
+                var nauticalDawnHour = new DateTime(window.NauticalTwilightStart.Year, window.NauticalTwilightStart.Month, window.NauticalTwilightStart.Day, window.NauticalTwilightStart.Hour, 0, 0);
+                var civilDawnHour = new DateTime(window.CivilTwilightStart.Year, window.CivilTwilightStart.Month, window.CivilTwilightStart.Day, window.CivilTwilightStart.Hour, 0, 0);
+
+                var currentHour = startHour;
+
+                while (currentHour <= endHour)
                 {
-                    var solarEvent = GetSolarEventForHour(currentHour, window);
+                    // Determine solar phase for this hour
+                    var solarEvent = DetermineSolarPhase(currentHour, civilDuskHour, nauticalDuskHour, astronomicalDuskHour, astronomicalDawnHour, nauticalDawnHour, civilDawnHour);
 
-                    // Get real astronomical targets that are actually visible at this hour
                     var viableTargets = await GetRealViableTargetsForHourAsync(currentHour, solarEvent);
 
                     foreach (var target in viableTargets)
                     {
                         var visibility = await GetRealTargetVisibilityAsync(target, currentHour);
-                        if (visibility.IsVisible && visibility.OptimalityScore > 0.3) // Lower threshold for real data
+                        if (visibility.IsVisible && visibility.OptimalityScore > 0.3)
                         {
                             calculationResults.Add(new AstroCalculationResult
                             {
@@ -358,6 +373,24 @@ namespace Location.Photography.ViewModels
                 Debug.WriteLine($"Error generating real astronomical predictions: {ex.Message}");
                 return new List<AstroHourlyPredictionDisplayModel>();
             }
+        }
+
+        private string DetermineSolarPhase(DateTime hour, DateTime civilDusk, DateTime nauticalDusk, DateTime astronomicalDusk, DateTime astronomicalDawn, DateTime nauticalDawn, DateTime civilDawn)
+        {
+            if (hour <= civilDusk)
+                return "Civil Twilight";
+            else if (hour <= nauticalDusk)
+                return "Nautical Twilight";
+            else if (hour <= astronomicalDusk)
+                return "Astronomical Twilight";
+            else if (hour >= astronomicalDawn)
+                return "Astronomical Twilight";
+            else if (hour >= nauticalDawn)
+                return "Nautical Twilight";
+            else if (hour >= civilDawn)
+                return "Civil Twilight";
+            else
+                return "True Night";
         }
 
         private async Task<List<AstroTarget>> GetRealViableTargetsForHourAsync(DateTime hour, string solarEvent)

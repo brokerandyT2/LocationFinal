@@ -1,4 +1,5 @@
-﻿using Location.Photography.Domain.Models;
+﻿using Location.Photography.Domain.Entities;
+using Location.Photography.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
