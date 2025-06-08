@@ -216,11 +216,20 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
+
                         <Label Grid.Row="0" Text="{Binding HourlyPredictionsHeader}" FontSize="16" FontAttributes="Bold" TextColor="#689F38" Margin="0,0,0,10"/>
 
-                        <Grid Grid.Row="1">
+                        <!-- Hourly Progress Status Display -->
+                        <Label Grid.Row="1" Text="{Binding HourlyPredictionsProgressStatus}" 
+               FontSize="12" TextColor="#4CAF50" 
+               HorizontalTextAlignment="Center"
+               Margin="0,0,0,10"
+               IsVisible="{Binding IsHourlyForecastsLoading}"/>
+
+                        <Grid Grid.Row="2">
                             <CollectionView ItemsSource="{Binding HourlyPredictions}">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="viewmodels:HourlyPredictionDisplayModel">
@@ -358,7 +367,9 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
 
-                            <!-- Hourly Forecasts Loading Overlay -->
+     
+
+                <!-- Hourly Forecasts Loading Overlay -->
                             <Grid IsVisible="{Binding IsHourlyForecastsLoading}" BackgroundColor="#80000000">
                                 <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
                                     <ActivityIndicator IsRunning="{Binding IsHourlyForecastsLoading}" HeightRequest="40" WidthRequest="40"  />
@@ -401,11 +412,20 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
+
                         <Label Grid.Row="0" Text="Optimal Future Shooting Windows" FontSize="16" FontAttributes="Bold" TextColor="#F57F17" Margin="0,0,0,10"/>
 
-                        <Grid Grid.Row="1">
+                        <!-- Optimal Windows Progress Status Display -->
+                        <Label Grid.Row="1" Text="{Binding OptimalWindowsProgressStatus}" 
+               FontSize="12" TextColor="#FF9800" 
+               HorizontalTextAlignment="Center"
+               Margin="0,0,0,10"
+               IsVisible="{Binding IsOptimalEventsLoading}"/>
+
+                        <Grid Grid.Row="2">
                             <ScrollView>
                                 <CollectionView ItemsSource="{Binding OptimalWindows}">
                                     <CollectionView.ItemTemplate>

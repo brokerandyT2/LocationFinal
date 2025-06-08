@@ -18,7 +18,7 @@ using System.ComponentModel;
 namespace Location.Photography.Maui.Views.Premium
 {
     public partial class FieldOfView : ContentPage, INotifyPropertyChanged, INotificationHandler<CameraCreatedNotification>,
-       INotificationHandler<LensCreatedNotification>
+       INotificationHandler<LensCreatedNotification>, IDisposable
     {
         private readonly IMediator _mediator;
         private readonly ILogger<FieldOfView> _logger;
@@ -700,6 +700,21 @@ namespace Location.Photography.Maui.Views.Premium
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public void Dispose()
+        {
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await CameraPreview?.StopCameraAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error disposing camera");
+                }
+            });
+        }
     }
 
     public class CameraDisplayItem
@@ -769,33 +784,7 @@ namespace Location.Photography.Maui.Views.Premium
 
             canvas.FillPath(path);
         }
-        private RectF CalculateImageDisplayRect(RectF containerRect)
-        {
-            // Calculate how the image is displayed with AspectFit
-            var imageAspectRatio = ImageWidth / ImageHeight;
-            var containerAspectRatio = containerRect.Width / containerRect.Height;
-
-            float displayWidth, displayHeight, displayX, displayY;
-
-            if (imageAspectRatio > containerAspectRatio)
-            {
-                // Image is wider - fit to width, letterbox top/bottom
-                displayWidth = containerRect.Width;
-                displayHeight = containerRect.Width / (float)imageAspectRatio;
-                displayX = containerRect.Left;
-                displayY = containerRect.Top + (containerRect.Height - displayHeight) / 2;
-            }
-            else
-            {
-                // Image is taller - fit to height, letterbox left/right
-                displayHeight = containerRect.Height;
-                displayWidth = containerRect.Height * (float)imageAspectRatio;
-                displayY = containerRect.Top;
-                displayX = containerRect.Left + (containerRect.Width - displayWidth) / 2;
-            }
-
-            return new RectF(displayX, displayY, displayWidth, displayHeight);
-        }
+       
 
         private RectF CalculateFOVBox(double fov, RectF imageRect, double referenceFOV)
         {

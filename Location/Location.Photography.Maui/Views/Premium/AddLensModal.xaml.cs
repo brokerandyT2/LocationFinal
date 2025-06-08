@@ -170,6 +170,7 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 if (!double.TryParse(MinFocalLengthEntry.Text, out double minMM))
                     return;
+
                 // Get mount type from first selected camera
                 var firstCamera = selectedCameras.First().Camera;
                 var mountTypeName = GetMountTypeName(firstCamera.MountType);
@@ -180,15 +181,15 @@ namespace Location.Photography.Maui.Views.Premium
 
                 if (isPrime)
                 {
-                    focalLengthPart = $"{minMM:G29}mm";
+                    focalLengthPart = $"{minMM:0.#}mm";
                 }
                 else if (double.TryParse(MaxFocalLengthEntry.Text, out double maxMM))
                 {
-                    focalLengthPart = $"{minMM:G29}-{maxMM:G29}mm";
+                    focalLengthPart = $"{minMM:0.#}-{maxMM:0.#}mm";
                 }
                 else
                 {
-                    focalLengthPart = $"{minMM:G29}mm";
+                    focalLengthPart = $"{minMM:0.#}mm";
                 }
 
                 // Build aperture part
@@ -205,13 +206,15 @@ namespace Location.Photography.Maui.Views.Premium
 
                 if (hasMinFStop)
                 {
-                    if (isPrime || !hasMaxFStop || Math.Abs(maxFStop - minFStop) < 0.1)
+                    if (hasMaxFStop && Math.Abs(maxFStop - minFStop) >= 0.1)
                     {
-                        aperturePart = $" f/{minFStop:G29}";
+                        // Show range when both values exist and are different
+                        aperturePart = $" f/{minFStop:0.#}-{maxFStop:0.#}";
                     }
                     else
                     {
-                        aperturePart = $" f/{minFStop:G29}-{maxFStop:G29}";
+                        // Show single value when only min exists or they're the same
+                        aperturePart = $" f/{minFStop:0.#}";
                     }
                 }
 
@@ -224,6 +227,8 @@ namespace Location.Photography.Maui.Views.Premium
                 _logger.LogError(ex, "Error generating lens name");
             }
         }
+
+        //
 
         private string GetMountTypeName(MountType mountType)
         {

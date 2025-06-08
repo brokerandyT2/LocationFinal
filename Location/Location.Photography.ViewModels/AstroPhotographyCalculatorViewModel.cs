@@ -94,6 +94,12 @@ namespace Location.Photography.ViewModels
 
         private ObservableCollection<AstroHourlyPredictionDisplayModel> _hourlyAstroPredictions = new();
 
+        private string _calculationProgressStatus = string.Empty;
+        public string CalculationProgressStatus
+        {
+            get => _calculationProgressStatus;
+            set => SetProperty(ref _calculationProgressStatus, value);
+        }
         public ObservableCollection<AstroHourlyPredictionDisplayModel> HourlyAstroPredictions
         {
             get => _hourlyAstroPredictions;
@@ -156,7 +162,7 @@ namespace Location.Photography.ViewModels
                 IsCalculating = true;
                 IsGeneratingHourlyPredictions = true;
                 HasError = false;
-                CalculationStatus = "Calculating tonight's shooting windows...";
+                CalculationStatus = "Calculating shooting windows...";
 
                 // Check cache first
                 var cacheKey = GetPredictionCacheKey();
@@ -178,21 +184,18 @@ namespace Location.Photography.ViewModels
                     return;
                 }
 
-                // Generate real astronomical predictions using actual service data
-                var predictions = await GenerateRealAstronomicalPredictionsAsync(shootingWindow);
+                // Generate real astronomical predictions with progressive updates
+                await GenerateRealAstronomicalPredictionsAsync(shootingWindow);
 
+                // Final status update
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    HourlyAstroPredictions.Clear();
-                    foreach (var prediction in predictions)
-                    {
-                        HourlyAstroPredictions.Add(prediction);
-                    }
-                    HourlyPredictionsStatus = $"Generated {predictions.Count} shooting windows for tonight";
+                    HourlyPredictionsStatus = $"Generated {HourlyAstroPredictions.Count} shooting windows for tonight";
+                    CalculationProgressStatus = string.Empty; // Clear progress status when complete
                 });
 
                 // Cache the results
-                var domainPredictions = predictions.Select(p => new AstroHourlyPrediction
+                var domainPredictions = HourlyAstroPredictions.Select(p => new AstroHourlyPrediction
                 {
                     Hour = p.Hour,
                     TimeDisplay = p.TimeDisplay,
@@ -215,6 +218,7 @@ namespace Location.Photography.ViewModels
             catch (OperationCanceledException)
             {
                 CalculationStatus = "Calculation cancelled";
+                CalculationProgressStatus = string.Empty;
             }
             catch (Exception ex)
             {
@@ -231,7 +235,12 @@ namespace Location.Photography.ViewModels
                 _operationLock.Release();
             }
         }
-
+        private void UpdateCalculationProgress(int currentHour, int totalHours, DateTime hour)
+        {
+            var percentage = (currentHour * 100) / totalHours;
+            var timeDisplay = hour.ToString("HH:mm");
+            CalculationProgressStatus = $"Calculating hour {currentHour} of {totalHours} ({percentage}%) - {timeDisplay}";
+        }
         private async Task<ShootingWindow> CalculateShootingWindowAsync()
         {
             try
@@ -307,11 +316,15 @@ namespace Location.Photography.ViewModels
             };
         }
 
-        private async Task<List<AstroHourlyPredictionDisplayModel>> GenerateRealAstronomicalPredictionsAsync(ShootingWindow window)
+        private async Task GenerateRealAstronomicalPredictionsAsync(ShootingWindow window)
         {
             try
             {
-                var predictions = new List<AstroHourlyPredictionDisplayModel>();
+                // Clear existing predictions at start
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HourlyAstroPredictions.Clear();
+                });
 
                 // Get sunset/sunrise times using MediatR queries
                 var sunTimesQuery = new GetSunTimesQuery
@@ -323,7 +336,7 @@ namespace Location.Photography.ViewModels
 
                 var sunResult = await _mediator.Send(sunTimesQuery, _cancellationTokenSource.Token);
                 if (!sunResult.IsSuccess || sunResult.Data == null)
-                    return predictions;
+                    return;
 
                 var sunTimes = sunResult.Data;
 
@@ -337,7 +350,7 @@ namespace Location.Photography.ViewModels
 
                 var nextDayResult = await _mediator.Send(nextDayQuery, _cancellationTokenSource.Token);
                 if (!nextDayResult.IsSuccess || nextDayResult.Data == null)
-                    return predictions;
+                    return;
 
                 var nextDayTimes = nextDayResult.Data;
 
@@ -349,10 +362,20 @@ namespace Location.Photography.ViewModels
                     nextDayTimes.Sunrise.Hour, 0, 0);
 
                 var currentHour = sunsetHour;
+                var totalHours = (int)Math.Ceiling((sunriseHour - sunsetHour).TotalHours) + 1;
+                var hourCount = 0;
 
                 // For each hour between sunset and sunrise (inclusive)
                 while (currentHour <= sunriseHour)
                 {
+                    hourCount++;
+
+                    // Update progress status
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        CalculationProgressStatus = $"Calculating hour {hourCount} of {totalHours} - {currentHour:HH:mm}";
+                    });
+
                     try
                     {
                         // Get optimal shooting times for this specific hour
@@ -398,20 +421,20 @@ namespace Location.Photography.ViewModels
                                     solarEvent = "Dawn";
                                 }
                             }
-                           currentHour = DateTime.SpecifyKind(currentHour, DateTimeKind.Utc);
+                            currentHour = DateTime.SpecifyKind(currentHour, DateTimeKind.Utc);
                             // Map to display model using the mapping service
                             var calculationResults = new List<AstroCalculationResult>
-                               {
-                                   new AstroCalculationResult
-                                   {
-                                       CalculationTime = TimeZoneInfo.ConvertTime(currentHour, TimeZoneInfo.Local),
-                                       LocalTime = TimeZoneInfo.ConvertTime(currentHour, TimeZoneInfo.Local),
-                                       Description = solarEvent,
-                                       IsVisible = true,
-                                       Azimuth = 180,
-                                       Altitude = 45
-                                   }
-                               };
+                      {
+                          new AstroCalculationResult
+                          {
+                              CalculationTime = TimeZoneInfo.ConvertTime(currentHour, TimeZoneInfo.Local),
+                              LocalTime = TimeZoneInfo.ConvertTime(currentHour, TimeZoneInfo.Local),
+                              Description = solarEvent,
+                              IsVisible = true,
+                              Azimuth = 180,
+                              Altitude = 45
+                          }
+                      };
 
                             var displayModels = await _mappingService.MapFromDomainDataAsync(
                                 calculationResults,
@@ -420,7 +443,15 @@ namespace Location.Photography.ViewModels
                                 SelectedDate);
 
                             var hourlyPredictions = ConvertDtosToDisplayModels(displayModels);
-                            predictions.AddRange(hourlyPredictions);
+
+                            // Add each prediction immediately to UI
+                            foreach (var prediction in hourlyPredictions)
+                            {
+                                await MainThread.InvokeOnMainThreadAsync(() =>
+                                {
+                                    HourlyAstroPredictions.Add(prediction);
+                                });
+                            }
                         }
                         else
                         {
@@ -428,7 +459,10 @@ namespace Location.Photography.ViewModels
                             var basicPrediction = await CreateBasicHourlyPredictionAsync(currentHour);
                             if (basicPrediction != null)
                             {
-                                predictions.Add(basicPrediction);
+                                await MainThread.InvokeOnMainThreadAsync(() =>
+                                {
+                                    HourlyAstroPredictions.Add(basicPrediction);
+                                });
                             }
                         }
                     }
@@ -440,19 +474,32 @@ namespace Location.Photography.ViewModels
                         var fallbackPrediction = await CreateBasicHourlyPredictionAsync(currentHour);
                         if (fallbackPrediction != null)
                         {
-                            predictions.Add(fallbackPrediction);
+                            await MainThread.InvokeOnMainThreadAsync(() =>
+                            {
+                                HourlyAstroPredictions.Add(fallbackPrediction);
+                            });
                         }
                     }
 
                     currentHour = currentHour.AddHours(1);
+
+                    // Small delay to allow UI updates
+                    await Task.Delay(100);
                 }
 
-                return predictions;
+                // Update final status
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    CalculationProgressStatus = $"Completed {HourlyAstroPredictions.Count} calculations";
+                });
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error generating real astronomical predictions: {ex.Message}");
-                return new List<AstroHourlyPredictionDisplayModel>();
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    CalculationProgressStatus = "Error during calculations";
+                });
             }
         }
 

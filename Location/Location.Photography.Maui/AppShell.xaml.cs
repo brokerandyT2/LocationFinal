@@ -266,6 +266,19 @@ namespace Location.Photography.Maui
                     return;
                 }
 
+                if (ContentArea.Content?.BindingContext is IDisposable disposablePage)
+                {
+                    try
+                    {
+                        disposablePage.Dispose();
+                        _logger.LogInformation("Disposed previous page");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error disposing previous page");
+                    }
+                }
+
                 var page = _serviceProvider.GetService(tab.PageType) as ContentPage;
 
                 if (page == null)

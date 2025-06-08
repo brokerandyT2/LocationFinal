@@ -79,7 +79,19 @@ namespace Location.Photography.ViewModels
         private CancellationTokenSource _sunPathCancellationTokenSource = new();
         private CancellationTokenSource _hourlyForecastsCancellationTokenSource = new();
         private CancellationTokenSource _optimalEventsCancellationTokenSource = new();
+        private string _hourlyPredictionsProgressStatus = string.Empty;
+        public string HourlyPredictionsProgressStatus
+        {
+            get => _hourlyPredictionsProgressStatus;
+            set => SetProperty(ref _hourlyPredictionsProgressStatus, value);
+        }
 
+        private string _optimalWindowsProgressStatus = string.Empty;
+        public string OptimalWindowsProgressStatus
+        {
+            get => _optimalWindowsProgressStatus;
+            set => SetProperty(ref _optimalWindowsProgressStatus, value);
+        }
         // Method to cancel all ongoing operations
         public void CancelAllOperations()
         {
@@ -1282,10 +1294,21 @@ namespace Location.Photography.ViewModels
                         await MainThread.InvokeOnMainThreadAsync(() =>
                         {
                             HourlyPredictions.Clear();
+                            HourlyPredictionsProgressStatus = "Loading cached predictions...";
+
                             foreach (var prediction in cachedPredictions)
                             {
                                 HourlyPredictions.Add(prediction);
                             }
+
+                            HourlyPredictionsProgressStatus = $"Loaded {cachedPredictions.Count} cached predictions";
+                        });
+
+                        // Clear progress status after delay
+                        await Task.Delay(1000);
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            HourlyPredictionsProgressStatus = string.Empty;
                         });
                         return;
                     }
@@ -1296,33 +1319,31 @@ namespace Location.Photography.ViewModels
 
                 if (HourlyWeatherData?.HourlyForecasts?.Any() == true)
                 {
+                    // This method now handles progressive updates internally
                     predictions = await GeneratePredictionsFromHourlyWeatherOptimizedAsync();
-
                 }
                 else
                 {
+                    // Generate basic predictions with progressive updates
                     predictions = await GenerateBasicPredictionsOptimizedAsync();
-
                 }
 
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    HourlyPredictions.Clear();
-                    foreach (var prediction in predictions)
-                    {
-                        HourlyPredictions.Add(prediction);
-                    }
-                });
-
-                // Cache the results
-                _predictionCache[cacheKey] = predictions;
+                // Cache the results (HourlyPredictions already populated by progressive methods)
+                _predictionCache[cacheKey] = new List<HourlyPredictionDisplayModel>(HourlyPredictions);
             }
             catch (OperationCanceledException)
             {
-                // Expected when cancelled - don't treat as error
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HourlyPredictionsProgressStatus = "Prediction generation cancelled";
+                });
             }
             catch (Exception ex)
             {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HourlyPredictionsProgressStatus = "Error generating predictions";
+                });
                 OnSystemError($"Error generating weather-aware predictions: {ex.Message}");
             }
             finally
@@ -1344,11 +1365,21 @@ namespace Location.Photography.ViewModels
             if (HourlyWeatherData?.HourlyForecasts == null || SelectedLocation == null)
                 return predictions;
 
+            // Clear existing predictions at start
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                HourlyPredictions.Clear();
+                HourlyPredictionsProgressStatus = "Loading hourly weather predictions...";
+            });
+
             var nowUtc = DateTime.UtcNow;
             var relevantForecasts = HourlyWeatherData.HourlyForecasts
                 .Where(h => h.DateTime > nowUtc)
                 .Take(48) // Limit to next 48 hours for performance
                 .ToList();
+
+            var totalHours = relevantForecasts.Count;
+            var processedCount = 0;
 
             // Process in batches to avoid UI blocking
             const int batchSize = 12;
@@ -1368,6 +1399,15 @@ namespace Location.Photography.ViewModels
                     {
                         try
                         {
+                            processedCount++;
+
+                            // Update progress status
+                            await MainThread.InvokeOnMainThreadAsync(() =>
+                            {
+                                var timeDisplay = FormatTimeForTimezoneOptimized(hourlyForecast.DateTime, LocationTimeZone);
+                                HourlyPredictionsProgressStatus = $"Processing hour {processedCount} of {totalHours} - {timeDisplay}";
+                            });
+
                             var sunPositionQuery = new GetSunPositionQuery
                             {
                                 Latitude = SelectedLocation.Latitude,
@@ -1392,8 +1432,33 @@ namespace Location.Photography.ViewModels
                     return batchResults;
                 }, _cancellationTokenSource.Token);
 
+                // Add batch predictions immediately to UI
+                foreach (var prediction in batchPredictions)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        HourlyPredictions.Add(prediction);
+                    });
+                }
+
                 predictions.AddRange(batchPredictions);
+
+                // Small delay between batches to allow UI updates
+                await Task.Delay(150);
             }
+
+            // Final status update
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                HourlyPredictionsProgressStatus = $"Generated {predictions.Count} hourly predictions";
+            });
+
+            // Clear progress status after delay
+            await Task.Delay(1500);
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                HourlyPredictionsProgressStatus = string.Empty;
+            });
 
             return predictions;
         }
@@ -1504,6 +1569,13 @@ namespace Location.Photography.ViewModels
             {
                 if (SelectedLocation == null) return predictions;
 
+                // Clear existing predictions at start
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HourlyPredictions.Clear();
+                    HourlyPredictionsProgressStatus = "Generating basic light predictions...";
+                });
+
                 var predictionRequest = new PredictiveLightRequest
                 {
                     LocationId = SelectedLocation.Id,
@@ -1519,12 +1591,25 @@ namespace Location.Photography.ViewModels
 
                 var lightPredictions = await _predictiveLightService.GenerateHourlyPredictionsAsync(predictionRequest, _cancellationTokenSource.Token);
                 var nowUtc = DateTime.UtcNow;
+                var relevantPredictions = lightPredictions.Where(p => p.DateTime > nowUtc.AddMinutes(30)).Take(48).ToList();
 
-                foreach (var prediction in lightPredictions.Where(p => p.DateTime > nowUtc.AddMinutes(30)).Take(48))
+                var totalPredictions = relevantPredictions.Count;
+                var processedCount = 0;
+
+                foreach (var prediction in relevantPredictions)
                 {
+                    processedCount++;
+
+                    // Update progress status
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        var timeDisplay = FormatTimeForTimezoneOptimized(prediction.DateTime, LocationTimeZone);
+                        HourlyPredictionsProgressStatus = $"Processing prediction {processedCount} of {totalPredictions} - {timeDisplay}";
+                    });
+
                     var confidence = CalculateEnhancedConfidenceOptimized(prediction, WeatherImpact);
 
-                    predictions.Add(new HourlyPredictionDisplayModel
+                    var predictionModel = new HourlyPredictionDisplayModel
                     {
                         Time = prediction.DateTime,
                         DeviceTimeDisplay = FormatTimeForTimezoneOptimized(prediction.DateTime, DeviceTimeZone),
@@ -1540,11 +1625,39 @@ namespace Location.Photography.ViewModels
                         Recommendations = string.Join(", ", prediction.Recommendations),
                         IsOptimalTime = prediction.IsOptimalForPhotography,
                         TimeFormat = TimeFormat
+                    };
+
+                    // Add prediction immediately to UI
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        HourlyPredictions.Add(predictionModel);
                     });
+
+                    predictions.Add(predictionModel);
+
+                    // Small delay to allow UI updates
+                    await Task.Delay(100);
                 }
+
+                // Final status update
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HourlyPredictionsProgressStatus = $"Generated {predictions.Count} basic predictions";
+                });
+
+                // Clear progress status after delay
+                await Task.Delay(1500);
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HourlyPredictionsProgressStatus = string.Empty;
+                });
             }
             catch (Exception ex)
             {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HourlyPredictionsProgressStatus = "Error generating basic predictions";
+                });
                 OnSystemError($"Error generating basic predictions: {ex.Message}");
             }
 
@@ -1561,6 +1674,14 @@ namespace Location.Photography.ViewModels
             try
             {
                 IsOptimalEventsLoading = true;
+
+                // Clear existing windows at start
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OptimalWindows.Clear();
+                    OptimalWindowsProgressStatus = "Calculating optimal shooting windows...";
+                });
+
                 // Get optimal windows starting from current time for next 24 hours
                 var currentTime = DateTime.Now;
                 var optimalQuery = new GetOptimalShootingTimesQuery
@@ -1595,19 +1716,51 @@ namespace Location.Photography.ViewModels
                         })
                         .ToList();
 
+                    // Add windows progressively
+                    var totalWindows = windows.Count;
+                    for (int i = 0; i < windows.Count; i++)
+                    {
+                        var window = windows[i];
+
+                        // Update progress status
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            OptimalWindowsProgressStatus = $"Processing window {i + 1} of {totalWindows} - {window.WindowType}";
+                            OptimalWindows.Add(window);
+                        });
+
+                        // Small delay to allow UI updates
+                        await Task.Delay(100);
+                    }
+
+                    // Final status update
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        OptimalWindows.Clear();
-                        foreach (var window in windows)
-                        {
-                            OptimalWindows.Add(window);
-                        }
+                        OptimalWindowsProgressStatus = $"Found {totalWindows} optimal shooting windows";
+                    });
+
+                    // Clear progress status after delay
+                    await Task.Delay(1500);
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        OptimalWindowsProgressStatus = string.Empty;
+                    });
+                }
+                else
+                {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        OptimalWindowsProgressStatus = "No optimal windows found";
                     });
                 }
 
             }
             catch (Exception ex)
             {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OptimalWindowsProgressStatus = "Error calculating optimal windows";
+                });
                 OnSystemError($"Error calculating optimal windows: {ex.Message}");
             }
             finally
