@@ -6,6 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\meteor_showers.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\meteor_showers.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Location.Core.Application\Location.Core.Application.csproj" />
     <ProjectReference Include="..\Location.Core.Domain\Location.Core.Domain.csproj" />
     <ProjectReference Include="..\Location.Core.Infrastructure\Location.Core.Infrastructure.csproj" />

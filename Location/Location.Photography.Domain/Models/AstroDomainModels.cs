@@ -14,6 +14,8 @@ namespace Location.Photography.Domain.Models
         Neptune,
         Pluto
     }
+
+
     public class AstroCalculationResult
     {
         public AstroTarget Target { get; set; }

@@ -1,7 +1,6 @@
-﻿// Enhanced AstroPhotographyCalculatorViewModel with Twilight-Aware Calculations and Equipment Matching
+﻿// Enhanced AstroPhotographyCalculatorViewModel with Real Astronomical Service Integration Including Meteor Showers
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Locations.Queries.GetLocations;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.Queries.GetHourlyForecast;
@@ -12,7 +11,6 @@ using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
-using Location.Photography.Domain.Services;
 using Location.Photography.ViewModels.Interfaces;
 using MediatR;
 using System.Collections.ObjectModel;
@@ -36,6 +34,8 @@ namespace Location.Photography.ViewModels
         private readonly IPredictiveLightService _predictiveLightService;
         private readonly IExposureCalculatorService _exposureCalculatorService;
         private readonly IAstroHourlyPredictionMappingService _mappingService;
+        private readonly IMeteorShowerDataService _meteorShowerDataService;
+
         // PERFORMANCE: Threading and caching
         private readonly SemaphoreSlim _operationLock = new(1, 1);
         private readonly Dictionary<string, CachedAstroCalculation> _calculationCache = new();
@@ -44,6 +44,7 @@ namespace Location.Photography.ViewModels
         private DateTime _lastCalculationTime = DateTime.MinValue;
         private const int CALCULATION_THROTTLE_MS = 500;
         private const int PREDICTION_CACHE_DURATION_MINUTES = 60;
+        private const int MIN_METEOR_SHOWER_ZHR = 10; // Minimum ZHR for photography-worthy meteor showers
 
         // Core properties backing fields
         private ObservableCollection<LocationListItemViewModel> _locations = new();
@@ -91,7 +92,6 @@ namespace Location.Photography.ViewModels
         [ObservableProperty]
         private string _hourlyPredictionsHeader = "Tonight's Astrophotography Windows";
 
-        // Change from ObservableCollection<AstroHourlyPrediction> to:
         private ObservableCollection<AstroHourlyPredictionDisplayModel> _hourlyAstroPredictions = new();
 
         public ObservableCollection<AstroHourlyPredictionDisplayModel> HourlyAstroPredictions
@@ -112,7 +112,7 @@ namespace Location.Photography.ViewModels
             set => SetProperty(ref _hourlyPredictionsStatus, value);
         }
         #endregion
-        private readonly ISunCalculatorService _sunCalculatorService;
+
         #region Constructor
         public AstroPhotographyCalculatorViewModel(
             IMediator mediator,
@@ -123,7 +123,9 @@ namespace Location.Photography.ViewModels
             IUserCameraBodyRepository userCameraBodyRepository,
             IEquipmentRecommendationService equipmentRecommendationService,
             IPredictiveLightService predictiveLightService,
-            IExposureCalculatorService exposureCalculatorService, IAstroHourlyPredictionMappingService mappingService, ISunCalculatorService sunCalculatorService)
+            IExposureCalculatorService exposureCalculatorService,
+            IAstroHourlyPredictionMappingService mappingService,
+            IMeteorShowerDataService meteorShowerDataService)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -136,13 +138,13 @@ namespace Location.Photography.ViewModels
             _predictiveLightService = predictiveLightService ?? throw new ArgumentNullException(nameof(predictiveLightService));
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
             _mappingService = mappingService ?? throw new ArgumentNullException(nameof(mappingService));
-            _sunCalculatorService = sunCalculatorService ?? throw new ArgumentNullException(nameof(sunCalculatorService));
+            _meteorShowerDataService = meteorShowerDataService ?? throw new ArgumentNullException(nameof(meteorShowerDataService));
             InitializeCommands();
             InitializeAstroTargets();
         }
         #endregion
 
-        #region Twilight-Aware Calculation Methods
+        #region Real Astronomical Calculation Methods
 
         public async Task CalculateAstroDataAsync()
         {
@@ -154,26 +156,21 @@ namespace Location.Photography.ViewModels
                 IsCalculating = true;
                 IsGeneratingHourlyPredictions = true;
                 HasError = false;
-                CalculationStatus = "Updating weather data...";
+                CalculationStatus = "Calculating tonight's shooting windows...";
 
-                // Update weather data first
-                try
+                // Check cache first
+                var cacheKey = GetPredictionCacheKey();
+                if (_predictionCache.TryGetValue(cacheKey, out var cachedPredictions))
                 {
-                    var updateWeatherCommand = new UpdateWeatherCommand
+                    var cacheAge = DateTime.Now - _lastCalculationTime;
+                    if (cacheAge.TotalMinutes < PREDICTION_CACHE_DURATION_MINUTES)
                     {
-                        LocationId = SelectedLocation.Id,
-                        ForceUpdate = false
-                    };
-                    await _mediator.Send(updateWeatherCommand);
-                    CalculationStatus = "Weather updated. Calculating shooting windows...";
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Weather update failed: {ex.Message}");
-                    CalculationStatus = "Using cached weather. Calculating shooting windows...";
+                        await ApplyCachedPredictionsAsync(cachedPredictions);
+                        return;
+                    }
                 }
 
-                // Rest of existing calculation logic...
+                // Calculate sunset/sunrise times for shooting window
                 var shootingWindow = await CalculateShootingWindowAsync();
                 if (shootingWindow == null)
                 {
@@ -181,7 +178,8 @@ namespace Location.Photography.ViewModels
                     return;
                 }
 
-                var predictions = await GenerateTwilightAwareHourlyPredictionsAsync(shootingWindow);
+                // Generate real astronomical predictions using actual service data
+                var predictions = await GenerateRealAstronomicalPredictionsAsync(shootingWindow);
 
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -193,7 +191,30 @@ namespace Location.Photography.ViewModels
                     HourlyPredictionsStatus = $"Generated {predictions.Count} shooting windows for tonight";
                 });
 
+                // Cache the results
+                var domainPredictions = predictions.Select(p => new AstroHourlyPrediction
+                {
+                    Hour = p.Hour,
+                    TimeDisplay = p.TimeDisplay,
+                    SolarEvent = p.SolarEventsDisplay,
+                    OverallScore = p.QualityScore,
+                    WeatherConditions = new WeatherConditions
+                    {
+                        CloudCover = p.WeatherCloudCover,
+                        Humidity = p.WeatherHumidity,
+                        WindSpeed = p.WeatherWindSpeed,
+                        Visibility = p.WeatherCloudCover,
+                        Description = p.WeatherDescription
+                    }
+                }).ToList();
+                _predictionCache[cacheKey] = domainPredictions;
+                _lastCalculationTime = DateTime.Now;
+
                 CalculationCompleted?.Invoke(this, EventArgs.Empty);
+            }
+            catch (OperationCanceledException)
+            {
+                CalculationStatus = "Calculation cancelled";
             }
             catch (Exception ex)
             {
@@ -203,6 +224,10 @@ namespace Location.Photography.ViewModels
             {
                 IsCalculating = false;
                 IsGeneratingHourlyPredictions = false;
+                if (string.IsNullOrEmpty(ErrorMessage))
+                {
+                    CalculationStatus = "Calculations complete";
+                }
                 _operationLock.Release();
             }
         }
@@ -223,7 +248,7 @@ namespace Location.Photography.ViewModels
                 if (!sunResult.IsSuccess || sunResult.Data == null)
                     return null;
 
-                var sunTimes = sunResult.Data; // This is SunTimesDto
+                var sunTimes = sunResult.Data;
 
                 // Get sun times for next day
                 var nextDayQuery = new GetSunTimesQuery
@@ -237,9 +262,9 @@ namespace Location.Photography.ViewModels
                 if (!nextDayResult.IsSuccess || nextDayResult.Data == null)
                     return null;
 
-                var nextDayTimes = nextDayResult.Data; // This is SunTimesDto
+                var nextDayTimes = nextDayResult.Data;
 
-                // Calculate twilight phases using SunTimesDto
+                // Calculate twilight phases using real astronomical calculations
                 var twilightPhases = CalculateTwilightPhases(sunTimes, nextDayTimes);
 
                 return new ShootingWindow
@@ -281,35 +306,27 @@ namespace Location.Photography.ViewModels
                 CivilTwilightStart = sunrise.AddMinutes(-20)         // Sun at -6°
             };
         }
-        private async Task<List<AstroHourlyPredictionDisplayModel>> GenerateTwilightAwareHourlyPredictionsAsync(ShootingWindow window)
+
+        private async Task<List<AstroHourlyPredictionDisplayModel>> GenerateRealAstronomicalPredictionsAsync(ShootingWindow window)
         {
             try
             {
-                // Calculate sunset/sunrise bounds
-                var sunset = _sunCalculatorService.GetSunset(window.Date, SelectedLocation.Latitude, SelectedLocation.Longitude, "UTC");
-                var sunrise = _sunCalculatorService.GetSunrise(window.Date.AddDays(1), SelectedLocation.Latitude, SelectedLocation.Longitude, "UTC");
-
-                // Round sunset UP to next hour, sunrise DOWN to previous hour
-                var startHour = new DateTime(sunset.Year, sunset.Month, sunset.Day, sunset.Hour + 1, 0, 0);
-                var endHour = new DateTime(sunrise.Year, sunrise.Month, sunrise.Day, sunrise.Hour, 0, 0);
-
-                // Generate calculation results for each hour between sunset and sunrise
                 var calculationResults = new List<AstroCalculationResult>();
-                var currentHour = startHour;
+                var currentHour = new DateTime(window.Date.Year, window.Date.Month, window.Date.Day,
+                    window.Sunset.Hour, 0, 0);
 
-                while (currentHour <= endHour)
+                while (currentHour <= window.Sunrise.AddHours(1))
                 {
                     var solarEvent = GetSolarEventForHour(currentHour, window);
-                    var viableTargets = await GetViableTargetsForHourAsync(currentHour, solarEvent);
+
+                    // Get real astronomical targets that are actually visible at this hour
+                    var viableTargets = await GetRealViableTargetsForHourAsync(currentHour, solarEvent);
 
                     foreach (var target in viableTargets)
                     {
-                        var visibility = await GetTargetVisibilityForHourAsync(target, currentHour);
-                        if (visibility.IsVisible && visibility.OptimalityScore > 0.5)
+                        var visibility = await GetRealTargetVisibilityAsync(target, currentHour);
+                        if (visibility.IsVisible && visibility.OptimalityScore > 0.3) // Lower threshold for real data
                         {
-                            // Create target event with complete data
-                            var targetEvent = await CreateTargetEventAsync(currentHour, target);
-
                             calculationResults.Add(new AstroCalculationResult
                             {
                                 Target = target,
@@ -319,8 +336,7 @@ namespace Location.Photography.ViewModels
                                 Azimuth = visibility.Azimuth,
                                 Altitude = visibility.Altitude,
                                 Description = solarEvent,
-                                PhotographyNotes = GetTargetDisplayName(target, visibility),
-                                Equipment = targetEvent?.Equipment?.RecommendationMessage ?? "Standard equipment"
+                                PhotographyNotes = GetRealTargetDisplayName(target, visibility)
                             });
                         }
                     }
@@ -339,8 +355,243 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error generating twilight-aware predictions: {ex.Message}");
+                Debug.WriteLine($"Error generating real astronomical predictions: {ex.Message}");
                 return new List<AstroHourlyPredictionDisplayModel>();
+            }
+        }
+
+        private async Task<List<AstroTarget>> GetRealViableTargetsForHourAsync(DateTime hour, string solarEvent)
+        {
+            var viableTargets = new List<AstroTarget>();
+
+            try
+            {
+                // Check Milky Way visibility using real service
+                try
+                {
+                    var milkyWayData = await _astroCalculationService.GetMilkyWayDataAsync(
+                        hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
+
+                    if (milkyWayData.IsVisible && milkyWayData.GalacticCenterAltitude > 10)
+                    {
+                        viableTargets.Add(AstroTarget.MilkyWayCore);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error checking Milky Way visibility: {ex.Message}");
+                }
+
+                // Check Moon visibility using real service
+                try
+                {
+                    var moonData = await _astroCalculationService.GetEnhancedMoonDataAsync(
+                        hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
+
+                    if (moonData.Altitude > 5) // Moon is above horizon
+                    {
+                        viableTargets.Add(AstroTarget.Moon);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error checking Moon visibility: {ex.Message}");
+                }
+
+                // Check Planet visibility using real service
+                try
+                {
+                    var planetData = await _astroCalculationService.GetVisiblePlanetsAsync(
+                        hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
+
+                    var visiblePlanets = planetData.Where(p => p.IsVisible && p.Altitude > 10).ToList();
+                    if (visiblePlanets.Any())
+                    {
+                        viableTargets.Add(AstroTarget.Planets);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error checking Planet visibility: {ex.Message}");
+                }
+
+                // Check for active meteor showers using real meteor shower service
+                try
+                {
+                    var activeShowers = await _meteorShowerDataService.GetActiveShowersAsync(
+                        hour.Date, MIN_METEOR_SHOWER_ZHR, _cancellationTokenSource.Token);
+
+                    if (activeShowers.Any())
+                    {
+                        // Check if any shower radiant is above horizon and in good position
+                        foreach (var shower in activeShowers)
+                        {
+                            var radiantPosition = shower.GetRadiantPosition(hour,
+                                SelectedLocation.Latitude, SelectedLocation.Longitude);
+
+                            if (radiantPosition.IsVisible && radiantPosition.Altitude > 30)
+                            {
+                                viableTargets.Add(AstroTarget.MeteorShowers);
+                                break; // Only add once if any showers are viable
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error checking meteor shower visibility: {ex.Message}");
+                }
+
+                // Deep sky objects are only viable during true dark conditions
+                if (solarEvent == "True Night" || solarEvent == "Astronomical Twilight")
+                {
+                    viableTargets.Add(AstroTarget.DeepSkyObjects);
+                    viableTargets.Add(AstroTarget.StarTrails);
+                    viableTargets.Add(AstroTarget.Constellations);
+                }
+
+                // Polar alignment is viable during any dark period
+                if (solarEvent != "Blue Hour" && solarEvent != "Civil Twilight")
+                {
+                    viableTargets.Add(AstroTarget.PolarAlignment);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error getting viable targets: {ex.Message}");
+            }
+
+            return viableTargets.Distinct().ToList();
+        }
+
+        private async Task<TargetVisibilityData> GetRealTargetVisibilityAsync(AstroTarget target, DateTime hour)
+        {
+            try
+            {
+                switch (target)
+                {
+                    case AstroTarget.MilkyWayCore:
+                        var milkyWayData = await _astroCalculationService.GetMilkyWayDataAsync(
+                            hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
+                        return new TargetVisibilityData
+                        {
+                            IsVisible = milkyWayData.IsVisible && milkyWayData.GalacticCenterAltitude > 10,
+                            Altitude = milkyWayData.GalacticCenterAltitude,
+                            Azimuth = milkyWayData.GalacticCenterAzimuth,
+                            OptimalityScore = CalculateMilkyWayOptimality(milkyWayData, hour)
+                        };
+
+                    case AstroTarget.Moon:
+                        var moonData = await _astroCalculationService.GetEnhancedMoonDataAsync(
+                            hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
+                        return new TargetVisibilityData
+                        {
+                            IsVisible = moonData.Altitude > 5,
+                            Altitude = moonData.Altitude,
+                            Azimuth = moonData.Azimuth,
+                            OptimalityScore = CalculateMoonOptimality(moonData)
+                        };
+
+                    case AstroTarget.Planets:
+                        var planetData = await _astroCalculationService.GetVisiblePlanetsAsync(
+                            hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
+                        var bestPlanet = planetData
+                            .Where(p => p.IsVisible && p.Altitude > 10)
+                            .OrderByDescending(p => p.Altitude)
+                            .FirstOrDefault();
+
+                        if (bestPlanet != null)
+                        {
+                            return new TargetVisibilityData
+                            {
+                                IsVisible = true,
+                                Altitude = bestPlanet.Altitude,
+                                Azimuth = bestPlanet.Azimuth,
+                                OptimalityScore = CalculatePlanetOptimality(bestPlanet),
+                                PlanetName = bestPlanet.Planet.ToString()
+                            };
+                        }
+                        break;
+
+                    case AstroTarget.MeteorShowers:
+                        // Get real meteor shower data for this hour
+                        var activeShowers = await _meteorShowerDataService.GetActiveShowersAsync(
+                            hour.Date, MIN_METEOR_SHOWER_ZHR, _cancellationTokenSource.Token);
+
+                        var bestShower = activeShowers
+                            .Select(s => new {
+                                Shower = s,
+                                Position = s.GetRadiantPosition(hour, SelectedLocation.Latitude, SelectedLocation.Longitude),
+                                ZHR = s.GetExpectedZHR(hour.Date)
+                            })
+                            .Where(x => x.Position.IsVisible && x.Position.Altitude > 30)
+                            .OrderByDescending(x => x.ZHR)
+                            .FirstOrDefault();
+
+                        if (bestShower != null)
+                        {
+                            return new TargetVisibilityData
+                            {
+                                IsVisible = true,
+                                Altitude = bestShower.Position.Altitude,
+                                Azimuth = bestShower.Position.Azimuth,
+                                OptimalityScore = CalculateMeteorShowerOptimality(bestShower.Shower, bestShower.ZHR, hour),
+                                MeteorShowerName = bestShower.Shower.Designation,
+                                ExpectedZHR = bestShower.ZHR
+                            };
+                        }
+                        break;
+
+                    case AstroTarget.DeepSkyObjects:
+                        // For deep sky objects, use constellation data as proxy
+                        try
+                        {
+                            var constellationData = await _astroCalculationService.GetConstellationDataAsync(
+                                ConstellationType.Orion, hour, SelectedLocation.Latitude, SelectedLocation.Longitude, _cancellationTokenSource.Token);
+
+                            if (constellationData.CenterAltitude > 30)
+                            {
+                                return new TargetVisibilityData
+                                {
+                                    IsVisible = true,
+                                    Altitude = constellationData.CenterAltitude,
+                                    Azimuth = constellationData.CenterAzimuth,
+                                    OptimalityScore = Math.Min(1.0, constellationData.CenterAltitude / 90.0 * 0.8)
+                                };
+                            }
+                        }
+                        catch
+                        {
+                            // Fallback if constellation service unavailable
+                            return new TargetVisibilityData
+                            {
+                                IsVisible = true,
+                                Altitude = 45,
+                                Azimuth = 180,
+                                OptimalityScore = 0.6
+                            };
+                        }
+                        break;
+
+                    case AstroTarget.StarTrails:
+                    case AstroTarget.Constellations:
+                    case AstroTarget.PolarAlignment:
+                        // These are generally available during dark hours
+                        return new TargetVisibilityData
+                        {
+                            IsVisible = true,
+                            Altitude = 45,
+                            Azimuth = target == AstroTarget.PolarAlignment ? 0 : 180, // North for polar alignment
+                            OptimalityScore = 0.7
+                        };
+                }
+
+                return new TargetVisibilityData { IsVisible = false, OptimalityScore = 0 };
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error getting real target visibility for {target}: {ex.Message}");
+                return new TargetVisibilityData { IsVisible = false, OptimalityScore = 0 };
             }
         }
 
@@ -362,116 +613,238 @@ namespace Location.Photography.ViewModels
                 return "True Night";
         }
 
-        private async Task<List<AstroTarget>> GetViableTargetsForHourAsync(DateTime hour, string solarEvent)
+        private string GetRealTargetDisplayName(AstroTarget target, TargetVisibilityData visibility)
         {
-            var viableTargets = new List<AstroTarget>();
+            var baseName = target switch
+            {
+                AstroTarget.MilkyWayCore => "Milky Way Core",
+                AstroTarget.Moon => "Moon",
+                AstroTarget.Planets => string.IsNullOrEmpty(visibility.PlanetName) ? "Planets" : visibility.PlanetName,
+                AstroTarget.DeepSkyObjects => "Deep Sky Objects",
+                AstroTarget.StarTrails => "Star Trails",
+                AstroTarget.MeteorShowers => string.IsNullOrEmpty(visibility.MeteorShowerName) ? "Meteor Showers" : $"{visibility.MeteorShowerName} (ZHR: {visibility.ExpectedZHR:F0})",
+                AstroTarget.Constellations => "Constellations",
+                AstroTarget.PolarAlignment => "Polar Alignment",
+                _ => target.ToString()
+            };
 
+            return $"{baseName} ({visibility.Altitude:F0}° altitude)";
+        }
+
+        private async Task<WeatherConditions> GetWeatherForHourAsync(DateTime hour)
+        {
             try
             {
-                // Define which targets are viable for each solar event
-                var targetsByPhase = new Dictionary<string, List<AstroTarget>>
+                // Get hourly weather forecast
+                var hourlyQuery = new GetHourlyForecastQuery
                 {
-                    ["Blue Hour"] = new List<AstroTarget> { AstroTarget.Moon, AstroTarget.Planets },
-                    ["Nautical Twilight"] = new List<AstroTarget> { AstroTarget.Moon, AstroTarget.Planets, AstroTarget.Constellations, AstroTarget.PolarAlignment },
-                    ["Astronomical Twilight"] = new List<AstroTarget> { AstroTarget.MilkyWayCore, AstroTarget.StarTrails, AstroTarget.MeteorShowers, AstroTarget.Constellations },
-                    ["True Night"] = new List<AstroTarget> { AstroTarget.DeepSkyObjects, AstroTarget.MilkyWayCore, AstroTarget.StarTrails, AstroTarget.MeteorShowers }
+                    LocationId = SelectedLocation.Id,
+                    StartTime = hour.AddHours(-1),
+                    EndTime = hour.AddHours(1)
                 };
 
-                if (targetsByPhase.TryGetValue(solarEvent, out var possibleTargets))
+                var result = await _mediator.Send(hourlyQuery, _cancellationTokenSource.Token);
+                if (result.IsSuccess && result.Data?.HourlyForecasts?.Any() == true)
                 {
-                    // Check each possible target for actual visibility at this hour
-                    foreach (var target in possibleTargets)
+                    var forecast = result.Data.HourlyForecasts
+                        .OrderBy(f => Math.Abs((f.DateTime - hour).TotalMinutes))
+                        .FirstOrDefault();
+
+                    if (forecast != null)
                     {
-                        var visibility = await GetTargetVisibilityForHourAsync(target, hour);
-                        if (visibility.IsVisible && visibility.OptimalityScore > 0.5)
+                        return new WeatherConditions
                         {
-                            viableTargets.Add(target);
-                        }
+                            CloudCover = forecast.Clouds,
+                            PrecipitationProbability = forecast.ProbabilityOfPrecipitation,
+                            WindSpeed = forecast.WindSpeed,
+                            Humidity = forecast.Humidity,
+                            Visibility = forecast.Visibility,
+                            Description = forecast.Description
+                        };
                     }
                 }
+
+                // Fallback to reasonable defaults
+                return new WeatherConditions
+                {
+                    CloudCover = 20,
+                    PrecipitationProbability = 0.1,
+                    WindSpeed = 5,
+                    Humidity = 60,
+                    Visibility = 10000,
+                    Description = "Clear skies"
+                };
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error getting viable targets: {ex.Message}");
+                Debug.WriteLine($"Error getting weather for hour: {ex.Message}");
+                return new WeatherConditions
+                {
+                    CloudCover = 30,
+                    PrecipitationProbability = 0.2,
+                    WindSpeed = 8,
+                    Humidity = 65,
+                    Visibility = 8000,
+                    Description = "Partly cloudy"
+                };
             }
-
-            return viableTargets;
         }
 
-        private async Task<TargetVisibilityData> GetTargetVisibilityForHourAsync(AstroTarget target, DateTime hour)
+        private List<AstroHourlyPredictionDisplayModel> ConvertDtosToDisplayModels(List<AstroHourlyPredictionDto> dtos)
         {
+            return dtos.Select(dto => new AstroHourlyPredictionDisplayModel
+            {
+                Hour = dto.Hour,
+                TimeDisplay = dto.TimeDisplay,
+                SolarEvent = dto.SolarEvent,
+                SolarEventsDisplay = dto.SolarEventsDisplay,
+                QualityScore = dto.QualityScore,
+                QualityDisplay = dto.QualityDisplay,
+                QualityDescription = dto.QualityDescription,
+                AstroEvents = dto.AstroEvents.Select(e => new AstroEventDisplayModel
+                {
+                    TargetName = e.TargetName,
+                    Visibility = e.Visibility,
+                    RecommendedEquipment = e.RecommendedEquipment,
+                    CameraSettings = e.CameraSettings,
+                    Notes = e.Notes
+                }).ToList(),
+                WeatherCloudCover = dto.Weather.CloudCover,
+                WeatherHumidity = dto.Weather.Humidity,
+                WeatherWindSpeed = dto.Weather.WindSpeed,
+                WeatherVisibility = dto.Weather.Visibility,
+                WeatherDescription = dto.Weather.Description,
+                WeatherDisplay = dto.Weather.WeatherDisplay,
+                WeatherSuitability = dto.Weather.WeatherSuitability
+            }).ToList();
+        }
+
+        private async Task ApplyCachedPredictionsAsync(List<AstroHourlyPrediction> cachedPredictions)
+        {
+            // Convert cached domain objects to display models
+            var calculationResults = cachedPredictions.Select(p => new AstroCalculationResult
+            {
+                CalculationTime = p.Hour,
+                LocalTime = p.Hour,
+                Description = p.SolarEvent,
+                IsVisible = true
+            }).ToList();
+
+            var displayModels = ConvertDtosToDisplayModels(await _mappingService.MapFromDomainDataAsync(
+                calculationResults,
+                SelectedLocation.Latitude,
+                SelectedLocation.Longitude,
+                SelectedDate));
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                HourlyAstroPredictions.Clear();
+                foreach (var prediction in displayModels)
+                {
+                    HourlyAstroPredictions.Add(prediction);
+                }
+                HourlyPredictionsStatus = $"Using cached predictions from {_lastCalculationTime:HH:mm}";
+            });
+        }
+
+        #endregion
+
+        #region Helper Methods for Target Optimality
+
+        private double CalculateMilkyWayOptimality(MilkyWayData milkyWayData, DateTime dateTime)
+        {
+            if (!milkyWayData.IsVisible) return 0.0;
+
+            var score = 0.3; // Base visibility score
+
+            // Best visibility when galactic center is highest
+            if (milkyWayData.GalacticCenterAltitude > 40) score += 0.5;
+            else if (milkyWayData.GalacticCenterAltitude > 20) score += 0.3;
+            else if (milkyWayData.GalacticCenterAltitude > 10) score += 0.1;
+
+            // Season bonus - summer months are best
+            var month = dateTime.Month;
+            if (month >= 5 && month <= 9) score += 0.2;
+
+            return Math.Min(1.0, score);
+        }
+
+        private double CalculateMoonOptimality(EnhancedMoonData moonData)
+        {
+            if (moonData.Altitude <= 0) return 0.0;
+
+            var score = 0.2; // Base visibility
+
+            // Altitude bonus
+            if (moonData.Altitude > 45) score += 0.5;
+            else if (moonData.Altitude > 20) score += 0.4;
+            else if (moonData.Altitude > 5) score += 0.2;
+
+            // Phase bonus - partial phases show crater detail
+            var phaseIllumination = Math.Abs(moonData.OpticalLibration) / 100.0;
+            if (phaseIllumination > 0.2 && phaseIllumination < 0.8)
+                score += 0.3;
+
+            return Math.Min(1.0, score);
+        }
+
+        private double CalculatePlanetOptimality(PlanetPositionData planetData)
+        {
+            if (planetData == null || !planetData.IsVisible) return 0.0;
+
+            var score = 0.2; // Base visibility
+
+            // Altitude is critical for planets
+            if (planetData.Altitude > 60) score += 0.6;
+            else if (planetData.Altitude > 30) score += 0.4;
+            else if (planetData.Altitude > 15) score += 0.2;
+
+            // Magnitude bonus (brighter planets are easier)
+            if (planetData.ApparentMagnitude < -2) score += 0.2;
+            else if (planetData.ApparentMagnitude < 0) score += 0.1;
+
+            return Math.Min(1.0, score);
+        }
+
+        private double CalculateMeteorShowerOptimality(MeteorShower shower, double expectedZHR, DateTime dateTime)
+        {
+            var score = 0.2; // Base visibility
+
+            // ZHR impact (higher rates are better for photography)
+            if (expectedZHR >= 100) score += 0.5;
+            else if (expectedZHR >= 50) score += 0.4;
+            else if (expectedZHR >= 20) score += 0.3;
+            else if (expectedZHR >= 10) score += 0.2;
+
+            // Peak date bonus
             try
             {
-                switch (target)
-                {
-                    case AstroTarget.MilkyWayCore:
-                        var milkyWayData = await _astroCalculationService.GetMilkyWayDataAsync(
-                            hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
-                        return new TargetVisibilityData
-                        {
-                            IsVisible = milkyWayData.IsVisible && milkyWayData.GalacticCenterAltitude > 20,
-                            Altitude = milkyWayData.GalacticCenterAltitude,
-                            Azimuth = milkyWayData.GalacticCenterAzimuth,
-                            OptimalityScore = CalculateMilkyWayOptimality(milkyWayData, hour)
-                        };
+                var peakDate = DateTime.ParseExact($"{dateTime.Year}-{shower.Activity.Peak}", "yyyy-MM-dd", null);
+                var daysDifference = Math.Abs((dateTime.Date - peakDate.Date).TotalDays);
 
-                    case AstroTarget.Moon:
-                        var moonData = await _astroCalculationService.GetEnhancedMoonDataAsync(
-                            hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
-                        return new TargetVisibilityData
-                        {
-                            IsVisible = moonData.Altitude > 10,
-                            Altitude = moonData.Altitude,
-                            Azimuth = moonData.Azimuth,
-                            OptimalityScore = CalculateMoonOptimality(moonData)
-                        };
-
-                    case AstroTarget.Planets:
-                        var planetData = await _astroCalculationService.GetVisiblePlanetsAsync(
-                            hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
-                        var bestPlanet = planetData.OrderByDescending(p => p.Altitude).FirstOrDefault();
-                        return new TargetVisibilityData
-                        {
-                            IsVisible = bestPlanet?.IsVisible == true && bestPlanet.Altitude > 15,
-                            Altitude = bestPlanet?.Altitude ?? 0,
-                            Azimuth = bestPlanet?.Azimuth ?? 0,
-                            OptimalityScore = CalculatePlanetOptimality(bestPlanet),
-                            PlanetName = bestPlanet?.Planet.ToString() ?? ""
-                        };
-
-                    case AstroTarget.DeepSkyObjects:
-                        // Simplified - in reality would check specific DSO positions
-                        return new TargetVisibilityData
-                        {
-                            IsVisible = true,
-                            Altitude = 45,
-                            Azimuth = 180,
-                            OptimalityScore = 0.8
-                        };
-
-                    default:
-                        return new TargetVisibilityData
-                        {
-                            IsVisible = true,
-                            Altitude = 45,
-                            Azimuth = 180,
-                            OptimalityScore = 0.7
-                        };
-                }
+                if (daysDifference == 0) score += 0.3; // Peak night
+                else if (daysDifference <= 1) score += 0.2; // ±1 day from peak
+                else if (daysDifference <= 2) score += 0.1; // ±2 days from peak
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Error getting target visibility for {target}: {ex.Message}");
-                return new TargetVisibilityData { IsVisible = false, OptimalityScore = 0 };
+                // If date parsing fails, give moderate bonus
+                score += 0.1;
             }
+
+            return Math.Min(1.0, score);
         }
+
+        #endregion
+
+        #region Equipment Matching Methods
 
         private async Task<AstroTargetEvent> CreateTargetEventAsync(DateTime hour, AstroTarget target)
         {
             try
             {
                 // Get target visibility and requirements
-                var visibility = await GetTargetVisibilityForHourAsync(target, hour);
+                var visibility = await GetRealTargetVisibilityAsync(target, hour);
                 var requirements = GetTargetRequirements(target);
 
                 // Find user's best matching equipment
@@ -483,7 +856,7 @@ namespace Location.Photography.ViewModels
                 return new AstroTargetEvent
                 {
                     Target = target,
-                    TargetDisplay = GetTargetDisplayName(target, visibility),
+                    TargetDisplay = GetRealTargetDisplayName(target, visibility),
                     Visibility = visibility,
                     Equipment = equipmentMatch,
                     Settings = settings,
@@ -493,17 +866,7 @@ namespace Location.Photography.ViewModels
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error creating target event for {target}: {ex.Message}");
-
-                // Return default event instead of null
-                return new AstroTargetEvent
-                {
-                    Target = target,
-                    TargetDisplay = target.ToString(),
-                    Visibility = new TargetVisibilityData { IsVisible = false, OptimalityScore = 0 },
-                    Equipment = new UserEquipmentMatch { Found = false, RecommendationMessage = "Equipment not available" },
-                    Settings = new NormalizedCameraSettings { Aperture = "f/4.0", ShutterSpeed = "30\"", ISO = "ISO 1600" },
-                    Requirements = GetTargetRequirements(target)
-                };
+                return null;
             }
         }
 
@@ -543,6 +906,14 @@ namespace Location.Photography.ViewModels
                     MaxAperture = 4.0,
                     TargetType = "medium_telephoto"
                 },
+                AstroTarget.MeteorShowers => new TargetRequirements
+                {
+                    OptimalFocalLength = 24,
+                    MinFocalLength = 14,
+                    MaxFocalLength = 35,
+                    MaxAperture = 2.8,
+                    TargetType = "wide_angle"
+                },
                 AstroTarget.StarTrails => new TargetRequirements
                 {
                     OptimalFocalLength = 24,
@@ -557,6 +928,14 @@ namespace Location.Photography.ViewModels
                     MinFocalLength = 50,
                     MaxFocalLength = 135,
                     MaxAperture = 4.0,
+                    TargetType = "standard"
+                },
+                AstroTarget.PolarAlignment => new TargetRequirements
+                {
+                    OptimalFocalLength = 100,
+                    MinFocalLength = 50,
+                    MaxFocalLength = 200,
+                    MaxAperture = 5.6,
                     TargetType = "standard"
                 },
                 _ => new TargetRequirements
@@ -718,8 +1097,8 @@ namespace Location.Photography.ViewModels
                 AstroTarget.Moon => new BaseCameraSettings { Aperture = 8.0, ShutterSpeed = 0.008, ISO = 200 }, // 1/125
                 AstroTarget.Planets => new BaseCameraSettings { Aperture = 5.6, ShutterSpeed = 0.017, ISO = 800 }, // 1/60
                 AstroTarget.DeepSkyObjects => new BaseCameraSettings { Aperture = 4.0, ShutterSpeed = 300, ISO = 1600 }, // 5 min
-                AstroTarget.StarTrails => new BaseCameraSettings { Aperture = 4.0, ShutterSpeed = 240, ISO = 400 }, // 4 min intervals
                 AstroTarget.MeteorShowers => new BaseCameraSettings { Aperture = 2.8, ShutterSpeed = 30, ISO = 3200 },
+                AstroTarget.StarTrails => new BaseCameraSettings { Aperture = 4.0, ShutterSpeed = 240, ISO = 400 }, // 4 min intervals
                 AstroTarget.Constellations => new BaseCameraSettings { Aperture = 4.0, ShutterSpeed = 60, ISO = 1600 },
                 AstroTarget.PolarAlignment => new BaseCameraSettings { Aperture = 5.6, ShutterSpeed = 30, ISO = 1600 },
                 _ => new BaseCameraSettings { Aperture = 4.0, ShutterSpeed = 30, ISO = 1600 }
@@ -767,24 +1146,6 @@ namespace Location.Photography.ViewModels
                 return $"1/{Math.Round(1.0 / seconds):F0}";
         }
 
-        private string GetTargetDisplayName(AstroTarget target, TargetVisibilityData visibility)
-        {
-            var baseName = target switch
-            {
-                AstroTarget.MilkyWayCore => "Milky Way Core",
-                AstroTarget.Moon => "Moon",
-                AstroTarget.Planets => $"{visibility.PlanetName ?? "Planets"}",
-                AstroTarget.DeepSkyObjects => "Deep Sky Objects",
-                AstroTarget.StarTrails => "Star Trails",
-                AstroTarget.MeteorShowers => "Meteor Showers",
-                AstroTarget.Constellations => "Constellations",
-                AstroTarget.PolarAlignment => "Polar Alignment",
-                _ => target.ToString()
-            };
-
-            return $"{baseName} ({visibility.Altitude:F0}° altitude)";
-        }
-
         private async Task<double> CalculateOverallShootingScoreAsync(DateTime hour, List<AstroTarget> targets)
         {
             try
@@ -793,7 +1154,7 @@ namespace Location.Photography.ViewModels
 
                 foreach (var target in targets)
                 {
-                    var visibility = await GetTargetVisibilityForHourAsync(target, hour);
+                    var visibility = await GetRealTargetVisibilityAsync(target, hour);
                     scores.Add(visibility.OptimalityScore * 100);
                 }
 
@@ -838,308 +1199,6 @@ namespace Location.Photography.ViewModels
             return Math.Max(0, Math.Min(100, score));
         }
 
-        private async Task<WeatherConditions> GetWeatherForHourAsync(DateTime hour)
-        {
-            try
-            {
-                // Get hourly weather forecast
-                var hourlyQuery = new GetHourlyForecastQuery
-                {
-                    LocationId = SelectedLocation.Id,
-                    StartTime = hour.AddHours(-1),
-                    EndTime = hour.AddHours(1)
-                };
-
-                var result = await _mediator.Send(hourlyQuery, _cancellationTokenSource.Token);
-                if (result.IsSuccess && result.Data?.HourlyForecasts?.Any() == true)
-                {
-                    var forecast = result.Data.HourlyForecasts
-                        .OrderBy(f => Math.Abs((f.DateTime - hour).TotalMinutes))
-                        .FirstOrDefault();
-
-                    if (forecast != null)
-                    {
-                        return new WeatherConditions
-                        {
-                            CloudCover = forecast.Clouds,
-                            PrecipitationProbability = forecast.ProbabilityOfPrecipitation,
-                            WindSpeed = forecast.WindSpeed,
-                            Humidity = forecast.Humidity,
-                            Visibility = forecast.Visibility,
-                            Description = forecast.Description
-                        };
-                    }
-                }
-
-                // Fallback to reasonable defaults
-                return new WeatherConditions
-                {
-                    CloudCover = 20,
-                    PrecipitationProbability = 0.1,
-                    WindSpeed = 5,
-                    Humidity = 60,
-                    Visibility = 10000,
-                    Description = "Clear skies"
-                };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error getting weather for hour: {ex.Message}");
-                return new WeatherConditions
-                {
-                    CloudCover = 30,
-                    PrecipitationProbability = 0.2,
-                    WindSpeed = 8,
-                    Humidity = 65,
-                    Visibility = 8000,
-                    Description = "Partly cloudy"
-                };
-            }
-        }
-        private List<AstroHourlyPredictionDisplayModel> ConvertDtosToDisplayModels(List<AstroHourlyPredictionDto> dtos)
-        {
-            return dtos.Select(dto => new AstroHourlyPredictionDisplayModel
-            {
-                Hour = dto.Hour,
-                TimeDisplay = dto.TimeDisplay,
-                SolarEvent = dto.SolarEvent,
-                SolarEventsDisplay = dto.SolarEventsDisplay,
-                QualityScore = dto.QualityScore,
-                QualityDisplay = dto.QualityDisplay,
-                QualityDescription = dto.QualityDescription,
-                AstroEvents = dto.AstroEvents.Select(e => new AstroEventDisplayModel
-                {
-                    TargetName = e.TargetName,
-                    Visibility = e.Visibility,
-                    RecommendedEquipment = e.RecommendedEquipment,
-                    CameraSettings = e.CameraSettings,
-                    Notes = e.Notes
-                }).ToList(),
-                WeatherCloudCover = dto.Weather.CloudCover,
-                WeatherHumidity = dto.Weather.Humidity,
-                WeatherWindSpeed = dto.Weather.WindSpeed,
-                WeatherVisibility = dto.Weather.Visibility,
-                WeatherDescription = dto.Weather.Description,
-                WeatherDisplay = dto.Weather.WeatherDisplay,
-                WeatherSuitability = dto.Weather.WeatherSuitability,
-                WeatherConfidence = $"Weather prediction has a {CalculateWeatherConfidence(dto.Weather):F0}% confidence level"
-            }).ToList();
-        }
-
-        private double CalculateWeatherConfidence(WeatherDto weather)
-        {
-            // Calculate confidence based on weather data age and completeness
-            var baseConfidence = 85.0; // Base confidence for weather API
-
-            // Reduce confidence for high uncertainty conditions
-            if (weather.CloudCover > 70) baseConfidence -= 15;
-            if (weather.WindSpeed > 20) baseConfidence -= 10;
-
-            // Weather data freshness (assuming recent data)
-            var confidenceVariation = new Random().Next(-15, 15);
-
-            return Math.Max(25, Math.Min(95, baseConfidence + confidenceVariation));
-        }
-        private async Task ApplyCachedPredictionsAsync(List<AstroHourlyPrediction> cachedPredictions)
-        {
-            // Convert cached domain objects to display models
-            var calculationResults = cachedPredictions.Select(p => new AstroCalculationResult
-            {
-                CalculationTime = p.Hour,
-                LocalTime = p.Hour,
-                Description = p.SolarEvent,
-                IsVisible = true
-            }).ToList();
-
-            var displayModels = ConvertDtosToDisplayModels(await _mappingService.MapFromDomainDataAsync(
-                calculationResults,
-                SelectedLocation.Latitude,
-                SelectedLocation.Longitude,
-                SelectedDate));
-
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                HourlyAstroPredictions.Clear();
-                foreach (var prediction in displayModels)
-                {
-                    HourlyAstroPredictions.Add(prediction);
-                }
-                HourlyPredictionsStatus = $"Using cached predictions from {_lastCalculationTime:HH:mm}";
-            });
-        }
-
-        #endregion
-
-        #region Helper Methods for Target Optimality
-
-        private double CalculateMilkyWayOptimality(MilkyWayData milkyWayData, DateTime dateTime)
-        {
-            if (!milkyWayData.IsVisible) return 0.0;
-
-            var score = 0.5; // Base visibility score
-
-            // Best visibility when galactic center is highest
-            if (milkyWayData.GalacticCenterAltitude > 40) score += 0.3;
-            else if (milkyWayData.GalacticCenterAltitude > 20) score += 0.2;
-
-            // Season bonus - summer months are best
-            var month = dateTime.Month;
-            if (month >= 5 && month <= 9) score += 0.2;
-
-            return Math.Min(1.0, score);
-        }
-
-        private double CalculateMoonOptimality(EnhancedMoonData moonData)
-        {
-            if (moonData.Altitude <= 0) return 0.0;
-
-            var score = 0.3; // Base visibility
-
-            // Altitude bonus
-            if (moonData.Altitude > 45) score += 0.4;
-            else if (moonData.Altitude > 20) score += 0.3;
-            else score += 0.1;
-
-            // Phase bonus - partial phases show crater detail
-            var phaseIllumination = moonData.OpticalLibration / 100.0;
-            if (phaseIllumination > 0.2 && phaseIllumination < 0.8)
-                score += 0.3;
-
-            return Math.Min(1.0, score);
-        }
-
-        private double CalculatePlanetOptimality(PlanetPositionData planetData)
-        {
-            if (planetData == null || !planetData.IsVisible) return 0.0;
-
-            var score = 0.2; // Base visibility
-
-            // Altitude is critical for planets
-            if (planetData.Altitude > 60) score += 0.5;
-            else if (planetData.Altitude > 30) score += 0.4;
-            else if (planetData.Altitude > 15) score += 0.2;
-
-            // Magnitude bonus (brighter planets are easier)
-            if (planetData.ApparentMagnitude < -2) score += 0.3;
-            else if (planetData.ApparentMagnitude < 0) score += 0.2;
-            else if (planetData.ApparentMagnitude < 2) score += 0.1;
-
-            return Math.Min(1.0, score);
-        }
-
-        #endregion
-
-        #region Supporting Data Models
-
-        public class ShootingWindow
-        {
-            public DateTime Date { get; set; }
-            public DateTime Sunset { get; set; }
-            public DateTime Sunrise { get; set; }
-            public DateTime CivilTwilightEnd { get; set; }
-            public DateTime NauticalTwilightEnd { get; set; }
-            public DateTime AstronomicalTwilightEnd { get; set; }
-            public DateTime AstronomicalTwilightStart { get; set; }
-            public DateTime NauticalTwilightStart { get; set; }
-            public DateTime CivilTwilightStart { get; set; }
-        }
-
-        public class TwilightPhases
-        {
-            public DateTime CivilTwilightEnd { get; set; }
-            public DateTime NauticalTwilightEnd { get; set; }
-            public DateTime AstronomicalTwilightEnd { get; set; }
-            public DateTime AstronomicalTwilightStart { get; set; }
-            public DateTime NauticalTwilightStart { get; set; }
-            public DateTime CivilTwilightStart { get; set; }
-        }
-
-       
-
-        public class AstroTargetEvent
-        {
-            public AstroTarget Target { get; set; }
-            public string TargetDisplay { get; set; } = string.Empty;
-            public TargetVisibilityData Visibility { get; set; } = new();
-            public UserEquipmentMatch Equipment { get; set; } = new();
-            public NormalizedCameraSettings Settings { get; set; } = new();
-            public TargetRequirements Requirements { get; set; } = new();
-        }
-
-        public class TargetVisibilityData
-        {
-            public bool IsVisible { get; set; }
-            public double Altitude { get; set; }
-            public double Azimuth { get; set; }
-            public double OptimalityScore { get; set; }
-            public string PlanetName { get; set; } = string.Empty;
-        }
-
-        public class TargetRequirements
-        {
-            public double OptimalFocalLength { get; set; }
-            public double MinFocalLength { get; set; }
-            public double MaxFocalLength { get; set; }
-            public double MaxAperture { get; set; }
-            public string TargetType { get; set; } = string.Empty;
-        }
-
-        public class UserEquipmentMatch
-        {
-            public bool Found { get; set; }
-            public CameraBody Camera { get; set; }
-            public Lens Lens { get; set; }
-            public string CameraDisplay { get; set; } = string.Empty;
-            public string LensDisplay { get; set; } = string.Empty;
-            public string RecommendationMessage { get; set; } = string.Empty;
-        }
-
-        public class NormalizedCameraSettings
-        {
-            public string Aperture { get; set; } = string.Empty;
-            public string ShutterSpeed { get; set; } = string.Empty;
-            public string ISO { get; set; } = string.Empty;
-        }
-
-        public class BaseCameraSettings
-        {
-            public double Aperture { get; set; }
-            public double ShutterSpeed { get; set; }
-            public int ISO { get; set; }
-        }
-
-        public class WeatherConditions
-        {
-            public double CloudCover { get; set; }
-            public double PrecipitationProbability { get; set; }
-            public double WindSpeed { get; set; }
-            public double Humidity { get; set; }
-            public double Visibility { get; set; }
-            public string Description { get; set; } = string.Empty;
-        }
-
-        #endregion
-
-        #region Cache and Utility Methods
-
-        private string GetPredictionCacheKey()
-        {
-            return $"astro_twilight_{SelectedLocation?.Id}_{SelectedDate:yyyyMMdd}";
-        }
-
-        private void ClearExpiredCache()
-        {
-            var expiredKeys = _calculationCache
-                .Where(kvp => kvp.Value.IsExpired)
-                .Select(kvp => kvp.Key)
-                .ToList();
-
-            foreach (var key in expiredKeys)
-            {
-                _calculationCache.Remove(key);
-            }
-        }
-
         #endregion
 
         #region Enhanced Commands and Existing Methods
@@ -1169,36 +1228,11 @@ namespace Location.Photography.ViewModels
             await CalculateAstroDataAsync();
         }
 
-        // Include all the existing methods from the previous implementation:
-        // LoadLocationsAsync, LoadEquipmentAsync, SelectCameraAsync, SelectLensAsync, etc.
-        // (Copy them from the previous artifact to maintain full functionality)
-
         #endregion
 
-        #region Properties and Events
+        #region Core Methods
 
-        public IAsyncRelayCommand LoadLocationsCommand { get; private set; }
-        public IAsyncRelayCommand LoadEquipmentCommand { get; private set; }
-        public IAsyncRelayCommand CalculateAstroDataCommand { get; private set; }
-        public IAsyncRelayCommand RefreshCalculationsCommand { get; private set; }
-        public IAsyncRelayCommand<CameraBody> SelectCameraCommand { get; private set; }
-        public IAsyncRelayCommand<Lens> SelectLensCommand { get; private set; }
-        public IAsyncRelayCommand<AstroTarget> SelectTargetCommand { get; private set; }
-        public IAsyncRelayCommand RetryLastCommandCommand { get; private set; }
-        public IAsyncRelayCommand GenerateHourlyPredictionsCommand { get; private set; }
-
-        public event EventHandler<OperationErrorEventArgs> ErrorOccurred;
-        public event EventHandler CalculationCompleted;
-        public event EventHandler<AstroCalculationResult> TargetCalculated;
-
-        // Include all the existing properties from the previous implementation
-        // (Locations, SelectedLocation, SelectedTarget, etc.)
-
-        #endregion
-    
-    #region Missing Core Methods
-
-public async Task LoadLocationsAsync()
+        public async Task LoadLocationsAsync()
         {
             if (!await _operationLock.WaitAsync(100))
                 return;
@@ -1321,6 +1355,7 @@ public async Task LoadLocationsAsync()
             finally
             {
                 IsLoadingEquipment = false;
+                _operationLock.Release();
             }
         }
 
@@ -1525,16 +1560,16 @@ public async Task LoadLocationsAsync()
         private void InitializeAstroTargets()
         {
             var targets = new List<AstroTargetDisplayModel>
-    {
-        new AstroTargetDisplayModel { Target = AstroTarget.MilkyWayCore, DisplayName = "Milky Way Core", Description = "Galactic center region - best summer months" },
-        new AstroTargetDisplayModel { Target = AstroTarget.Moon, DisplayName = "Moon", Description = "Lunar photography - all phases" },
-        new AstroTargetDisplayModel { Target = AstroTarget.Planets, DisplayName = "Planets", Description = "Planetary photography - visible planets" },
-        new AstroTargetDisplayModel { Target = AstroTarget.DeepSkyObjects, DisplayName = "Deep Sky Objects", Description = "Nebulae, galaxies, and star clusters" },
-        new AstroTargetDisplayModel { Target = AstroTarget.StarTrails, DisplayName = "Star Trails", Description = "Circular or linear star trail photography" },
-        new AstroTargetDisplayModel { Target = AstroTarget.MeteorShowers, DisplayName = "Meteor Showers", Description = "Annual meteor shower events" },
-        new AstroTargetDisplayModel { Target = AstroTarget.Constellations, DisplayName = "Constellations", Description = "Constellation photography and identification" },
-        new AstroTargetDisplayModel { Target = AstroTarget.PolarAlignment, DisplayName = "Polar Alignment", Description = "Mount alignment for tracking" }
-    };
+            {
+                new AstroTargetDisplayModel { Target = AstroTarget.MilkyWayCore, DisplayName = "Milky Way Core", Description = "Galactic center region - best summer months" },
+                new AstroTargetDisplayModel { Target = AstroTarget.Moon, DisplayName = "Moon", Description = "Lunar photography - all phases" },
+                new AstroTargetDisplayModel { Target = AstroTarget.Planets, DisplayName = "Planets", Description = "Planetary photography - visible planets" },
+                new AstroTargetDisplayModel { Target = AstroTarget.DeepSkyObjects, DisplayName = "Deep Sky Objects", Description = "Nebulae, galaxies, and star clusters" },
+                new AstroTargetDisplayModel { Target = AstroTarget.StarTrails, DisplayName = "Star Trails", Description = "Circular or linear star trail photography" },
+                new AstroTargetDisplayModel { Target = AstroTarget.MeteorShowers, DisplayName = "Meteor Showers", Description = "Active meteor shower events with real data" },
+                new AstroTargetDisplayModel { Target = AstroTarget.Constellations, DisplayName = "Constellations", Description = "Constellation photography and identification" },
+                new AstroTargetDisplayModel { Target = AstroTarget.PolarAlignment, DisplayName = "Polar Alignment", Description = "Mount alignment for tracking" }
+            };
 
             AvailableTargets = new ObservableCollection<AstroTargetDisplayModel>(targets);
             SelectedTarget = AstroTarget.MilkyWayCore;
@@ -1588,6 +1623,17 @@ public async Task LoadLocationsAsync()
                     RecommendedSettings = "ISO 6400, f/4, 4-8 minutes",
                     Notes = "Medium telephoto for framing. Very high ISO capability needed. Tracking mount essential."
                 },
+                AstroTarget.MeteorShowers => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 14,
+                    MaxFocalLength = 35,
+                    OptimalFocalLength = 24,
+                    MaxAperture = 2.8,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/2.8, 15-30s",
+                    Notes = "Wide field to capture meteors. Point 45-60° away from radiant for longer trails. Real shower data used."
+                },
                 AstroTarget.StarTrails => new OptimalEquipmentSpecs
                 {
                     MinFocalLength = 14,
@@ -1598,17 +1644,6 @@ public async Task LoadLocationsAsync()
                     MaxISO = 800,
                     RecommendedSettings = "ISO 400, f/4, 30s intervals",
                     Notes = "Wide-angle for interesting compositions. Multiple exposures combined in post-processing."
-                },
-                AstroTarget.MeteorShowers => new OptimalEquipmentSpecs
-                {
-                    MinFocalLength = 14,
-                    MaxFocalLength = 35,
-                    OptimalFocalLength = 24,
-                    MaxAperture = 2.8,
-                    MinISO = 1600,
-                    MaxISO = 6400,
-                    RecommendedSettings = "ISO 3200, f/2.8, 15-30s",
-                    Notes = "Wide field to capture meteors. Point 45-60° away from radiant for longer trails."
                 },
                 AstroTarget.Constellations => new OptimalEquipmentSpecs
                 {
@@ -1648,7 +1683,43 @@ public async Task LoadLocationsAsync()
 
         #endregion
 
-        #region Missing Properties
+        #region Cache and Utility Methods
+
+        private string GetPredictionCacheKey()
+        {
+            return $"astro_real_{SelectedLocation?.Id}_{SelectedDate:yyyyMMdd}";
+        }
+
+        private void ClearExpiredCache()
+        {
+            var expiredKeys = _calculationCache
+                .Where(kvp => kvp.Value.IsExpired)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            foreach (var key in expiredKeys)
+            {
+                _calculationCache.Remove(key);
+            }
+        }
+
+        #endregion
+
+        #region Properties and Events
+
+        public IAsyncRelayCommand LoadLocationsCommand { get; private set; }
+        public IAsyncRelayCommand LoadEquipmentCommand { get; private set; }
+        public IAsyncRelayCommand CalculateAstroDataCommand { get; private set; }
+        public IAsyncRelayCommand RefreshCalculationsCommand { get; private set; }
+        public IAsyncRelayCommand<CameraBody> SelectCameraCommand { get; private set; }
+        public IAsyncRelayCommand<Lens> SelectLensCommand { get; private set; }
+        public IAsyncRelayCommand<AstroTarget> SelectTargetCommand { get; private set; }
+        public IAsyncRelayCommand RetryLastCommandCommand { get; private set; }
+        public IAsyncRelayCommand GenerateHourlyPredictionsCommand { get; private set; }
+
+        public event EventHandler<OperationErrorEventArgs> ErrorOccurred;
+        public event EventHandler CalculationCompleted;
+        public event EventHandler<AstroCalculationResult> TargetCalculated;
 
         // Legacy property mappings for compatibility with existing XAML bindings
         public ObservableCollection<LocationListItemViewModel> Locations
@@ -1817,12 +1888,102 @@ public async Task LoadLocationsAsync()
         public string SelectedTargetDisplay => AvailableTargets?.FirstOrDefault(t => t.Target == SelectedTarget)?.DisplayName ?? SelectedTarget.ToString();
         public string SelectedCameraDisplay => SelectedCamera?.Name ?? "No camera selected";
         public string SelectedLensDisplay => SelectedLens?.NameForLens ?? "No lens selected";
+        public string FieldOfViewDisplay => $"{FieldOfViewWidth:F1}° × {FieldOfViewHeight:F1}°";
+
+        #endregion
+
+        #region Supporting Data Models
+
+        public class ShootingWindow
+        {
+            public DateTime Date { get; set; }
+            public DateTime Sunset { get; set; }
+            public DateTime Sunrise { get; set; }
+            public DateTime CivilTwilightEnd { get; set; }
+            public DateTime NauticalTwilightEnd { get; set; }
+            public DateTime AstronomicalTwilightEnd { get; set; }
+            public DateTime AstronomicalTwilightStart { get; set; }
+            public DateTime NauticalTwilightStart { get; set; }
+            public DateTime CivilTwilightStart { get; set; }
+        }
+
+        public class TwilightPhases
+        {
+            public DateTime CivilTwilightEnd { get; set; }
+            public DateTime NauticalTwilightEnd { get; set; }
+            public DateTime AstronomicalTwilightEnd { get; set; }
+            public DateTime AstronomicalTwilightStart { get; set; }
+            public DateTime NauticalTwilightStart { get; set; }
+            public DateTime CivilTwilightStart { get; set; }
+        }
+
+        public class AstroTargetEvent
+        {
+            public AstroTarget Target { get; set; }
+            public string TargetDisplay { get; set; } = string.Empty;
+            public TargetVisibilityData Visibility { get; set; } = new();
+            public UserEquipmentMatch Equipment { get; set; } = new();
+            public NormalizedCameraSettings Settings { get; set; } = new();
+            public TargetRequirements Requirements { get; set; } = new();
+        }
+
+        public class TargetVisibilityData
+        {
+            public bool IsVisible { get; set; }
+            public double Altitude { get; set; }
+            public double Azimuth { get; set; }
+            public double OptimalityScore { get; set; }
+            public string PlanetName { get; set; } = string.Empty;
+            public string MeteorShowerName { get; set; } = string.Empty;
+            public double ExpectedZHR { get; set; }
+        }
+
+        public class TargetRequirements
+        {
+            public double OptimalFocalLength { get; set; }
+            public double MinFocalLength { get; set; }
+            public double MaxFocalLength { get; set; }
+            public double MaxAperture { get; set; }
+            public string TargetType { get; set; } = string.Empty;
+        }
+
+        public class UserEquipmentMatch
+        {
+            public bool Found { get; set; }
+            public CameraBody Camera { get; set; }
+            public Lens Lens { get; set; }
+            public string CameraDisplay { get; set; } = string.Empty;
+            public string LensDisplay { get; set; } = string.Empty;
+            public string RecommendationMessage { get; set; } = string.Empty;
+        }
+
+        public class NormalizedCameraSettings
+        {
+            public string Aperture { get; set; } = string.Empty;
+            public string ShutterSpeed { get; set; } = string.Empty;
+            public string ISO { get; set; } = string.Empty;
+        }
+
+        public class BaseCameraSettings
+        {
+            public double Aperture { get; set; }
+            public double ShutterSpeed { get; set; }
+            public int ISO { get; set; }
+        }
+
+        public class WeatherConditions
+        {
+            public double CloudCover { get; set; }
+            public double PrecipitationProbability { get; set; }
+            public double WindSpeed { get; set; }
+            public double Humidity { get; set; }
+            public double Visibility { get; set; }
+            public string Description { get; set; } = string.Empty;
+        }
     }
 }
 
-#endregion
-
-#region Missing Supporting Classes
+#region Supporting Classes
 namespace Location.Photography.ViewModels
 {
     public class CachedAstroCalculation
@@ -1837,9 +1998,7 @@ namespace Location.Photography.ViewModels
         public TimeSpan CacheDuration => DateTime.Now - Timestamp;
         public bool IsExpired => CacheDuration.TotalMinutes > 30;
     }
-}
-namespace Location.Photography.ViewModels
-{
+
     public class OptimalEquipmentSpecs
     {
         public double MinFocalLength { get; set; }
@@ -1851,9 +2010,6 @@ namespace Location.Photography.ViewModels
         public string RecommendedSettings { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
     }
-}
-namespace Location.Photography.ViewModels
-{
 
     public class AstroTargetDisplayModel
     {
@@ -1862,11 +2018,5 @@ namespace Location.Photography.ViewModels
         public string Description { get; set; } = string.Empty;
     }
 }
-
-    #endregion
-
-
-#region Static Reference Data Classes
-
-
+#endregion
 #endregion

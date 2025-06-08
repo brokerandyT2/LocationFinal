@@ -1,0 +1,396 @@
+{
+    "showers": [
+        {
+            "code": "ACE",
+            "designation": "α-Centaurids",
+            "activity": {
+                "start": "01-28",
+                "peak": "02-08",
+                "finish": "02-21",
+                "zhr": 20
+            },
+            "radiant_ra": 210.0,
+            "radiant_dec": -59.0,
+            "speed_km_s": 56,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "AUR",
+            "designation": "α-Aurigids",
+            "activity": {
+                "start": "08-28",
+                "peak": "09-01",
+                "finish": "09-05",
+                "zhr": 6
+            },
+            "radiant_ra": 91.0,
+            "radiant_dec": 39.0,
+            "speed_km_s": 66,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "CAP",
+            "designation": "α-Capricornids",
+            "activity": {
+                "start": "07-03",
+                "peak": "07-30",
+                "finish": "08-15",
+                "zhr": 5
+            },
+            "radiant_ra": 307.0,
+            "radiant_dec": -10.0,
+            "speed_km_s": 23,
+            "parent_body": "169P/NEAT"
+        },
+        {
+            "code": "ASC",
+            "designation": "α-Scorpiids",
+            "activity": {
+                "start": "04-20",
+                "peak": "04-28",
+                "finish": "05-19",
+                "zhr": 5
+            },
+            "radiant_ra": 247.0,
+            "radiant_dec": -24.0,
+            "speed_km_s": 35,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "DLM",
+            "designation": "December Leonis Minorids",
+            "activity": {
+                "start": "12-05",
+                "peak": "12-20",
+                "finish": "02-04",
+                "zhr": 5
+            },
+            "radiant_ra": 161.0,
+            "radiant_dec": 30.0,
+            "speed_km_s": 64,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "DRA",
+            "designation": "Draconids",
+            "activity": {
+                "start": "10-06",
+                "peak": "10-08",
+                "finish": "10-10",
+                "zhr": 700
+            },
+            "radiant_ra": 262.0,
+            "radiant_dec": 54.0,
+            "speed_km_s": 20,
+            "parent_body": "21P/Giacobini-Zinner"
+        },
+        {
+            "code": "ETA",
+            "designation": "η-Aquariids",
+            "activity": {
+                "start": "04-19",
+                "peak": "05-06",
+                "finish": "05-28",
+                "zhr": 85
+            },
+            "radiant_ra": 338.0,
+            "radiant_dec": -1.0,
+            "speed_km_s": 66,
+            "parent_body": "1P/Halley"
+        },
+        {
+            "code": "GEM",
+            "designation": "Geminids",
+            "activity": {
+                "start": "12-07",
+                "peak": "12-14",
+                "finish": "12-17",
+                "zhr": 120
+            },
+            "radiant_ra": 112.0,
+            "radiant_dec": 33.0,
+            "speed_km_s": 35,
+            "parent_body": "3200 Phaethon"
+        },
+        {
+            "code": "GNO",
+            "designation": "γ-Normids",
+            "activity": {
+                "start": "02-25",
+                "peak": "03-15",
+                "finish": "03-22",
+                "zhr": 6
+            },
+            "radiant_ra": 239.0,
+            "radiant_dec": -50.0,
+            "speed_km_s": 56,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "JBO",
+            "designation": "June Bootids",
+            "activity": {
+                "start": "06-22",
+                "peak": "06-27",
+                "finish": "07-02",
+                "zhr": 100
+            },
+            "radiant_ra": 224.0,
+            "radiant_dec": 48.0,
+            "speed_km_s": 18,
+            "parent_body": "7P/Pons-Winnecke"
+        },
+        {
+            "code": "LEO",
+            "designation": "Leonids",
+            "activity": {
+                "start": "11-06",
+                "peak": "11-18",
+                "finish": "11-30",
+                "zhr": 20
+            },
+            "radiant_ra": 152.0,
+            "radiant_dec": 22.0,
+            "speed_km_s": 71,
+            "parent_body": "55P/Tempel-Tuttle"
+        },
+        {
+            "code": "LYR",
+            "designation": "Lyrids",
+            "activity": {
+                "start": "04-16",
+                "peak": "04-22",
+                "finish": "04-25",
+                "zhr": 90
+            },
+            "radiant_ra": 271.0,
+            "radiant_dec": 34.0,
+            "speed_km_s": 49,
+            "parent_body": "Thatcher (1861 I)"
+        },
+        {
+            "code": "NTA",
+            "designation": "Northern Taurids",
+            "activity": {
+                "start": "09-25",
+                "peak": "11-12",
+                "finish": "11-25",
+                "zhr": 5
+            },
+            "radiant_ra": 58.0,
+            "radiant_dec": 22.0,
+            "speed_km_s": 29,
+            "parent_body": "C/1917 F1 (Mellish)"
+        },
+        {
+            "code": "OPH",
+            "designation": "Ophiuchids",
+            "activity": {
+                "start": "05-19",
+                "peak": "06-20",
+                "finish": "07-02",
+                "zhr": 6
+            },
+            "radiant_ra": 263.0,
+            "radiant_dec": -20.0,
+            "speed_km_s": 0,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "ORI",
+            "designation": "Orionids",
+            "activity": {
+                "start": "10-02",
+                "peak": "10-21",
+                "finish": "11-07",
+                "zhr": 25
+            },
+            "radiant_ra": 95.0,
+            "radiant_dec": 16.0,
+            "speed_km_s": 66,
+            "parent_body": "1P/Halley"
+        },
+        {
+            "code": "PAU",
+            "designation": "Piscis Austrinids",
+            "activity": {
+                "start": "06-15",
+                "peak": "07-28",
+                "finish": "08-10",
+                "zhr": 5
+            },
+            "radiant_ra": 341.0,
+            "radiant_dec": -30.0,
+            "speed_km_s": 35,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "PER",
+            "designation": "Perseids",
+            "activity": {
+                "start": "07-17",
+                "peak": "08-13",
+                "finish": "08-24",
+                "zhr": 100
+            },
+            "radiant_ra": 48.0,
+            "radiant_dec": 58.0,
+            "speed_km_s": 59,
+            "parent_body": "109P/Swift-Tuttle"
+        },
+        {
+            "code": "PHO",
+            "designation": "Phoenicids",
+            "activity": {
+                "start": "11-28",
+                "peak": "12-06",
+                "finish": "12-09",
+                "zhr": 100
+            },
+            "radiant_ra": 18.0,
+            "radiant_dec": -53.0,
+            "speed_km_s": 18,
+            "parent_body": "289P/Blanpain"
+        },
+        {
+            "code": "PPU",
+            "designation": "π-Puppids",
+            "activity": {
+                "start": "04-15",
+                "peak": "04-24",
+                "finish": "04-28",
+                "zhr": 40
+            },
+            "radiant_ra": 110.0,
+            "radiant_dec": -45.0,
+            "speed_km_s": 18,
+            "parent_body": "26P/Grigg-Skjellerup"
+        },
+        {
+            "code": "PUP",
+            "designation": "Puppid-Velids",
+            "activity": {
+                "start": "12-01",
+                "peak": "12-07",
+                "finish": "12-15",
+                "zhr": 10
+            },
+            "radiant_ra": 123.0,
+            "radiant_dec": -45.0,
+            "speed_km_s": 40,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "QUA",
+            "designation": "Quadrantids",
+            "activity": {
+                "start": "12-28",
+                "peak": "01-04",
+                "finish": "01-12",
+                "zhr": 200
+            },
+            "radiant_ra": 230.0,
+            "radiant_dec": 49.0,
+            "speed_km_s": 41,
+            "parent_body": "2003 EH1 and Comet C/1490 Y1"
+        },
+        {
+            "code": "SDA",
+            "designation": "Southern δ-Aquariids",
+            "activity": {
+                "start": "07-12",
+                "peak": "07-30",
+                "finish": "08-23",
+                "zhr": 16
+            },
+            "radiant_ra": 339.0,
+            "radiant_dec": -16.0,
+            "speed_km_s": 41,
+            "parent_body": "96P/Machholz"
+        },
+        {
+            "code": "SPE",
+            "designation": "September ε-Perseids",
+            "activity": {
+                "start": "09-04",
+                "peak": "09-09",
+                "finish": "09-14",
+                "zhr": 5
+            },
+            "radiant_ra": 47.0,
+            "radiant_dec": 40.0,
+            "speed_km_s": 64,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "STA",
+            "designation": "Southern Taurids",
+            "activity": {
+                "start": "09-25",
+                "peak": "11-05",
+                "finish": "11-25",
+                "zhr": 5
+            },
+            "radiant_ra": 52.0,
+            "radiant_dec": 15.0,
+            "speed_km_s": 27,
+            "parent_body": "2P/Encke"
+        },
+        {
+            "code": "TCE",
+            "designation": "θ-Centaurids",
+            "activity": {
+                "start": "01-23",
+                "peak": "02-14",
+                "finish": "03-12",
+                "zhr": 4
+            },
+            "radiant_ra": 210.0,
+            "radiant_dec": -40.0,
+            "speed_km_s": 60,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "THE",
+            "designation": "τ-Herculids",
+            "activity": {
+                "start": "05-19",
+                "peak": "06-09",
+                "finish": "06-19",
+                "zhr": 72
+            },
+            "radiant_ra": 236.0,
+            "radiant_dec": 41.0,
+            "speed_km_s": 15,
+            "parent_body": "Schwassmann-Wachmann 3"
+        },
+        {
+            "code": "TOP",
+            "designation": "θ-Ophiuchids",
+            "activity": {
+                "start": "05-21",
+                "peak": "06-10",
+                "finish": "06-16",
+                "zhr": 10
+            },
+            "radiant_ra": 265.0,
+            "radiant_dec": -28.0,
+            "speed_km_s": 0,
+            "parent_body": "Unknown"
+        },
+        {
+            "code": "URS",
+            "designation": "Ursids",
+            "activity": {
+                "start": "12-17",
+                "peak": "12-23",
+                "finish": "12-26",
+                "zhr": 50
+            },
+            "radiant_ra": 217.0,
+            "radiant_dec": 76.0,
+            "speed_km_s": 33,
+            "parent_body": "8P/Tuttle"
+        }
+    ]
+}

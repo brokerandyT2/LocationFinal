@@ -87,6 +87,7 @@ namespace Location.Photography.Application.Services
         public string Description { get; set; } = string.Empty;
 
         public double UvIndex { get; set; }
+        public double PrecipitationProbability { get; set; }
     }
 
     public class WeatherAlert

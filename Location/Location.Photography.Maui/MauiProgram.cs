@@ -109,7 +109,9 @@ namespace Location.Photography.Maui
             builder.Services.AddSingleton<ICameraBodyRepository, CameraBodyRepository>();
             builder.Services.AddSingleton<ILensRepository, LensRepository>();
             builder.Services.AddSingleton<ILensCameraCompatibilityRepository, LensCameraCompatibilityRepository>();
-
+            builder.Services.AddSingleton<StellariumMeteorShowerParser>();
+            builder.Services.AddSingleton<MeteorShowerDataService>();
+            builder.Services.AddSingleton<IMeteorShowerDataService>(sp => sp.GetRequiredService<MeteorShowerDataService>());
             // Register the Application service first
             builder.Services.AddSingleton<Location.Photography.Application.Services.IEquipmentRecommendationService, Location.Photography.Infrastructure.Services.EquipmentRecommendationService>();
 
@@ -157,6 +159,7 @@ namespace Location.Photography.Maui
                 var exposureCalculatorService = sp.GetRequiredService<IExposureCalculatorService>();
                 var mappingService = sp.GetRequiredService<Location.Photography.Application.Common.Interfaces.IAstroHourlyPredictionMappingService>();
                 var sunCalculatorService = sp.GetRequiredService<Domain.Services.ISunCalculatorService>();
+                var meteorShowerDataService = sp.GetRequiredService<IMeteorShowerDataService>();
                 return new AstroPhotographyCalculatorViewModel(
                     mediator,
                     errorDisplayService,
@@ -167,8 +170,7 @@ namespace Location.Photography.Maui
                     equipmentRecommendationService,
                     predictiveLightService,
                     exposureCalculatorService,
-                    mappingService,
-                    sunCalculatorService);
+                    mappingService, meteorShowerDataService);
             });
 
             // ==================== CORE PAGES ====================
