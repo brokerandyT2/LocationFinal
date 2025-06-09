@@ -1,9 +1,9 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Weather.DTOs;
 using MediatR;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Weather.Commands.UpdateWeather
 {

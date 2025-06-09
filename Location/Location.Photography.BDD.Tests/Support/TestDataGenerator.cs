@@ -1,7 +1,5 @@
 ﻿using Location.Photography.Application.Services;
 using Location.Photography.BDD.Tests.Models;
-using System;
-using System.Collections.Generic;
 
 namespace Location.Photography.BDD.Tests.Support
 {

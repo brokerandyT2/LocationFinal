@@ -1,6 +1,4 @@
 ﻿// Location.Photography.ViewModels/Events/OperationErrorEventArgs.cs
-using System;
-
 namespace Location.Photography.ViewModels.Events
 {
     public class OperationErrorEventArgs : EventArgs

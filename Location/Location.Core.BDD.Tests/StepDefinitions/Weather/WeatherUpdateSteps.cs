@@ -1,6 +1,5 @@
 ﻿using BoDi;
 using FluentAssertions;
-using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
@@ -9,11 +8,6 @@ using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
 using MediatR;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 

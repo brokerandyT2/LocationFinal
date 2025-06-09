@@ -1,8 +1,6 @@
 ﻿// Location.Core.Maui/Services/MauiAlertService.cs
 using Location.Core.Application.Services;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 
 namespace Location.Core.Maui.Services
 {
@@ -108,7 +106,7 @@ These architectural patterns can make your code more maintainable and less prone
             if (Microsoft.Maui.Controls.Application.Current?.MainPage == null)
                 return null;
 
-            var mainPage =Microsoft.Maui.Controls.Application.Current.MainPage;
+            var mainPage = Microsoft.Maui.Controls.Application.Current.MainPage;
 
             // Handle different navigation scenarios
             if (mainPage is Microsoft.Maui.Controls.Shell shell)

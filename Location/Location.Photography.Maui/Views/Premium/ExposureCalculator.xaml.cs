@@ -926,7 +926,7 @@ namespace Location.Photography.Maui.Views.Premium
             }
             finally
             {
-                
+
             }
         }
 
@@ -947,12 +947,12 @@ namespace Location.Photography.Maui.Views.Premium
 
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                try
-                {
-                    if (_alertService != null)
+                    try
                     {
-                        await _alertService.ShowErrorAlertAsync(context, "Error");
-                    }
+                        if (_alertService != null)
+                        {
+                            await _alertService.ShowErrorAlertAsync(context, "Error");
+                        }
                         else
                         {
                             await DisplayAlert("Error", context, "OK");

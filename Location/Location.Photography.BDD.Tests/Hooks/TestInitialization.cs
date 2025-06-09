@@ -1,7 +1,5 @@
 ﻿using BoDi;
 using Location.Photography.BDD.Tests.Support;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Collections.Concurrent;
 using TechTalk.SpecFlow;
 

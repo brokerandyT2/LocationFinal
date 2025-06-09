@@ -35,7 +35,8 @@ namespace Location.Photography.Application.Commands.ExposureCalculator
                 .WithMessage("EV compensation must be between -5 and +5 stops");
 
             // Validate target values based on what's being calculated
-            When(x => x.ToCalculate == FixedValue.ShutterSpeeds, () => {
+            When(x => x.ToCalculate == FixedValue.ShutterSpeeds, () =>
+            {
                 RuleFor(x => x.TargetAperture).NotEmpty().WithMessage("Target aperture is required");
 
                 RuleFor(x => x.TargetAperture)
@@ -51,7 +52,8 @@ namespace Location.Photography.Application.Commands.ExposureCalculator
                     .When(x => !string.IsNullOrEmpty(x.TargetIso));
             });
 
-            When(x => x.ToCalculate == FixedValue.Aperture, () => {
+            When(x => x.ToCalculate == FixedValue.Aperture, () =>
+            {
                 RuleFor(x => x.TargetShutterSpeed).NotEmpty().WithMessage("Target shutter speed is required");
 
                 RuleFor(x => x.TargetShutterSpeed)
@@ -67,7 +69,8 @@ namespace Location.Photography.Application.Commands.ExposureCalculator
                     .When(x => !string.IsNullOrEmpty(x.TargetIso));
             });
 
-            When(x => x.ToCalculate == FixedValue.ISO, () => {
+            When(x => x.ToCalculate == FixedValue.ISO, () =>
+            {
                 RuleFor(x => x.TargetShutterSpeed).NotEmpty().WithMessage("Target shutter speed is required");
 
                 RuleFor(x => x.TargetShutterSpeed)

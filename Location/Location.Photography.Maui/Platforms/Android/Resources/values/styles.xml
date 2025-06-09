@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="MainTheme" parent="@style/Maui.SplashTheme">
+
+    <item name="android:editTextBackground">@null</item>
+    <item name="editTextBackground">@null</item>
+    <item name="colorControlActivated">@android:color/transparent</item>
+    <item name="colorControlHighlight">@android:color/transparent</item>
+    <item name="colorControlNormal">@android:color/transparent</item>
+    <item name="android:colorControlActivated">@android:color/transparent</item>
+    <item name="android:colorControlHighlight">@android:color/transparent</item>
+    <item name="android:colorControlNormal">@android:color/transparent</item>
+    <item name="android:textCursorDrawable">@null</item>
+    
+    <!-- Entry focus underline - set to transparent -->
+    <item name="colorControlActivated">@android:color/transparent</item>
+    <item name="colorControlHighlight">@android:color/transparent</item>
+    <item name="android:colorControlActivated">@android:color/transparent</item>
+    <item name="android:editTextColor">@android:color/white</item>
+    <item name="android:colorAccent">@android:color/transparent</item>
+
+    <!-- Radio button colors - use different attributes -->
+    <item name="colorPrimary">#FF3D20</item>
+    <item name="android:colorPrimary">#FF3D20</item>
+
+    <!-- Title bar -->
+    <item name="windowActionBar">false</item>
+    <item name="windowNoTitle">true</item>
+    <item name="android:windowActionBar">false</item>
+    <item name="android:windowNoTitle">true</item>
+  </style>
+  <style name="CustomEditTextStyle" parent="android:Widget.EditText">
+    <item name="android:background">@null</item>
+    <item name="android:textColorHint">#999999</item>
+    <item name="android:textColor">#FFFFFF</item>
+  </style>
+</resources>

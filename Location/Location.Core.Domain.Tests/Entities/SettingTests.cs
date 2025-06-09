@@ -1,7 +1,6 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Domain.Entities;
-using System;
+using NUnit.Framework;
 
 namespace Location.Core.Domain.Tests.Entities
 {

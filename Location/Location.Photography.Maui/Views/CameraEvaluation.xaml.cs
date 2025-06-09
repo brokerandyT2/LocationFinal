@@ -1,10 +1,6 @@
 using Location.Photography.Application.Commands.CameraEvaluation;
-using Location.Photography.Maui.Views.Premium;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Maui.Views
 {
@@ -36,7 +32,7 @@ namespace Location.Photography.Maui.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-           
+
             try
             {
                 // Request camera permissions

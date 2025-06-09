@@ -82,7 +82,7 @@ namespace Location.Photography.Maui.Controls
                 // Draw title
                 using (var titlePaint = new SKPaint
                 {
-                    Color = SKColors.Black,
+                    Color = SKColors.White,
                     TextSize = height / 8,
                     IsAntialias = true,
                     TextAlign = SKTextAlign.Center
@@ -111,7 +111,7 @@ namespace Location.Photography.Maui.Controls
                 // Draw min/max value labels
                 using (var labelPaint = new SKPaint
                 {
-                    Color = SKColors.DarkGray,
+                    Color = SKColors.White,
                     TextSize = height / 10,
                     IsAntialias = true,
                     TextAlign = SKTextAlign.Center
@@ -147,7 +147,7 @@ namespace Location.Photography.Maui.Controls
                 // Draw current value text
                 using (var valuePaint = new SKPaint
                 {
-                    Color = SKColors.Black,
+                    Color = SKColors.White,
                     TextSize = height / 9,
                     IsAntialias = true,
                     TextAlign = SKTextAlign.Center,
@@ -155,7 +155,7 @@ namespace Location.Photography.Maui.Controls
                 })
                 {
                     // Format value to show decimal places for tint
-                    canvas.DrawText($"{Value:F1}", width / 2, height - 10, valuePaint);
+                    canvas.DrawText($"{Value:F1}", width / 2, height - 150, valuePaint);
                 }
 
                 // Draw tick marks

@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Location.Photography.Application.Common.Interfaces;
+using Location.Photography.Domain.Entities;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Location.Photography.Application.Common.Interfaces;
-using Location.Photography.Domain.Entities;
-using Microsoft.Extensions.Logging;
 
 namespace Location.Photography.Infrastructure.Services
 {

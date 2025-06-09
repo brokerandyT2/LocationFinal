@@ -6,10 +6,6 @@ using Location.Core.BDD.Tests.Drivers;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
 using Location.Core.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -59,7 +55,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Tips
             }
 
             // Setup the tip type in the repository
-             _tipTypeDriver.SetupTipTypes(new List<TipTypeTestModel> { tipTypeModel });
+            _tipTypeDriver.SetupTipTypes(new List<TipTypeTestModel> { tipTypeModel });
 
             // Store for later use
             _tipTypesByName[tipTypeModel.Name] = tipTypeModel;

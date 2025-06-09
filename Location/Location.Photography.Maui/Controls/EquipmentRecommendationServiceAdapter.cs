@@ -13,12 +13,12 @@ public class EquipmentRecommendationServiceAdapter : Location.Photography.ViewMo
 
     public Task<Result<GenericEquipmentRecommendation>> GetGenericRecommendationAsync(AstroTarget target, CancellationToken cancellationToken = default)
     {
-       return _applicationService.GetGenericRecommendationAsync(target, cancellationToken);
+        return _applicationService.GetGenericRecommendationAsync(target, cancellationToken);
     }
 
     public Task<Result<List<HourlyEquipmentRecommendation>>> GetHourlyEquipmentRecommendationsAsync(AstroTarget target, List<DateTime> predictionTimes, CancellationToken cancellationToken = default)
     {
-   return _applicationService.GetHourlyEquipmentRecommendationsAsync(target, predictionTimes, cancellationToken);
+        return _applicationService.GetHourlyEquipmentRecommendationsAsync(target, predictionTimes, cancellationToken);
     }
 
     public Task<Result<UserEquipmentRecommendation>> GetUserEquipmentRecommendationAsync(AstroTarget target, CancellationToken cancellationToken = default)

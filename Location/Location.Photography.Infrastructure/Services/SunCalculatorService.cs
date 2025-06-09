@@ -1,6 +1,6 @@
 ﻿// Location.Photography.Infrastructure/Services/SunCalculatorService.cs
-using Location.Photography.Domain.Services;
 using CoordinateSharp;
+using Location.Photography.Domain.Services;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

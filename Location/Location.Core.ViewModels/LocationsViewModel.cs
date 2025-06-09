@@ -87,7 +87,7 @@ namespace Location.Core.ViewModels
 
         public void OnNavigatedFromAsync()
         {
-           // throw new NotImplementedException();
+            // throw new NotImplementedException();
         }
     }
 

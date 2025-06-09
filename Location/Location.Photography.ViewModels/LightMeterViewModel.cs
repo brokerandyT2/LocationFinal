@@ -182,8 +182,8 @@ namespace Location.Photography.ViewModels
         public int MaxIsoIndex => IsoArray?.Length - 1 ?? 0;
 
         public string SelectedIso => IsoArray?[Math.Min(SelectedIsoIndex, MaxIsoIndex)] ?? "100";
-        public string MinIso => IsoArray?[MaxIsoIndex] ?? "50"; // ISO array is in reverse order (high to low)
-        public string MaxIso => IsoArray?[0] ?? "25600";
+        public string MinIso => IsoArray?[0] ?? "50";
+        public string MaxIso => IsoArray?[MaxIsoIndex] ?? "25600";
 
         // Shutter Speed Properties
         public string[] ShutterSpeedArray

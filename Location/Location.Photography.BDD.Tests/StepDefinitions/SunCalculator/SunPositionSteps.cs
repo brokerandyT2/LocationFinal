@@ -4,10 +4,6 @@ using Location.Photography.BDD.Tests.Drivers;
 using Location.Photography.BDD.Tests.Models;
 using Location.Photography.BDD.Tests.Support;
 using Location.Photography.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 

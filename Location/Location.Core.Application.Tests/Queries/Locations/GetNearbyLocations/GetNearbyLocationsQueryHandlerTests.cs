@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using FluentAssertions;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.Queries.Locations;
 using Location.Core.Application.Locations.DTOs;
+using Location.Core.Application.Queries.Locations;
 using Location.Core.Application.Tests.Utilities;
 using Moq;
 using NUnit.Framework;

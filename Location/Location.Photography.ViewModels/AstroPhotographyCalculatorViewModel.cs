@@ -147,11 +147,28 @@ namespace Location.Photography.ViewModels
             _meteorShowerDataService = meteorShowerDataService ?? throw new ArgumentNullException(nameof(meteorShowerDataService));
             InitializeCommands();
             InitializeAstroTargets();
+            _ = Task.Run(async () =>
+            {
+                await LoadLocationsAsync();
+                await LoadEquipmentAsync();
+            });
         }
         #endregion
 
         #region Real Astronomical Calculation Methods
+        private AstroTargetDisplayModel _selectedTargetModel;
 
+        public AstroTargetDisplayModel SelectedTargetModel
+        {
+            get => _selectedTargetModel;
+            set
+            {
+                if (SetProperty(ref _selectedTargetModel, value) && value != null)
+                {
+                    SelectedTarget = value.Target;
+                }
+            }
+        }
         public async Task CalculateAstroDataAsync()
         {
             if (SelectedLocation == null || !await _operationLock.WaitAsync(100))
@@ -1766,6 +1783,7 @@ namespace Location.Photography.ViewModels
 
             AvailableTargets = new ObservableCollection<AstroTargetDisplayModel>(targets);
             SelectedTarget = AstroTarget.MilkyWayCore;
+            SelectedTargetModel = targets.First(t => t.Target == AstroTarget.MilkyWayCore);
         }
 
         private OptimalEquipmentSpecs GetOptimalEquipmentSpecs(AstroTarget target)
@@ -2074,7 +2092,7 @@ namespace Location.Photography.ViewModels
 
         // Status properties for UI feedback
         public bool CanCalculate => SelectedLocation != null && !IsCalculating;
-        public bool HasEquipmentSelected => SelectedCamera != null && SelectedLens != null;
+        public bool HasEquipmentSelected => SelectedCamera != null || SelectedLens != null;
         public bool HasValidSelection => SelectedLocation != null && HasEquipmentSelected;
 
         // Display properties

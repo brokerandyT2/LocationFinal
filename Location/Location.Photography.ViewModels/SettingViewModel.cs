@@ -1,7 +1,6 @@
 ﻿// Location.Photography.ViewModels/SettingsViewModel.cs
 using Location.Core.Application.Services;
 using Location.Photography.ViewModels.Interfaces;
-using System;
 
 namespace Location.Photography.ViewModels
 {

@@ -1,7 +1,5 @@
 ﻿// Location.Photography.Maui/Converters/EnhancedSunCalculatorConverters.cs
-using System;
 using System.Globalization;
-using Microsoft.Maui.Controls;
 
 namespace Location.Core.Converters
 {

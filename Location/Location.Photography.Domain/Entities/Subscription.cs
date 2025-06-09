@@ -55,7 +55,7 @@ namespace Location.Photography.Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
         public bool IsExpiringSoon()
-        { 
+        {
             return IsActive && ExpirationDate.Subtract(DateTime.UtcNow).TotalDays <= 3;
         }
         public bool IsExpiringSoon(int daysThreshold = 7)

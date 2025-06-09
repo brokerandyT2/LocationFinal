@@ -1,10 +1,7 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Location.Core.Application.Settings.Commands.CreateSetting;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Settings.Commands.CreateSetting;
 using Location.Core.Application.Tests.Utilities;
 using MediatR;
 using Moq;

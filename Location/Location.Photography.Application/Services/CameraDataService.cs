@@ -2,7 +2,6 @@
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Queries.CameraEvaluation;
-using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Enums;
 using MediatR;
@@ -129,7 +128,7 @@ namespace Location.Photography.Application.Services
                     MinFStop = minFStop,
                     MaxFStop = maxFStop,
                     IsUserCreated = true,
-                    CompatibleCameraIds = compatibleCameraIds, 
+                    CompatibleCameraIds = compatibleCameraIds,
                     LensName = lensName
                 };
 

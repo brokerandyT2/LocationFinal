@@ -1,6 +1,4 @@
-﻿using Microsoft.Maui.Controls;
-
-namespace Location.Core.Maui.Services
+﻿namespace Location.Core.Maui.Services
 {
 
     public interface INavigationService

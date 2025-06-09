@@ -1,7 +1,4 @@
-﻿using ObjCRuntime;
-using UIKit;
-
-namespace Location.Core.Maui
+﻿namespace Location.Core.Maui
 {
     public class Program
     {
@@ -10,7 +7,7 @@ namespace Location.Core.Maui
         {
             // if you want to use a different Application Delegate class from "AppDelegate"
             // you can specify it here.
-           // UIApplication.Main(args, null, typeof(AppDelegate));
+            // UIApplication.Main(args, null, typeof(AppDelegate));
         }
     }
 }

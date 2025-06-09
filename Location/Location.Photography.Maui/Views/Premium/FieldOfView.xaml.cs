@@ -1,14 +1,10 @@
 ﻿using Camera.MAUI;
-using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Notifications;
-using Location.Photography.Application.Queries.CameraEvaluation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
-using Location.Photography.Infrastructure.Services;
-using Location.Photography.ViewModels.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SkiaSharp;
@@ -60,7 +56,7 @@ namespace Location.Photography.Maui.Views.Premium
         }
         ~FieldOfView()
         {
-          var x=  CameraPreview.StopCameraAsync().Result;
+            var x = CameraPreview.StopCameraAsync().Result;
         }
         public ObservableCollection<LensDisplayItem> AvailableLenses
         {
@@ -784,7 +780,7 @@ namespace Location.Photography.Maui.Views.Premium
 
             canvas.FillPath(path);
         }
-       
+
 
         private RectF CalculateFOVBox(double fov, RectF imageRect, double referenceFOV)
         {

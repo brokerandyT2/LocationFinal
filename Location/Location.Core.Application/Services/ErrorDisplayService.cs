@@ -111,7 +111,7 @@ namespace Location.Core.Application.Services
             {
                 using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
                 using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(_cancellationTokenSource.Token, timeoutCts.Token);
-                
+
                 await _errorWriter.WriteAsync(errorEvent, combinedCts.Token);
             }
             catch (OperationCanceledException)
@@ -136,7 +136,7 @@ namespace Location.Core.Application.Services
 
                     // Collect errors for aggregation window
                     var deadline = DateTime.UtcNow.AddMilliseconds(ERROR_AGGREGATION_WINDOW_MS);
-                    
+
                     while (DateTime.UtcNow < deadline && errorBatch.Count < MAX_ERRORS_PER_BATCH)
                     {
                         var remainingTime = deadline - DateTime.UtcNow;
@@ -196,7 +196,7 @@ namespace Location.Core.Application.Services
 
                 // Fire event on thread pool to avoid blocking background processor
                 _ = Task.Run(() => ErrorsReady?.Invoke(this, eventArgs));
-                
+
                 await Task.CompletedTask;
             }
             catch (Exception)
@@ -249,11 +249,11 @@ namespace Location.Core.Application.Services
         private string GetCachedLocalizedErrorMessage(DomainErrorEvent errorEvent)
         {
             var resourceKey = errorEvent.GetResourceKey();
-            
+
             return _messageCache.GetOrAdd(resourceKey, key =>
             {
                 var parameters = errorEvent.GetParameters();
-                
+
                 return key switch
                 {
                     "Location_Error_DuplicateTitle" => $"Location '{parameters.GetValueOrDefault("LocationTitle", "")}' already exists",
@@ -299,7 +299,7 @@ namespace Location.Core.Application.Services
             {
                 // Signal shutdown
                 _cancellationTokenSource.Cancel();
-                
+
                 // Complete the writer to signal no more errors
                 _errorWriter.TryComplete();
 

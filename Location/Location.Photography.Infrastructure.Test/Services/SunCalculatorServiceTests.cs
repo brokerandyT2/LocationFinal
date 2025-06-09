@@ -1,9 +1,6 @@
 ﻿using FluentAssertions;
-using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure.Services;
 using NUnit.Framework;
-using System;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Infrastructure.Test.Services
 {

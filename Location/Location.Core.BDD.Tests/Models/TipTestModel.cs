@@ -1,6 +1,4 @@
 ﻿// TipTestModel.cs
-using System;
-
 namespace Location.Core.BDD.Tests.Models
 {
     /// <summary>

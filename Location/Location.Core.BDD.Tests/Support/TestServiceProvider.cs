@@ -1,13 +1,9 @@
 ﻿using Location.Core.Application;
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
-using Location.Core.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
 
 namespace Location.Core.BDD.Tests.Support
 {

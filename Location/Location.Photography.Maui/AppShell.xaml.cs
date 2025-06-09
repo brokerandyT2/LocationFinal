@@ -127,7 +127,7 @@ namespace Location.Photography.Maui
                         Title = "Field of View",
                         PageType = typeof(Views.Premium.FieldOfView),
                         IsEnabled = false
-                    }, 
+                    },
                     new TabItem
                     {
                         Title = "Astro Location",

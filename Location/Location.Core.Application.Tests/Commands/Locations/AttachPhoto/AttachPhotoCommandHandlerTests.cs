@@ -8,9 +8,6 @@ using Location.Core.Application.Tests.Utilities;
 using MediatR;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Tests.Commands.Locations.AttachPhoto
 {

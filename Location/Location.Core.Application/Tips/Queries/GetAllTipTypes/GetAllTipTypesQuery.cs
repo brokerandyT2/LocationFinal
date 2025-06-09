@@ -63,7 +63,7 @@ namespace Location.Core.Application.Tips.Queries.GetAllTipTypes
                         I8n = tipType.I8n
                     });
                 }
-               
+
 
                 return Result<List<TipTypeDto>>.Success(tipTypeDtos);
             }

@@ -1,7 +1,7 @@
 ﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.Tips.DTOs;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Tips.DTOs;
 using MediatR;
 
 namespace Location.Core.Application.Commands.TipTypes

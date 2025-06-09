@@ -81,7 +81,7 @@ namespace Location.Photography.Maui.Controls
                 // Draw title
                 using (var titlePaint = new SKPaint
                 {
-                    Color = SKColors.Black,
+                    Color = SKColors.White,
                     TextSize = height / 8,
                     IsAntialias = true,
                     TextAlign = SKTextAlign.Center
@@ -146,14 +146,14 @@ namespace Location.Photography.Maui.Controls
                 // Draw current value text
                 using (var valuePaint = new SKPaint
                 {
-                    Color = SKColors.Black,
+                    Color = SKColors.White,
                     TextSize = height / 9,
                     IsAntialias = true,
                     TextAlign = SKTextAlign.Center,
                     FakeBoldText = true
                 })
                 {
-                    canvas.DrawText($"{Value:F0}K", width / 2, height - 10, valuePaint);
+                    canvas.DrawText($"{Value:F0}K", width / 2, height -150, valuePaint);
                 }
 
                 // Draw tick marks

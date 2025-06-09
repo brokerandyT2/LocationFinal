@@ -1,7 +1,6 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Locations.DTOs;
-using System;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.DTOs
 {

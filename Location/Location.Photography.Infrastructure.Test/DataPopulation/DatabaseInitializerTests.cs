@@ -3,13 +3,9 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Domain.Entities;
-using Location.Photography.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using IgnoreAttribute = NUnit.Framework.IgnoreAttribute;
 
 namespace Location.Photography.Infrastructure.Test.DataPopulation
@@ -266,7 +262,8 @@ namespace Location.Photography.Infrastructure.Test.DataPopulation
             cts.Cancel();
 
             // Set up the mock to throw when token is checked
-            _unitOfWorkMock.Setup(u => u.TipTypes).Callback(() => {
+            _unitOfWorkMock.Setup(u => u.TipTypes).Callback(() =>
+            {
                 cts.Token.ThrowIfCancellationRequested();
             }).Returns(_tipTypeRepositoryMock.Object);
 

@@ -1,7 +1,6 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Domain.Events;
-using System;
+using NUnit.Framework;
 
 namespace Location.Core.Domain.Tests.Events
 {

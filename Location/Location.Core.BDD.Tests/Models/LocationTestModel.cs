@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Location.Core.BDD.Tests.Models
+﻿namespace Location.Core.BDD.Tests.Models
 {
     /// <summary>
     /// Model class for location data in tests

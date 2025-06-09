@@ -20,7 +20,7 @@ namespace Location.Core.Maui.Views
             INavigationService navigationService,
             IMediaService mediaService,
             IGeolocationService geolocationService,
-            IErrorDisplayService errorDisplayService, 
+            IErrorDisplayService errorDisplayService,
             IWeatherService weatherService)
         {
             InitializeComponent();
@@ -100,7 +100,7 @@ namespace Location.Core.Maui.Views
                     selectedItem.Id,
                     true);
                 var page2 = new EditLocation(_mediator, _mediaService, _geolocationService, _navigationService, _errorDisplayService, _weatherService, selectedItem.Id, true);
-                await  _navigationService.NavigateToModalAsync(page2);
+                await _navigationService.NavigateToModalAsync(page2);
             }
         }
 
@@ -121,7 +121,8 @@ namespace Location.Core.Maui.Views
         private void ImageButton_Pressed(object sender, EventArgs e)
         {
             var location = ((LocationViewModel)sender);
-            MainThread.BeginInvokeOnMainThread(async () => {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
                 try
                 {
                     var mapLocation = new Microsoft.Maui.Devices.Sensors.Location(location.Latitude, location.Longitude);
@@ -133,7 +134,7 @@ namespace Location.Core.Maui.Views
                 {
                     await DisplayAlert(AppResources.Error, "No Map Application", AppResources.OK);
                     location.OnSystemError("No Map Application");
-//                    HandleError(ex, "Error opening map");
+                    //                    HandleError(ex, "Error opening map");
                 }
             });
 

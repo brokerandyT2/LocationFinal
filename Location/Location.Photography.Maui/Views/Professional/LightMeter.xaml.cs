@@ -345,7 +345,7 @@ namespace Location.Photography.Maui.Views.Professional
                 System.Diagnostics.Debug.WriteLine($"Error stopping light sensor monitoring: {ex.Message}");
             }
         }
-       
+
 
         // Event handler for MEASURE button
         private async void OnMeasurePressed(object sender, EventArgs e)

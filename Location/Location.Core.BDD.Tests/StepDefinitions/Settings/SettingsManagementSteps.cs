@@ -1,17 +1,10 @@
-﻿using BoDi;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Settings.Commands.CreateSetting;
-using Location.Core.Application.Settings.Commands.DeleteSetting;
 using Location.Core.Application.Settings.Commands.UpdateSetting;
 using Location.Core.Application.Settings.Queries.GetAllSettings;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
-using Location.Core.BDD.Tests.Drivers;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 

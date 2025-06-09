@@ -8,7 +8,7 @@
     xmlns:professional="clr-namespace:Location.Photography.Maui.Views.Professional"
     xmlns:settings="clr-namespace:Location.Photography.Maui.Views"
     xmlns:controls="clr-namespace:Location.Photography.Maui.Controls"
-    Title="PixMap">
+    Title="PixMap" Shell.NavBarIsVisible="False">
 
     <!-- Shell Routes for Modal Navigation -->
     <Shell.Resources>

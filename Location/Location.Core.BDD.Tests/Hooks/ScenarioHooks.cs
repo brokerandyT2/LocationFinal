@@ -1,6 +1,4 @@
 ﻿using BoDi;
-using Location.Core.BDD.Tests.Support;
-using System;
 using TechTalk.SpecFlow;
 
 namespace Location.Core.BDD.Tests.Hooks

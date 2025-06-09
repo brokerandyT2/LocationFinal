@@ -1,7 +1,4 @@
 ﻿// Location.Photography.Application.Tests/Commands/SunLocation/CalculateSunTimesCommandHandlerTests.cs
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Commands.SunLocation;

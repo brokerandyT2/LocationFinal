@@ -1,11 +1,7 @@
 ﻿// Location.Photography.Application/Services/IEquipmentRecommendationService.cs
 using Location.Core.Application.Common.Models;
-using Location.Photography.Application.Common.Interfaces;
-using Location.Photography.Application.Services;
-using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
 using Location.Photography.ViewModels;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -38,6 +34,6 @@ namespace Location.Photography.Application.Services
             CancellationToken cancellationToken = default);
     }
 
-   
+
 }
 

@@ -36,7 +36,7 @@ namespace Location.Core.Infrastructure
             // This ensures infrastructure components have a non-circular alerting mechanism
             services.AddScoped<DirectAlertingService>();
             services.TryAddScoped<IAlertService, DirectAlertingService>();
-           
+
             services.AddScoped<ITimezoneService, TimezoneService>();
             // Register persistence interfaces
             services.AddScoped<Location.Core.Application.Common.Interfaces.Persistence.ILocationRepository>(sp =>

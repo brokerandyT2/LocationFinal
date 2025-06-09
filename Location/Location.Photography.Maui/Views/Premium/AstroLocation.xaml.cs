@@ -59,7 +59,7 @@ namespace Location.Photography.Maui.Views.Premium
 
             var timeFormat = setting.GetByKeyAsync(MagicStrings.TimeFormat).Result.Value;
             var dateFormat = setting.GetByKeyAsync(MagicStrings.DateFormat).Result.Value;
-            _viewModel = new AstroLocationViewModel(mediator, sunCalculatorService, errorDisplayService, timezoneService,dateFormat, timeFormat );
+            _viewModel = new AstroLocationViewModel(mediator, sunCalculatorService, errorDisplayService, timezoneService, dateFormat, timeFormat);
             BindingContext = _viewModel;
         }
 
@@ -88,7 +88,7 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                _dateFormat =  _settingRepository.GetByKeyAsync(MagicStrings.DateFormat).Result.Value;
+                _dateFormat = _settingRepository.GetByKeyAsync(MagicStrings.DateFormat).Result.Value;
                 _timeFormat = _settingRepository.GetByKeyAsync(MagicStrings.TimeFormat).Result.Value;
                 _viewModel = new AstroLocationViewModel(_mediator, _sunCalculatorService, errorDisplayService, _timezoneService, _dateFormat, _timeFormat);
                 _viewModel.BeginMonitoring = true;

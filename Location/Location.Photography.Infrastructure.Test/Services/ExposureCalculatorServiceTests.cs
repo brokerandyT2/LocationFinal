@@ -4,10 +4,6 @@ using Location.Photography.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Infrastructure.Test.Services
 {

@@ -4,11 +4,11 @@ using Location.Core.Application.Tips.DTOs;
 using MediatR;
 namespace Location.Core.Application.Queries.TipTypes
 {
-/// <summary>
-/// Represents a query to retrieve a specific tip type by its unique identifier.
-/// </summary>
-/// <remarks>This query is used to request a <see cref="TipTypeDto"/> object corresponding to the specified ID.
-/// The result will indicate whether the operation was successful and, if so, will contain the requested data.</remarks>
+    /// <summary>
+    /// Represents a query to retrieve a specific tip type by its unique identifier.
+    /// </summary>
+    /// <remarks>This query is used to request a <see cref="TipTypeDto"/> object corresponding to the specified ID.
+    /// The result will indicate whether the operation was successful and, if so, will contain the requested data.</remarks>
     public class GetTipTypeByIdQuery : IRequest<Result<TipTypeDto>>
     {
         public int Id { get; set; }

@@ -4,11 +4,6 @@ using Location.Core.Application.Tips.DTOs;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.BDD.Tests.Drivers
 {

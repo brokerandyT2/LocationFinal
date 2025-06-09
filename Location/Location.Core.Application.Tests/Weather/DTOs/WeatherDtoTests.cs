@@ -1,7 +1,6 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Weather.DTOs;
-using System;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Weather.DTOs
 {

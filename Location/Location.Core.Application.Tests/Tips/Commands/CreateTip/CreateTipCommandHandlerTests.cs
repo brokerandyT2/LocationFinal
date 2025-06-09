@@ -6,9 +6,6 @@ using Location.Core.Application.Tips.Commands.CreateTip;
 using MediatR;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Tests.Tips.Commands.CreateTip
 {

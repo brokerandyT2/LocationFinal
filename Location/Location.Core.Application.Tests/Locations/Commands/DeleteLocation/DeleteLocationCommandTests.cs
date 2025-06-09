@@ -1,8 +1,8 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
+using Location.Core.Application.Commands.Locations;
 using Location.Core.Application.Common.Models;
 using MediatR;
-using Location.Core.Application.Commands.Locations;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 {

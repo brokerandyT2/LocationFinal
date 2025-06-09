@@ -4,12 +4,6 @@ using Location.Photography.Application.Services;
 using Location.Photography.BDD.Tests.Models;
 using Location.Photography.BDD.Tests.Support;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.BDD.Tests.Drivers
 {

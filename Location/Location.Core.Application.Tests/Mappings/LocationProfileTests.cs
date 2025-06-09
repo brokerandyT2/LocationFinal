@@ -1,9 +1,9 @@
-﻿using NUnit.Framework;
+﻿using AutoMapper;
 using FluentAssertions;
-using AutoMapper;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Tests.Utilities;
 using Location.Core.Domain.ValueObjects;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Mappings
 {

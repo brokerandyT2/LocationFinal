@@ -1,7 +1,7 @@
+using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
-using Location.Core.Application.Services;
 
 namespace Location.Photography.Maui.Views.Professional
 {
@@ -944,7 +944,7 @@ namespace Location.Photography.Maui.Views.Professional
                     {
                         if (_errorDisplayService != null)
                         {
-                            await DisplayAlert("Error",context, "OK");
+                            await DisplayAlert("Error", context, "OK");
                         }
                         else
                         {

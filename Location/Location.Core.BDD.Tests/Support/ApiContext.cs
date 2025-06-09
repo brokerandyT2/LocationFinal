@@ -1,7 +1,5 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Core.BDD.Tests.Models;
-using System;
-using System.Collections.Generic;
 
 namespace Location.Core.BDD.Tests.Support
 {

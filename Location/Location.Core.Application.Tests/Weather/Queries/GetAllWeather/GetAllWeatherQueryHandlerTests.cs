@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using FluentAssertions;
 using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Models;
-using Location.Core.Application.Weather.Queries.GetAllWeather;
-using Location.Core.Application.Weather.DTOs;
 using Location.Core.Application.Tests.Utilities;
+using Location.Core.Application.Weather.DTOs;
+using Location.Core.Application.Weather.Queries.GetAllWeather;
 using Moq;
 using NUnit.Framework;
 

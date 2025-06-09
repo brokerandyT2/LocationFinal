@@ -170,13 +170,13 @@ namespace Location.Photography.Maui.Controls
                 TextColor = Colors.White,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center
-            }; 
+            };
 
             var border = new Border
             {
                 StrokeThickness = 1,
                 Stroke = isSelected ? Colors.Blue : Colors.LightGray,
-                BackgroundColor = isSelected ? Colors.Transparent: Color.FromHex("#FF3D20"),
+                BackgroundColor = isSelected ? Colors.Transparent : Color.FromHex("#FF3D20"),
                 Content = label,
                 StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle() { CornerRadius = 20 },
 

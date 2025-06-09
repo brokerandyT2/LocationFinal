@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using FluentAssertions;
 using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Common.Interfaces;

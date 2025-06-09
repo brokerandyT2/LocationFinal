@@ -1,6 +1,4 @@
 ﻿using BoDi;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace Location.Core.BDD.Tests.Features
 {

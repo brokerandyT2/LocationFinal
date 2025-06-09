@@ -1,9 +1,6 @@
 ﻿using Location.Core.Application.Services;
-using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Core.ViewModels;
 using Location.Photography.Application.Services;
-using Location.Photography.Infrastructure;
-using Location.Photography.Maui.Controls;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
 using MediatR;
@@ -18,14 +15,13 @@ namespace Location.Photography.Maui.Views.Professional
         private readonly IAlertService _alertService;
         private readonly IMediator _mediator;
         private readonly IExposureCalculatorService _exposureCalculatorService;
-        private SunPathDrawable _sunPathDrawable;
         private bool _isPopupVisible = false;
 
-              public SunCalculator(
-            EnhancedSunCalculatorViewModel viewModel,
-            IAlertService alertService,
-            IMediator mediator,
-            IExposureCalculatorService exposureCalculatorService)
+        public SunCalculator(
+      EnhancedSunCalculatorViewModel viewModel,
+      IAlertService alertService,
+      IMediator mediator,
+      IExposureCalculatorService exposureCalculatorService)
         {
             InitializeComponent();
 
@@ -129,24 +125,10 @@ namespace Location.Photography.Maui.Views.Professional
 
         private void UpdateSunPathCanvas()
         {
-            var time = new GetSettingByKeyQuery() { Key = MagicStrings.TimeFormat };
-            var date = new GetSettingByKeyQuery() { Key = MagicStrings.DateFormat };
-
-            try
-            {
-                if (_sunPathDrawable != null && _viewModel != null)
-                {
-                    _sunPathDrawable.UpdateViewModel(_viewModel);
-                    //SunPathCanvas.Invalidate();
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error updating sun path canvas: {ex.Message}");
-            }
+            
         }
 
-       
+
         private async void OnSystemError(object sender, OperationErrorEventArgs e)
         {
             try
@@ -363,10 +345,7 @@ namespace Location.Photography.Maui.Views.Professional
         }
 
         // Helper method to get current sun path drawable for external access
-        public SunPathDrawable GetSunPathDrawable()
-        {
-            return _sunPathDrawable;
-        }
+        
 
         private void DatePicker_DateSelected(object sender, DateChangedEventArgs e)
         {

@@ -1,17 +1,12 @@
 ﻿// Update the TipTypeRepositoryAdapterTests class to include the additional dependencies
 
-using NUnit.Framework;
 using FluentAssertions;
 using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Repositories;
 using Location.Core.Infrastructure.Tests.Helpers;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace Location.Core.Infrastructure.Tests.Data.Repositories
 {

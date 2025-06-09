@@ -247,7 +247,7 @@ namespace Location.Photography.ViewModels
             _errorDisplayService = errorDisplayService ?? throw new ArgumentNullException(nameof(errorDisplayService));
             _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
             _logger = logger;
-            _exposureCalculatorService = exposureCalculatorService??throw new ArgumentNullException(nameof(exposureCalculatorService));
+            _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
             InitializeTimelineEvents();
             LoadUserSettingsAsync();
         }
@@ -509,7 +509,7 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        
+
 
         private void OnCompassReadingChanged(object? sender, CompassChangedEventArgs e)
         {
@@ -1164,11 +1164,11 @@ namespace Location.Photography.ViewModels
     }
 
     #region Supporting Classes
-   
 
-   
+
+
 
     // Weather impact calculation helper
-   
+
     #endregion
 }

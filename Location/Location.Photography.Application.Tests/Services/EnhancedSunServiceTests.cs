@@ -1,14 +1,8 @@
 ﻿using FluentAssertions;
 using Location.Photography.Application.Services;
-using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Tests.Services
 {

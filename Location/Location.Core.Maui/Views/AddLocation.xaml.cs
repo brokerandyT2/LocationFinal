@@ -262,7 +262,7 @@ namespace Location.Core.Maui.Views
         #endregion
 
         #region Lifecycle Methods
-        
+
         /// <summary>
         /// Called when the page appears
         /// </summary>
@@ -284,7 +284,7 @@ namespace Location.Core.Maui.Views
                 }
             }
         }
-       
+
 
 
         /// <summary>

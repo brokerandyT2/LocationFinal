@@ -1,10 +1,8 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Moq;
-using System.Threading;
-using System.Threading.Tasks;
-using Location.Core.Application.Services;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Services;
+using Moq;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Services
 {

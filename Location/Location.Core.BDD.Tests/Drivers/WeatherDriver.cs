@@ -2,18 +2,12 @@
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
-using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Weather.Queries.GetWeatherForecast;
 using Location.Core.Application.Weather.Queries.UpdateAllWeather;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
 using MediatR;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.BDD.Tests.Drivers
 {

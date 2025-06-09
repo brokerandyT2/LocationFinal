@@ -180,6 +180,8 @@ namespace Location.Photography.ViewModels
         {
             try
             {
+                _imageAnalysisService.ClearHistogramCache();
+
                 // Cancel any existing operation
                 _cancellationTokenSource?.Cancel();
                 _cancellationTokenSource = new CancellationTokenSource();
@@ -529,13 +531,13 @@ namespace Location.Photography.ViewModels
                 if (histogram?.Statistics != null)
                 {
                     // Update display properties from analysis results
-                    _colorTemperature = AnalysisResult.WhiteBalance.Temperature;
-                    _tintValue = AnalysisResult.WhiteBalance.Tint;
-                    _dynamicRange = histogram.Statistics.DynamicRange;
-                    _rmsContrast = AnalysisResult.Contrast.RMSContrast;
-                    _redMean = AnalysisResult.RedHistogram.Statistics.Mean;
-                    _greenMean = AnalysisResult.GreenHistogram.Statistics.Mean;
-                    _blueMean = AnalysisResult.BlueHistogram.Statistics.Mean;
+                    ColorTemperature = AnalysisResult.WhiteBalance.Temperature;
+                    TintValue = AnalysisResult.WhiteBalance.Tint;
+                    DynamicRange = histogram.Statistics.DynamicRange;
+                    RmsContrast = AnalysisResult.Contrast.RMSContrast;
+                    RedMean = AnalysisResult.RedHistogram.Statistics.Mean;
+                    GreenMean = AnalysisResult.GreenHistogram.Statistics.Mean;
+                    BlueMean = AnalysisResult.BlueHistogram.Statistics.Mean;
 
                     _hasClippingWarning = histogram.Statistics.ShadowClipping || histogram.Statistics.HighlightClipping;
 

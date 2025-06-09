@@ -1,14 +1,9 @@
 ﻿// Location.Photography.Application.Tests/Queries/SunLocation/GetCurrentSunPositionQueryHandlerTests.cs
 using FluentAssertions;
-using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Queries.SunLocation;
-using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Tests.Queries.SunLocation
 {

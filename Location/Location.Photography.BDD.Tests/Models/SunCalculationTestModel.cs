@@ -1,5 +1,4 @@
 ﻿using Location.Photography.Domain.Models;
-using System;
 
 namespace Location.Photography.BDD.Tests.Models
 {

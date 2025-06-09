@@ -5,16 +5,43 @@ namespace Location.Photography.Application.Services
     public class ImageAnalysisService : IImageAnalysisService
     {
         private const double CalibrationConstant = 12.5;
+
+        public void ClearHistogramCache()
+        {
+            try
+            {
+                var appDataPath = FileSystem.AppDataDirectory;
+                var histogramFiles = Directory.GetFiles(appDataPath, "*histogram*.png");
+
+                foreach (var filePath in histogramFiles)
+                {
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw - cleanup failures shouldn't break analysis
+                System.Diagnostics.Debug.WriteLine($"Error clearing histogram cache: {ex.Message}");
+            }
+        }
+
         public async Task<string> GenerateStackedHistogramImageAsync(
-    double[] redHistogram,
-    double[] greenHistogram,
-    double[] blueHistogram,
-    double[] luminanceHistogram,
-    string fileName)
+            double[] redHistogram,
+            double[] greenHistogram,
+            double[] blueHistogram,
+            double[] luminanceHistogram,
+            string fileName)
         {
             return await Task.Run(() =>
             {
-                string filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+                // Add timestamp to filename for cache busting
+                var timestamp = DateTime.Now.Ticks;
+                var fileNameWithTimestamp = $"stacked_histogram_{timestamp}.png";
+                string filePath = Path.Combine(FileSystem.AppDataDirectory, fileNameWithTimestamp);
+
                 int width = 512;
                 int height = 256;
                 int margin = 10;
@@ -28,14 +55,14 @@ namespace Location.Photography.Application.Services
                 canvas.DrawLine(margin, height - margin, width - margin, height - margin, axisPaint);
                 canvas.DrawLine(margin, height - margin, margin, margin, axisPaint);
 
-                // Draw each histogram with transparency
+                // Draw each histogram with transparency as bars
                 var colors = new[] { SKColors.Red, SKColors.Green, SKColors.Blue, SKColors.Gray };
                 var histograms = new[] { redHistogram, greenHistogram, blueHistogram, luminanceHistogram };
 
                 for (int h = 0; h < histograms.Length; h++)
                 {
-                    var color = colors[h].WithAlpha(128); // Semi-transparent
-                    DrawHistogramLine(canvas, histograms[h], color, width, height, margin);
+                    var color = colors[h].WithAlpha(80); // More transparent for stacked
+                    DrawHistogramBars(canvas, histograms[h], color, width, height, margin);
                 }
 
                 // Save image
@@ -47,6 +74,7 @@ namespace Location.Photography.Application.Services
                 return filePath;
             });
         }
+
         public async Task<ImageAnalysisResult> AnalyzeImageAsync(Stream imageStream, CancellationToken cancellationToken = default)
         {
             return await Task.Run(() =>
@@ -122,7 +150,13 @@ namespace Location.Photography.Application.Services
         {
             return await Task.Run(() =>
             {
-                string filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+                // Add timestamp to filename for cache busting
+                var timestamp = DateTime.Now.Ticks;
+                var baseName = Path.GetFileNameWithoutExtension(fileName);
+                var extension = Path.GetExtension(fileName);
+                var fileNameWithTimestamp = $"{baseName}_{timestamp}{extension}";
+                string filePath = Path.Combine(FileSystem.AppDataDirectory, fileNameWithTimestamp);
+
                 int width = 512;
                 int height = 256;
                 int margin = 10;
@@ -136,8 +170,8 @@ namespace Location.Photography.Application.Services
                 canvas.DrawLine(margin, height - margin, width - margin, height - margin, axisPaint);
                 canvas.DrawLine(margin, height - margin, margin, margin, axisPaint);
 
-                // Draw histogram
-                DrawHistogramLine(canvas, histogram, color, width, height, margin);
+                // Draw histogram as bars
+                DrawHistogramBars(canvas, histogram, color, width, height, margin);
 
                 // Save image
                 using var image = surface.Snapshot();
@@ -147,6 +181,35 @@ namespace Location.Photography.Application.Services
 
                 return filePath;
             });
+        }
+
+        private static void DrawHistogramBars(SKCanvas canvas, double[] histogram, SKColor color, int width, int height, int margin)
+        {
+            int graphWidth = width - (2 * margin);
+            int graphHeight = height - (2 * margin);
+            float baselineY = height - margin;
+
+            // Create fill paint for bars
+            using var fillPaint = new SKPaint
+            {
+                Color = color.WithAlpha(120),
+                Style = SKPaintStyle.Fill,
+                IsAntialias = true
+            };
+
+            // Calculate bar width to fill entire graph width
+            float barWidth = (float)graphWidth / histogram.Length;
+
+            // Draw histogram as individual bars with no spacing
+            for (int i = 0; i < histogram.Length; i++)
+            {
+                float x = margin + (i * barWidth);
+                float barHeight = (float)(histogram[i] * graphHeight);
+                float y = baselineY - barHeight;
+
+                // Draw filled bar
+                canvas.DrawRect(x, y, barWidth, barHeight, fillPaint);
+            }
         }
 
         private double CalculateAccurateLuminance(SKColor color)
@@ -384,28 +447,10 @@ namespace Location.Photography.Application.Services
             }
         }
 
+        // Legacy method - kept for backward compatibility but now uses bars
         private static void DrawHistogramLine(SKCanvas canvas, double[] histogram, SKColor color, int width, int height, int margin)
         {
-            int graphWidth = width - (2 * margin);
-            int graphHeight = height - (2 * margin);
-
-            using var paint = new SKPaint
-            {
-                Color = color,
-                StrokeWidth = 2,
-                IsAntialias = true,
-                Style = SKPaintStyle.Stroke
-            };
-
-            for (int i = 1; i < histogram.Length; i++)
-            {
-                float x1 = margin + ((i - 1) * (graphWidth / 256f));
-                float y1 = height - margin - (float)(histogram[i - 1] * graphHeight);
-                float x2 = margin + (i * (graphWidth / 256f));
-                float y2 = height - margin - (float)(histogram[i] * graphHeight);
-
-                canvas.DrawLine(x1, y1, x2, y2, paint);
-            }
+            DrawHistogramBars(canvas, histogram, color, width, height, margin);
         }
     }
 }

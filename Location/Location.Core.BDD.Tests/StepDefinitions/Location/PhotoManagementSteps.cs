@@ -1,19 +1,13 @@
 ﻿using BoDi;
 using FluentAssertions;
 using Location.Core.Application.Commands.Locations;
-using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.Application.Services;
-using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
 using MediatR;
 using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
-using TechTalk.SpecFlow.Assist;
 
 namespace Location.Core.BDD.Tests.StepDefinitions.Location
 {

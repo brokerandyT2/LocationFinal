@@ -1,9 +1,6 @@
 ﻿using BoDi;
 using Location.Core.BDD.Tests.Support;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using TechTalk.SpecFlow;
 
 namespace Location.Core.BDD.Tests.Hooks

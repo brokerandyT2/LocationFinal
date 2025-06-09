@@ -346,9 +346,9 @@ namespace Location.Photography.Application.Queries.AstroLocation
         }
     }
 }
-  
 
-    public class AstroEquipmentRecommendationResult
+
+public class AstroEquipmentRecommendationResult
 {
     public string RecommendedCamera { get; set; } = string.Empty;
     public string RecommendedLens { get; set; } = string.Empty;

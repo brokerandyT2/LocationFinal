@@ -38,15 +38,15 @@ namespace Location.Core.Application.Weather.Queries.GetAllWeather
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-/// <summary>
-/// Handles the retrieval of weather data based on the specified query parameters.
-/// </summary>
-/// <remarks>If <see cref="GetAllWeatherQuery.IncludeExpired"/> is set to <see langword="true"/>, all recent
-/// weather data is retrieved. Otherwise, only the 10 most recent entries are included.</remarks>
-/// <param name="request">The query containing parameters for retrieving weather data, including whether to include expired entries.</param>
-/// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-/// <returns>A <see cref="Result{T}"/> containing a list of <see cref="WeatherDto"/> objects representing the retrieved weather
-/// data. If the operation fails, the result contains an error message.</returns>
+        /// <summary>
+        /// Handles the retrieval of weather data based on the specified query parameters.
+        /// </summary>
+        /// <remarks>If <see cref="GetAllWeatherQuery.IncludeExpired"/> is set to <see langword="true"/>, all recent
+        /// weather data is retrieved. Otherwise, only the 10 most recent entries are included.</remarks>
+        /// <param name="request">The query containing parameters for retrieving weather data, including whether to include expired entries.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A <see cref="Result{T}"/> containing a list of <see cref="WeatherDto"/> objects representing the retrieved weather
+        /// data. If the operation fails, the result contains an error message.</returns>
         public async Task<Result<List<WeatherDto>>> Handle(GetAllWeatherQuery request, CancellationToken cancellationToken)
         {
             try

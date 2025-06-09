@@ -1,12 +1,8 @@
 ﻿using FluentAssertions;
-using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using Location.Core.BDD.Tests.Drivers;
 using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 

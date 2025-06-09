@@ -2,11 +2,8 @@
 using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.External.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.Collections.Generic;
 
 namespace Location.Core.Infrastructure.Tests.Helpers
 {
@@ -85,7 +82,7 @@ namespace Location.Core.Infrastructure.Tests.Helpers
             string value = "test_value",
             string description = "Test setting", int Id = 1)
         {
-            
+
             return new Setting(key, value, description, Id);
         }
 

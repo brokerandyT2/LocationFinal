@@ -115,7 +115,7 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
             result.IsSuccess.Should().BeFalse();
             //result.ErrorMessage.Should().Contain("Failed to update weather data");
 
-           // _weatherRepositoryMock.Verify(x => x.GetByLocationIdAsync(query.LocationId, It.IsAny<CancellationToken>()), Times.Never);
+            // _weatherRepositoryMock.Verify(x => x.GetByLocationIdAsync(query.LocationId, It.IsAny<CancellationToken>()), Times.Never);
             _mapperMock.Verify(x => x.Map<WeatherDto>(It.IsAny<Domain.Entities.Weather>()), Times.Never);
         }
 
@@ -189,7 +189,7 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
             // Assert
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Contain("Failed to retrieve weather data");
-           // result.ErrorMessage.Should().Contain("Mapping error");
+            // result.ErrorMessage.Should().Contain("Mapping error");
         }
 
         [Test]
@@ -254,7 +254,7 @@ namespace Location.Core.Application.Tests.Weather.Queries.GetWeatherByLocation
             var updateResult = Result<WeatherDto>.Failure("Failed to update weather data: Location not found");
 
             _mediatorMock
-                .Setup(x => x.Send(It.IsAny<Application.    Commands.Weather.UpdateWeatherCommand>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.Send(It.IsAny<Application.Commands.Weather.UpdateWeatherCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(updateResult);
 
             // Act

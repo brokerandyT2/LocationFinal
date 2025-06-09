@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Interfaces.Persistence;
-using Location.Core.Application.Common.Models;
 using Location.Core.Application.Queries.TipTypes;
-using Location.Core.Application.Tips.DTOs;
 using Location.Core.Application.Tests.Utilities;
 using Moq;
 using NUnit.Framework;

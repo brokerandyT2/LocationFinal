@@ -1,9 +1,7 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Location.Core.Domain.Entities;
-using Location.Core.Domain.ValueObjects;
+﻿using FluentAssertions;
 using Location.Core.Domain.Events;
-using System;
+using Location.Core.Domain.ValueObjects;
+using NUnit.Framework;
 
 namespace Location.Core.Domain.Tests.Entities
 {

@@ -1,15 +1,11 @@
 ﻿// Location.Photography.Infrastructure.Tests/Services/ExposureCalculatorServiceTests.cs
 using FluentAssertions;
-using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Errors;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Infrastructure.Tests.Services
 {

@@ -11,9 +11,9 @@ namespace Location.Core.Application.Common.Interfaces
         Task DeleteAsync(Domain.Entities.TipType setting, CancellationToken cancellationToken = default);
 
         Task<Result<Core.Domain.Entities.TipType>> CreateEntityAsync(Core.Domain.Entities.TipType entity, CancellationToken cancellationToken = default);
-  
+
         Task<Result<Core.Domain.Entities.Tip>> CreateEntityAsync(Core.Domain.Entities.Tip entity, CancellationToken cancellationToken = default);
-  
+
         Task<Result<Core.Domain.Entities.Location>> CreateEntityAsync(Core.Domain.Entities.Location entity, CancellationToken cancellationToken = default);
     }
 }

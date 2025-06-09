@@ -629,7 +629,7 @@ namespace Location.Core.Infrastructure.Data
             }
         }
 
-       
+
 
         #endregion
 

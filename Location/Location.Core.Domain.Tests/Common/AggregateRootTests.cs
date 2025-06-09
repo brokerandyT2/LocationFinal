@@ -1,7 +1,7 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Domain.Common;
 using Location.Core.Domain.Interfaces;
+using NUnit.Framework;
 
 namespace Location.Core.Domain.Tests.Common
 {

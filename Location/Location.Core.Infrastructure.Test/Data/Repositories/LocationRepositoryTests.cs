@@ -2,17 +2,12 @@
 using FluentAssertions;
 using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.Data;
-using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Data.Repositories;
 using Location.Core.Infrastructure.Services;
 using Location.Core.Infrastructure.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 namespace Location.Core.Infrastructure.Tests.Data.Repositories
 {
     [TestFixture]
@@ -72,7 +67,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             result.Coordinate.Longitude.Should().Be(locationEntity.Longitude);
         }
 
-       
+
 
         [Test]
         public async Task GetAllAsync_WithMultipleLocations_ShouldReturnAllSortedByTimestamp()
@@ -216,9 +211,9 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             result.Should().BeNull();
         }
 
-       
 
-       
+
+
 
         [Test]
         public void AddAsync_WithNullCoordinate_ShouldFailValidation()
@@ -264,7 +259,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         public void Constructor_WithNullLogger_ShouldThrowException()
         {
             // Act
-            Action act = () => new LocationRepository(_context, null!, _mockInfraLogger.Object  );
+            Action act = () => new LocationRepository(_context, null!, _mockInfraLogger.Object);
 
             // Assert
             act.Should().Throw<ArgumentNullException>()

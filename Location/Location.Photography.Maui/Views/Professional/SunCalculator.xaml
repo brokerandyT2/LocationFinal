@@ -7,7 +7,7 @@
             x:DataType="viewmodels:EnhancedSunCalculatorViewModel"
             Title="Location Calculator">
     <ContentPage.Resources>
-     
+
     </ContentPage.Resources>
 
     <Grid Padding="10" Margin="5">
@@ -33,8 +33,7 @@
 
                         <!-- Location Image -->
                         <Image Grid.Row="1" Source="{Binding LocationPhoto}" 
-                          HeightRequest="200" Aspect="AspectFill" 
-                          />
+                              HeightRequest="200" Aspect="AspectFill" />
 
                         <!-- Location Picker -->
                         <Grid Grid.Row="2" Margin="0,10,0,0">
@@ -44,9 +43,9 @@
                             </Grid.RowDefinitions>
                             <Label Grid.Row="0" Text="Choose your location" FontSize="14"/>
                             <Picker Grid.Row="1" ItemsSource="{Binding Locations, Mode=TwoWay}" 
-  SelectedItem="{Binding SelectedLocation}"
-  ItemDisplayBinding="{Binding Title}" x:Name="LocationPicker"
-  FontSize="14" Margin="0,5,0,0"/>
+                                   SelectedItem="{Binding SelectedLocation}"
+                                   ItemDisplayBinding="{Binding Title}" x:Name="LocationPicker"
+                                   FontSize="14" Margin="0,5,0,0"/>
                         </Grid>
 
                         <!-- Date Picker -->
@@ -57,41 +56,14 @@
                             </Grid.RowDefinitions>
                             <Label Grid.Row="0" Text="Choose date" FontSize="14"/>
                             <DatePicker Grid.Row="1" Date="{Binding SelectedDate}"
-                                   Format="{Binding DateFormat}"
-                                        DateSelected="OnDateSelectionChanged"
-                                   FontSize="14" Margin="0,5,0,0"/>
+                                       Format="{Binding DateFormat}"
+                                       DateSelected="OnDateSelectionChanged"
+                                       FontSize="14" Margin="0,5,0,0"/>
                         </Grid>
                     </Grid>
                 </Frame>
 
-                <!-- Sun Path Diagram with Loading Overlay 
-                <Frame BackgroundColor="#EFEBE9" HasShadow="True" CornerRadius="10" Padding="15">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="200"/>
-                        </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Text="Sun Path Diagram" FontSize="16" FontAttributes="Bold" TextColor="#5D4037" Margin="0,0,0,10"/>
-
-                        <Frame Grid.Row="1" BackgroundColor="White" CornerRadius="8" HasShadow="False" Padding="10">
-                            <Grid>
-                                <GraphicsView x:Name="SunPathCanvas" BackgroundColor="#87CEEB">
-                                  Canvas will be populated in code-behind with sun path arc and markers 
-                                </GraphicsView>-->
-
-                                <!-- Sun Path Loading Overlay 
-                                <Grid IsVisible="{Binding IsSunPathLoading}" BackgroundColor="#80000000">
-                                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                                        <ActivityIndicator IsRunning="{Binding IsSunPathLoading}" HeightRequest="40" WidthRequest="40" Color="#2196F3" />
-                                        <Label Text="Loading sun path..." FontSize="12" TextColor="White" HorizontalTextAlignment="Center"/>
-                                    </VerticalStackLayout>
-                                </Grid>
-                            </Grid>
-                        </Frame>
-                    </Grid>
-    </Frame> -->
-
-    <!-- Timezone Display -->
+                <!-- Timezone Display -->
                 <Frame BackgroundColor="#E3F2FD" HasShadow="True" CornerRadius="10" Padding="15">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -100,23 +72,26 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Label Grid.Row="0" Text="Timezone Information" FontSize="16" FontAttributes="Bold" Margin="0,0,0,5"/>
-                        <Label Grid.Row="1" Text="{Binding DeviceTimeZoneDisplay}" FontSize="14" TextColor="#1976D2"/>
-                        <Label Grid.Row="2" Text="{Binding LocationTimeZoneDisplay}" FontSize="14" TextColor="#1976D2"/>
+                        <Label Grid.Row="1" Text="{Binding DeviceTimeZoneDisplay}" FontSize="14" />
+                        <Label Grid.Row="2" Text="{Binding LocationTimeZoneDisplay}" FontSize="14" />
                     </Grid>
                 </Frame>
 
                 <!-- Current Prediction Display -->
-                <Frame BackgroundColor="#E8F5E8" HasShadow="True" CornerRadius="10" Padding="15" IsVisible="{Binding CurrentPredictionText, Converter={StaticResource CustomStringToBoolConverter}}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Text="Current Light Prediction" FontSize="16" FontAttributes="Bold" TextColor="#2E7D32"/>
-                        <Label Grid.Row="1" Text="{Binding CurrentPredictionText}" FontSize="14" TextColor="#388E3C" Margin="0,5,0,0"/>
-                        <Label Grid.Row="2" Text="{Binding NextOptimalWindowText}" FontSize="12" TextColor="#66BB6A" Margin="0,5,0,0"/>
-                    </Grid>
+                <Frame BackgroundColor="#E8F5E8" HasShadow="True" CornerRadius="10" Padding="15" 
+                       IsVisible="{Binding CurrentPredictionText, Converter={StaticResource StringToBoolConverter}}">
+                    <StackLayout>
+                        <Label Text="Current Light Prediction" FontSize="16" FontAttributes="Bold" TextColor="#2E7D32"/>
+                        <Label Text="{Binding CurrentPredictionText}" FontSize="14" Margin="0,5,0,0"/>
+                        <Label Text="{Binding NextOptimalWindowText}" FontSize="12" Margin="0,5,0,0"/>
+
+                        <!-- Fallback when no prediction text -->
+                        <Label Text="Loading current light prediction..." 
+                               FontSize="14" 
+                               TextColor="#757575" 
+                               Margin="0,5,0,0"
+                               IsVisible="{Binding CurrentPredictionText, Converter={StaticResource InvertedStringToBoolConverter}}"/>
+                    </StackLayout>
                 </Frame>
 
                 <!-- Current Sun Position -->
@@ -126,7 +101,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Text="Current Sun Position" FontSize="16" FontAttributes="Bold" TextColor="#F57C00"/>
+                        <Label Grid.Row="0" Text="Current Sun Position" FontSize="16" FontAttributes="Bold" />
                         <Grid Grid.Row="1" Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -157,7 +132,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <Label Grid.Row="0" Text="Key Sun Times" FontSize="16" FontAttributes="Bold" TextColor="#7B1FA2" Margin="0,0,0,10"/>
+                        <Label Grid.Row="0" Text="Key Sun Times" FontSize="16" FontAttributes="Bold" Margin="0,0,0,10"/>
 
                         <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions>
@@ -174,8 +149,8 @@
 
                             <!-- Headers -->
                             <Label Grid.Row="0" Grid.Column="0" Text="" FontSize="12" FontAttributes="Bold"/>
-                            <Label Grid.Row="0" Grid.Column="1" Text="Device Time" FontSize="12" FontAttributes="Bold" TextColor="#7B1FA2"/>
-                            <Label Grid.Row="0" Grid.Column="2" Text="Location Time" FontSize="12" FontAttributes="Bold" TextColor="#7B1FA2"/>
+                            <Label Grid.Row="0" Grid.Column="1" Text="Device Time" FontSize="12" FontAttributes="Bold" />
+                            <Label Grid.Row="0" Grid.Column="2" Text="Location Time" FontSize="12" FontAttributes="Bold" />
 
                             <!-- Sunrise -->
                             <Label Grid.Row="1" Grid.Column="0" Text="Sunrise" FontSize="14" Margin="0,5,10,0"/>
@@ -196,23 +171,51 @@
                 </Frame>
 
                 <!-- Weather Impact with Status -->
-                <Frame BackgroundColor="#E1F5FE" HasShadow="True" CornerRadius="10" Padding="15" IsVisible="{Binding WeatherImpact.Summary, Converter={StaticResource CustomStringToBoolConverter}}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Text="Weather Impact on Light" FontSize="16" FontAttributes="Bold" TextColor="#0277BD"/>
-                        <Label Grid.Row="1" Text="{Binding WeatherDataStatus}" FontSize="12" TextColor="#039BE5" Margin="0,2,0,5"/>
-                        <Label Grid.Row="2" Text="{Binding WeatherImpact.Summary}" FontSize="14" TextColor="#0288D1" Margin="0,5,0,0"/>
-                        <Label Grid.Row="3" Text="{Binding WeatherImpact.OverallLightReductionFactor, StringFormat='Light Reduction Factor: {0:P0}'}" FontSize="12" TextColor="#039BE5" Margin="0,5,0,0"/>
-                    </Grid>
+                <Frame BackgroundColor="#E1F5FE" HasShadow="True" CornerRadius="10" Padding="15">
+                    <StackLayout>
+                        <Label Text="Weather Impact on Light" FontSize="16" FontAttributes="Bold" TextColor="#0277BD"/>
+                        <Label Text="{Binding WeatherDataStatus}" FontSize="12" TextColor="#039BE5" Margin="0,2,0,5"/>
+
+                        <!-- Weather Summary -->
+                        <Label Text="{Binding WeatherImpact.Summary}" 
+                               FontSize="14" 
+                               TextColor="#0288D1" 
+                               Margin="0,5,0,0"
+                               IsVisible="{Binding WeatherImpact.Summary, Converter={StaticResource IsNotNullConverter}}"/>
+
+                        <!-- Light Reduction Factor -->
+                        <Label Text="{Binding WeatherImpact.OverallLightReductionFactor, StringFormat='Light Reduction Factor: {0:P0}'}" 
+                               FontSize="12" 
+                               TextColor="#039BE5" 
+                               Margin="0,5,0,0"/>
+
+                        <!-- Current Conditions -->
+                        <StackLayout IsVisible="{Binding WeatherImpact.CurrentConditions, Converter={StaticResource IsNotNullConverter}}" 
+                                     Margin="0,10,0,0">
+                            <Label Text="Current Conditions:" FontSize="12" FontAttributes="Bold" TextColor="#0277BD"/>
+                            <Label Text="{Binding WeatherImpact.CurrentConditions.Description}" 
+                                   FontSize="12" 
+                                   TextColor="#0288D1"
+                                   IsVisible="{Binding WeatherImpact.CurrentConditions.Description, Converter={StaticResource IsNotNullConverter}}"/>
+                            <Label Text="{Binding WeatherImpact.CurrentConditions.CloudCover, StringFormat='Cloud Cover: {0:P0}'}" 
+                                   FontSize="12" 
+                                   TextColor="#0288D1"/>
+                            <Label Text="{Binding WeatherImpact.CurrentConditions.Precipitation, StringFormat='Precipitation: {0:P0}'}" 
+                                   FontSize="12" 
+                                   TextColor="#0288D1"/>
+                        </StackLayout>
+
+                        <!-- Fallback when no weather data -->
+                        <Label Text="Loading weather impact analysis..." 
+                               FontSize="14" 
+                               TextColor="#757575" 
+                               Margin="0,5,0,0"
+                               IsVisible="{Binding WeatherImpact.Summary, Converter={StaticResource InvertedStringToBoolConverter}}"/>
+                    </StackLayout>
                 </Frame>
 
                 <!-- Hourly Light Predictions with Loading Overlay -->
-                <Frame BackgroundColor="#F9FBE7" HasShadow="True" CornerRadius="10" Padding="15" HeightRequest="400">
+                <Frame HasShadow="True" CornerRadius="10" Padding="15" HeightRequest="400">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -220,14 +223,14 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Label Grid.Row="0" Text="{Binding HourlyPredictionsHeader}" FontSize="16" FontAttributes="Bold" TextColor="#689F38" Margin="0,0,0,10"/>
+                        <Label Grid.Row="0" Text="{Binding HourlyPredictionsHeader}" FontSize="16" FontAttributes="Bold" Margin="0,0,0,10"/>
 
                         <!-- Hourly Progress Status Display -->
                         <Label Grid.Row="1" Text="{Binding HourlyPredictionsProgressStatus}" 
-               FontSize="12" TextColor="#4CAF50" 
-               HorizontalTextAlignment="Center"
-               Margin="0,0,0,10"
-               IsVisible="{Binding IsHourlyForecastsLoading}"/>
+                               FontSize="12"
+                               HorizontalTextAlignment="Center"
+                               Margin="0,0,0,10"
+                               IsVisible="{Binding IsHourlyForecastsLoading}"/>
 
                         <Grid Grid.Row="2">
                             <CollectionView ItemsSource="{Binding HourlyPredictions}">
@@ -242,28 +245,31 @@
                                                         <ColumnDefinition Width="60"/>
                                                     </Grid.ColumnDefinitions>
                                                     <Label Grid.Column="0" 
-                             Text="{Binding LocationTimeDisplay}" 
-                             FontSize="16" 
-                             FontAttributes="Bold" 
-                             TextColor="White" 
-                             VerticalOptions="Center"/>
+                                                           Text="{Binding LocationTimeDisplay}" 
+                                                           FontSize="16" 
+                                                           FontAttributes="Bold" 
+                                                           TextColor="White"
+                                                           BackgroundColor="{Binding IsOptimalTime, Converter={StaticResource BoolToColorConverterSun}}"
+                                                           VerticalOptions="Center"/>
                                                     <Label Grid.Column="1" 
-                             Text="{Binding FormattedPrediction}" 
-                             FontSize="12" 
-                             TextColor="White" 
-                             VerticalOptions="Center"/>
+                                                           Text="{Binding FormattedPrediction}" 
+                                                           FontSize="12" 
+                                                           TextColor="White" 
+                                                           BackgroundColor="{Binding IsOptimalTime, Converter={StaticResource BoolToColorConverterSun}}"
+                                                           VerticalOptions="Center"/>
 
                                                     <!-- Visual Quality Score Indicator -->
                                                     <StackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
                                                         <ProgressBar Progress="{Binding ShootingQualityScore, Converter={StaticResource ScoreToProgressConverter}}" 
-                                       ProgressColor="Gold" 
-                                       BackgroundColor="White" 
-                                       HeightRequest="8" 
-                                       WidthRequest="50"/>
+                                                                     ProgressColor="Gold" 
+                                                                     BackgroundColor="White" 
+                                                                     HeightRequest="8" 
+                                                                     WidthRequest="50"/>
                                                         <Label Text="{Binding ShootingQualityScore, StringFormat='{0:F0}'}" 
-                                 FontSize="10" 
-                                 TextColor="White" 
-                                 HorizontalTextAlignment="Center"/>
+                                                               FontSize="10" 
+                                                               TextColor="White" 
+                                                               BackgroundColor="{Binding IsOptimalTime, Converter={StaticResource BoolToColorConverterSun}}"
+                                                               HorizontalTextAlignment="Center"/>
                                                     </StackLayout>
                                                 </Grid>
                                             </maui:Expander.HeaderContent>
@@ -288,91 +294,90 @@
 
                                                 <!-- Exposure Settings -->
                                                 <Label Grid.Row="0" Grid.ColumnSpan="2" 
-                         Text="Suggested Camera Settings" 
-                         FontSize="14" 
-                         FontAttributes="Bold" 
-                         TextColor="#2E7D32" 
-                         Margin="0,0,0,10"/>
+                                                       Text="Suggested Camera Settings" 
+                                                       FontSize="14" 
+                                                       FontAttributes="Bold" 
+                                                       TextColor="#2E7D32" 
+                                                       BackgroundColor="White"
+                                                       Margin="0,0,0,10"/>
 
                                                 <StackLayout Grid.Row="1" Grid.Column="0">
-                                                    <Label Text="Aperture" FontSize="12" TextColor="Gray"/>
-                                                    <Label Text="{Binding SuggestedAperture, StringFormat='f/{0}'}" FontSize="16" FontAttributes="Bold"/>
+                                                    <Label Text="Aperture" FontSize="12" TextColor="Gray" BackgroundColor="White"/>
+                                                    <Label Text="{Binding SuggestedAperture, StringFormat='f/{0}'}" FontSize="16" FontAttributes="Bold" BackgroundColor="White" TextColor="{StaticResource BackgroundGrey}"/>
                                                 </StackLayout>
 
                                                 <StackLayout Grid.Row="1" Grid.Column="1">
-                                                    <Label Text="Shutter Speed" FontSize="12" TextColor="Gray"/>
-                                                    <Label Text="{Binding SuggestedShutterSpeed}" FontSize="16" FontAttributes="Bold"/>
+                                                    <Label Text="Shutter Speed" FontSize="12" TextColor="Gray" BackgroundColor="White"/>
+                                                    <Label Text="{Binding SuggestedShutterSpeed}" FontSize="16" FontAttributes="Bold" BackgroundColor="White" TextColor="{StaticResource BackgroundGrey}"/>
                                                 </StackLayout>
 
                                                 <StackLayout Grid.Row="2" Grid.Column="0">
-                                                    <Label Text="ISO" FontSize="12" TextColor="Gray"/>
-                                                    <Label Text="{Binding SuggestedISO}" FontSize="16" FontAttributes="Bold"/>
+                                                    <Label Text="ISO" FontSize="12" TextColor="Gray" BackgroundColor="White"/>
+                                                    <Label Text="{Binding SuggestedISO}" FontSize="16" FontAttributes="Bold" BackgroundColor="White" TextColor="{StaticResource BackgroundGrey}"/>
                                                 </StackLayout>
 
                                                 <StackLayout Grid.Row="2" Grid.Column="1">
-                                                    <Label Text="Color Temperature" FontSize="12" TextColor="Gray"/>
-                                                    <Label Text="{Binding ColorTemperature, StringFormat='{0:F0}K'}" FontSize="16" FontAttributes="Bold"/>
+                                                    <Label Text="Color Temperature" FontSize="12" TextColor="Gray" BackgroundColor="White"/>
+                                                    <Label Text="{Binding ColorTemperature, StringFormat='{0:F0}K'}" FontSize="16" FontAttributes="Bold" BackgroundColor="White" TextColor="{StaticResource BackgroundGrey}"/>
                                                 </StackLayout>
 
                                                 <!-- Weather Conditions Section -->
                                                 <Label Grid.Row="3" Grid.ColumnSpan="2" 
-                         Text="Weather Conditions" 
-                         FontSize="14" 
-                         FontAttributes="Bold" 
-                         TextColor="#FF9800" 
-                         Margin="0,10,0,5"/>
+                                                       Text="Weather Conditions" 
+                                                       FontSize="14" 
+                                                       FontAttributes="Bold" BackgroundColor="White"
+                                                       Margin="0,10,0,5"/>
 
                                                 <StackLayout Grid.Row="4" Grid.Column="0">
-                                                    <Label Text="Conditions" FontSize="12" TextColor="Gray"/>
-                                                    <Label Text="{Binding WeatherDescription}" FontSize="14" FontAttributes="Bold"/>
+                                                    <Label Text="Conditions" FontSize="12" TextColor="Gray" BackgroundColor="White"/>
+                                                    <Label Text="{Binding WeatherDescription}" FontSize="14" FontAttributes="Bold" BackgroundColor="White" TextColor="{StaticResource BackgroundGrey}"/>
                                                 </StackLayout>
 
                                                 <StackLayout Grid.Row="4" Grid.Column="1">
-                                                    <Label Text="Cloud Cover" FontSize="12" TextColor="Gray"/>
-                                                    <Label Text="{Binding CloudCover, StringFormat='{0}%'}" FontSize="14" FontAttributes="Bold"/>
+                                                    <Label Text="Cloud Cover" FontSize="12" TextColor="Gray" BackgroundColor="White"/>
+                                                    <Label Text="{Binding CloudCover, StringFormat='{0}%'}" FontSize="14" FontAttributes="Bold" BackgroundColor="White" TextColor="{StaticResource BackgroundGrey}"/>
                                                 </StackLayout>
 
                                                 <StackLayout Grid.Row="5" Grid.Column="0">
-                                                    <Label Text="Precipitation" FontSize="12" TextColor="Gray"/>
-                                                    <Label Text="{Binding PrecipitationProbability, StringFormat='{0:P0}'}" FontSize="14" FontAttributes="Bold"/>
+                                                    <Label Text="Precipitation" FontSize="12" TextColor="Gray" BackgroundColor="White"/>
+                                                    <Label Text="{Binding PrecipitationProbability, StringFormat='{0:P0}'}" FontSize="14" FontAttributes="Bold" BackgroundColor="White" TextColor="{StaticResource BackgroundGrey}"/>
                                                 </StackLayout>
 
                                                 <StackLayout Grid.Row="5" Grid.Column="1">
-                                                    <Label Text="Wind" FontSize="12" TextColor="Gray"/>
-                                                    <Label Text="{Binding WindInfo}" FontSize="14" FontAttributes="Bold"/>
+                                                    <Label Text="Wind" FontSize="12" TextColor="Gray" BackgroundColor="White"/>
+                                                    <Label Text="{Binding WindInfo}" FontSize="14" FontAttributes="Bold" BackgroundColor="White" TextColor="{StaticResource BackgroundGrey}"/>
                                                 </StackLayout>
 
                                                 <!-- Light Quality and Confidence -->
                                                 <Label Grid.Row="6" Grid.ColumnSpan="2" 
-                         Text="{Binding LightQuality}" 
-                         FontSize="14" 
-                         TextColor="#1976D2" 
-                         Margin="0,10,0,5"/>
+                                                       Text="{Binding LightQuality}" 
+                                                       FontSize="14" 
+                                                       FontAttributes="Bold"
+                                                       TextColor="Gray" BackgroundColor="White"
+                                                       Margin="0,10,0,5"/>
 
                                                 <Label Grid.Row="7" Grid.ColumnSpan="2" 
-                         Text="{Binding ConfidenceDisplay}" 
-                         FontSize="12" 
-                         TextColor="#4CAF50" 
-                         Margin="0,0,0,10"/>
+                                                       Text="{Binding ConfidenceDisplay}" 
+                                                       FontSize="12" 
+                                                       TextColor="Gray" BackgroundColor="White"
+                                                       Margin="0,0,0,10"/>
 
                                                 <!-- Recommendations -->
                                                 <Label Grid.Row="8" Grid.ColumnSpan="2" 
-                         Text="{Binding Recommendations}" 
-                         FontSize="12" 
-                         TextColor="#666666" 
-                         Margin="0,0,0,10"/>
+                                                       Text="{Binding Recommendations}" 
+                                                       FontSize="12" 
+                                                       TextColor="Gray" BackgroundColor="White"
+                                                       Margin="0,0,0,10"/>
                                             </Grid>
                                         </maui:Expander>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
 
-     
-
-                <!-- Hourly Forecasts Loading Overlay -->
+                            <!-- Hourly Forecasts Loading Overlay -->
                             <Grid IsVisible="{Binding IsHourlyForecastsLoading}" BackgroundColor="#80000000">
                                 <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                                    <ActivityIndicator IsRunning="{Binding IsHourlyForecastsLoading}" HeightRequest="40" WidthRequest="40"  />
+                                    <ActivityIndicator IsRunning="{Binding IsHourlyForecastsLoading}" HeightRequest="40" WidthRequest="40" />
                                     <Label Text="Loading hourly predictions..." FontSize="12" HorizontalTextAlignment="Center"/>
                                 </VerticalStackLayout>
                             </Grid>
@@ -388,7 +393,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Text="Light Meter Calibration" FontSize="16" FontAttributes="Bold" TextColor="#C2185B"/>
+                        <Label Grid.Row="0" Text="Light Meter Calibration" FontSize="16" FontAttributes="Bold" />
                         <Grid Grid.Row="1" Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -396,13 +401,12 @@
                             </Grid.ColumnDefinitions>
                             <Entry Grid.Column="0" Placeholder="Enter actual EV reading" Keyboard="Numeric" x:Name="ActualEVEntry"/>
                             <Button Grid.Column="1" Text="Calibrate" 
-                               Command="{Binding CalibrateWithLightMeterCommand}" 
-                               CommandParameter="{Binding Source={x:Reference ActualEVEntry}, Path=Text}"
-                               BackgroundColor="#E91E63" TextColor="White"/>
+                                   Command="{Binding CalibrateWithLightMeterCommand}" 
+                                   CommandParameter="{Binding Source={x:Reference ActualEVEntry}, Path=Text}"/>
                         </Grid>
                         <StackLayout Grid.Row="2" Margin="0,10,0,0" IsVisible="{Binding IsLightMeterCalibrated}">
-                            <Label Text="{Binding LastLightMeterReading, StringFormat='Last calibration: {0:HH:mm}'}" FontSize="12" TextColor="#AD1457"/>
-                            <Label Text="{Binding CalibrationAccuracy, StringFormat='Accuracy: {0:P0}'}" FontSize="12" TextColor="#AD1457"/>
+                            <Label Text="{Binding LastLightMeterReading, StringFormat='Last calibration: {0:HH:mm}'}" FontSize="12"/>
+                            <Label Text="{Binding CalibrationAccuracy, StringFormat='Accuracy: {0:P0}'}" FontSize="12"/>
                         </StackLayout>
                     </Grid>
                 </Frame>
@@ -416,14 +420,14 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Label Grid.Row="0" Text="Optimal Future Shooting Windows" FontSize="16" FontAttributes="Bold" TextColor="#F57F17" Margin="0,0,0,10"/>
+                        <Label Grid.Row="0" Text="Optimal Future Shooting Windows" FontSize="16" FontAttributes="Bold" Margin="0,0,0,10"/>
 
                         <!-- Optimal Windows Progress Status Display -->
                         <Label Grid.Row="1" Text="{Binding OptimalWindowsProgressStatus}" 
-               FontSize="12" TextColor="#FF9800" 
-               HorizontalTextAlignment="Center"
-               Margin="0,0,0,10"
-               IsVisible="{Binding IsOptimalEventsLoading}"/>
+                               FontSize="12" TextColor="#FF9800" 
+                               HorizontalTextAlignment="Center"
+                               Margin="0,0,0,10"
+                               IsVisible="{Binding IsOptimalEventsLoading}"/>
 
                         <Grid Grid.Row="2">
                             <ScrollView>
@@ -432,16 +436,16 @@
                                         <DataTemplate x:DataType="viewmodels:OptimalWindowDisplayModel">
                                             <Grid Margin="0,5,0,5">
                                                 <Frame BackgroundColor="{Binding IsCurrentlyActive, Converter={StaticResource BoolToColorConverterSunEvents}}" 
-          CornerRadius="8" Padding="10" HasShadow="False">
+                                                       CornerRadius="8" Padding="10" HasShadow="False">
                                                     <Grid>
                                                         <Grid.RowDefinitions>
                                                             <RowDefinition Height="Auto"/>
                                                             <RowDefinition Height="Auto"/>
                                                             <RowDefinition Height="Auto"/>
                                                         </Grid.RowDefinitions>
-                                                        <Label Grid.Row="0" Text="{Binding WindowType}" FontSize="14" FontAttributes="Bold"/>
-                                                        <Label Grid.Row="1" Text="{Binding FormattedTimeRange}" FontSize="12"/>
-                                                        <Label Grid.Row="2" Text="{Binding OptimalFor}" FontSize="12" TextColor="Gray"/>
+                                                        <Label Grid.Row="0" Text="{Binding WindowType}" FontSize="14" FontAttributes="Bold" />
+                                                        <Label Grid.Row="1" Text="{Binding FormattedTimeRange}" FontSize="12" />
+                                                        <Label Grid.Row="2" Text="{Binding OptimalFor}" FontSize="12" />
                                                     </Grid>
                                                 </Frame>
                                             </Grid>
@@ -451,9 +455,9 @@
                             </ScrollView>
 
                             <!-- Optimal Events Loading Overlay -->
-                            <Grid IsVisible="{Binding IsOptimalEventsLoading}" BackgroundColor="#80000000">
+                            <Grid IsVisible="{Binding IsOptimalEventsLoading}" BackgroundColor="{StaticResource BackgroundGrey}">
                                 <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                                    <ActivityIndicator IsRunning="{Binding IsOptimalEventsLoading}" HeightRequest="40" WidthRequest="40"  />
+                                    <ActivityIndicator IsRunning="{Binding IsOptimalEventsLoading}" HeightRequest="40" WidthRequest="40" />
                                     <Label Text="Loading optimal windows..." FontSize="12" HorizontalTextAlignment="Center"/>
                                 </VerticalStackLayout>
                             </Grid>
@@ -466,22 +470,22 @@
 
         <!-- Error message display (keep global for errors) -->
         <Grid Grid.Row="0" 
-         IsVisible="{Binding IsError}"
-         BackgroundColor="#FFCDD2"
-         Padding="15"
-         Margin="5"
-         VerticalOptions="End">
+              IsVisible="{Binding IsError}"
+
+              Padding="15"
+              Margin="5"
+              VerticalOptions="End">
             <StackLayout Orientation="Horizontal" Spacing="10">
                 <Label Text="⚠️" FontSize="16" VerticalOptions="Center"/>
                 <Label Text="{Binding ErrorMessage}"
-                  TextColor="#D32F2F"
-                  FontSize="14"
-                  VerticalOptions="Center"
-                  HorizontalOptions="FillAndExpand"/>
+                       TextColor="#D32F2F"
+                       FontSize="14"
+                       VerticalOptions="Center"
+                       HorizontalOptions="FillAndExpand"/>
                 <Button Text="Retry" 
-                   Command="{Binding RetryLastCommandCommand}"
-                   BackgroundColor="#D32F2F" TextColor="White"
-                   FontSize="12" Padding="10,5"/>
+                       Command="{Binding RetryLastCommandCommand}"
+                       BackgroundColor="#D32F2F" TextColor="White"
+                       FontSize="12" Padding="10,5"/>
             </StackLayout>
         </Grid>
     </Grid>

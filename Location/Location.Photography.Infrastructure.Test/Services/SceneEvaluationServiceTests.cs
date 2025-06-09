@@ -1,16 +1,11 @@
 ﻿using FluentAssertions;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
-using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using SkiaSharp;
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Infrastructure.Test.Services
 {

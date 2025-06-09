@@ -1,6 +1,4 @@
 ﻿// Location.Photography.ViewModels/Events/SubscriptionUpgradeRequestedEventArgs.cs
-using System;
-
 namespace Location.Photography.ViewModels.Events
 {
     public class SubscriptionUpgradeRequestedEventArgs : EventArgs

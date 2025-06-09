@@ -1,10 +1,5 @@
 ﻿using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Location.Photography.ViewModels.AstroPhotographyCalculatorViewModel;
 //using static Location.Photography.ViewModels.AstroPhotographyCalculatorViewModel;
 

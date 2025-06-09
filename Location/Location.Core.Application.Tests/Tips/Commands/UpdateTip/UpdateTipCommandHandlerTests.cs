@@ -1,11 +1,8 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Location.Core.Application.Tips.Commands.UpdateTip;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tests.Utilities;
+using Location.Core.Application.Tips.Commands.UpdateTip;
 using MediatR;
 using Moq;
 using NUnit.Framework;

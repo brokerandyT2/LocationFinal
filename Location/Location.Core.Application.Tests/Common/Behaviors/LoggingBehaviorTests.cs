@@ -1,13 +1,9 @@
-﻿using MediatR;
+﻿using FluentAssertions;
+using Location.Core.Application.Common.Behaviors;
+using Location.Core.Application.Common.Models;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Location.Core.Application.Common.Behaviors;
-using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Models;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Common.Behaviors

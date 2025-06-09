@@ -1,9 +1,7 @@
 ﻿
-using NUnit.Framework;
 using FluentAssertions;
 using Location.Core.Infrastructure.External.Models;
-using System;
-using System.Collections.Generic;
+using NUnit.Framework;
 using System.Text.Json;
 
 namespace Location.Core.Infrastructure.Tests.External.Models

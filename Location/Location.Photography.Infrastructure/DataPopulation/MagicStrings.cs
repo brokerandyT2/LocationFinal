@@ -1,6 +1,4 @@
 ﻿// Location.Photography.Infrastructure/MagicStrings.cs
-using System;
-
 namespace Location.Photography.Infrastructure
 {
     public static class MagicStrings

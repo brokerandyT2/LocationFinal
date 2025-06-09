@@ -1,7 +1,6 @@
 ﻿// Location.Photography.ViewModels/AstroEventViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
 using Location.Photography.Domain.Models;
-using System.Xml.Linq;
 
 namespace Location.Photography.ViewModels
 {
@@ -67,7 +66,7 @@ namespace Location.Photography.ViewModels
             Description = result.Description;
             RecommendedEquipment = result.Equipment;
             EventType = GetEventType(result.Target);
-            
+
         }
 
         public AstroEventViewModel(PlanetPositionData planetData)
@@ -84,7 +83,7 @@ namespace Location.Photography.ViewModels
             IsVisible = planetData.IsVisible;
             Description = $"Magnitude {planetData.ApparentMagnitude:F1}, {planetData.AngularDiameter:F1}″";
             RecommendedEquipment = planetData.RecommendedEquipment;
-            EventType = "Planet"; 
+            EventType = "Planet";
 
         }
 
@@ -103,7 +102,7 @@ namespace Location.Photography.ViewModels
             Description = $"{dsoData.ObjectType}, Mag {dsoData.Magnitude:F1}, {dsoData.AngularSize:F1}'";
             Constellation = dsoData.ParentConstellation.ToString();
             RecommendedEquipment = dsoData.RecommendedEquipment;
-            EventType = dsoData.ObjectType; 
+            EventType = dsoData.ObjectType;
 
         }
 
@@ -134,7 +133,7 @@ namespace Location.Photography.ViewModels
             IsVisible = moonData.Altitude > 0;
             Description = $"Phase: {moonData.Illumination:F0}%, Distance: {moonData.Distance:F0}km";
             EventType = moonData.PhaseName;
-            AngularSize = moonData.AngularDiameter; 
+            AngularSize = moonData.AngularDiameter;
 
         }
 

@@ -32,7 +32,7 @@
 
             if (string.IsNullOrWhiteSpace(location.Title))
             {
-               // errors.Add("Location title is required");
+                // errors.Add("Location title is required");
             }
 
             if (location.Title?.Length > 100)

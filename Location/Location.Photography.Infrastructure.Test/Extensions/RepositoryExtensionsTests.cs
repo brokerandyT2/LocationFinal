@@ -1,11 +1,4 @@
-﻿using FluentAssertions;
-using Location.Core.Application.Common.Interfaces;
-using Location.Core.Application.Common.Models;
-using Location.Core.Domain.Entities;
-using NUnit.Framework;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using NUnit.Framework;
 using IgnoreAttribute = NUnit.Framework.IgnoreAttribute;
 
 namespace Location.Photography.Infrastructure.Test.Extensions

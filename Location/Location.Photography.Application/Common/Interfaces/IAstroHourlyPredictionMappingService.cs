@@ -1,8 +1,5 @@
 ﻿using Location.Photography.Application.DTOs;
 using Location.Photography.Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Application.Common.Interfaces
 {

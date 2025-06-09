@@ -1,20 +1,13 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Location.Core.Application.Common.Models;
+﻿using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Services;
+using Location.Core.Application.Tips.DTOs;
 using Location.Photography.Application.Services;
 using Location.Photography.ViewModels.Events;
-using Location.Photography.ViewModels.Interfaces;
-using Location.Core.Application.Tips.DTOs;
-using Location.Core.Application.Tips.Queries.GetTipsByType;
 using MediatR;
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using ShutterSpeeds = Location.Photography.ViewModels.Interfaces.ShutterSpeeds;
 using Apetures = Location.Photography.ViewModels.Interfaces.Apetures;
 using ISOs = Location.Photography.ViewModels.Interfaces.ISOs;
+using ShutterSpeeds = Location.Photography.ViewModels.Interfaces.ShutterSpeeds;
 
 namespace Location.Photography.ViewModels
 {

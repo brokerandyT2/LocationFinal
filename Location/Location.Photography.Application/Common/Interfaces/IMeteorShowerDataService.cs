@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Location.Photography.Domain.Entities;
+﻿using Location.Photography.Domain.Entities;
 
 namespace Location.Photography.Application.Common.Interfaces
 {

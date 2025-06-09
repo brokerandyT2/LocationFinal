@@ -2,8 +2,6 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using Location.Photography.Application.Services;
-using Location.Photography.Domain.Entities;
 
 namespace Location.Photography.ViewModels
 {

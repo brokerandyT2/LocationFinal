@@ -40,7 +40,7 @@
                         Padding="5"
                         CornerRadius="10"
                         MinimumHeightRequest="200"
-                        Margin="5" />
+                        Margin="5" BackgroundColor="Transparent"/>
 
                 <Label Text="{x:Static system:Environment.NewLine}" 
                        Grid.Column="0" 

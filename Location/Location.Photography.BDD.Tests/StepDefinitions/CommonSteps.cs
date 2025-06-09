@@ -1,12 +1,8 @@
 ﻿using FluentAssertions;
-using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.BDD.Tests.Support;
 using Location.Photography.Domain.Models;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 
 namespace Location.Photography.BDD.Tests.StepDefinitions

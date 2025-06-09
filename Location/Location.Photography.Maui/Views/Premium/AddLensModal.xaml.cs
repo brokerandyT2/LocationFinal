@@ -383,6 +383,8 @@ namespace Location.Photography.Maui.Views.Premium
                 if (result.IsSuccess)
                 {
                     await _alertService.ShowSuccessAlertAsync($"Lens '{result.Data.Lens.DisplayName}' has been added successfully!", "Success");
+                    await Task.Delay(100);
+
                     await Shell.Current.GoToAsync("..");
                 }
                 else

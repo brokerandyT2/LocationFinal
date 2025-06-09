@@ -1,9 +1,6 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.Services;
-using Location.Core.Application.Weather.DTOs;
 using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
 using Location.Core.Infrastructure.External;
@@ -11,11 +8,8 @@ using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
-using System;
+using NUnit.Framework;
 using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Test.External
 {

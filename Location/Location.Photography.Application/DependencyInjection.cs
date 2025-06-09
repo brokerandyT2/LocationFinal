@@ -14,7 +14,8 @@ namespace Location.Photography.Application
         public static IServiceCollection AddPhotographyApplication(this IServiceCollection services)
         {
             // Register MediatR with optimized pipeline behaviors
-            services.AddMediatR(cfg => {
+            services.AddMediatR(cfg =>
+            {
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));

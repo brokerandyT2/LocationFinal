@@ -1,8 +1,7 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
-using System;
+using NUnit.Framework;
 
 namespace Location.Core.Domain.Tests.Entities
 {
@@ -52,7 +51,7 @@ namespace Location.Core.Domain.Tests.Entities
             forecast.UvIndex.Should().Be(5.0);
         }
 
-       
+
 
         [Test]
         public void Constructor_WithNullWind_ShouldThrowException()
@@ -91,7 +90,7 @@ namespace Location.Core.Domain.Tests.Entities
                 DateTime.Today.AddHours(6),
                 DateTime.Today.AddHours(18),
                 _validTemp,
-                15 ,
+                15,
                 25,
                 "Clear sky",
                 "01d",

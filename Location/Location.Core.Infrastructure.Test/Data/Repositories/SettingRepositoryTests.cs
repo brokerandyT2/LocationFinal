@@ -1,17 +1,12 @@
 ﻿using FluentAssertions;
 using Location.Core.Domain.Exceptions;
 using Location.Core.Infrastructure.Data;
-using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Data.Repositories;
 using Location.Core.Infrastructure.Services;
 using Location.Core.Infrastructure.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 namespace Location.Core.Infrastructure.Tests.Data.Repositories
 {
     [TestFixture]
@@ -106,7 +101,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
                 .WithMessage("*Sequence contains no elements*");
         }
 
-        
+
         [Test]
         public async Task GetByKeyAsync_WithExistingKey_ShouldReturnSetting()
         {
@@ -240,7 +235,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             retrieved.Timestamp.Should().BeAfter(originalTimestamp);
         }
 
-       
+
 
         [Test]
         public async Task UpsertAsync_WithNewKey_ShouldCreateSetting()

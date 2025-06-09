@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Location.Photography.Domain.Entities;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Location.Photography.Domain.Entities;
-using Microsoft.Extensions.Logging;
 
 namespace Location.Photography.Infrastructure.Services
 {

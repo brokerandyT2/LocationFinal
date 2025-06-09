@@ -1,18 +1,12 @@
 ﻿
-using NUnit.Framework;
 using FluentAssertions;
 using Location.Core.Infrastructure.Data;
-using Location.Core.Infrastructure.Data.Entities;
 using Location.Core.Infrastructure.Data.Repositories;
+using Location.Core.Infrastructure.Services;
 using Location.Core.Infrastructure.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Location.Core.Infrastructure.Services;
-using Assert = NUnit.Framework.Assert;
+using NUnit.Framework;
 
 namespace Location.Core.Infrastructure.Tests.Data.Repositories
 {
@@ -72,11 +66,11 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             result.Content.Should().Be(tipEntity.Content);
             result.TipTypeId.Should().Be(tipEntity.TipTypeId);
             //result.Fstop.Should().Be(tipEntity.Fstop);
-           // result.ShutterSpeed.Should().Be(tipEntity.ShutterSpeed);
-           // result.Iso.Should().Be(tipEntity.Iso);
+            // result.ShutterSpeed.Should().Be(tipEntity.ShutterSpeed);
+            // result.Iso.Should().Be(tipEntity.Iso);
         }
 
-        
+
 
         [Test]
         public async Task GetAllAsync_WithMultipleTips_ShouldReturnAll()
@@ -162,7 +156,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             //retrieved.Iso.Should().Be("ISO 400");
         }
 
-       
+
 
         [Test]
         public async Task GetByTitleAsync_WithExistingTitle_ShouldReturnTip()

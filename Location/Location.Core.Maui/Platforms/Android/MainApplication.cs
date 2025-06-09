@@ -1,9 +1,8 @@
-﻿using Android.App;
-using Android.Runtime;
+﻿using Android.Runtime;
 
 namespace Location.Core.Maui
 {
-    
+
     public class MainApplication : MauiApplication
     {
         public MainApplication(IntPtr handle, JniHandleOwnership ownership)

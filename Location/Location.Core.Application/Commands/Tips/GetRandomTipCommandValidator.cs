@@ -2,11 +2,11 @@
 
 namespace Location.Core.Application.Commands.Tips
 {
-/// <summary>
-/// Validates the properties of a <see cref="GetRandomTipCommand"/> instance.
-/// </summary>
-/// <remarks>This validator ensures that the <c>TipTypeId</c> property of the command meets the required
-/// constraints.</remarks>
+    /// <summary>
+    /// Validates the properties of a <see cref="GetRandomTipCommand"/> instance.
+    /// </summary>
+    /// <remarks>This validator ensures that the <c>TipTypeId</c> property of the command meets the required
+    /// constraints.</remarks>
     public class GetRandomTipCommandValidator : AbstractValidator<GetRandomTipCommand>
     {
         /// <summary>

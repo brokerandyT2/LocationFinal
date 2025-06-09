@@ -1,16 +1,11 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Location.Core.Application.Common.Models;
+﻿using FluentAssertions;
 using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Data.Repositories;
 using Location.Core.Infrastructure.Services;
 using Location.Core.Infrastructure.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace Location.Core.Infrastructure.Tests.Data.Repositories
 {
@@ -246,7 +241,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             isValid.Should().BeTrue();
             //errors.Should().Contain("Null Island");
         }
-        
+
 
         [Test]
         public void Constructor_WithNullRepository_ShouldThrowException()

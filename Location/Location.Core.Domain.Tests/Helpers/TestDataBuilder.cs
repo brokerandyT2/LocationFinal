@@ -1,7 +1,5 @@
 ﻿using Location.Core.Domain.Entities;
 using Location.Core.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
 
 namespace Location.Core.Domain.Tests.Helpers
 {

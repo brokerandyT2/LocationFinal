@@ -6,11 +6,6 @@ using Location.Core.BDD.Tests.Models;
 using Location.Core.BDD.Tests.Support;
 using MediatR;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -173,7 +168,7 @@ namespace Location.Core.BDD.Tests.StepDefinitions.Location
         {
             await WhenISearchForLocationsInCity(city);
         }
-        
+
 
 
         /* [Then("the location search result should contain {int} locations")]

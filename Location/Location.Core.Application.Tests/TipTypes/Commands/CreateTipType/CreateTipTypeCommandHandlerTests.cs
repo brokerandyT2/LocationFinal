@@ -1,14 +1,9 @@
 ﻿using FluentAssertions;
 using Location.Core.Application.Commands.TipTypes;
 using Location.Core.Application.Common.Interfaces.Persistence;
-using Location.Core.Application.Common.Models;
-using Location.Core.Application.Tests.Utilities;
 using MediatR;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Application.Tests.TipTypes.Commands.CreateTipType
 {

@@ -4,7 +4,6 @@
     using Location.Core.Application.Commands.Locations;
     using NUnit.Framework;
     using System.IO;
-    using Xunit;
     [Category("Locations")]
     [Category("Delete Location")]
     [TestClass]

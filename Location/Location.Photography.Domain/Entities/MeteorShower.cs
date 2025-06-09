@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Location.Photography.Domain.Entities
+﻿namespace Location.Photography.Domain.Entities
 {
     /// <summary>
     /// Represents a meteor shower with its activity periods and characteristics

@@ -1,6 +1,4 @@
 ﻿using BoDi;
-using Location.Photography.BDD.Tests.Support;
-using System;
 using TechTalk.SpecFlow;
 
 namespace Location.Photography.BDD.Tests.Hooks

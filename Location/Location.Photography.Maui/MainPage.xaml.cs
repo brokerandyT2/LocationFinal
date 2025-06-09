@@ -1,7 +1,6 @@
 ﻿using Location.Photography.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Infrastructure;
-using Location.Photography.Maui.Views.Professional;
 using Microsoft.Extensions.Logging;
 using core = Location.Core.Maui.Views;
 
@@ -111,7 +110,7 @@ namespace Location.Photography.Maui
                         this.Children.Add(_serviceProvider.GetRequiredService<core.AddLocation>());
                         this.Children.Add(_serviceProvider.GetRequiredService<core.LocationsPage>());
                         this.Children.Add(_serviceProvider.GetRequiredService<core.TipsPage>());
-                       
+
 
                         _logger.LogInformation("Core tabs added successfully");
 
@@ -147,6 +146,6 @@ namespace Location.Photography.Maui
             }
         }
 
-        
+
     }
 }

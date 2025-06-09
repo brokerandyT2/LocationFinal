@@ -2,7 +2,6 @@
 using Location.Photography.Application.Errors;
 using Location.Photography.Infrastructure.Services;
 using NUnit.Framework;
-using System;
 
 namespace Location.Photography.Infrastructure.Test.Services
 {
@@ -190,7 +189,7 @@ namespace Location.Photography.Infrastructure.Test.Services
             result.Should().Be("200");
         }
 
-     
+
         // Update for ExposureTriangleServiceTests.cs
         [Test]
         public void CalculateIso_ShouldApplyEvCompensation()

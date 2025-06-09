@@ -1,11 +1,5 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using AutoMapper;
-using Location.Core.Application.Mappings; // Make sure this is using the correct namespace
-using Location.Core.Application.Weather.DTOs;
-using Location.Core.Application.Tests.Utilities;
-using Location.Core.Domain.ValueObjects;
-using System.Linq;
+﻿using AutoMapper;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Mappings
 {

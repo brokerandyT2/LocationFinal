@@ -7,9 +7,6 @@ using Location.Core.Domain.ValueObjects;
 using MediatR;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Assert = NUnit.Framework.Assert;
 
 namespace Location.Core.Application.Tests.Locations.Queries.GetLocationById

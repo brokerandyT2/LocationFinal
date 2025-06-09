@@ -29,19 +29,19 @@
     HorizontalTextAlignment="Center">
                 <Label.FormattedText>
                     <FormattedString>
-                        <Span Text="Get unlimited access to:" />
-                        <Span Text="&#10;" />
-                        <Span Text="All Premium Features" />
-                        <Span Text="&#10;" />
+                        <Span TextColor="White" Text="Get unlimited access to:" />
+                        <Span TextColor="White" Text="&#10;" />
+                        <Span TextColor="White" Text="All Premium Features" />
+                        <Span TextColor="White" Text="&#10;" />
                         <!-- Newline -->
-                        <Span Text="Scene Evaluation" />
-                        <Span Text="&#10;" />
-                        <Span Text="Light Meter" />
-                        <Span Text="&#10;" />
-                        <Span Text="Astrological Event Calulator" />
-                        <Span Text="&#10;" />
+                        <Span TextColor="White" Text="Scene Evaluation" />
+                        <Span TextColor="White" Text="&#10;" />
+                        <Span TextColor="White" Text="Light Meter" />
+                        <Span TextColor="White" Text="&#10;" />
+                        <Span TextColor="White" Text="Astrological Event Calulator" />
+                        <Span TextColor="White" Text="&#10;" />
                         <!-- Newline -->
-                        <Span Text="and a Sun Event Calculations." />
+                        <Span TextColor="White" Text="and a Sun Event Calculations." />
                     </FormattedString>
                 </Label.FormattedText>
             </Label>
@@ -56,15 +56,15 @@
     HorizontalTextAlignment="Center">
                 <Label.FormattedText>
                     <FormattedString>
-                        <Span Text="Get unlimited access to:" />
-                        <Span Text="&#10;" />
-                        <Span Text="Exposure Calculator" />
-                        <Span Text="&#10;" />
-                        <Span Text="Field of View Visualizer (using your camera equipment!)" />
-                        <Span Text="&#10;" />
-                        <Span Text="and Sun and Astrological Events Calculations and Locations." />
-                        <Span Text="&#10;" />
-                        <Span Text="Your data will be backed up to the cloud." />
+                        <Span TextColor="White" Text="Get unlimited access to:" />
+                        <Span TextColor="White" Text="&#10;" />
+                        <Span TextColor="White" Text="Exposure Calculator" />
+                        <Span TextColor="White" Text="&#10;" />
+                        <Span TextColor="White" Text="Field of View Visualizer (using your camera equipment!)" />
+                        <Span TextColor="White" Text="&#10;" />
+                        <Span TextColor="White" Text="and Sun and Astrological Events Calculations and Locations." />
+                        <Span TextColor="White" Text="&#10;" />
+                        <Span TextColor="White" Text="Your data will be backed up to the cloud." />
                     </FormattedString>
                 </Label.FormattedText>
             </Label>
@@ -103,10 +103,10 @@
                                                FontAttributes="Bold"/>
                                         <Label Text="{Binding PeriodText}" 
                                                FontSize="14" 
-                                               TextColor="{StaticResource Primary}"/>
+                                               />
                                         <Label Text="{Binding Description}" 
                                                FontSize="12" 
-                                               TextColor="{StaticResource Gray600}"/>
+                                               />
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="1" 
@@ -131,8 +131,8 @@
                 <Button Text="Subscribe Now"
                         Command="{Binding PurchaseSubscriptionCommand}"
                         IsEnabled="{Binding SelectedProduct, Converter={StaticResource IsNotNullConverter}}"
-                        BackgroundColor="{StaticResource Primary}"
-                        TextColor="White"
+
+
                         FontSize="16"
                         Padding="15"
                         CornerRadius="10"
@@ -140,8 +140,6 @@
 
                 <Button Text="Not Now"
                         Command="{Binding NotNowCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="{StaticResource Gray600}"
                         FontSize="14"
                         Padding="10"
                         MinimumHeightRequest="40"/>
@@ -150,7 +148,6 @@
             <!-- Error Message -->
             <Label Text="{Binding ErrorMessage}"
                    IsVisible="{Binding HasError}"
-                   TextColor="{StaticResource ErrorRed}"
                    FontSize="14"
                    HorizontalOptions="Center"
                    HorizontalTextAlignment="Center"

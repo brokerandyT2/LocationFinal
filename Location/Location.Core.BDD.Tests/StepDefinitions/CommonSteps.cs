@@ -4,9 +4,6 @@ using Location.Core.Application.Tips.Queries.GetTipById;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.BDD.Tests.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 
 namespace Location.Core.BDD.Tests.StepDefinitions

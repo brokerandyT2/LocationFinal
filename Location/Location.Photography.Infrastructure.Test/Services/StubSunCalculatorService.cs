@@ -1,7 +1,4 @@
 ﻿using Location.Photography.Domain.Services;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Location.Photography.Infrastructure.Test.Services
 {

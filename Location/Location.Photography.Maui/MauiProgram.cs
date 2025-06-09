@@ -24,6 +24,12 @@ using Location.Photography.ViewModels;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
+#if ANDROID
+
+using Location.Photography.Maui.Platforms.Android.Handlers;
+
+#endif
+
 namespace Location.Photography.Maui
 {
     public static class MauiProgram
@@ -43,13 +49,15 @@ namespace Location.Photography.Maui
                 .ConfigureMauiHandlers(handlers =>
                 {
 #if ANDROID
+                    // handlers.AddHandler<Entry, CustomEntryHandler>();
+                    handlers.AddHandler<Entry, NoUnderlineEntryHandler>();
                     handlers.AddHandler<Controls.ColorTemperatureDial, SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
                     handlers.AddHandler<Controls.TintDial, SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
 #else
-                   handlers.AddHandler<Location.Photography.Maui.Controls.ColorTemperatureDial, 
-                       SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
-                   handlers.AddHandler<Location.Photography.Maui.Controls.TintDial, 
-                       SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+                    handlers.AddHandler<Location.Photography.Maui.Controls.ColorTemperatureDial,
+                        SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
+                    handlers.AddHandler<Location.Photography.Maui.Controls.TintDial,
+                        SkiaSharp.Views.Maui.Handlers.SKCanvasViewHandler>();
 #endif
                 });
 
@@ -90,7 +98,8 @@ namespace Location.Photography.Maui
             var coreAssembly = System.Reflection.Assembly.Load("Location.Core.Application");
             var photographyAssembly = System.Reflection.Assembly.Load("Location.Photography.Application");
 
-            builder.Services.AddMediatR(cfg => {
+            builder.Services.AddMediatR(cfg =>
+            {
                 cfg.RegisterServicesFromAssembly(coreAssembly);
                 cfg.RegisterServicesFromAssembly(photographyAssembly);
             });
@@ -330,7 +339,7 @@ namespace Location.Photography.Maui
                 var lightSensorService = sp.GetRequiredService<Platforms.Android.ILightSensorService>();
                 return new Views.Professional.LightMeter(mediator, alertService, settingRepo, lightSensorService, expService, sceneEvalService);
 #else
-               return new Views.Professional.LightMeter();
+                return new Views.Professional.LightMeter();
 #endif
             });
 

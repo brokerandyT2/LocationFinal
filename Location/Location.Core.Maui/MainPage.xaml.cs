@@ -12,7 +12,7 @@ namespace Location.Core.Maui
         public MainPage()
         {
             InitializeComponent();
-           
+
         }
         public MainPage(
             IMediator mediator,
@@ -22,7 +22,7 @@ namespace Location.Core.Maui
             IGeolocationService geolocationService, ITipRepository tipRepo, ITipTypeRepository tiptype, IErrorDisplayService errorDisplayService, IWeatherService weatherService)
         {
             this.Children.Add(new Views.AddLocation());
-            this.Children.Add(new Views.LocationsPage(mediator, navigationService, mediaService,geolocationService, errorDisplayService, weatherService));
+            this.Children.Add(new Views.LocationsPage(mediator, navigationService, mediaService, geolocationService, errorDisplayService, weatherService));
             this.Children.Add(new Views.TipsPage(mediator, errorDisplayService, tipRepo, tiptype));
         }
 

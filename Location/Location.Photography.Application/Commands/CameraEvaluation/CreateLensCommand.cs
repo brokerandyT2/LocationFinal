@@ -75,7 +75,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                 if (existingResult.IsSuccess && existingResult.Data.Count > 0)
                 {
                     var similarLens = existingResult.Data.FirstOrDefault();
-               
+
                 }
 
                 // Create the lens

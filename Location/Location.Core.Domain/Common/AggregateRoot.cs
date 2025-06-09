@@ -2,12 +2,12 @@
 
 namespace Location.Core.Domain.Common
 {
-/// <summary>
-/// Represents the base class for aggregate roots in a domain-driven design (DDD) context.
-/// </summary>
-/// <remarks>An aggregate root is the entry point to an aggregate, which is a cluster of domain objects that are
-/// treated as a single unit. This class provides functionality for managing domain events associated with the aggregate
-/// root.</remarks>
+    /// <summary>
+    /// Represents the base class for aggregate roots in a domain-driven design (DDD) context.
+    /// </summary>
+    /// <remarks>An aggregate root is the entry point to an aggregate, which is a cluster of domain objects that are
+    /// treated as a single unit. This class provides functionality for managing domain events associated with the aggregate
+    /// root.</remarks>
     public abstract class AggregateRoot : Entity, IAggregateRoot
     {
         private readonly List<IDomainEvent> _domainEvents = new();

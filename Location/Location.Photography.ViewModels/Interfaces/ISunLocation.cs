@@ -1,6 +1,4 @@
 ﻿// Location.Photography.ViewModels/Interfaces/ISunLocation.cs
-using System;
-
 namespace Location.Photography.ViewModels.Interfaces
 {
     public interface ISunLocation

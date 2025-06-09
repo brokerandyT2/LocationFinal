@@ -1,9 +1,8 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using FluentValidation.TestHelper;
-using Location.Core.Application.Tests.Utilities;
+﻿using FluentAssertions;
 using FluentValidation;
+using FluentValidation.TestHelper;
 using Location.Core.Application.Commands.Locations;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Commands.DeleteLocation
 {

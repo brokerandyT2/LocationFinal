@@ -1,11 +1,7 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Tips.Queries.GetTipById;
-using Location.Core.Application.Tests.Utilities;
 using Moq;
 using NUnit.Framework;
 

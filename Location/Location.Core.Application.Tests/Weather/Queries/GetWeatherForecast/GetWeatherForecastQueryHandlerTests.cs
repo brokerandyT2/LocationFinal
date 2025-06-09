@@ -6,7 +6,6 @@ using Location.Core.Application.Services;
 using Location.Core.Application.Tests.Utilities;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.Application.Weather.Queries.GetWeatherForecast;
-using Location.Core.Infrastructure.UnitOfWork;
 using Moq;
 using NUnit.Framework;
 

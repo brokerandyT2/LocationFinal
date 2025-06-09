@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Location.Core.Application.Common.Interfaces;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.Queries.UpdateAllWeather;

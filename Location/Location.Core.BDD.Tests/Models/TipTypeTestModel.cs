@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Location.Core.BDD.Tests.Models
+﻿namespace Location.Core.BDD.Tests.Models
 {
     /// <summary>
     /// Model class for tip type data in tests

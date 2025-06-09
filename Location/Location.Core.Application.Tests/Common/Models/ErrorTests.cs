@@ -1,6 +1,6 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Models;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Common.Models
 {

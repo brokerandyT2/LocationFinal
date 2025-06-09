@@ -1,11 +1,8 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
-using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Location.Core.Application.Services;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Services;
+using Moq;
+using NUnit.Framework;
 using GeolocationAccuracy = Location.Core.Application.Services.GeolocationAccuracy;
 
 namespace Location.Core.Application.Tests.Services

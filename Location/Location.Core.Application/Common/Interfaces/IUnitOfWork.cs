@@ -27,10 +27,10 @@
 
 
 
-         /// <summary>
-         /// Repository for Setting entities
-         /// </summary>
-         ISettingRepository Settings { get; }
+        /// <summary>
+        /// Repository for Setting entities
+        /// </summary>
+        ISettingRepository Settings { get; }
         ISubscriptionRepository Subscriptions { get; }
         /// <summary>
         /// Commits all changes made in this unit of work

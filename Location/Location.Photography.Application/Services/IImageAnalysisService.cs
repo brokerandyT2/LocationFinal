@@ -7,6 +7,7 @@ namespace Location.Photography.Application.Services
         Task<ImageAnalysisResult> AnalyzeImageAsync(Stream imageStream, CancellationToken cancellationToken = default);
         Task<string> GenerateHistogramImageAsync(double[] histogram, SKColor color, string fileName);
         Task<string> GenerateStackedHistogramImageAsync(double[] redHistogram, double[] greenHistogram, double[] blueHistogram, double[] luminanceHistogram, string fileName);
+        void ClearHistogramCache();
     }
 
     public class ImageAnalysisResult

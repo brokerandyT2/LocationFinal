@@ -1,8 +1,7 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Domain.Rules;
 using Location.Core.Domain.ValueObjects;
-using System.Collections.Generic;
+using NUnit.Framework;
 
 namespace Location.Core.Domain.Tests.Rules
 {

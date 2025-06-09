@@ -251,5 +251,5 @@ namespace Location.Photography.Maui.Views.Premium
         }
     }
 
-    
+
 }

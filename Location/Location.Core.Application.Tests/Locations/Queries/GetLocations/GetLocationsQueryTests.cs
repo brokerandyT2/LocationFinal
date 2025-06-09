@@ -1,8 +1,8 @@
-﻿using NUnit.Framework;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
 using MediatR;
+using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Locations.Queries.GetLocations
 {

@@ -1,5 +1,5 @@
-﻿using MediatR;
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
+using MediatR;
 
 namespace Location.Core.Application.Tips.Commands.DeleteTip
 {

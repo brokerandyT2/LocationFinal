@@ -12,7 +12,6 @@ using Location.Core.ViewModels;
 using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
-using Location.Photography.Infrastructure.Services;
 using MediatR;
 using System.Collections.ObjectModel;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
@@ -445,7 +444,7 @@ namespace Location.Photography.ViewModels
             _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
             _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
             _exposureCalculatorService = exposureCalculatorService;
-           
+
         }
         #endregion
 
@@ -1837,13 +1836,13 @@ namespace Location.Photography.ViewModels
             var shutterSpeed = CalculateShutterSpeedOptimized(ev, aperture);
             var iso = CalculateISOOptimized(ev, aperture, shutterSpeed);
             var allApertures = Apetures.Thirds.Select(a => Convert.ToDouble(a.Replace("f/", ""))).ToList();
-            var allShutterSpeeds = ShutterSpeeds.Thirds.Select(a => Convert.ToDouble(a.Replace("1/", "").Replace("\"",""))).ToList();
+            var allShutterSpeeds = ShutterSpeeds.Thirds.Select(a => Convert.ToDouble(a.Replace("1/", "").Replace("\"", ""))).ToList();
 
             var closestAperture = allApertures.OrderBy(x => Math.Abs(x - aperture)).First();
             var closestShutter = allShutterSpeeds.OrderBy(x => Math.Abs(x - shutterSpeed)).First();
 
-            var ec = _exposureCalculatorService.CalculateIsoAsync(new ExposureTriangleDto() { Aperture = "f/"+aperture.ToString(), Iso = iso.ToString(), ShutterSpeed = "1/"+shutterSpeed }, closestShutter.ToString(), closestAperture.ToString(), ExposureIncrements.Third);
-            
+            var ec = _exposureCalculatorService.CalculateIsoAsync(new ExposureTriangleDto() { Aperture = "f/" + aperture.ToString(), Iso = iso.ToString(), ShutterSpeed = "1/" + shutterSpeed }, closestShutter.ToString(), closestAperture.ToString(), ExposureIncrements.Third);
+
 
             return new ExposureTriangle
             {

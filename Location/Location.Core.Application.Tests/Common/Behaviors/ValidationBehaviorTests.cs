@@ -1,15 +1,10 @@
-﻿using FluentValidation;
+﻿using FluentAssertions;
+using FluentValidation;
 using FluentValidation.Results;
-using MediatR;
-using Moq;
 using Location.Core.Application.Common.Behaviors;
 using Location.Core.Application.Common.Models;
-using Location.Core.Application.Common.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
+using MediatR;
+using Moq;
 using NUnit.Framework;
 
 namespace Location.Core.Application.Tests.Common.Behaviors

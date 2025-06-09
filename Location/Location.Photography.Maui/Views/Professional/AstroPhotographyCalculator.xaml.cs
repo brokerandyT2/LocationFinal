@@ -1,13 +1,11 @@
 using Location.Core.Application.Services;
 using Location.Core.ViewModels;
-using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
 using MediatR;
 using System.Runtime.CompilerServices;
-using static Location.Photography.ViewModels.AstroPhotographyCalculatorViewModel;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 
 namespace Location.Photography.Maui.Views.Professional

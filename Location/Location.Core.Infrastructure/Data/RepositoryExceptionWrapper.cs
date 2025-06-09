@@ -1,8 +1,5 @@
 ﻿using Location.Core.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Location.Core.Infrastructure.Data
 {

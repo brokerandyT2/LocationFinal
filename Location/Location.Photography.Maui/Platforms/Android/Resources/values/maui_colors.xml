@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="maui_primary">#FF3D20</color>
+  <color name="colorPrimary">#FF3D20</color>
+  <color name="colorPrimaryDark">#E5351C</color>
+  <color name="colorAccent">#FF3D20</color>
+</resources>

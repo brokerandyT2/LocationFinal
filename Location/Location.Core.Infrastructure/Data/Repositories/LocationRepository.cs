@@ -917,7 +917,7 @@ namespace Location.Core.Infrastructure.Data.Repositories
                 _logger);
         }
 
-       
+
 
         #endregion
     }

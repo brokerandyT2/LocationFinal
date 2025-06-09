@@ -1,9 +1,4 @@
 ﻿// Location.Photography.ViewModels/Interfaces/ISunCalculations.cs
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
 namespace Location.Photography.ViewModels.Interfaces
 {
     public interface ISunCalculations

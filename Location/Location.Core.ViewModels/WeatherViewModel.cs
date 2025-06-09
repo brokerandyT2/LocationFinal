@@ -6,8 +6,8 @@ using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.Application.Weather.Queries.GetWeatherForecast;
 using MediatR;
-using System.Collections.ObjectModel;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 
 namespace Location.Core.ViewModels
