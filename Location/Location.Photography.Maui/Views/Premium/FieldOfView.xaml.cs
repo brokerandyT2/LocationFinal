@@ -141,7 +141,7 @@ namespace Location.Photography.Maui.Views.Premium
                 {
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
-                        await LoadCamerasAsync();
+                        await LoadCamerasAsync(false);
                     });
                 }
             }
@@ -159,7 +159,7 @@ namespace Location.Photography.Maui.Views.Premium
                 {
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
-                        await LoadLensesAsync();
+                        await LoadLensesAsync(false);
                     });
                 }
             }

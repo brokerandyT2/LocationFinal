@@ -12,6 +12,7 @@ using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using Location.Photography.Application;
 using Location.Photography.Application.Common.Interfaces;
+using Location.Photography.Application.Notifications;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
 using Location.Photography.Infrastructure;
@@ -96,7 +97,8 @@ namespace Location.Photography.Maui
 
             // Alert event handler
             builder.Services.AddTransient<INotificationHandler<AlertEvent>, AlertEventHandler>();
-
+            builder.Services.AddTransient<INotificationHandler<LensCreatedNotification>, FieldOfView>();
+            builder.Services.AddTransient<INotificationHandler<CameraCreatedNotification>, FieldOfView>();
             // ==================== REPOSITORIES ====================
             // Core repositories
             builder.Services.AddSingleton<ITipTypeRepository, TipTypeRepository>();

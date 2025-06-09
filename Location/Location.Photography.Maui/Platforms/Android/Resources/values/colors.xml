@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#512BD4</color>
-    <color name="colorPrimaryDark">#2B0B98</color>
-    <color name="colorAccent">#2B0B98</color>
+  <color name="radio_button_color">#FF3D20</color>
+  <style name="MainTheme" parent="@style/Maui.SplashTheme">
+    <!-- Set global radio button color -->
+    <item name="colorControlActivated">#FF3D20</item>
+    <!-- Orange selected dot -->
+    <item name="colorControlNormal">#CCCCCC</item>
+    <!-- Gray unselected ring -->
+  </style>
 </resources>

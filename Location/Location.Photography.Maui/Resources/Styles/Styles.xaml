@@ -14,9 +14,10 @@
     </Style>
 
     <Style TargetType="Border">
-        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray500}}" />
+        <Setter Property="Stroke" Value="{StaticResource BackgroundGrey}" />
         <Setter Property="StrokeShape" Value="Rectangle"/>
         <Setter Property="StrokeThickness" Value="1"/>
+        <Setter Property="BackgroundColor" Value="{StaticResource BackgroundGrey}" />
     </Style>
 
     <Style TargetType="BoxView">
@@ -140,6 +141,7 @@
         <Setter Property="BorderColor" Value="{StaticResource ButtonOrange}" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="BackgroundColor" Value="{StaticResource BackgroundGrey}" />
+        <Setter Property="Background" Value="{StaticResource BackgroundGrey}" />
     </Style>
 
     <Style TargetType="ImageButton">
@@ -208,8 +210,8 @@
     </Style>
 
     <Style TargetType="Picker">
-        <Setter Property="TextColor" Value="Black" />
-        <Setter Property="BackgroundColor" Value="White" />
+        <Setter Property="TextColor" Value="White" />
+        <Setter Property="BackgroundColor" Value="{StaticResource Gray400}" />
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14" />
         <Setter Property="MinimumHeightRequest" Value="44"/>

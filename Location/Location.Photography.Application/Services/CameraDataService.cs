@@ -8,7 +8,7 @@ using Location.Photography.Domain.Enums;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Location.Photography.Infrastructure.Services
+namespace Location.Photography.Application.Services
 {
     public class CameraDataService : ICameraDataService
     {
