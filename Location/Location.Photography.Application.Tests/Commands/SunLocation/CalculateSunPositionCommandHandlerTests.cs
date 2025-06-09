@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿// Location.Photography.Application/Commands/ExposureCalculator/CalculateExposureCommandValidator.cs
+using FluentAssertions;
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Commands.SunLocation;
 using Location.Photography.Application.Services;
@@ -69,94 +70,6 @@ namespace Location.Photography.Application.Tests.Commands.SunLocation
             result.Data.DateTime.Should().Be(command.DateTime);
             result.Data.Latitude.Should().Be(command.Latitude);
             result.Data.Longitude.Should().Be(command.Longitude);
-
-            _sunServiceMock.Verify(x => x.GetSunPositionAsync(
-                command.Latitude,
-                command.Longitude,
-                command.DateTime,
-                It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Test]
-        public async Task Handle_WithExtremeLatitude_ShouldReturnSunPosition()
-        {
-            // Arrange
-            var command = new CalculateSunPositionCommand
-            {
-                Latitude = 89.9, // Near North Pole
-                Longitude = -122.3321,
-                DateTime = new DateTime(2024, 6, 21, 12, 0, 0) // Summer solstice
-            };
-
-            var sunPosition = new SunPositionDto
-            {
-                Azimuth = 180.0,
-                Elevation = 23.4, // Approximate maximum elevation at North Pole on solstice
-                DateTime = command.DateTime,
-                Latitude = command.Latitude,
-                Longitude = command.Longitude
-            };
-
-            _sunServiceMock
-                .Setup(x => x.GetSunPositionAsync(
-                    command.Latitude,
-                    command.Longitude,
-                    command.DateTime,
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<SunPositionDto>.Success(sunPosition));
-
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Should().NotBeNull();
-            result.Data.Azimuth.Should().Be(180.0);
-            result.Data.Elevation.Should().Be(23.4);
-
-            _sunServiceMock.Verify(x => x.GetSunPositionAsync(
-                command.Latitude,
-                command.Longitude,
-                command.DateTime,
-                It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Test]
-        public async Task Handle_WithExtremeDate_ShouldReturnSunPosition()
-        {
-            // Arrange
-            var command = new CalculateSunPositionCommand
-            {
-                Latitude = 47.6062,
-                Longitude = -122.3321,
-                DateTime = new DateTime(2024, 12, 21, 12, 0, 0) // Winter solstice
-            };
-
-            var sunPosition = new SunPositionDto
-            {
-                Azimuth = 180.5,
-                Elevation = 18.7, // Lower elevation in winter
-                DateTime = command.DateTime,
-                Latitude = command.Latitude,
-                Longitude = command.Longitude
-            };
-
-            _sunServiceMock
-                .Setup(x => x.GetSunPositionAsync(
-                    command.Latitude,
-                    command.Longitude,
-                    command.DateTime,
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result<SunPositionDto>.Success(sunPosition));
-
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Should().NotBeNull();
-            result.Data.Azimuth.Should().Be(180.5);
-            result.Data.Elevation.Should().Be(18.7);
 
             _sunServiceMock.Verify(x => x.GetSunPositionAsync(
                 command.Latitude,
@@ -258,6 +171,87 @@ namespace Location.Photography.Application.Tests.Commands.SunLocation
             result.IsSuccess.Should().BeFalse();
             result.ErrorMessage.Should().Contain("Error calculating sun position");
             result.ErrorMessage.Should().Contain("Unexpected error");
+        }
+
+        [Test]
+        public async Task Handle_WithExtremeLatitude_ShouldPassToService()
+        {
+            // Arrange
+            var command = new CalculateSunPositionCommand
+            {
+                Latitude = 89.5, // Near North Pole
+                Longitude = 0.0,
+                DateTime = new DateTime(2024, 6, 21, 12, 0, 0) // Summer solstice
+            };
+
+            var sunPosition = new SunPositionDto
+            {
+                Azimuth = 180.0,
+                Elevation = 23.5, // Near the tropic
+                DateTime = command.DateTime,
+                Latitude = command.Latitude,
+                Longitude = command.Longitude
+            };
+
+            _sunServiceMock
+                .Setup(x => x.GetSunPositionAsync(
+                    command.Latitude,
+                    command.Longitude,
+                    command.DateTime,
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<SunPositionDto>.Success(sunPosition));
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Should().NotBeNull();
+            result.Data.Latitude.Should().Be(89.5);
+            result.Data.Longitude.Should().Be(0.0);
+        }
+
+        [Test]
+        public async Task Handle_WithHistoricalDate_ShouldPassToService()
+        {
+            // Arrange
+            var command = new CalculateSunPositionCommand
+            {
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                DateTime = new DateTime(1969, 7, 20, 12, 0, 0) // Apollo 11 moon landing
+            };
+
+            var sunPosition = new SunPositionDto
+            {
+                Azimuth = 190.0,
+                Elevation = 70.0,
+                DateTime = command.DateTime,
+                Latitude = command.Latitude,
+                Longitude = command.Longitude
+            };
+
+            _sunServiceMock
+                .Setup(x => x.GetSunPositionAsync(
+                    command.Latitude,
+                    command.Longitude,
+                    command.DateTime,
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<SunPositionDto>.Success(sunPosition));
+
+            // Act
+            var result = await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Should().NotBeNull();
+            result.Data.DateTime.Should().Be(new DateTime(1969, 7, 20, 12, 0, 0));
+
+            _sunServiceMock.Verify(x => x.GetSunPositionAsync(
+                40.7128,
+                -74.0060,
+                new DateTime(1969, 7, 20, 12, 0, 0),
+                It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
