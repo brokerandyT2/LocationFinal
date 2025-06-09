@@ -1521,25 +1521,66 @@ namespace Location.Photography.ViewModels
                 IsLoadingEquipment = true;
                 HasError = false;
 
-                var userCamerasResult = await _cameraBodyRepository.GetUserCamerasAsync(_cancellationTokenSource.Token);
-                var userLensesResult = await _lensRepository.GetUserLensesAsync(_cancellationTokenSource.Token);
+                // Get current user ID
+                var currentUserId = await SecureStorage.GetAsync("Email") ?? "default_user";
 
                 var cameras = new List<CameraBody>();
                 var lenses = new List<Lens>();
 
+                // Load user cameras first (marked with *)
+                var userCamerasResult = await _userCameraBodyRepository.GetByUserIdAsync(currentUserId, _cancellationTokenSource.Token);
                 if (userCamerasResult.IsSuccess && userCamerasResult.Data?.Any() == true)
                 {
-                    cameras.AddRange(userCamerasResult.Data);
+                    var userCameraIds = userCamerasResult.Data.Select(uc => uc.CameraBodyId).ToList();
+
+                    // Get full camera details for user cameras
+                    var allCamerasResult = await _cameraBodyRepository.GetPagedAsync(0, int.MaxValue, _cancellationTokenSource.Token);
+                    if (allCamerasResult.IsSuccess && allCamerasResult.Data?.Any() == true)
+                    {
+                        var userCameras = allCamerasResult.Data
+                            .Where(c => userCameraIds.Contains(c.Id))
+                            .OrderBy(c => c.Name)
+                            .ToList();
+
+                        // Add user cameras with * prefix
+                        foreach (var camera in userCameras)
+                        {
+                            var userCamera = new CameraBody(
+                                camera.Name,
+                                camera.SensorType,
+                                camera.SensorWidth,
+                                camera.SensorHeight,
+                                camera.MountType,
+                                camera.IsUserCreated)
+                            {
+                                Id = camera.Id,
+                                DateAdded = camera.DateAdded
+                            };
+                            // Mark as user camera by prefixing name
+                            userCamera.Name = "* " + camera.Name;
+                            cameras.Add(userCamera);
+                        }
+
+                        // Add all other cameras
+                        var otherCameras = allCamerasResult.Data
+                            .Where(c => !userCameraIds.Contains(c.Id))
+                            .OrderBy(c => c.Name)
+                            .ToList();
+                        cameras.AddRange(otherCameras);
+                    }
                 }
                 else
                 {
-                    var allCamerasResult = await _cameraBodyRepository.GetPagedAsync(0, 50, _cancellationTokenSource.Token);
+                    // If no user cameras, load all cameras
+                    var allCamerasResult = await _cameraBodyRepository.GetPagedAsync(0, int.MaxValue, _cancellationTokenSource.Token);
                     if (allCamerasResult.IsSuccess && allCamerasResult.Data?.Any() == true)
                     {
-                        cameras.AddRange(allCamerasResult.Data);
+                        cameras.AddRange(allCamerasResult.Data.OrderBy(c => c.Name));
                     }
                 }
 
+                // Load lenses (existing logic)
+                var userLensesResult = await _lensRepository.GetUserLensesAsync(_cancellationTokenSource.Token);
                 if (userLensesResult.IsSuccess && userLensesResult.Data?.Any() == true)
                 {
                     lenses.AddRange(userLensesResult.Data);
@@ -1785,7 +1826,54 @@ namespace Location.Photography.ViewModels
             SelectedTarget = AstroTarget.MilkyWayCore;
             SelectedTargetModel = targets.First(t => t.Target == AstroTarget.MilkyWayCore);
         }
+        private void CalculateFieldOfView()
+        {
+            try
+            {
+                if (SelectedCamera != null && SelectedLens != null)
+                {
+                    // Calculate horizontal FOV
+                    var horizontalFOV = 2 * Math.Atan(SelectedCamera.SensorWidth / (2 * SelectedLens.MinMM)) * (180 / Math.PI);
+                    var verticalFOV = 2 * Math.Atan(SelectedCamera.SensorHeight / (2 * SelectedLens.MinMM)) * (180 / Math.PI);
 
+                    FieldOfViewWidth = horizontalFOV;
+                    FieldOfViewHeight = verticalFOV;
+
+                    // Check if target fits in frame (simplified - could use target angular size)
+                    TargetFitsInFrame = horizontalFOV >= 10; // Basic check for Milky Way
+
+                    // Generate equipment recommendation
+                    var targetSpecs = GetOptimalEquipmentSpecs(SelectedTarget);
+                    if (SelectedLens.MinMM >= targetSpecs.MinFocalLength && SelectedLens.MinMM <= targetSpecs.MaxFocalLength)
+                    {
+                        EquipmentRecommendation = "Your equipment is well-suited for this target";
+                    }
+                    else if (SelectedLens.MinMM < targetSpecs.MinFocalLength)
+                    {
+                        EquipmentRecommendation = "Consider a longer focal length for better detail";
+                    }
+                    else
+                    {
+                        EquipmentRecommendation = "Consider a wider lens for better field coverage";
+                    }
+
+                    OnPropertyChanged(nameof(FieldOfViewDisplay));
+                    OnPropertyChanged(nameof(TargetFitsInFrame));
+                    OnPropertyChanged(nameof(EquipmentRecommendation));
+                }
+                else
+                {
+                    FieldOfViewWidth = 0;
+                    FieldOfViewHeight = 0;
+                    TargetFitsInFrame = false;
+                    EquipmentRecommendation = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error calculating field of view: {ex.Message}");
+            }
+        }
         private OptimalEquipmentSpecs GetOptimalEquipmentSpecs(AstroTarget target)
         {
             return target switch
@@ -1967,7 +2055,27 @@ namespace Location.Photography.ViewModels
         public DateTime SelectedDate
         {
             get => _selectedDate;
-            set => SetProperty(ref _selectedDate, value);
+            set
+            {
+                if (SetProperty(ref _selectedDate, value))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            // Auto-calculate when both location and date are set
+                            if (SelectedLocation != null)
+                            {
+                                await CalculateAstroDataAsync();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            await HandleErrorAsync(OperationErrorSource.Validation, $"Error updating calculations: {ex.Message}");
+                        }
+                    });
+                }
+            }
         }
 
         public string LocationPhoto
@@ -2009,13 +2117,35 @@ namespace Location.Photography.ViewModels
         public CameraBody SelectedCamera
         {
             get => _selectedCamera;
-            set => SetProperty(ref _selectedCamera, value);
+            set
+            {
+                if (SetProperty(ref _selectedCamera, value))
+                {
+                    OnPropertyChanged(nameof(HasEquipmentSelected));
+                    OnPropertyChanged(nameof(SelectedCameraDisplay));
+                    OnPropertyChanged(nameof(HasValidSelection));
+
+                    // Trigger field of view calculation
+                    CalculateFieldOfView();
+                }
+            }
         }
 
         public Lens SelectedLens
         {
             get => _selectedLens;
-            set => SetProperty(ref _selectedLens, value);
+            set
+            {
+                if (SetProperty(ref _selectedLens, value))
+                {
+                    OnPropertyChanged(nameof(HasEquipmentSelected));
+                    OnPropertyChanged(nameof(SelectedLensDisplay));
+                    OnPropertyChanged(nameof(HasValidSelection));
+
+                    // Trigger field of view calculation
+                    CalculateFieldOfView();
+                }
+            }
         }
 
         public bool IsLoadingEquipment

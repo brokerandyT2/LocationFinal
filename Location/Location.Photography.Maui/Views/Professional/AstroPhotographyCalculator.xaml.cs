@@ -17,10 +17,7 @@ namespace Location.Photography.Maui.Views.Professional
         private readonly IMediator _mediator;
         private bool _isPopupVisible = false;
 
-        public AstroPhotographyCalculator(
-            AstroPhotographyCalculatorViewModel viewModel,
-            IAlertService alertService,
-            IMediator mediator)
+        public AstroPhotographyCalculator(AstroPhotographyCalculatorViewModel viewModel, IAlertService alertService, IMediator mediator)
         {
             InitializeComponent();
 
@@ -29,39 +26,88 @@ namespace Location.Photography.Maui.Views.Professional
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
 
             BindingContext = _viewModel;
-            _viewModel.IsBusy = true;
 
-            // Initialize the page
-            LoadInitialData();
-
-            _viewModel.IsBusy = false;
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            _viewModel.ErrorOccurred -= OnSystemError;
+            _viewModel.ErrorOccurred += OnSystemError;
+
+
+
+            // Load locations and equipment in parallel
+            var locationTask = _viewModel.LoadLocationsAsync();
+            var equipmentTask = _viewModel.LoadEquipmentAsync();
+
+            Task.WhenAll(locationTask, equipmentTask);
+
+            // Small delay to ensure UI is ready
+            Task.Delay(100);
+            // Use Dispatcher to ensure this runs after the page is fully loaded
+            Dispatcher.Dispatch(async () =>
+                {
+                    _viewModel.IsBusy = true;
+                    await LoadInitialDataAsync(); // Make this async
+                    _viewModel.IsBusy = false;
+                });
         }
 
-        private async void LoadInitialData()
+        private async Task LoadInitialDataAsync()
         {
             try
             {
-                if (_viewModel != null)
+                System.Diagnostics.Debug.WriteLine("=== LoadInitialDataAsync START ===");
+
+                // Start loading in parallel
+                var locationTask = _viewModel.LoadLocationsAsync();
+                var equipmentTask = _viewModel.LoadEquipmentAsync();
+
+                await Task.WhenAll(locationTask, equipmentTask);
+
+                // Wait for properties to actually be populated (race condition fix)
+                var timeout = DateTime.Now.AddSeconds(5);
+                while (DateTime.Now < timeout)
                 {
-                    _viewModel.ErrorOccurred -= OnSystemError;
-                    _viewModel.ErrorOccurred += OnSystemError;
-
-                    // Load locations and equipment in parallel
-                    var locationTask = _viewModel.LoadLocationsAsync();
-                    //var equipmentTask = _viewModel.LoadEquipmentAsync();
-
-                    //await Task.WhenAll(locationTask, equipmentTask);
-                    await Task.WhenAll(locationTask);
-                    // Auto-calculate if we have valid selections
-                    if (_viewModel.CanCalculate)
+                    if (_viewModel.Locations?.Any() == true && _viewModel.AvailableCameras?.Any() == true)
                     {
-                        await _viewModel.CalculateAstroDataAsync();
+                        break;
                     }
+                    await Task.Delay(100);
                 }
+
+                System.Diagnostics.Debug.WriteLine($"After waiting - Locations: {_viewModel.Locations?.Count ?? 0}, Cameras: {_viewModel.AvailableCameras?.Count ?? 0}");
+
+                // Force location selection if none selected
+                if (_viewModel.SelectedLocation == null && _viewModel.Locations?.Any() == true)
+                {
+                    _viewModel.SelectedLocation = _viewModel.Locations.First();
+                    System.Diagnostics.Debug.WriteLine($"Selected location: {_viewModel.SelectedLocation?.Title}");
+                }
+
+                // Wait for equipment auto-selection to complete
+                var equipmentTimeout = DateTime.Now.AddSeconds(3);
+                while (DateTime.Now < equipmentTimeout)
+                {
+                    if (_viewModel.SelectedCamera != null && _viewModel.SelectedLens != null)
+                    {
+                        break;
+                    }
+                    await Task.Delay(100);
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Equipment selected - Camera: {_viewModel.SelectedCamera?.Name}, Lens: {_viewModel.SelectedLens?.NameForLens}");
+
+                // Now trigger calculation with full equipment
+                if (_viewModel.SelectedLocation != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("=== TRIGGERING CALCULATION ===");
+                    await _viewModel.CalculateAstroDataAsync();
+                    System.Diagnostics.Debug.WriteLine($"Calculation completed. Predictions count: {_viewModel.HourlyAstroPredictions?.Count ?? 0}");
+                }
+
+                System.Diagnostics.Debug.WriteLine("=== LoadInitialDataAsync END ===");
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"LoadInitialDataAsync ERROR: {ex.Message}");
                 await HandleErrorAsync(ex, "Error initializing astrophotography calculator");
             }
         }
@@ -75,22 +121,11 @@ namespace Location.Photography.Maui.Views.Professional
                 if (!IsVisible)
                     return;
 
-                LoadInitialData();
+                LoadInitialDataAsync();
                 _isHydrated = true;
             }
         }
 
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
-
-            if (_viewModel != null)
-            {
-                _viewModel.ErrorOccurred -= OnSystemError;
-                _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-                _viewModel?.Dispose();
-            }
-        }
 
         private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {

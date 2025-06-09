@@ -1,6 +1,7 @@
 ﻿// Location.Core.ViewModels/WeatherViewModel.cs - PERFORMANCE OPTIMIZED
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Location.Core.Application.Commands.Weather;
 using Location.Core.Application.Queries.Weather;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
@@ -66,8 +67,7 @@ namespace Location.Core.ViewModels
                 LocationId = locationId;
 
                 // PERFORMANCE: Use ConfigureAwait(false) for non-UI tasks
-                var weatherTask = _mediator.Send(new GetWeatherByLocationQuery { LocationId = locationId }, cancellationToken)
-                    .ConfigureAwait(false);
+                var weatherTask = _mediator.Send(new UpdateWeatherCommand { LocationId = locationId, ForceUpdate = true }, cancellationToken);
 
                 var result = await weatherTask;
 
