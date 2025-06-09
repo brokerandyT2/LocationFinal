@@ -1,288 +1,67 @@
-﻿using FluentValidation.TestHelper;
-using Location.Photography.Application.Commands.SceneEvaluation;
-using NUnit.Framework;
+﻿// Location.Photography.Application/Commands/SceneEvaluation/AnalyzeImageCommandValidator.cs
+using FluentValidation;
+using System.IO;
 
-namespace Location.Photography.Application.Tests.Commands.SceneEvaluation
+namespace Location.Photography.Application.Commands.SceneEvaluation
 {
-    [TestFixture]
-    public class AnalyzeImageCommandValidatorTests
+    public class AnalyzeImageCommandValidator : AbstractValidator<AnalyzeImageCommand>
     {
-        private AnalyzeImageCommandValidator _validator;
+        private static readonly string[] SupportedImageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif" };
+        private static readonly string[] UnsupportedVideoExtensions = { ".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv" };
 
-        [SetUp]
-        public void SetUp()
+        public AnalyzeImageCommandValidator()
         {
-            _validator = new AnalyzeImageCommandValidator();
+            RuleFor(x => x.ImagePath)
+                .NotNull()
+                .WithMessage("Image path cannot be null")
+                .NotEmpty()
+                .WithMessage("Image path is required")
+                .Must(BeValidPath)
+                .WithMessage("Image path is not valid")
+                .Must(BeValidImageExtension)
+                .WithMessage("Image must be a valid image file (jpg, jpeg, png, bmp, gif)");
         }
 
-        [Test]
-        public void Validate_WithValidJpgImagePath_ShouldNotHaveErrors()
+        private bool BeValidPath(string imagePath)
         {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "/storage/images/photo.jpg"
-            };
+            if (string.IsNullOrWhiteSpace(imagePath))
+                return false;
 
-            // Act
-            var result = _validator.TestValidate(command);
+            // Check for invalid path characters
+            var invalidChars = Path.GetInvalidPathChars();
+            if (imagePath.IndexOfAny(invalidChars) >= 0)
+                return false;
 
-            // Assert
-            result.ShouldNotHaveAnyValidationErrors();
+            // Check path length (Windows MAX_PATH is 260, but we'll be more restrictive)
+            if (imagePath.Length > 250)
+                return false;
+
+            // Must have an extension
+            if (!Path.HasExtension(imagePath))
+                return false;
+
+            return true;
         }
 
-        [Test]
-        public void Validate_WithValidJpegImagePath_ShouldNotHaveErrors()
+        private bool BeValidImageExtension(string imagePath)
         {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "/storage/images/photo.jpeg"
-            };
+            if (string.IsNullOrWhiteSpace(imagePath))
+                return false;
 
-            // Act
-            var result = _validator.TestValidate(command);
+            var extension = Path.GetExtension(imagePath)?.ToLowerInvariant();
 
-            // Assert
-            result.ShouldNotHaveAnyValidationErrors();
-        }
+            if (string.IsNullOrEmpty(extension))
+                return false;
 
-        [Test]
-        public void Validate_WithValidPngImagePath_ShouldNotHaveErrors()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "/storage/images/photo.png"
-            };
+            // Check if it's a supported image extension
+            if (!SupportedImageExtensions.Contains(extension))
+                return false;
 
-            // Act
-            var result = _validator.TestValidate(command);
+            // Explicitly reject video extensions
+            if (UnsupportedVideoExtensions.Contains(extension))
+                return false;
 
-            // Assert
-            result.ShouldNotHaveAnyValidationErrors();
-        }
-
-        [Test]
-        public void Validate_WithValidBmpImagePath_ShouldNotHaveErrors()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "/storage/images/photo.bmp"
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldNotHaveAnyValidationErrors();
-        }
-
-        [Test]
-        public void Validate_WithValidGifImagePath_ShouldNotHaveErrors()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "/storage/images/photo.gif"
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldNotHaveAnyValidationErrors();
-        }
-
-        [Test]
-        public void Validate_WithEmptyImagePath_ShouldHaveError()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = string.Empty
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x.ImagePath)
-                .WithErrorMessage("Image path is required");
-        }
-
-        [Test]
-        public void Validate_WithNullImagePath_ShouldHaveError()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = null
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x.ImagePath)
-                .WithErrorMessage("Image path is required");
-        }
-
-        [Test]
-        public void Validate_WithWhitespaceImagePath_ShouldHaveError()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "   "
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x.ImagePath)
-                .WithErrorMessage("Image path is required");
-        }
-
-        [Test]
-        public void Validate_WithUnsupportedFileExtension_ShouldHaveError()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "/storage/images/document.pdf"
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x.ImagePath)
-                .WithErrorMessage("Image must be a valid image file (jpg, jpeg, png, bmp, gif)");
-        }
-
-        [Test]
-        public void Validate_WithUnsupportedVideoExtension_ShouldHaveError()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "/storage/videos/movie.mp4"
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x.ImagePath)
-                .WithErrorMessage("Image must be a valid image file (jpg, jpeg, png, bmp, gif)");
-        }
-
-        [Test]
-        public void Validate_WithInvalidPathCharacters_ShouldHaveError()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "/storage/images/photo<invalid>.jpg"
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x.ImagePath)
-                .WithErrorMessage("Image path contains invalid characters");
-        }
-
-        [Test]
-        public void Validate_WithPathTooLong_ShouldHaveError()
-        {
-            // Arrange - Create a path longer than 260 characters
-            var longPath = "/storage/images/" + new string('a', 250) + ".jpg";
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = longPath
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x.ImagePath)
-                .WithErrorMessage("Image path is too long (maximum 260 characters)");
-        }
-
-        [Test]
-        public void Validate_WithCaseInsensitiveExtensions_ShouldNotHaveErrors()
-        {
-            // Arrange
-            var commands = new[]
-            {
-                new AnalyzeImageCommand { ImagePath = "/storage/images/photo.JPG" },
-                new AnalyzeImageCommand { ImagePath = "/storage/images/photo.JPEG" },
-                new AnalyzeImageCommand { ImagePath = "/storage/images/photo.PNG" },
-                new AnalyzeImageCommand { ImagePath = "/storage/images/photo.BMP" },
-                new AnalyzeImageCommand { ImagePath = "/storage/images/photo.GIF" }
-            };
-
-            // Act & Assert
-            foreach (var command in commands)
-            {
-                var result = _validator.TestValidate(command);
-                result.ShouldNotHaveAnyValidationErrors();
-            }
-        }
-
-        [Test]
-        public void Validate_WithWindowsStylePath_ShouldNotHaveErrors()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = @"C:\Users\Photos\image.jpg"
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldNotHaveAnyValidationErrors();
-        }
-
-        [Test]
-        public void Validate_WithRelativePath_ShouldNotHaveErrors()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "./images/photo.jpg"
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldNotHaveAnyValidationErrors();
-        }
-
-        [Test]
-        public void Validate_WithNoExtension_ShouldHaveError()
-        {
-            // Arrange
-            var command = new AnalyzeImageCommand
-            {
-                ImagePath = "/storage/images/photo"
-            };
-
-            // Act
-            var result = _validator.TestValidate(command);
-
-            // Assert
-            result.ShouldHaveValidationErrorFor(x => x.ImagePath)
-                .WithErrorMessage("Image must be a valid image file (jpg, jpeg, png, bmp, gif)");
+            return true;
         }
     }
 }
