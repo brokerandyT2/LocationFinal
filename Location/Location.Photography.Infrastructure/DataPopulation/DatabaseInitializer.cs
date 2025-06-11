@@ -309,7 +309,7 @@ namespace Location.Photography.Infrastructure
                 var baseSettings = new List<(string Key, string Value, string Description)>
                 {
                     // Application settings (not user-specific)
-                    (MagicStrings.FirstName, "", "User's first name"),
+                  /*  (MagicStrings.FirstName, "", "User's first name"),
                     (MagicStrings.LastName, "", "User's last name"),
                     (MagicStrings.LastBulkWeatherUpdate, DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
                     (MagicStrings.DefaultLanguage, "en-US", "Default language setting"),
@@ -318,7 +318,7 @@ namespace Location.Photography.Infrastructure
                     (MagicStrings.WeatherURL, "https://api.openweathermap.org/data/3.0/onecall", "Weather API URL"),
                     (MagicStrings.Weather_API_Key, "aa24f449cced50c0491032b2f955d610", "Weather API key"),
                     (MagicStrings.FreePremiumAdSupported, "false", "Whether the app is running in ad-supported mode"),
-                    (MagicStrings.DeviceInfo, "", "Device information"),
+                    (MagicStrings.DeviceInfo, "", "Device information") */
                 };
 
                 // Add build-specific settings
@@ -425,38 +425,38 @@ namespace Location.Photography.Infrastructure
                 var cameraProfiles = new List<(string Name, string Brand, string SensorType, double SensorWidth, double SensorHeight)>
        {
            // 2010 Cameras
-           ("Canon EOS 550D (2010 - 2010)", "Canon", "Crop", 22.3, 14.9),
-           ("Nikon D3100 (2010 - 2010)", "Nikon", "Crop", 23.1, 15.4),
-           ("Canon EOS 7D (2010 - 2010)", "Canon", "Crop", 22.3, 14.9),
-           ("Nikon D7000 (2010 - 2010)", "Nikon", "Crop", 23.6, 15.6),
-           ("Sony Alpha A500 (2010 - 2010)", "Sony", "Crop", 23.5, 15.6),
-           ("Pentax K-x (2010 - 2010)", "Pentax", "Crop", 23.6, 15.8),
-           ("Canon EOS 5D Mark II (2010 - 2010)", "Canon", "Full Frame", 36.0, 24.0),
-           ("Nikon D3s (2010 - 2010)", "Nikon", "Full Frame", 36.0, 23.9),
-           ("Sony Alpha A850 (2010 - 2010)", "Sony", "Full Frame", 35.9, 24.0),
-           ("Pentax K-7 (2010 - 2010)", "Pentax", "Crop", 23.4, 15.6),
-           ("Canon EOS 1000D (2010 - 2010)", "Canon", "Crop", 22.2, 14.8),
-           ("Nikon D90 (2010 - 2010)", "Nikon", "Crop", 23.6, 15.8),
-           ("Sony Alpha A230 (2010 - 2010)", "Sony", "Crop", 23.5, 15.7),
-           ("Pentax K20D (2010 - 2010)", "Pentax", "Crop", 23.4, 15.6),
-           ("Canon EOS 50D (2010 - 2010)", "Canon", "Crop", 22.3, 14.9),
+           ("Canon EOS 550D", "Canon", "Crop", 22.3, 14.9),
+           ("Nikon D3100", "Nikon", "Crop", 23.1, 15.4),
+           ("Canon EOS 7D", "Canon", "Crop", 22.3, 14.9),
+           ("Nikon D7000", "Nikon", "Crop", 23.6, 15.6),
+           ("Sony Alpha A500", "Sony", "Crop", 23.5, 15.6),
+           ("Pentax K-x", "Pentax", "Crop", 23.6, 15.8),
+           ("Canon EOS 5D Mark II", "Canon", "Full Frame", 36.0, 24.0),
+           ("Nikon D3s", "Nikon", "Full Frame", 36.0, 23.9),
+           ("Sony Alpha A850", "Sony", "Full Frame", 35.9, 24.0),
+           ("Pentax K-7", "Pentax", "Crop", 23.4, 15.6),
+           ("Canon EOS 1000D", "Canon", "Crop", 22.2, 14.8),
+           ("Nikon D90", "Nikon", "Crop", 23.6, 15.8),
+           ("Sony Alpha A230", "Sony", "Crop", 23.5, 15.7),
+           ("Pentax K20D", "Pentax", "Crop", 23.4, 15.6),
+           ("Canon EOS 50D", "Canon", "Crop", 22.3, 14.9),
 
            // 2011 Cameras
-           ("Canon EOS 600D (2011 - 2011)", "Canon", "Crop", 22.3, 14.9),
-           ("Nikon D5100 (2011 - 2011)", "Nikon", "Crop", 23.6, 15.6),
-           ("Sony Alpha A35 (2011 - 2011)", "Sony", "Crop", 23.5, 15.6),
-           ("Pentax K-5 (2011 - 2011)", "Pentax", "Crop", 23.7, 15.7),
-           ("Canon EOS 1100D (2011 - 2011)", "Canon", "Crop", 22.2, 14.7),
-           ("Nikon D7000 (2011 - 2011)", "Nikon", "Crop", 23.6, 15.6),
-           ("Sony Alpha A55 (2011 - 2011)", "Sony", "Crop", 23.5, 15.6),
-           ("Pentax K-r (2011 - 2011)", "Pentax", "Crop", 23.6, 15.8),
-           ("Canon EOS 5D Mark II (2011 - 2011)", "Canon", "Full Frame", 36.0, 24.0),
-           ("Nikon D3s (2011 - 2011)", "Nikon", "Full Frame", 36.0, 23.9),
-           ("Sony Alpha A900 (2011 - 2011)", "Sony", "Full Frame", 35.9, 24.0),
-           ("Pentax 645D (2011 - 2011)", "Pentax", "Medium Format", 44.0, 33.0),
-           ("Canon EOS 60D (2011 - 2011)", "Canon", "Crop", 22.3, 14.9),
-           ("Nikon D3100 (2011 - 2011)", "Nikon", "Crop", 23.1, 15.4),
-           ("Sony Alpha A290 (2011 - 2011)", "Sony", "Crop", 23.5, 15.7)
+           ("Canon EOS 600D", "Canon", "Crop", 22.3, 14.9),
+           ("Nikon D5100", "Nikon", "Crop", 23.6, 15.6),
+           ("Sony Alpha A35", "Sony", "Crop", 23.5, 15.6),
+           ("Pentax K-5", "Pentax", "Crop", 23.7, 15.7),
+           ("Canon EOS 1100D", "Canon", "Crop", 22.2, 14.7),
+           ("Nikon D7000", "Nikon", "Crop", 23.6, 15.6),
+           ("Sony Alpha A55", "Sony", "Crop", 23.5, 15.6),
+           ("Pentax K-r", "Pentax", "Crop", 23.6, 15.8),
+           ("Canon EOS 5D Mark II", "Canon", "Full Frame", 36.0, 24.0),
+           ("Nikon D3s", "Nikon", "Full Frame", 36.0, 23.9),
+           ("Sony Alpha A900", "Sony", "Full Frame", 35.9, 24.0),
+           ("Pentax 645D", "Pentax", "Medium Format", 44.0, 33.0),
+           ("Canon EOS 60D", "Canon", "Crop", 22.3, 14.9),
+           ("Nikon D3100", "Nikon", "Crop", 23.1, 15.4),
+           ("Sony Alpha A290", "Sony", "Crop", 23.5, 15.7)
        };
 
                 // Process camera profiles in batches to improve performance and reduce database contention

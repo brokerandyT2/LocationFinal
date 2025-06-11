@@ -209,7 +209,7 @@
         <!-- System Error Display -->
         <Frame Grid.Row="3"
                IsVisible="{Binding IsError}" 
-               BackgroundColor="{StaticResource ErrorLight}"
+               BackgroundColor="{StaticResource ErrorRed}"
                BorderColor="{StaticResource ErrorRed}"
                Margin="10"
                Padding="15">

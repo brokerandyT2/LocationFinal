@@ -84,6 +84,24 @@ namespace Location.Core.Infrastructure.Data
         /// </summary>
         public async Task InitializeDatabaseAsync()
         {
+            string em = string.Empty;
+            var isDB = File.Exists(_databasePath);
+            try
+            {
+                em = await SecureStorage.GetAsync("Email");
+            }
+            catch { }
+
+            if (!isDB && !String.IsNullOrEmpty(em))
+            {
+                SecureStorage.Remove("Email");
+                
+            }
+
+
+
+
+
             if (_isInitialized) return;
 
             await _initializationSemaphore.WaitAsync();

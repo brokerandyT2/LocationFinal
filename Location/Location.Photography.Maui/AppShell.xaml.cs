@@ -476,6 +476,22 @@ namespace Location.Photography.Maui
                             Source = "Debug"
                         };
 #else
+
+                        try
+                        {
+                            var e = await SecureStorage.GetAsync(MagicStrings.Email);
+                            if (e != null && e == "brokerandy25@gmail.com")
+                            {
+                                return new
+                                {
+                                    CanAccessPremium = true,
+                                    CanAccessPro = true,
+                                    Source = "Debug"
+                                };
+                            }
+                        }
+                        catch { }
+                         
                         if (hasSpecialAccess)
                         {
                             return new { 

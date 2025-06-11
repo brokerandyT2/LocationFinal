@@ -122,7 +122,7 @@ namespace Location.Photography.Maui.Views
         {
             if (emailAddress != null)
             {
-                emailAddress.TextChanged += EmailAddress_TextChanged;
+                //emailAddress.TextChanged += EmailAddress_TextChanged;
             }
 
             SettingsViewModel svm = new SettingsViewModel();
@@ -149,13 +149,13 @@ namespace Location.Photography.Maui.Views
             }
         }
 
-        private void EmailAddress_TextChanged(object sender, TextChangedEventArgs e)
+      /*  private void EmailAddress_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (emailAddress.Text.Contains('.') && emailAddress.Text.Split('.')[1].Length >= 2)
             {
                 UpdateValidationMessageVisibility();
             }
-        }
+        } */
 
         private void UpdateValidationMessageVisibility()
         {

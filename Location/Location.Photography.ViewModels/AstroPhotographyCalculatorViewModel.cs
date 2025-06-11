@@ -417,25 +417,25 @@ namespace Location.Photography.ViewModels
                             var solarEvent = "True Night"; // Default
                             if (sunsetWindow != null && currentHour <= sunsetWindow.StartTime.AddHours(1))
                             {
-                                solarEvent = "Sunset";
+                                //solarEvent = "Sunset";
                             }
                             else if (sunriseWindow != null && currentHour >= sunriseWindow.StartTime.AddHours(-1))
                             {
-                                solarEvent = "Sunrise";
+                               // solarEvent = "Sunrise";
                             }
                             else if (sunsetWindow != null && sunriseWindow != null)
                             {
                                 if (currentHour > sunsetWindow.EndTime && currentHour < sunriseWindow.StartTime)
                                 {
-                                    solarEvent = "True Night";
+                                   // solarEvent = "True Night";
                                 }
                                 else if (currentHour <= sunsetWindow.EndTime)
                                 {
-                                    solarEvent = "Twilight";
+                                   // solarEvent = "Twilight";
                                 }
                                 else if (currentHour >= sunriseWindow.StartTime)
                                 {
-                                    solarEvent = "Dawn";
+                                   // solarEvent = "Dawn";
                                 }
                             }
                             currentHour = DateTime.SpecifyKind(currentHour, DateTimeKind.Utc);

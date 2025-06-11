@@ -83,14 +83,14 @@
                 <Label Text="{x:Static strings:AppResources.ProvideEmail}" Grid.Row="7" Grid.ColumnSpan="3" Grid.Column="0" FontSize="14" Margin="5"/>
 
                 <Entry x:Name="emailAddress" Grid.Column="0" Grid.Row="8" Grid.ColumnSpan="3" FontSize="14" Margin="5" Placeholder="your@email.com">
-                    <Entry.Behaviors>
+                   <Entry.Behaviors>
                         <toolkit:TextValidationBehavior 
                             InvalidStyle="{StaticResource InvalidEntryStyle}"
                             ValidStyle="{StaticResource ValidEntryStyle}"
                             MinimumLength="1"
                             RegexPattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                             Flags="ValidateOnUnfocused" />
-                    </Entry.Behaviors>
+                    </Entry.Behaviors> 
                 </Entry>
 
                 <Label x:Name="emailValidationMessage" 

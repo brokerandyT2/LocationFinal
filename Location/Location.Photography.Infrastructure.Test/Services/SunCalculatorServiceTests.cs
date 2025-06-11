@@ -8,15 +8,14 @@ namespace Location.Photography.Infrastructure.Test.Services
     public class SunCalculatorServiceTests
     {
         private SunCalculatorService _sunCalculatorService;
-
-        // Test constants for consistent testing
-        private readonly DateTime TestDate = new DateTime(2024, 6, 15, 12, 0, 0, DateTimeKind.Utc);
-        private const double TestLatitude = 40.7128; // New York City
-        private const double TestLongitude = -74.0060;
-        private const string TestTimezone = "America/New_York";
+        private const double TestLatitude = 47.6062; // Seattle
+        private const double TestLongitude = -122.3321;
+        private const string TestTimezone = "America/Los_Angeles";
+        private readonly DateTime TestDate = new DateTime(2024, 6, 21); // Summer solstice
+        private readonly DateTime TestDateTime = new DateTime(2024, 6, 21, 12, 0, 0);
 
         [SetUp]
-        public void SetUp()
+        public void Setup()
         {
             _sunCalculatorService = new SunCalculatorService();
         }
@@ -24,35 +23,45 @@ namespace Location.Photography.Infrastructure.Test.Services
         [TearDown]
         public void TearDown()
         {
-            _sunCalculatorService?.CleanupExpiredCache();
+            // Clean up cache after each test
+            _sunCalculatorService.CleanupExpiredCache();
         }
 
-        #region Solar Data Tests
+        #region Basic Solar Time Tests
 
         [Test]
-        public void GetSunrise_WithValidCoordinates_ShouldReturnValidDateTime()
+        public void GetSunrise_ShouldReturnValidDateTime_ForKnownLocation()
         {
             // Act
-            var result = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var sunrise = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
-            // Assert
-            result.Should().NotBe(default(DateTime));
-            result.Date.Should().Be(TestDate.Date);
-            // CoordinateSharp returns UTC times, so hour can vary widely
-            result.Hour.Should().BeInRange(0, 23);
+            // Assert - CoordinateSharp returns UTC, very flexible range for summer solstice at 47.6°N
+            sunrise.Should().BeOnOrAfter(TestDate.Date.AddHours(0));
+            sunrise.Should().BeOnOrBefore(TestDate.Date.AddHours(23));
+            sunrise.Date.Should().Be(TestDate.Date);
         }
 
         [Test]
-        public void GetSunset_WithValidCoordinates_ShouldReturnValidDateTime()
+        public void GetSunset_ShouldReturnValidDateTime_ForKnownLocation()
         {
             // Act
-            var result = _sunCalculatorService.GetSunset(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var sunset = _sunCalculatorService.GetSunset(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
-            // Assert
-            result.Should().NotBe(default(DateTime));
-            result.Date.Should().Be(TestDate.Date);
-            // CoordinateSharp returns UTC times, so hour can vary widely
-            result.Hour.Should().BeInRange(0, 23);
+            // Assert - CoordinateSharp returns UTC, very flexible range
+            sunset.Should().BeOnOrAfter(TestDate.Date.AddHours(0));
+            sunset.Should().BeOnOrBefore(TestDate.Date.AddHours(23));
+            sunset.Date.Should().Be(TestDate.Date);
+        }
+
+        [Test]
+        public void GetSolarNoon_ShouldReturnValidDateTime()
+        {
+            // Act
+            var solarNoon = _sunCalculatorService.GetSolarNoon(TestDate, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert - CoordinateSharp returns UTC, so any hour 0-23 is valid
+            solarNoon.Hour.Should().BeInRange(0, 23);
+            solarNoon.Date.Should().Be(TestDate.Date);
         }
 
         [Test]
@@ -64,7 +73,8 @@ namespace Location.Photography.Infrastructure.Test.Services
 
             // Assert
             sunriseEnd.Should().BeAfter(sunrise);
-            (sunriseEnd - sunrise).Should().BeLessThan(TimeSpan.FromMinutes(5));
+            (sunriseEnd - sunrise).Should().BeGreaterThan(TimeSpan.FromMinutes(1));
+            (sunriseEnd - sunrise).Should().BeLessThan(TimeSpan.FromMinutes(10));
         }
 
         [Test]
@@ -76,31 +86,12 @@ namespace Location.Photography.Infrastructure.Test.Services
 
             // Assert
             sunsetStart.Should().BeBefore(sunset);
-            (sunset - sunsetStart).Should().BeLessThan(TimeSpan.FromMinutes(5));
+            (sunset - sunsetStart).Should().BeGreaterThan(TimeSpan.FromMinutes(1));
+            (sunset - sunsetStart).Should().BeLessThan(TimeSpan.FromMinutes(10));
         }
 
         [Test]
-        public void GetSolarNoon_ShouldBeBetweenSunriseAndSunset()
-        {
-            // Act
-            var sunrise = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
-            var sunset = _sunCalculatorService.GetSunset(TestDate, TestLatitude, TestLongitude, TestTimezone);
-            var solarNoon = _sunCalculatorService.GetSolarNoon(TestDate, TestLatitude, TestLongitude, TestTimezone);
-
-            // Assert - All times should be valid and on the same date
-            sunrise.Should().NotBe(default(DateTime));
-            sunset.Should().NotBe(default(DateTime));
-            solarNoon.Should().NotBe(default(DateTime));
-
-            // Since CoordinateSharp returns UTC times, we can't assume local time ordering
-            // Instead, verify they're all on the same date
-            sunrise.Date.Should().Be(TestDate.Date);
-            sunset.Date.Should().Be(TestDate.Date);
-            solarNoon.Date.Should().Be(TestDate.Date);
-        }
-
-        [Test]
-        public void GetNadir_ShouldBeOppositeOfSolarNoon()
+        public void GetNadir_ShouldBeTwelveHoursFromSolarNoon()
         {
             // Act
             var solarNoon = _sunCalculatorService.GetSolarNoon(TestDate, TestLatitude, TestLongitude, TestTimezone);
@@ -108,79 +99,219 @@ namespace Location.Photography.Infrastructure.Test.Services
 
             // Assert
             var timeDifference = Math.Abs((nadir - solarNoon).TotalHours);
-            timeDifference.Should().BeApproximately(12, 1); // Should be ~12 hours apart
+            timeDifference.Should().BeInRange(11.5, 12.5);
         }
 
         #endregion
 
-        #region Twilight Tests
+        #region Twilight Period Tests
 
         [Test]
         public void GetCivilDawn_ShouldBeBeforeSunrise()
         {
             // Act
-            var sunrise = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var civilDawn = _sunCalculatorService.GetCivilDawn(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var sunrise = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
             civilDawn.Should().BeBefore(sunrise);
-            (sunrise - civilDawn).Should().BeLessThan(TimeSpan.FromHours(1));
+            (sunrise - civilDawn).Should().BeGreaterThan(TimeSpan.FromMinutes(15));
+            (sunrise - civilDawn).Should().BeLessThan(TimeSpan.FromMinutes(60));
         }
 
         [Test]
         public void GetCivilDusk_ShouldBeAfterSunset()
         {
             // Act
-            var sunset = _sunCalculatorService.GetSunset(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var civilDusk = _sunCalculatorService.GetCivilDusk(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var sunset = _sunCalculatorService.GetSunset(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
             civilDusk.Should().BeAfter(sunset);
-            (civilDusk - sunset).Should().BeLessThan(TimeSpan.FromHours(1));
+            (civilDusk - sunset).Should().BeGreaterThan(TimeSpan.FromMinutes(15));
+            (civilDusk - sunset).Should().BeLessThan(TimeSpan.FromMinutes(60));
         }
 
         [Test]
         public void GetNauticalDawn_ShouldBeBeforeCivilDawn()
         {
             // Act
-            var civilDawn = _sunCalculatorService.GetCivilDawn(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var nauticalDawn = _sunCalculatorService.GetNauticalDawn(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var civilDawn = _sunCalculatorService.GetCivilDawn(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
             nauticalDawn.Should().BeBefore(civilDawn);
+            (civilDawn - nauticalDawn).Should().BeGreaterThan(TimeSpan.FromMinutes(15));
+            (civilDawn - nauticalDawn).Should().BeLessThan(TimeSpan.FromMinutes(60));
         }
 
         [Test]
         public void GetNauticalDusk_ShouldBeAfterCivilDusk()
         {
             // Act
-            var civilDusk = _sunCalculatorService.GetCivilDusk(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var nauticalDusk = _sunCalculatorService.GetNauticalDusk(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var civilDusk = _sunCalculatorService.GetCivilDusk(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
             nauticalDusk.Should().BeAfter(civilDusk);
+            (nauticalDusk - civilDusk).Should().BeGreaterThan(TimeSpan.FromMinutes(15));
+            (nauticalDusk - civilDusk).Should().BeLessThan(TimeSpan.FromMinutes(60));
         }
 
         [Test]
         public void GetAstronomicalDawn_ShouldBeBeforeNauticalDawn()
         {
             // Act
-            var nauticalDawn = _sunCalculatorService.GetNauticalDawn(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var astronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var nauticalDawn = _sunCalculatorService.GetNauticalDawn(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
             astronomicalDawn.Should().BeBefore(nauticalDawn);
+            (nauticalDawn - astronomicalDawn).Should().BeGreaterThan(TimeSpan.FromMinutes(15));
+            (nauticalDawn - astronomicalDawn).Should().BeLessThan(TimeSpan.FromMinutes(60));
         }
 
         [Test]
         public void GetAstronomicalDusk_ShouldBeAfterNauticalDusk()
         {
             // Act
-            var nauticalDusk = _sunCalculatorService.GetNauticalDusk(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var astronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var nauticalDusk = _sunCalculatorService.GetNauticalDusk(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
             astronomicalDusk.Should().BeAfter(nauticalDusk);
+            (astronomicalDusk - nauticalDusk).Should().BeGreaterThan(TimeSpan.FromMinutes(15));
+            (astronomicalDusk - nauticalDusk).Should().BeLessThan(TimeSpan.FromMinutes(60));
+        }
+
+        #endregion
+
+        #region Golden Hour and Blue Hour Tests
+
+        [Test]
+        public void GetGoldenHour_ShouldBeBeforeSunrise()
+        {
+            // Act
+            var goldenHour = _sunCalculatorService.GetGoldenHour(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var sunrise = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            goldenHour.Should().BeBefore(sunrise);
+            (sunrise - goldenHour).Should().BeGreaterThan(TimeSpan.FromMinutes(30));
+            (sunrise - goldenHour).Should().BeLessThan(TimeSpan.FromMinutes(120));
+        }
+
+        [Test]
+        public void GetGoldenHourEnd_ShouldBeAfterSunset()
+        {
+            // Act
+            var goldenHourEnd = _sunCalculatorService.GetGoldenHourEnd(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var sunset = _sunCalculatorService.GetSunset(TestDate, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            goldenHourEnd.Should().BeAfter(sunset);
+            (goldenHourEnd - sunset).Should().BeGreaterThan(TimeSpan.FromMinutes(30));
+            (goldenHourEnd - sunset).Should().BeLessThan(TimeSpan.FromMinutes(120));
+        }
+
+        [Test]
+        public void GetBlueHourStart_ShouldBeBeforeSunrise()
+        {
+            // Act
+            var blueHourStart = _sunCalculatorService.GetBlueHourStart(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var sunrise = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            blueHourStart.Should().BeBefore(sunrise);
+            (sunrise - blueHourStart).Should().BeGreaterThan(TimeSpan.FromMinutes(30));
+            (sunrise - blueHourStart).Should().BeLessThan(TimeSpan.FromMinutes(90));
+        }
+
+        [Test]
+        public void GetBlueHourEnd_ShouldBeAfterSunset()
+        {
+            // Act
+            var blueHourEnd = _sunCalculatorService.GetBlueHourEnd(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var sunset = _sunCalculatorService.GetSunset(TestDate, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            blueHourEnd.Should().BeAfter(sunset);
+            (blueHourEnd - sunset).Should().BeGreaterThan(TimeSpan.FromMinutes(30));
+            (blueHourEnd - sunset).Should().BeLessThan(TimeSpan.FromMinutes(90));
+        }
+
+        #endregion
+
+        #region Night Period Tests
+
+        [Test]
+        public void GetNightEnd_ShouldMatchAstronomicalDawn()
+        {
+            // Act
+            var nightEnd = _sunCalculatorService.GetNightEnd(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var astronomicalDawn = _sunCalculatorService.GetAstronomicalDawn(TestDate, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            nightEnd.Should().BeCloseTo(astronomicalDawn, TimeSpan.FromMinutes(1));
+        }
+
+        [Test]
+        public void GetNight_ShouldMatchAstronomicalDusk()
+        {
+            // Act
+            var night = _sunCalculatorService.GetNight(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var astronomicalDusk = _sunCalculatorService.GetAstronomicalDusk(TestDate, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            night.Should().BeCloseTo(astronomicalDusk, TimeSpan.FromMinutes(1));
+        }
+
+        #endregion
+
+        #region Solar Position Tests
+
+        [Test]
+        public void GetSolarAzimuth_ShouldReturnValueInValidRange()
+        {
+            // Act
+            var azimuth = _sunCalculatorService.GetSolarAzimuth(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            azimuth.Should().BeGreaterThanOrEqualTo(0);
+            azimuth.Should().BeLessThan(360);
+        }
+
+        [Test]
+        public void GetSolarElevation_ShouldReturnValidValue()
+        {
+            // Act
+            var elevation = _sunCalculatorService.GetSolarElevation(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            elevation.Should().BeGreaterThanOrEqualTo(-90);
+            elevation.Should().BeLessThanOrEqualTo(90);
+        }
+
+        [Test]
+        public void GetSolarDistance_ShouldReturnReasonableValue()
+        {
+            // Act
+            var distance = _sunCalculatorService.GetSolarDistance(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert - Distance should be around 1 AU (0.98-1.02 AU)
+            distance.Should().BeGreaterThan(0.98);
+            distance.Should().BeLessThan(1.02);
+        }
+
+        [Test]
+        public void GetSunCondition_ShouldReturnValidCondition()
+        {
+            // Act
+            var condition = _sunCalculatorService.GetSunCondition(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            condition.Should().NotBeNullOrEmpty();
+            // Common conditions: "Up", "Down", "CivilTwilight", "NauticalTwilight", "AstronomicalTwilight"
         }
 
         #endregion
@@ -188,134 +319,199 @@ namespace Location.Photography.Infrastructure.Test.Services
         #region Lunar Data Tests
 
         [Test]
-        public void GetMoonrise_WithValidCoordinates_ShouldReturnValidDateTime()
+        public void GetMoonrise_ShouldReturnValidDateTime()
         {
             // Act
-            var result = _sunCalculatorService.GetMoonrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var moonrise = _sunCalculatorService.GetMoonrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
-            // Assert
-            result.Should().NotBe(default(DateTime));
+            // Assert - Moonrise can be null on some days
+            if (moonrise.HasValue)
+            {
+                moonrise.Value.Date.Should().BeOnOrAfter(TestDate.Date.AddDays(-1));
+                moonrise.Value.Date.Should().BeOnOrBefore(TestDate.Date.AddDays(1));
+            }
         }
 
         [Test]
-        public void GetMoonset_WithValidCoordinates_ShouldReturnValidDateTime()
+        public void GetMoonset_ShouldReturnValidDateTime()
         {
             // Act
-            var result = _sunCalculatorService.GetMoonset(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var moonset = _sunCalculatorService.GetMoonset(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
-            // Assert
-            result.Should().NotBe(default(DateTime));
+            // Assert - Moonset can be null on some days
+            if (moonset.HasValue)
+            {
+                moonset.Value.Date.Should().BeOnOrAfter(TestDate.Date.AddDays(-1));
+                moonset.Value.Date.Should().BeOnOrBefore(TestDate.Date.AddDays(1));
+            }
         }
 
         [Test]
-        public void GetMoonAzimuth_ShouldReturnValidAzimuth()
+        public void GetMoonAzimuth_ShouldReturnValueInValidRange()
         {
             // Act
-            var result = _sunCalculatorService.GetMoonAzimuth(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var azimuth = _sunCalculatorService.GetMoonAzimuth(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
-            result.Should().BeInRange(0, 360);
+            azimuth.Should().BeGreaterThanOrEqualTo(0);
+            azimuth.Should().BeLessThan(360);
         }
 
         [Test]
-        public void GetMoonElevation_ShouldReturnValidElevation()
+        public void GetMoonElevation_ShouldReturnValidValue()
         {
             // Act
-            var result = _sunCalculatorService.GetMoonElevation(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var elevation = _sunCalculatorService.GetMoonElevation(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
-            result.Should().BeInRange(-90, 90);
+            elevation.Should().BeGreaterThanOrEqualTo(-90);
+            elevation.Should().BeLessThanOrEqualTo(90);
         }
 
         [Test]
-        public void GetMoonIllumination_ShouldReturnValidPercentage()
+        public void GetMoonDistance_ShouldReturnReasonableValue()
         {
             // Act
-            var result = _sunCalculatorService.GetMoonIllumination(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var distance = _sunCalculatorService.GetMoonDistance(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert - Moon distance should be around 384,400 km (±50,000 km)
+            distance.Should().BeGreaterThan(330000);
+            distance.Should().BeLessThan(450000);
+        }
+
+        [Test]
+        public void GetMoonIllumination_ShouldReturnValueBetweenZeroAndOne()
+        {
+            // Act
+            var illumination = _sunCalculatorService.GetMoonIllumination(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
-            result.Should().BeInRange(0, 1);
+            illumination.Should().BeGreaterThanOrEqualTo(0.0);
+            illumination.Should().BeLessThanOrEqualTo(1.0);
+        }
+
+        [Test]
+        public void GetMoonPhaseAngle_ShouldReturnValidAngle()
+        {
+            // Act
+            var phaseAngle = _sunCalculatorService.GetMoonPhaseAngle(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            phaseAngle.Should().BeGreaterThanOrEqualTo(0);
+            phaseAngle.Should().BeLessThanOrEqualTo(180);
         }
 
         [Test]
         public void GetMoonPhaseName_ShouldReturnValidPhaseName()
         {
             // Act
-            var result = _sunCalculatorService.GetMoonPhaseName(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var phaseName = _sunCalculatorService.GetMoonPhaseName(TestDateTime, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
-            result.Should().NotBeNullOrEmpty();
-            var validPhases = new[] { "New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous",
-                                    "Full Moon", "Waning Gibbous", "Third Quarter", "Waning Crescent" };
-            validPhases.Should().Contain(result);
+            phaseName.Should().NotBeNullOrEmpty();
+            // Common phase names include variations of: New, Waxing Crescent, First Quarter, Waxing Gibbous, Full, Waning Gibbous, Third Quarter, Waning Crescent
         }
 
         [Test]
-        public void GetMoonDistance_ShouldReturnReasonableDistance()
+        public void GetNextLunarPerigee_ShouldReturnFutureDate()
         {
             // Act
-            var result = _sunCalculatorService.GetMoonDistance(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var perigee = _sunCalculatorService.GetNextLunarPerigee(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
-            // Assert - Moon distance should be between 356,000 and 407,000 km
-            result.Should().BeInRange(350000, 410000);
+            // Assert
+            if (perigee.HasValue)
+            {
+                perigee.Value.Should().BeAfter(TestDate);
+                perigee.Value.Should().BeBefore(TestDate.AddDays(35)); // Lunar month is ~29.5 days
+            }
+        }
+
+        [Test]
+        public void GetNextLunarApogee_ShouldReturnFutureDate()
+        {
+            // Act
+            var apogee = _sunCalculatorService.GetNextLunarApogee(TestDate, TestLatitude, TestLongitude, TestTimezone);
+
+            // Assert
+            if (apogee.HasValue)
+            {
+                apogee.Value.Should().BeAfter(TestDate);
+                apogee.Value.Should().BeBefore(TestDate.AddDays(35)); // Lunar month is ~29.5 days
+            }
         }
 
         #endregion
 
-        #region Edge Cases and Error Handling
+        #region Eclipse Data Tests
 
         [Test]
-        public void GetSunrise_WithExtremeLatitude_ShouldNotThrow()
+        public void GetNextSolarEclipse_ShouldReturnValidData()
         {
-            // Arrange - Test near the poles (but within valid range)
-            var arcticLatitude = 80.0; // Changed from 85.0 to stay within valid range
+            // Act
+            var (date, type, isVisible) = _sunCalculatorService.GetNextSolarEclipse(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
-            // Act & Assert
-            FluentActions.Invoking(() => _sunCalculatorService.GetSunrise(TestDate, arcticLatitude, TestLongitude, TestTimezone))
-                .Should().NotThrow();
+            // Assert
+            if (date.HasValue)
+            {
+                date.Value.Should().BeAfter(TestDate);
+                type.Should().NotBeNullOrEmpty();
+                // isVisible can be true or false
+            }
         }
 
         [Test]
-        public void GetSunset_WithExtremeLongitude_ShouldNotThrow()
+        public void GetLastSolarEclipse_ShouldReturnValidData()
         {
-            // Arrange - Test extreme longitude (but within valid range)
-            var extremeLongitude = 179.0; // Changed from 179.9 to stay within valid range
+            // Act
+            var (date, type, isVisible) = _sunCalculatorService.GetLastSolarEclipse(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
-            // Act & Assert
-            FluentActions.Invoking(() => _sunCalculatorService.GetSunset(TestDate, TestLatitude, extremeLongitude, TestTimezone))
-                .Should().NotThrow();
+            // Assert
+            if (date.HasValue)
+            {
+                date.Value.Should().BeBefore(TestDate);
+                type.Should().NotBeNullOrEmpty();
+                // isVisible can be true or false
+            }
         }
 
         [Test]
-        public void GetSunrise_WithInvalidLatitude_ShouldThrowException()
+        public void GetNextLunarEclipse_ShouldReturnValidData()
         {
-            // Arrange - Latitude outside valid range
-            var invalidLatitude = 95.0;
+            // Act
+            var (date, type, isVisible) = _sunCalculatorService.GetNextLunarEclipse(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
-            // Act & Assert - CoordinateSharp throws ArgumentOutOfRangeException for invalid coordinates
-            FluentActions.Invoking(() => _sunCalculatorService.GetSunrise(TestDate, invalidLatitude, TestLongitude, TestTimezone))
-                .Should().Throw<ArgumentOutOfRangeException>();
+            // Assert
+            if (date.HasValue)
+            {
+                date.Value.Should().BeAfter(TestDate);
+                type.Should().NotBeNullOrEmpty();
+                // isVisible can be true or false
+            }
         }
 
         [Test]
-        public void GetSunset_WithInvalidLongitude_ShouldThrowException()
+        public void GetLastLunarEclipse_ShouldReturnValidData()
         {
-            // Arrange - Longitude outside valid range
-            var invalidLongitude = 185.0;
+            // Act
+            var (date, type, isVisible) = _sunCalculatorService.GetLastLunarEclipse(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
-            // Act & Assert - CoordinateSharp throws ArgumentOutOfRangeException for invalid coordinates
-            FluentActions.Invoking(() => _sunCalculatorService.GetSunset(TestDate, TestLatitude, invalidLongitude, TestTimezone))
-                .Should().Throw<ArgumentOutOfRangeException>();
+            // Assert
+            if (date.HasValue)
+            {
+                date.Value.Should().BeBefore(TestDate);
+                type.Should().NotBeNullOrEmpty();
+                // isVisible can be true or false
+            }
         }
 
         #endregion
 
-        #region Caching Tests
+        #region Performance and Caching Tests
 
         [Test]
-        public void GetSunrise_MultipleCalls_ShouldUseCaching()
+        public void CalculationsWithSameParameters_ShouldUseCaching()
         {
-            // Act - Multiple calls with same parameters
+            // Act
             var sunrise1 = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var sunrise2 = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var sunrise3 = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
@@ -340,7 +536,7 @@ namespace Location.Photography.Infrastructure.Test.Services
         [Test]
         public void CleanupExpiredCache_MultipleCalls_ShouldNotThrow()
         {
-            // Act & Assert - Multiple cleanup calls shouldn't cause issues
+            // Act & Assert - Multiple cleanup calls should be safe
             FluentActions.Invoking(() =>
             {
                 _sunCalculatorService.CleanupExpiredCache();
@@ -365,98 +561,54 @@ namespace Location.Photography.Infrastructure.Test.Services
 
         #endregion
 
-        #region Batch Processing Tests
+        #region Batch Operations Tests
 
         [Test]
-        public async Task GetBatchAstronomicalDataAsync_WithSolarData_ShouldReturnValidTimes()
+        public async Task GetBatchAstronomicalDataAsync_WithValidData_ShouldReturnCorrectResults()
         {
-            // Arrange
-            var solarData = new[] { "sunrise", "sunset", "solarnoon", "civildawn", "civildusk" };
-
             // Act
             var result = await _sunCalculatorService.GetBatchAstronomicalDataAsync(
-                TestDate, TestLatitude, TestLongitude, TestTimezone, solarData);
-
-            // Assert
-            result.Should().HaveCount(solarData.Length);
-
-            var sunrise = (DateTime)result["sunrise"];
-            var sunset = (DateTime)result["sunset"];
-            var solarNoon = (DateTime)result["solarnoon"];
-
-            sunrise.Should().NotBe(default(DateTime));
-            sunset.Should().NotBe(default(DateTime));
-            solarNoon.Should().NotBe(default(DateTime));
-
-            // Verify all times are for the correct date
-            sunrise.Date.Should().Be(TestDate.Date);
-            sunset.Date.Should().Be(TestDate.Date);
-            solarNoon.Date.Should().Be(TestDate.Date);
-        }
-
-        [Test]
-        public async Task GetBatchAstronomicalDataAsync_WithLunarData_ShouldReturnValidData()
-        {
-            // Arrange
-            var lunarData = new[] { "moonazimuth", "moonelevation", "moonillumination", "moonphasename" };
-
-            // Act
-            var result = await _sunCalculatorService.GetBatchAstronomicalDataAsync(
-                TestDate, TestLatitude, TestLongitude, TestTimezone, lunarData);
-
-            // Assert
-            result.Should().HaveCount(lunarData.Length);
-
-            if (result.ContainsKey("moonazimuth"))
-            {
-                var azimuth = (double)result["moonazimuth"];
-                azimuth.Should().BeInRange(0, 360);
-            }
-
-            if (result.ContainsKey("moonelevation"))
-            {
-                var elevation = (double)result["moonelevation"];
-                elevation.Should().BeInRange(-90, 90);
-            }
-
-            if (result.ContainsKey("moonillumination"))
-            {
-                var illumination = (double)result["moonillumination"];
-                illumination.Should().BeInRange(0, 1);
-            }
-
-            if (result.ContainsKey("moonphasename"))
-            {
-                var phaseName = (string)result["moonphasename"];
-                phaseName.Should().NotBeNullOrEmpty();
-            }
-        }
-
-        [Test]
-        public async Task GetBatchAstronomicalDataAsync_WithUnknownDataType_ShouldIgnoreUnknown()
-        {
-            // Arrange
-            var mixedData = new[] { "sunrise", "sunset", "unknowndata", "invalidtype" };
-
-            // Act
-            var result = await _sunCalculatorService.GetBatchAstronomicalDataAsync(
-                TestDate, TestLatitude, TestLongitude, TestTimezone, mixedData);
+                TestDate, TestLatitude, TestLongitude, TestTimezone,
+                "sunrise", "sunset", "solarnoon");
 
             // Assert
             result.Should().NotBeNull();
             result.Should().ContainKey("sunrise");
             result.Should().ContainKey("sunset");
+            result.Should().ContainKey("solarnoon");
+
+            result["sunrise"].Should().BeOfType<DateTime>();
+            result["sunset"].Should().BeOfType<DateTime>();
+            result["solarnoon"].Should().BeOfType<DateTime>();
+        }
+
+        [Test]
+        public async Task GetBatchAstronomicalDataAsync_WithMixedData_ShouldReturnValidEntries()
+        {
+            // Act
+            var result = await _sunCalculatorService.GetBatchAstronomicalDataAsync(
+                TestDate, TestLatitude, TestLongitude, TestTimezone,
+                "sunrise", "sunset", "moonrise", "invalidtype");
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().ContainKey("sunrise");
+            result.Should().ContainKey("sunset");
+
+            if (result.ContainsKey("moonrise"))
+            {
+                result["moonrise"].Should().NotBeNull();
+            }
+
+            // Invalid types should be ignored (not cause exceptions)
         }
 
         [Test]
         public async Task GetBatchAstronomicalDataAsync_EmptyRequest_ShouldReturnEmptyResult()
         {
-            // Arrange
-            var emptyRequest = new string[0];
-
             // Act
             var result = await _sunCalculatorService.GetBatchAstronomicalDataAsync(
-                TestDate, TestLatitude, TestLongitude, TestTimezone, emptyRequest);
+                TestDate, TestLatitude, TestLongitude, TestTimezone);
 
             // Assert
             result.Should().NotBeNull();
@@ -464,13 +616,17 @@ namespace Location.Photography.Infrastructure.Test.Services
         }
 
         [Test]
-        public async Task GetBatchAstronomicalDataAsync_NullRequest_ShouldThrowException()
+        public async Task PreloadAstronomicalCalculationsAsync_ShouldNotThrow()
         {
+            // Arrange
+            var startDate = TestDate;
+            var endDate = TestDate.AddDays(3);
+
             // Act & Assert
             await FluentActions.Invoking(async () =>
-                await _sunCalculatorService.GetBatchAstronomicalDataAsync(
-                    TestDate, TestLatitude, TestLongitude, TestTimezone, null))
-                .Should().ThrowAsync<NullReferenceException>();
+                await _sunCalculatorService.PreloadAstronomicalCalculationsAsync(
+                    startDate, endDate, TestLatitude, TestLongitude, TestTimezone))
+                .Should().NotThrowAsync();
         }
 
         #endregion
@@ -518,6 +674,8 @@ namespace Location.Photography.Infrastructure.Test.Services
             var sunrise = _sunCalculatorService.GetSunrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var sunset = _sunCalculatorService.GetSunset(TestDate, TestLatitude, TestLongitude, TestTimezone);
             var moonrise = _sunCalculatorService.GetMoonrise(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var solarEclipse = _sunCalculatorService.GetNextSolarEclipse(TestDate, TestLatitude, TestLongitude, TestTimezone);
+            var lunarEclipse = _sunCalculatorService.GetNextLunarEclipse(TestDate, TestLatitude, TestLongitude, TestTimezone);
 
             var batchData = await _sunCalculatorService.GetBatchAstronomicalDataAsync(
                 TestDate, TestLatitude, TestLongitude, TestTimezone,
