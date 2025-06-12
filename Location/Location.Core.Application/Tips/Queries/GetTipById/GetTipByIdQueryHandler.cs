@@ -1,5 +1,6 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Tips.Queries.GetTipById
@@ -13,6 +14,7 @@ namespace Location.Core.Application.Tips.Queries.GetTipById
     public class GetTipByIdQueryHandler : IRequestHandler<GetTipByIdQuery, Result<GetTipByIdQueryResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GetTipByIdQueryHandler"/> class.
         /// </summary>
@@ -22,6 +24,7 @@ namespace Location.Core.Application.Tips.Queries.GetTipById
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
+
         /// <summary>
         /// Handles the retrieval of a tip by its unique identifier.
         /// </summary>
@@ -31,12 +34,11 @@ namespace Location.Core.Application.Tips.Queries.GetTipById
         /// otherwise, a failure result with an error message.</returns>
         public async Task<Result<GetTipByIdQueryResponse>> Handle(GetTipByIdQuery request, CancellationToken cancellationToken)
         {
-
             var result = await _unitOfWork.Tips.GetByIdAsync(request.Id, cancellationToken);
 
             if (!result.IsSuccess || result.Data == null)
             {
-                return Result<GetTipByIdQueryResponse>.Failure(result.ErrorMessage ?? "Tip not found");
+                return Result<GetTipByIdQueryResponse>.Failure(result.ErrorMessage ?? AppResources.Tip_Error_NotFound);
             }
 
             var tip = result.Data;

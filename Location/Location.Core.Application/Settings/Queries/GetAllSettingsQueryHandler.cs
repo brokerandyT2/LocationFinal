@@ -1,5 +1,6 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Settings.Queries.GetAllSettings
@@ -13,6 +14,7 @@ namespace Location.Core.Application.Settings.Queries.GetAllSettings
     public class GetAllSettingsQueryHandler : IRequestHandler<GetAllSettingsQuery, Result<List<GetAllSettingsQueryResponse>>>
     {
         private readonly IUnitOfWork _unitOfWork;
+
         /// <summary>
         /// Handles the query to retrieve all application settings.
         /// </summary>
@@ -22,6 +24,7 @@ namespace Location.Core.Application.Settings.Queries.GetAllSettings
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
+
         /// <summary>
         /// Handles the query to retrieve all settings from the data source.
         /// </summary>
@@ -38,7 +41,7 @@ namespace Location.Core.Application.Settings.Queries.GetAllSettings
 
             if (!result.IsSuccess || result.Data == null)
             {
-                return Result<List<GetAllSettingsQueryResponse>>.Failure(result.ErrorMessage ?? "Failed to retrieve settings");
+                return Result<List<GetAllSettingsQueryResponse>>.Failure(result.ErrorMessage ?? AppResources.Setting_Error_RetrieveFailed);
             }
 
             var settings = result.Data;

@@ -1,6 +1,6 @@
-﻿// Location.Core.Application/Tips/Queries/GetAllTipTypes/GetAllTipTypesQuery.cs
-using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Resources;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
 
@@ -15,6 +15,7 @@ namespace Location.Core.Application.Tips.Queries.GetAllTipTypes
     public class GetAllTipTypesQuery : IRequest<Result<List<TipTypeDto>>>
     {
     }
+
     /// <summary>
     /// Handles the retrieval of all tip types.
     /// </summary>
@@ -24,6 +25,7 @@ namespace Location.Core.Application.Tips.Queries.GetAllTipTypes
     public class GetAllTipTypesQueryHandler : IRequestHandler<GetAllTipTypesQuery, Result<List<TipTypeDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
+
         /// <summary>
         /// Handles the query to retrieve all tip types.
         /// </summary>
@@ -32,6 +34,7 @@ namespace Location.Core.Application.Tips.Queries.GetAllTipTypes
         {
             _unitOfWork = unitOfWork;
         }
+
         /// <summary>
         /// Handles the retrieval of all tip types.
         /// </summary>
@@ -50,8 +53,9 @@ namespace Location.Core.Application.Tips.Queries.GetAllTipTypes
 
                 if (result == null)
                 {
-                    return Result<List<TipTypeDto>>.Failure("Failed to retrieve tip types");
+                    return Result<List<TipTypeDto>>.Failure(AppResources.TipType_Error_ListRetrieveFailed);
                 }
+
                 List<TipTypeDto> tipTypeDtos = new List<TipTypeDto>();
 
                 foreach (var tipType in result)
@@ -64,12 +68,11 @@ namespace Location.Core.Application.Tips.Queries.GetAllTipTypes
                     });
                 }
 
-
                 return Result<List<TipTypeDto>>.Success(tipTypeDtos);
             }
             catch (Exception ex)
             {
-                return Result<List<TipTypeDto>>.Failure($"Failed to retrieve tip types: {ex.Message}");
+                return Result<List<TipTypeDto>>.Failure(string.Format(AppResources.TipType_Error_ListRetrieveFailedWithException, ex.Message));
             }
         }
     }

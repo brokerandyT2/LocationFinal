@@ -1,5 +1,6 @@
 ﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Resources;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
 
@@ -14,6 +15,7 @@ namespace Location.Core.Application.Queries.TipTypes
     public class GetAllTipTypesQuery : IRequest<Result<List<TipTypeDto>>>
     {
     }
+
     /// <summary>
     /// Handles the retrieval of all tip types.
     /// </summary>
@@ -23,6 +25,7 @@ namespace Location.Core.Application.Queries.TipTypes
     public class GetAllTipTypesQueryHandler : IRequestHandler<GetAllTipTypesQuery, Result<List<TipTypeDto>>>
     {
         private readonly ITipTypeRepository _tipTypeRepository;
+
         /// <summary>
         /// Handles the query to retrieve all available tip types.
         /// </summary>
@@ -32,6 +35,7 @@ namespace Location.Core.Application.Queries.TipTypes
         {
             _tipTypeRepository = tipTypeRepository ?? throw new ArgumentNullException(nameof(tipTypeRepository));
         }
+
         /// <summary>
         /// Handles the retrieval of all tip types.
         /// </summary>
@@ -59,7 +63,7 @@ namespace Location.Core.Application.Queries.TipTypes
             }
             catch (Exception ex)
             {
-                return Result<List<TipTypeDto>>.Failure($"Failed to retrieve tip types: {ex.Message}");
+                return Result<List<TipTypeDto>>.Failure(string.Format(AppResources.TipType_Error_ListRetrieveFailedWithException, ex.Message));
             }
         }
     }
