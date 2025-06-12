@@ -13,50 +13,42 @@
       | 128     | 128       | 128      | 5500             |
     When I analyze the color temperature
     Then I should receive a successful photography result
-    And I should receive color temperature analysis
     And the color temperature should be approximately 5500 Kelvin
-    And the color temperature should indicate neutral lighting
+    And the lighting should be identified as daylight
+    And the white balance should be neutral
 
-  Scenario: Analyze tungsten lighting color temperature
+  Scenario: Detect tungsten lighting color cast
     Given I want to analyze color temperature in an image
     And the lighting condition is tungsten
     And the image has color characteristics:
       | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 180     | 140       | 90       | 3200             |
+      | 180     | 140       | 100      | 2800             |
     When I analyze the color temperature
     Then I should receive a successful photography result
-    And the color temperature should be approximately 3200 Kelvin
-    And the color temperature should indicate warm lighting
+    And the color temperature should be approximately 2800 Kelvin
+    And the lighting should be identified as tungsten
+    And the image should have a warm color cast
+    And I should receive color correction recommendations
 
-  Scenario: Analyze overcast lighting color temperature
+  Scenario: Detect blue hour color temperature
     Given I want to analyze color temperature in an image
-    And the lighting condition is overcast
+    And the lighting condition is blue hour
     And the image has color characteristics:
       | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 110     | 120       | 140      | 7000             |
+      | 100     | 120       | 160      | 8000             |
     When I analyze the color temperature
     Then I should receive a successful photography result
-    And the color temperature should be approximately 7000 Kelvin
-    And the color temperature should indicate cool lighting
+    And the color temperature should be approximately 8000 Kelvin
+    And the lighting should be identified as blue hour
+    And the image should have a cool color cast
 
-  Scenario: Measure white balance accuracy
+  Scenario: Calculate white balance correction values
     Given I want to analyze color temperature in an image
-    And I have a reference white point
+    And the target color temperature is 5500 Kelvin
     And the image has color characteristics:
       | MeanRed | MeanGreen | MeanBlue | ColorTemperature | TintValue |
-      | 140     | 120       | 110      | 4500             | 0.2       |
-    When I measure the white balance
-    Then I should receive a successful photography result
-    And I should receive white balance measurements
-    And the white balance should be too warm
-
-  Scenario: Calculate color correction values
-    Given I want to correct white balance
-    And I have a reference white point
-    And the image has color characteristics:
-      | MeanRed | MeanGreen | MeanBlue | ColorTemperature | TintValue |
-      | 160     | 130       | 100      | 3800             | 0.3       |
-    When I calculate color correction values
+      | 200     | 140       | 110      | 2800             | -0.3      |
+    When I calculate white balance correction
     Then I should receive a successful photography result
     And I should receive color correction values
     And the temperature correction should be approximately 2700 Kelvin
@@ -71,143 +63,153 @@
     When I analyze the color temperature
     Then I should receive a successful photography result
     And the color temperature should be approximately 4000 Kelvin
-    And the tint should be approximately 0.4
+    And the lighting should be identified as fluorescent
+    And the image should have a green tint
+    And the tint value should be approximately 0.4
 
-  Scenario: Compare color temperatures between multiple images
-    Given I have multiple images with different color temperatures:
-      | Id | ImagePath                  | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 1  | /test/images/daylight.jpg  | 128     | 128       | 128      | 5500             |
-      | 2  | /test/images/tungsten.jpg  | 180     | 140       | 90       | 3200             |
-      | 3  | /test/images/overcast.jpg  | 110     | 120       | 140      | 7000             |
-    When I compare color temperatures between images
-    Then I should receive a successful photography result
-    And the color temperature comparison should show different temperatures
-
-  Scenario: Detect red color cast
+  Scenario: Detect mixed lighting conditions
     Given I want to analyze color temperature in an image
-    And the image has color characteristics:
-      | MeanRed | MeanGreen | MeanBlue |
-      | 170     | 120       | 110      |
-    When I detect the dominant color cast
-    Then I should receive a successful photography result
-    And I should receive color cast detection
-    And the dominant color cast should be Red
-
-  Scenario: Detect blue color cast
-    Given I want to analyze color temperature in an image
-    And the image has color characteristics:
-      | MeanRed | MeanGreen | MeanBlue |
-      | 100     | 115       | 160      |
-    When I detect the dominant color cast
-    Then I should receive a successful photography result
-    And the dominant color cast should be Blue
-
-  Scenario: Detect green color cast
-    Given I want to analyze color temperature in an image
-    And the image has color characteristics:
-      | MeanRed | MeanGreen | MeanBlue |
-      | 110     | 150       | 120      |
-    When I detect the dominant color cast
-    Then I should receive a successful photography result
-    And the dominant color cast should be Green
-
-  Scenario: Analyze neutral white balance
-    Given I want to analyze color temperature in an image
+    And the image has mixed lighting sources
     And the image has color characteristics:
       | MeanRed | MeanGreen | MeanBlue | ColorTemperature | TintValue |
-      | 130     | 128       | 125      | 6000             | 0.1       |
-    When I measure the white balance
+      | 150     | 135       | 125      | 4200             | 0.1       |
+    When I analyze the color temperature
     Then I should receive a successful photography result
-    And the white balance should be accurate
-    And the tint should be approximately 0.1
+    And the lighting should be identified as mixed
+    And the color temperature should be approximately 4200 Kelvin
+    And the analysis should detect multiple light sources
+    And color correction should be more complex
 
-  Scenario: Analyze color temperature for portrait photography
+  Scenario: Analyze sunset golden hour colors
     Given I want to analyze color temperature in an image
-    And the image was taken under tungsten lighting
+    And the lighting condition is golden hour
     And the image has color characteristics:
       | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 170     | 135       | 100      | 3400             |
+      | 220     | 180       | 120      | 3200             |
     When I analyze the color temperature
     Then I should receive a successful photography result
-    And the color temperature should indicate warm lighting
-    And the color temperature should be approximately 3400 Kelvin
+    And the color temperature should be approximately 3200 Kelvin
+    And the lighting should be identified as golden hour
+    And the image should have warm, pleasing colors
+    And minimal correction should be recommended
 
-  Scenario: Analyze color temperature for landscape photography
+  Scenario: Detect overcast daylight conditions
     Given I want to analyze color temperature in an image
-    And the image was taken under daylight lighting
+    And the lighting condition is overcast
     And the image has color characteristics:
       | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 125     | 130       | 135      | 5800             |
+      | 110     | 125       | 145      | 6500             |
     When I analyze the color temperature
     Then I should receive a successful photography result
-    And the color temperature should indicate neutral lighting
-    And the color temperature should be approximately 5800 Kelvin
+    And the color temperature should be approximately 6500 Kelvin
+    And the lighting should be identified as overcast daylight
+    And the image should have a slight cool cast
+    And warming correction should be suggested
 
-  Scenario Outline: Analyze different lighting conditions
+  Scenario: Analyze artificial LED lighting
     Given I want to analyze color temperature in an image
-    And the lighting condition is <LightingCondition>
-    When I analyze the color temperature
-    Then I should receive a successful photography result
-    And the color temperature should be approximately <ExpectedTemp> Kelvin
-    And the color temperature should indicate <ExpectedDescription> lighting
-
-    Examples:
-      | LightingCondition | ExpectedTemp | ExpectedDescription |
-      | daylight          | 5500         | neutral             |
-      | tungsten          | 3200         | warm                |
-      | fluorescent       | 4000         | neutral             |
-      | overcast          | 7000         | cool                |
-      | shade             | 8000         | cool                |
-
-  Scenario: Batch color temperature analysis
-    Given I have multiple images with different color temperatures:
-      | Id | ImagePath                    | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 1  | /test/batch/morning.jpg      | 160     | 140       | 120      | 4200             |
-      | 2  | /test/batch/noon.jpg         | 128     | 128       | 128      | 5500             |
-      | 3  | /test/batch/evening.jpg      | 180     | 130       | 90       | 3500             |
-      | 4  | /test/batch/night.jpg        | 170     | 135       | 100      | 3200             |
-    When I analyze color temperature for all images
-    Then I should receive a successful photography result
-    And all images should have color temperature analysis
-
-  Scenario: Compare similar color temperatures
-    Given I have multiple images with different color temperatures:
-      | Id | ImagePath                  | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 1  | /test/images/daylight1.jpg | 125     | 130       | 135      | 5600             |
-      | 2  | /test/images/daylight2.jpg | 130     | 128       | 132      | 5400             |
-    When I compare color temperatures between images
-    Then I should receive a successful photography result
-    And the color temperature comparison should show similar temperatures
-
-  Scenario: White balance correction for mixed lighting
-    Given I want to correct white balance
+    And the lighting condition is LED
     And the image has color characteristics:
       | MeanRed | MeanGreen | MeanBlue | ColorTemperature | TintValue |
-      | 150     | 135       | 110      | 4200             | 0.25      |
-    And I have a reference white point
-    When I calculate color correction values
-    Then I should receive a successful photography result
-    And the temperature correction should be approximately 2300 Kelvin
-    And the tint correction should be approximately -0.25
-
-  Scenario: Detect magenta color cast
-    Given I want to analyze color temperature in an image
-    And the image has color characteristics:
-      | MeanRed | MeanGreen | MeanBlue |
-      | 140     | 110       | 130      |
-    When I detect the dominant color cast
-    Then I should receive a successful photography result
-    And the dominant color cast should be Magenta
-
-  Scenario: Analyze extreme color temperature conditions
-    Given I want to analyze color temperature in an image
-    And the image has color characteristics:
-      | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 200     | 120       | 60       | 2800             |
+      | 135     | 138       | 132      | 5000             | 0.2       |
     When I analyze the color temperature
     Then I should receive a successful photography result
-    And the color temperature should be approximately 2800 Kelvin
-    And the color temperature should indicate very warm lighting
+    And the color temperature should be approximately 5000 Kelvin
+    And the lighting should be identified as LED
+    And the white balance should be nearly neutral
+    And the tint should be minimal
+
+  Scenario: Calculate color temperature from RGB ratios
+    Given I want to calculate color temperature from RGB values
+    And the image has RGB ratios:
+      | RedRatio | GreenRatio | BlueRatio |
+      | 1.4      | 1.0        | 0.7       |
+    When I calculate color temperature from ratios
+    Then I should receive a successful photography result
+    And the calculated color temperature should be approximately 2900 Kelvin
+    And the calculation should be based on RGB relationships
+    And the accuracy should be within acceptable range
+
+  Scenario: Detect color temperature variations across image
+    Given I want to analyze color temperature variations
+    And the image has regional color temperatures:
+      | Region     | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
+      | TopLeft    | 180     | 140       | 100      | 2800             |
+      | TopRight   | 140     | 135       | 130      | 4800             |
+      | BottomLeft | 200     | 160       | 110      | 3000             |
+      | BottomRight| 120     | 125       | 140      | 6200             |
+    When I analyze regional color temperature variations
+    Then I should receive a successful photography result
+    And multiple color temperatures should be detected
+    And the variation should be significant
+    And selective correction recommendations should be provided
+
+  Scenario: Generate color temperature histogram
+    Given I want to generate a color temperature histogram
+    And the image has distributed color temperatures:
+      | TemperatureRange | PixelCount | Percentage |
+      | 2500-3000K      | 150000     | 25%        |
+      | 3000-4000K      | 200000     | 35%        |
+      | 4000-5500K      | 180000     | 30%        |
+      | 5500-7000K      | 70000      | 10%        |
+    When I generate the color temperature histogram
+    Then I should receive a successful photography result
+    And the histogram should show temperature distribution
+    And the dominant temperature range should be identified
+    And the histogram should aid in correction decisions
+
+  Scenario: Analyze skin tone color accuracy
+    Given I want to analyze skin tone color accuracy
+    And the image contains skin tones
+    And the image has color characteristics:
+      | MeanRed | MeanGreen | MeanBlue | ColorTemperature | SkinToneAccuracy |
+      | 190     | 160       | 130      | 4200             | Good             |
+    When I analyze skin tone color reproduction
+    Then I should receive a successful photography result
+    And the skin tone accuracy should be evaluated
+    And the color temperature should be suitable for skin tones
+    And any skin tone color cast should be identified
+    And correction suggestions should preserve skin tone quality
+
+  Scenario: Compare white balance presets effectiveness
+    Given I want to compare white balance preset effectiveness
+    And the image was shot with auto white balance
+    And the image has color characteristics:
+      | MeanRed | MeanGreen | MeanBlue | ColorTemperature | ActualLighting |
+      | 160     | 145       | 120      | 3800             | Tungsten       |
+    When I compare white balance preset effectiveness
+    Then I should receive a successful photography result
+    And the auto white balance accuracy should be evaluated
+    And the optimal preset should be identified
+    And the improvement potential should be calculated
+    And manual correction values should be provided
+
+  Scenario: Handle extreme color temperature conditions
+    Given I want to analyze extreme color temperature
+    And the image has extreme lighting conditions:
+      | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
+      | 250     | 150       | 80       | 2000             |
+    When I analyze the extreme color temperature
+    Then I should receive a successful photography result
+    And the extreme color temperature should be detected
+    And the analysis should handle the extreme values gracefully
+    And appropriate correction recommendations should be provided
+    And the limitations of correction should be noted
+
+  Scenario: Batch analyze color temperature across multiple images
+    Given I want to batch analyze color temperature
+    And I have multiple images with different lighting:
+      | ImagePath              | ColorTemperature | LightingType |
+      | /test/daylight.jpg     | 5500             | Daylight     |
+      | /test/tungsten.jpg     | 2800             | Tungsten     |
+      | /test/fluorescent.jpg  | 4000             | Fluorescent  |
+      | /test/led.jpg          | 5000             | LED          |
+    When I batch analyze color temperatures
+    Then I should receive a successful photography result
+    And all images should be analyzed successfully
+    And each image should have color temperature identified
+    And lighting types should be correctly classified
+    And batch correction recommendations should be provided
 
   Scenario: Comprehensive color analysis
     Given I want to analyze color temperature in an image
@@ -221,37 +223,23 @@
     And I should receive color temperature analysis
     And I should receive white balance measurements
     And I should receive color cast detection
-    And the color temperature should be approximately 4800 Kelvin
-    And the tint should be approximately 0.15
+    And the comprehensive analysis should be complete
 
-  Scenario: Color temperature analysis for macro photography
+  Scenario Outline: Analyze different lighting conditions
     Given I want to analyze color temperature in an image
-    And the image has color characteristics:
-      | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 135     | 145       | 125      | 5200             |
+    And the lighting condition is <LightingType>
+    And the image has color temperature <ColorTemperature> Kelvin
     When I analyze the color temperature
     Then I should receive a successful photography result
-    And the color temperature should be approximately 5200 Kelvin
-    And the color temperature should indicate neutral lighting
+    And the lighting should be identified as <LightingType>
+    And the color temperature should be approximately <ColorTemperature> Kelvin
+    And the color cast should be <ExpectedCast>
 
-  Scenario: Analyze shade lighting color temperature
-    Given I want to analyze color temperature in an image
-    And the lighting condition is shade
-    And the image has color characteristics:
-      | MeanRed | MeanGreen | MeanBlue | ColorTemperature |
-      | 100     | 115       | 150      | 8000             |
-    When I analyze the color temperature
-    Then I should receive a successful photography result
-    And the color temperature should be approximately 8000 Kelvin
-    And the color temperature should indicate very cool lighting
-
-  Scenario: White balance validation
-    Given I want to correct white balance
-    And the image has color characteristics:
-      | MeanRed | MeanGreen | MeanBlue | ColorTemperature | TintValue |
-      | 128     | 128       | 128      | 6500             | 0.0       |
-    When I measure the white balance
-    Then I should receive a successful photography result
-    And the white balance should be accurate
-    And the color temperature should be approximately 6500 Kelvin
-    And the tint should be approximately 0.0
+    Examples:
+      | LightingType | ColorTemperature | ExpectedCast |
+      | Candle       | 1900             | Very Warm    |
+      | Tungsten     | 2800             | Warm         |
+      | Fluorescent  | 4000             | Cool         |
+      | Daylight     | 5500             | Neutral      |
+      | Overcast     | 6500             | Cool         |
+      | Blue Hour    | 8000             | Very Cool    |

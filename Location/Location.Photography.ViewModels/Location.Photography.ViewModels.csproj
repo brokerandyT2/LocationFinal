@@ -26,4 +26,8 @@
     <ProjectReference Include="..\Location.Photography.Domain\Location.Photography.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+
 </Project>

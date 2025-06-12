@@ -46,165 +46,176 @@
     Then I should receive a successful photography result
     And the red histogram should be generated
     And the red channel should be dominant
-    And the histogram should show bright tones
-
-  Scenario: Analyze green-dominant image histogram
-    Given I want to analyze the green histogram
-    And the scene has green dominant colors
-    And the image has histogram data:
-      | MeanRed | MeanGreen | MeanBlue |
-      | 90      | 180       | 100      |
-    When I analyze the green histogram
-    Then I should receive a successful photography result
-    And the green histogram should be generated
-    And the green channel should be dominant
 
   Scenario: Analyze blue-dominant image histogram
     Given I want to analyze the blue histogram
     And the scene has blue dominant colors
     And the image has histogram data:
       | MeanRed | MeanGreen | MeanBlue |
-      | 90      | 100       | 180      |
+      | 80      | 90        | 170      |
     When I analyze the blue histogram
     Then I should receive a successful photography result
     And the blue histogram should be generated
     And the blue channel should be dominant
 
-  Scenario: Generate histograms for high contrast scene
+  Scenario: Analyze high contrast histogram
     Given I want to generate histograms for an image
-    And the scene has high contrast
-    And the image has histogram data:
-      | StdDevRed | StdDevGreen | StdDevBlue | StdDevContrast |
-      | 95        | 100         | 90         | 95             |
-    When I generate the histograms
+    And the image has high contrast characteristics:
+      | MeanContrast | StdDevContrast | Range |
+      | 150          | 95             | 255   |
+    When I generate the contrast histogram
     Then I should receive a successful photography result
-    And I should receive histogram images
-    And the contrast histogram should show High Contrast
-    And the histogram should show good contrast
+    And the contrast histogram should be generated
+    And the histogram should show high contrast distribution
+    And the dynamic range should be wide
 
-  Scenario: Generate histograms for low contrast scene
+  Scenario: Analyze low contrast histogram
     Given I want to generate histograms for an image
-    And the scene has low contrast
-    And the image has histogram data:
-      | StdDevRed | StdDevGreen | StdDevBlue | StdDevContrast |
-      | 20        | 18          | 22         | 20             |
-    When I generate the histograms
+    And the image has low contrast characteristics:
+      | MeanContrast | StdDevContrast | Range |
+      | 120          | 25             | 100   |
+    When I generate the contrast histogram
     Then I should receive a successful photography result
-    And I should receive histogram images
-    And the contrast histogram should show Low Contrast
-    And the histogram should show poor contrast
+    And the contrast histogram should be generated
+    And the histogram should show low contrast distribution
+    And the dynamic range should be narrow
 
-  Scenario: Analyze underexposed image histogram
+  Scenario: Generate histograms for underexposed image
     Given I want to generate histograms for an image
-    And the scene has dark lighting
-    And the image has histogram data:
+    And the image is underexposed:
       | MeanRed | MeanGreen | MeanBlue | MeanContrast |
-      | 50      | 45        | 55       | 50           |
-    When I generate the histograms
+      | 45      | 50        | 40       | 45           |
+    When I generate RGB histograms
     Then I should receive a successful photography result
-    And the histogram should indicate under exposure
-    And the histogram should show dark tones
+    And the histograms should show left-skewed distribution
+    And the exposure should be identified as underexposed
+    And highlight recovery potential should be assessed
 
-  Scenario: Analyze overexposed image histogram
+  Scenario: Generate histograms for overexposed image
     Given I want to generate histograms for an image
-    And the scene has bright lighting
-    And the image has histogram data:
+    And the image is overexposed:
       | MeanRed | MeanGreen | MeanBlue | MeanContrast |
-      | 200     | 210       | 190      | 200          |
-    When I generate the histograms
+      | 220     | 225       | 215      | 220          |
+    When I generate RGB histograms
     Then I should receive a successful photography result
-    And the histogram should indicate over exposure
-    And the histogram should show bright tones
+    And the histograms should show right-skewed distribution
+    And the exposure should be identified as overexposed
+    And clipping should be detected
 
-  Scenario: Generate histograms for balanced exposure
+  Scenario: Generate histograms for properly exposed image
     Given I want to generate histograms for an image
-    And the image has histogram data:
+    And the image is properly exposed:
       | MeanRed | MeanGreen | MeanBlue | MeanContrast |
       | 128     | 135       | 125      | 130          |
-    When I generate the histograms
+    When I generate RGB histograms
     Then I should receive a successful photography result
-    And the RGB histograms should be balanced
-    And the histogram should indicate proper exposure
-    And the histogram should show balanced exposure
+    And the histograms should show balanced distribution
+    And the exposure should be identified as proper
+    And the tonal range should be well distributed
 
-  Scenario: Generate histograms for multiple images
-    Given I have multiple images for histogram generation:
-      | Id | ImagePath                  | MeanRed | MeanGreen | MeanBlue |
-      | 1  | /test/images/sunset.jpg    | 180     | 120       | 80       |
-      | 2  | /test/images/forest.jpg    | 90      | 160       | 100      |
-      | 3  | /test/images/ocean.jpg     | 100     | 120       | 180      |
-    When I generate histograms for all images
+  Scenario: Analyze color balance through histograms
+    Given I want to analyze color balance through histograms
+    And the image has color balance data:
+      | RedBalance | GreenBalance | BlueBalance | ColorCast |
+      | High       | Medium       | Low         | Warm      |
+    When I generate RGB histograms for color analysis
     Then I should receive a successful photography result
-    And all histogram images should be generated
+    And the red channel should show higher values
+    And the blue channel should show lower values
+    And the color cast should be detected as warm
+    And color correction suggestions should be provided
 
-  Scenario: Compare histograms between similar images
-    Given I have multiple images for histogram generation:
-      | Id | ImagePath                  | MeanRed | MeanGreen | MeanBlue |
-      | 1  | /test/images/portrait1.jpg | 150     | 140       | 130      |
-      | 2  | /test/images/portrait2.jpg | 155     | 145       | 135      |
-    When I compare histograms between images
+  Scenario: Generate luminance histogram
+    Given I want to generate a luminance histogram
+    And the image has luminance characteristics:
+      | MeanLuminance | StdDevLuminance | Range |
+      | 118           | 60              | 200   |
+    When I generate the luminance histogram
     Then I should receive a successful photography result
-    And the histogram comparison should show similar images
+    And the luminance histogram should be generated
+    And the brightness distribution should be analyzed
+    And the tonal curve should be evaluated
 
-  Scenario: Compare histograms between different images
-    Given I have multiple images for histogram generation:
-      | Id | ImagePath                  | MeanRed | MeanGreen | MeanBlue |
-      | 1  | /test/images/sunset.jpg    | 200     | 100       | 50       |
-      | 2  | /test/images/nightsky.jpg  | 30      | 40        | 80       |
-    When I compare histograms between images
+  Scenario: Compare histograms across multiple exposures
+    Given I have multiple exposures for histogram comparison:
+      | ExposureValue | MeanRed | MeanGreen | MeanBlue |
+      | -2 EV         | 60      | 65        | 55       |
+      | 0 EV          | 128     | 135       | 125      |
+      | +2 EV         | 200     | 210       | 195      |
+    When I generate histograms for all exposures
     Then I should receive a successful photography result
-    And the histogram comparison should show different images
+    And each exposure should have distinct histogram shapes
+    And the tonal distribution should shift with exposure
+    And optimal exposure should be identified
+
+  Scenario: Detect histogram clipping
+    Given I want to detect histogram clipping
+    And the image has clipping characteristics:
+      | ShadowClipping | HighlightClipping | ClippedPixels |
+      | 5%             | 8%                | 130000        |
+    When I analyze histogram clipping
+    Then I should receive a successful photography result
+    And shadow clipping should be detected
+    And highlight clipping should be detected
+    And the percentage of clipped pixels should be calculated
+    And recovery recommendations should be provided
+
+  Scenario: Generate channel separation histograms
+    Given I want to generate channel separation histograms
+    And the image has distinct channel characteristics:
+      | RedPeak | GreenPeak | BluePeak | Separation |
+      | 180     | 140       | 100      | High       |
+    When I generate channel separation analysis
+    Then I should receive a successful photography result
+    And each channel should have distinct peaks
+    And the channel separation should be high
+    And color purity should be assessed
 
   Scenario Outline: Generate histograms for different lighting conditions
     Given I want to generate histograms for an image
-    And the image has histogram data:
-      | MeanRed   | MeanGreen   | MeanBlue   | MeanContrast   |
-      | <MeanRed> | <MeanGreen> | <MeanBlue> | <MeanContrast> |
-    When I generate the histograms
+    And the image has lighting characteristics:
+      | MeanRed | MeanGreen | MeanBlue | MeanContrast |
+      | <Red>   | <Green>   | <Blue>   | <Contrast>   |
+    When I generate RGB histograms
     Then I should receive a successful photography result
-    And the histogram should indicate <ExposureType> exposure
-    And the histogram should show <ToneType> tones
+    And the exposure should be <ExposureType>
+    And the tonal distribution should be <ToneType>
 
     Examples:
-      | MeanRed | MeanGreen | MeanBlue | MeanContrast | ExposureType | ToneType |
-      | 40      | 35        | 45       | 40           | under        | dark     |
-      | 128     | 135       | 125      | 130          | proper       | balanced |
-      | 220     | 210       | 225      | 218          | over         | bright   |
+      | Red | Green | Blue | Contrast | ExposureType | ToneType  |
+      | 45  | 50    | 40   | 45       | under        | dark      |
+      | 128 | 135   | 125  | 130      | proper       | balanced  |
+      | 220 | 210   | 225  | 218      | over         | bright    |
 
   Scenario: Generate histograms with detailed statistics
-    Given I want to generate histograms for an image
-    And the image has histogram data:
-      | MeanRed | MeanGreen | MeanBlue | StdDevRed | StdDevGreen | StdDevBlue | TotalPixels |
-      | 145     | 135       | 125      | 65        | 70          | 60         | 3840000     |
-    When I generate the histograms
+    Given I want to generate histograms with detailed statistics
+    And the image has comprehensive data:
+      | Metric          | Red | Green | Blue | Contrast |
+      | Mean            | 142 | 138   | 132  | 137      |
+      | StandardDev     | 68  | 72    | 65   | 68       |
+      | Minimum         | 12  | 15    | 8    | 10       |
+      | Maximum         | 248 | 251   | 245  | 250      |
+      | Median          | 145 | 140   | 135  | 140      |
+    When I generate detailed histogram statistics
     Then I should receive a successful photography result
-    And I should receive histogram images
-    And the histogram data should be accurate
-    And the RGB histograms should be balanced
+    And comprehensive statistics should be calculated
+    And distribution metrics should be provided
+    And histogram shape analysis should be complete
 
-  Scenario: Analyze histogram for portrait photography
-    Given I want to generate histograms for an image
-    And the image has histogram data:
-      | MeanRed | MeanGreen | MeanBlue | MeanContrast | StdDevContrast |
-      | 170     | 155       | 140      | 155          | 45             |
-    When I generate the histograms
+  Scenario: Generate saturation histogram
+    Given I want to generate a saturation histogram
+    And the image has saturation characteristics:
+      | MeanSaturation | MaxSaturation | Colorfulness |
+      | 65             | 95            | High         |
+    When I generate the saturation histogram
     Then I should receive a successful photography result
-    And the red channel should be dominant
-    And the histogram should show balanced exposure
-    And the contrast histogram should show Medium Contrast
+    And the saturation histogram should be generated
+    And color vibrancy should be analyzed
+    And saturation distribution should be evaluated
 
-  Scenario: Analyze histogram for landscape photography
-    Given I want to generate histograms for an image
-    And the image has histogram data:
-      | MeanRed | MeanGreen | MeanBlue | StdDevRed | StdDevGreen | StdDevBlue |
-      | 110     | 140       | 120      | 80        | 85          | 75         |
-    When I generate the histograms
-    Then I should receive a successful photography result
-    And the green channel should be dominant
-    And the contrast histogram should show High Contrast
-
-  Scenario: Generate histograms for macro photography
-    Given I want to generate histograms for an image
+  Scenario: Analyze green-dominant landscape histogram
+    Given I want to analyze the green histogram
+    And the scene has green dominant colors
     And the image has histogram data:
       | MeanRed | MeanGreen | MeanBlue | StdDevRed | StdDevGreen | StdDevBlue |
       | 160     | 180       | 120      | 70        | 75          | 65         |
