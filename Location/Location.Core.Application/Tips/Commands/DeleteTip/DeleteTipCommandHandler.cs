@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Tips.Commands.DeleteTip
@@ -42,8 +43,8 @@ namespace Location.Core.Application.Tips.Commands.DeleteTip
 
                 if (!tipResult.IsSuccess || tipResult.Data == null)
                 {
-                    await _mediator.Publish(new TipValidationErrorEvent(request.Id, 0, new[] { Error.NotFound("Tip not found") }, "DeleteTipCommandHandler"), cancellationToken);
-                    return Result<bool>.Failure("Tip not found");
+                    await _mediator.Publish(new TipValidationErrorEvent(request.Id, 0, new[] { Error.NotFound(AppResources.Tip_Error_NotFound) }, "DeleteTipCommandHandler"), cancellationToken);
+                    return Result<bool>.Failure(AppResources.Tip_Error_NotFound);
                 }
 
                 var tip = tipResult.Data;
@@ -51,7 +52,7 @@ namespace Location.Core.Application.Tips.Commands.DeleteTip
 
                 if (!result.IsSuccess)
                 {
-                    await _mediator.Publish(new TipValidationErrorEvent(request.Id, tip.TipTypeId, new[] { Error.Database(result.ErrorMessage ?? "Failed to delete tip") }, "DeleteTipCommandHandler"), cancellationToken);
+                    await _mediator.Publish(new TipValidationErrorEvent(request.Id, tip.TipTypeId, new[] { Error.Database(result.ErrorMessage ?? AppResources.Tip_Error_DeleteFailed) }, "DeleteTipCommandHandler"), cancellationToken);
                     return result;
                 }
 
@@ -59,13 +60,13 @@ namespace Location.Core.Application.Tips.Commands.DeleteTip
             }
             catch (Domain.Exceptions.TipDomainException ex) when (ex.Code == "TIP_IN_USE")
             {
-                await _mediator.Publish(new TipValidationErrorEvent(request.Id, 0, new[] { Error.Validation("Id", "Tip is currently in use and cannot be deleted") }, "DeleteTipCommandHandler"), cancellationToken);
-                return Result<bool>.Failure("Cannot delete tip that is currently in use");
+                await _mediator.Publish(new TipValidationErrorEvent(request.Id, 0, new[] { Error.Validation("Id", AppResources.Tip_Error_CannotDeleteInUse) }, "DeleteTipCommandHandler"), cancellationToken);
+                return Result<bool>.Failure(AppResources.Tip_Error_CannotDeleteInUse);
             }
             catch (Exception ex)
             {
                 await _mediator.Publish(new TipValidationErrorEvent(request.Id, 0, new[] { Error.Domain(ex.Message) }, "DeleteTipCommandHandler"), cancellationToken);
-                return Result<bool>.Failure($"Failed to delete tip: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.Tip_Error_DeleteFailed, ex.Message));
             }
         }
     }

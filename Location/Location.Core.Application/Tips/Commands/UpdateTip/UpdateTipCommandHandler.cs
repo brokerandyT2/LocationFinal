@@ -1,24 +1,26 @@
-﻿using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Tips.Commands.UpdateTip
 {
     /// <summary>
-    /// Handles the update operation for a tip by processing the provided command and updating the corresponding data.
+    /// Handles the updating of an existing tip by processing an <see cref="UpdateTipCommand"/> request.
     /// </summary>
-    /// <remarks>This handler retrieves the tip by its identifier, updates its content, photography settings,
-    /// and localization, and then persists the changes to the repository. Note that the <c>TipTypeId</c> cannot be
-    /// updated once the tip is created.</remarks>
+    /// <remarks>This handler retrieves the tip by its ID, updates its properties with the provided values,
+    /// and persists the changes to the repository. If the operation is successful, an <see cref="UpdateTipCommandResponse"/>
+    /// representing the updated tip is returned. In case of failure, an error message is included in the result.</remarks>
     public class UpdateTipCommandHandler : IRequestHandler<UpdateTipCommand, Result<UpdateTipCommandResponse>>
     {
         private readonly ITipRepository _tipRepository;
         private readonly IMediator _mediator;
+
         /// <summary>
-        /// Handles the command to update an existing tip.
+        /// Handles the updating of tips by processing the associated command.
         /// </summary>
-        /// <param name="tipRepository">The repository used to access and update tip data. Cannot be <see langword="null"/>.</param>
+        /// <param name="tipRepository">The repository used to persist and manage tip data. This parameter cannot be <see langword="null"/>.</param>
         /// <param name="mediator">The mediator used to publish domain events.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="tipRepository"/> is <see langword="null"/>.</exception>
         public UpdateTipCommandHandler(ITipRepository tipRepository, IMediator mediator)
@@ -26,55 +28,48 @@ namespace Location.Core.Application.Tips.Commands.UpdateTip
             _tipRepository = tipRepository ?? throw new ArgumentNullException(nameof(tipRepository));
             _mediator = mediator;
         }
+
         /// <summary>
-        /// Handles the update operation for a tip, applying the specified changes and returning the updated tip data.
+        /// Handles the update of an existing tip and returns the result.
         /// </summary>
-        /// <remarks>This method retrieves the tip by its ID, applies the updates specified in the
-        /// command, and saves the changes to the repository. If the operation fails at any stage, a failure result is
-        /// returned with an appropriate error message.</remarks>
-        /// <param name="request">The command containing the details of the tip to update, including its ID and updated properties.</param>
+        /// <remarks>This method retrieves the tip by its ID, updates its properties with the provided values,
+        /// and persists the changes to the repository. If an error occurs during the process, the method returns a
+        /// failure result with the error message.</remarks>
+        /// <param name="request">The command containing the updated details of the tip, including title, content, and photography settings.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-        /// <returns>A <see cref="Result{T}"/> containing the updated <see cref="UpdateTipCommandResponse"/> if the operation succeeds; otherwise,
-        /// a failure result with an error message.</returns>
+        /// <returns>A <see cref="Result{T}"/> containing an <see cref="UpdateTipCommandResponse"/> if the operation succeeds,
+        /// or an error message if the operation fails.</returns>
         public async Task<Result<UpdateTipCommandResponse>> Handle(UpdateTipCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var tipResult = await _tipRepository.GetByIdAsync(request.Id, cancellationToken);
-
-                if (!tipResult.IsSuccess)
+                var tip = await _tipRepository.GetByIdAsync(request.Id, cancellationToken);
+                if (tip == null)
                 {
-                    await _mediator.Publish(new TipValidationErrorEvent(request.Id, request.TipTypeId, new[] { Error.NotFound("Tip not found") }, "UpdateTipCommandHandler"), cancellationToken);
-                    return Result<UpdateTipCommandResponse>.Failure(tipResult.ErrorMessage);
+                    await _mediator.Publish(new TipValidationErrorEvent(request.Id, request.TipTypeId, new[] { Error.NotFound(AppResources.Tip_Error_NotFound) }, "UpdateTipCommandHandler"), cancellationToken);
+                    return Result<UpdateTipCommandResponse>.Failure(AppResources.Tip_Error_NotFound);
                 }
 
-                var tip = tipResult.Data;
-
-                // Update content using the available method
+                // Update tip properties
                 tip.UpdateContent(request.Title, request.Content);
 
-                // Update photography settings
+                // Set photography parameters
                 tip.UpdatePhotographySettings(
                     request.Fstop ?? string.Empty,
                     request.ShutterSpeed ?? string.Empty,
                     request.Iso ?? string.Empty);
 
-                // Set localization
-                tip.SetLocalization(request.I8n ?? "en-US");
+                // Update localization if provided, otherwise keep existing or default
+                tip.SetLocalization(request.I8n ?? AppResources.Default_LocalizationCode);
 
                 // Unfortunately there's no method to update TipTypeId once the Tip is created
                 // We would need to add such a method to the Tip class if this is required
                 // For now, we can't update the TipTypeId
 
-                var updateResult = await _tipRepository.UpdateAsync(tip, cancellationToken);
+                await _tipRepository.UpdateAsync(tip, cancellationToken);
 
-                if (!updateResult.IsSuccess)
-                {
-                    await _mediator.Publish(new TipValidationErrorEvent(request.Id, request.TipTypeId, new[] { Error.Database(updateResult.ErrorMessage ?? "Failed to update tip") }, "UpdateTipCommandHandler"), cancellationToken);
-                    return Result<UpdateTipCommandResponse>.Failure(updateResult.ErrorMessage);
-                }
-
-                var updatedTip = updateResult.Data;
+                // Since UpdateAsync returns void, we'll use the tip entity directly
+                var updatedTip = tip;
 
                 // Create response with the correct ID
                 var response = new UpdateTipCommandResponse
@@ -93,18 +88,18 @@ namespace Location.Core.Application.Tips.Commands.UpdateTip
             }
             catch (Domain.Exceptions.TipDomainException ex) when (ex.Code == "DUPLICATE_TITLE")
             {
-                await _mediator.Publish(new TipValidationErrorEvent(request.Id, request.TipTypeId, new[] { Error.Validation("Title", "Tip with this title already exists") }, "UpdateTipCommandHandler"), cancellationToken);
-                return Result<UpdateTipCommandResponse>.Failure($"Tip with title '{request.Title}' already exists");
+                await _mediator.Publish(new TipValidationErrorEvent(request.Id, request.TipTypeId, new[] { Error.Validation("Title", AppResources.Tip_Error_DuplicateTitle) }, "UpdateTipCommandHandler"), cancellationToken);
+                return Result<UpdateTipCommandResponse>.Failure(string.Format(AppResources.Tip_Error_DuplicateTitle, request.Title));
             }
             catch (Domain.Exceptions.TipDomainException ex) when (ex.Code == "INVALID_CONTENT")
             {
-                await _mediator.Publish(new TipValidationErrorEvent(request.Id, request.TipTypeId, new[] { Error.Validation("Content", "Invalid tip content") }, "UpdateTipCommandHandler"), cancellationToken);
-                return Result<UpdateTipCommandResponse>.Failure("Invalid tip content provided");
+                await _mediator.Publish(new TipValidationErrorEvent(request.Id, request.TipTypeId, new[] { Error.Validation("Content", AppResources.Tip_Error_InvalidContent) }, "UpdateTipCommandHandler"), cancellationToken);
+                return Result<UpdateTipCommandResponse>.Failure(AppResources.Tip_Error_InvalidContent);
             }
             catch (Exception ex)
             {
                 await _mediator.Publish(new TipValidationErrorEvent(request.Id, request.TipTypeId, new[] { Error.Domain(ex.Message) }, "UpdateTipCommandHandler"), cancellationToken);
-                return Result<UpdateTipCommandResponse>.Failure($"Failed to update tip: {ex.Message}");
+                return Result<UpdateTipCommandResponse>.Failure(string.Format(AppResources.Tip_Error_UpdateFailed, ex.Message));
             }
         }
     }

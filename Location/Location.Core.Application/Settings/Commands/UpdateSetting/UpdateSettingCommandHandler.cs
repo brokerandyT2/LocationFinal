@@ -1,15 +1,16 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Settings.Commands.UpdateSetting
 {
     /// <summary>
-    /// Handles the execution of the <see cref="UpdateSettingCommand"/> to update a setting's value in the system.
+    /// Handles the updating of an existing setting by processing an <see cref="UpdateSettingCommand"/> request.
     /// </summary>
-    /// <remarks>This handler retrieves the setting by its key, updates its value, and persists the changes to
-    /// the data store. If the setting is not found or the update operation fails, an appropriate failure result is
+    /// <remarks>This handler retrieves the setting by its key, updates its value, and persists the changes
+    /// to the data store. If the setting is not found or the update operation fails, an appropriate error result is
     /// returned.</remarks>
     public class UpdateSettingCommandHandler : IRequestHandler<UpdateSettingCommand, Result<UpdateSettingCommandResponse>>
     {
@@ -17,10 +18,9 @@ namespace Location.Core.Application.Settings.Commands.UpdateSetting
         private readonly IMediator _mediator;
 
         /// <summary>
-        /// Handles the execution of commands to update application settings.
+        /// Initializes a new instance of the <see cref="UpdateSettingCommandHandler"/> class.
         /// </summary>
-        /// <param name="unitOfWork">The unit of work instance used to manage database transactions and ensure consistency. This parameter cannot
-        /// be <see langword="null"/>.</param>
+        /// <param name="unitOfWork">The unit of work instance used to manage database operations and transactions. This parameter cannot be <see langword="null"/>.</param>
         /// <param name="mediator">The mediator used to publish domain events.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="unitOfWork"/> is <see langword="null"/>.</exception>
         public UpdateSettingCommandHandler(IUnitOfWork unitOfWork, IMediator mediator)
@@ -30,10 +30,10 @@ namespace Location.Core.Application.Settings.Commands.UpdateSetting
         }
 
         /// <summary>
-        /// Handles the update of a setting by its key and value.
+        /// Handles the update of an existing setting based on the provided command.
         /// </summary>
-        /// <remarks>If the setting with the specified key is not found, the operation will fail with an
-        /// appropriate error message. If the update operation fails, the result will indicate failure with the
+        /// <remarks>This method retrieves the setting by its key, updates its value, and persists the changes.
+        /// If the update operation fails, the result will indicate failure with the
         /// corresponding error message.</remarks>
         /// <param name="request">The command containing the key of the setting to update and the new value.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
@@ -49,7 +49,7 @@ namespace Location.Core.Application.Settings.Commands.UpdateSetting
                 if (!settingResult.IsSuccess || settingResult.Data == null)
                 {
                     await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.KeyNotFound), cancellationToken);
-                    return Result<UpdateSettingCommandResponse>.Failure($"Setting with key '{request.Key}' not found");
+                    return Result<UpdateSettingCommandResponse>.Failure(string.Format(AppResources.Setting_Error_KeyNotFoundSpecific, request.Key));
                 }
 
                 var setting = settingResult.Data;
@@ -60,7 +60,7 @@ namespace Location.Core.Application.Settings.Commands.UpdateSetting
                 if (!updateResult.IsSuccess || updateResult.Data == null)
                 {
                     await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.DatabaseError, updateResult.ErrorMessage), cancellationToken);
-                    return Result<UpdateSettingCommandResponse>.Failure(updateResult.ErrorMessage ?? "Failed to update setting");
+                    return Result<UpdateSettingCommandResponse>.Failure(updateResult.ErrorMessage ?? AppResources.Setting_Error_UpdateFailed);
                 }
 
                 var updatedSetting = updateResult.Data;
@@ -79,17 +79,17 @@ namespace Location.Core.Application.Settings.Commands.UpdateSetting
             catch (Domain.Exceptions.SettingDomainException ex) when (ex.Code == "READ_ONLY_SETTING")
             {
                 await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.ReadOnlySetting, ex.Message), cancellationToken);
-                return Result<UpdateSettingCommandResponse>.Failure("Cannot update read-only setting");
+                return Result<UpdateSettingCommandResponse>.Failure(AppResources.Setting_Error_CannotUpdateReadOnly);
             }
             catch (Domain.Exceptions.SettingDomainException ex) when (ex.Code == "INVALID_VALUE")
             {
                 await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.InvalidValue, ex.Message), cancellationToken);
-                return Result<UpdateSettingCommandResponse>.Failure("Invalid setting value provided");
+                return Result<UpdateSettingCommandResponse>.Failure(AppResources.Setting_Error_InvalidValueProvided);
             }
             catch (Exception ex)
             {
                 await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.DatabaseError, ex.Message), cancellationToken);
-                return Result<UpdateSettingCommandResponse>.Failure($"Failed to update setting: {ex.Message}");
+                return Result<UpdateSettingCommandResponse>.Failure(string.Format(AppResources.Setting_Error_UpdateFailedWithException, ex.Message));
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Settings.Commands.DeleteSetting
 {
@@ -18,7 +19,7 @@ namespace Location.Core.Application.Settings.Commands.DeleteSetting
         public DeleteSettingCommandValidator()
         {
             RuleFor(x => x.Key)
-                .NotEmpty().WithMessage("Key is required");
+                .NotEmpty().WithMessage(AppResources.Setting_ValidationError_KeyRequired);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Tips.Commands.UpdateTip
 {
@@ -26,31 +27,31 @@ namespace Location.Core.Application.Tips.Commands.UpdateTip
         public UpdateTipCommandValidator()
         {
             RuleFor(x => x.Id)
-                .GreaterThan(0).WithMessage("Id must be greater than 0");
+                .GreaterThan(0).WithMessage(string.Format("{0} {1} {2} 0", AppResources.Field_Id, AppResources.Range_MustBe, AppResources.Range_GreaterThan));
 
             RuleFor(x => x.TipTypeId)
-                .GreaterThan(0).WithMessage("TipTypeId must be greater than 0");
+                .GreaterThan(0).WithMessage(string.Format("{0} {1} {2} 0", AppResources.Field_TipTypeId, AppResources.Range_MustBe, AppResources.Range_GreaterThan));
 
             RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Title is required")
-                .MaximumLength(100).WithMessage("Title must not exceed 100 characters");
+                .NotEmpty().WithMessage(string.Format("{0} {1}", AppResources.Field_Title, AppResources.Status_Required))
+                .MaximumLength(100).WithMessage(string.Format("{0} {1} 100 {2}", AppResources.Field_Title, AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
 
             RuleFor(x => x.Content)
-                .NotEmpty().WithMessage("Content is required")
-                .MaximumLength(1000).WithMessage("Content must not exceed 1000 characters");
+                .NotEmpty().WithMessage(string.Format("{0} {1}", AppResources.Field_Content, AppResources.Status_Required))
+                .MaximumLength(1000).WithMessage(string.Format("{0} {1} 1000 {2}", AppResources.Field_Content, AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
 
             RuleFor(x => x.Fstop)
-                .MaximumLength(20).WithMessage("F-stop must not exceed 20 characters");
+                .MaximumLength(20).WithMessage(string.Format("F-stop {0} 20 {1}", AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
 
             RuleFor(x => x.ShutterSpeed)
-                .MaximumLength(20).WithMessage("Shutter speed must not exceed 20 characters");
+                .MaximumLength(20).WithMessage(string.Format("Shutter speed {0} 20 {1}", AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
 
             RuleFor(x => x.Iso)
-                .MaximumLength(20).WithMessage("ISO must not exceed 20 characters");
+                .MaximumLength(20).WithMessage(string.Format("ISO {0} 20 {1}", AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
 
             RuleFor(x => x.I8n)
-                .NotEmpty().WithMessage("Localization is required")
-                .MaximumLength(10).WithMessage("Localization must not exceed 10 characters");
+                .NotEmpty().WithMessage(string.Format("{0} {1}", AppResources.Field_Localization, AppResources.Status_Required))
+                .MaximumLength(10).WithMessage(string.Format("{0} {1} 10 {2}", AppResources.Field_Localization, AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
         }
     }
 }

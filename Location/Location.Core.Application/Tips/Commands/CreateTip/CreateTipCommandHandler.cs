@@ -1,58 +1,57 @@
-﻿using Location.Core.Application.Common.Interfaces;
+﻿using AutoMapper;
+using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
 
 namespace Location.Core.Application.Tips.Commands.CreateTip
 {
     /// <summary>
-    /// Handles the creation of a new tip and returns the result as a <see cref="Result{T}"/> containing a <see
-    /// cref="TipDto"/>.
+    /// Handles the creation of a new tip by processing a <see cref="CreateTipCommand"/> request.
     /// </summary>
-    /// <remarks>This handler processes a <see cref="CreateTipCommand"/> to create a new tip entity.  It
-    /// validates and applies optional photography settings and localization data if provided in the request. The
-    /// created tip is persisted using the provided <see cref="IUnitOfWork"/> and returned as a data transfer object
-    /// (DTO).</remarks>
+    /// <remarks>This handler creates a new tip entity, sets its photography parameters and localization data,
+    /// and persists it to the repository. If the operation is successful, a <see cref="TipDto"/> representing the
+    /// created tip is returned. In case of failure, an error message is included in the result.</remarks>
     public class CreateTipCommandHandler : IRequestHandler<CreateTipCommand, Result<List<TipDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly IMediator _mediator;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="CreateTipCommandHandler"/> class.
+        /// Handles the creation of new tips by processing the associated command.
         /// </summary>
-        /// <param name="unitOfWork">The unit of work instance used to manage database transactions and operations.  This parameter cannot be
-        /// <see langword="null"/>.</param>
+        /// <param name="unitOfWork">The unit of work instance used to manage database operations. This parameter cannot be <see langword="null"/>.</param>
+        /// <param name="mapper">The mapper used to convert between domain entities and DTOs.</param>
         /// <param name="mediator">The mediator used to publish domain events.</param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="unitOfWork"/> is <see langword="null"/>.</exception>
-        public CreateTipCommandHandler(IUnitOfWork unitOfWork, IMediator mediator)
+        /// <exception cref="ArgumentNullException">Thrown if any of the required parameters are <see langword="null"/>.</exception>
+        public CreateTipCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IMediator mediator)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _mediator = mediator;
         }
+
         /// <summary>
-        /// Handles the creation of a new tip based on the provided command and returns the result.
+        /// Handles the creation of a new tip and returns the result.
         /// </summary>
-        /// <remarks>This method creates a new tip entity, optionally updates its photography settings and
-        /// localization, and persists it to the data store. If the creation is successful, the method returns a DTO
-        /// representing the created tip.</remarks>
-        /// <param name="request">The command containing the details of the tip to be created, including its type, title, content, and
-        /// optional settings.</param>
+        /// <remarks>This method creates a new tip entity, sets its photography metadata, persists it to the
+        /// repository, and maps it to a data transfer object (DTO). If an error occurs during the process, the method
+        /// returns a failure result with the error message.</remarks>
+        /// <param name="request">The command containing the details of the tip to create, including title, content, and photography settings.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-        /// <returns>A <see cref="Result{T}"/> containing a <see cref="TipDto"/> representing the created tip if the operation is
-        /// successful; otherwise, a failure result with an error message.</returns>
+        /// <returns>A <see cref="Result{T}"/> containing a list with the created <see cref="TipDto"/> if the operation succeeds,
+        /// or an error message if the operation fails.</returns>
         public async Task<Result<List<TipDto>>> Handle(CreateTipCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var tip = new Domain.Entities.Tip(
-                    request.TipTypeId,
-                    request.Title,
-                    request.Content);
+                var tip = new Domain.Entities.Tip(request.TipTypeId, request.Title, request.Content);
 
-                if (!string.IsNullOrEmpty(request.Fstop) ||
-                    !string.IsNullOrEmpty(request.ShutterSpeed) ||
-                    !string.IsNullOrEmpty(request.Iso))
+                // Set photography parameters if provided
+                if (!string.IsNullOrEmpty(request.Fstop) || !string.IsNullOrEmpty(request.ShutterSpeed) || !string.IsNullOrEmpty(request.Iso))
                 {
                     tip.UpdatePhotographySettings(
                         request.Fstop ?? string.Empty,
@@ -69,7 +68,7 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
 
                 if (!result.IsSuccess)
                 {
-                    await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Database(result.ErrorMessage ?? "Failed to create tip") }, "CreateTipCommandHandler"), cancellationToken);
+                    await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Database(result.ErrorMessage ?? AppResources.Tip_Error_CreateFailed) }, "CreateTipCommandHandler"), cancellationToken);
                     return Result<List<TipDto>>.Failure(result.ErrorMessage);
                 }
 
@@ -92,18 +91,18 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
             }
             catch (Domain.Exceptions.TipDomainException ex) when (ex.Code == "DUPLICATE_TITLE")
             {
-                await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Validation("Title", "Tip with this title already exists") }, "CreateTipCommandHandler"), cancellationToken);
-                return Result<List<TipDto>>.Failure($"Tip with title '{request.Title}' already exists");
+                await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Validation("Title", AppResources.Tip_Error_DuplicateTitle) }, "CreateTipCommandHandler"), cancellationToken);
+                return Result<List<TipDto>>.Failure(string.Format(AppResources.Tip_Error_DuplicateTitle, request.Title));
             }
             catch (Domain.Exceptions.TipDomainException ex) when (ex.Code == "INVALID_TIP_TYPE")
             {
-                await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Validation("TipTypeId", "Invalid tip type") }, "CreateTipCommandHandler"), cancellationToken);
-                return Result<List<TipDto>>.Failure("Invalid tip type specified");
+                await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Validation("TipTypeId", AppResources.Tip_Error_InvalidTipType) }, "CreateTipCommandHandler"), cancellationToken);
+                return Result<List<TipDto>>.Failure(AppResources.Tip_Error_InvalidTipType);
             }
             catch (Exception ex)
             {
                 await _mediator.Publish(new TipValidationErrorEvent(null, request.TipTypeId, new[] { Error.Domain(ex.Message) }, "CreateTipCommandHandler"), cancellationToken);
-                return Result<List<TipDto>>.Failure($"Failed to create tip: {ex.Message}");
+                return Result<List<TipDto>>.Failure(string.Format(AppResources.Tip_Error_CreateFailed, ex.Message));
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Settings.Commands.CreateSetting
@@ -15,6 +16,7 @@ namespace Location.Core.Application.Settings.Commands.CreateSetting
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMediator _mediator;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateSettingCommandHandler"/> class.
         /// </summary>
@@ -27,6 +29,7 @@ namespace Location.Core.Application.Settings.Commands.CreateSetting
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mediator = mediator;
         }
+
         /// <summary>
         /// Handles the creation of a new setting based on the provided command.
         /// </summary>
@@ -45,7 +48,7 @@ namespace Location.Core.Application.Settings.Commands.CreateSetting
                 if (existingSettingResult.IsSuccess && existingSettingResult.Data != null)
                 {
                     await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.DuplicateKey), cancellationToken);
-                    return Result<CreateSettingCommandResponse>.Failure($"Setting with key '{request.Key}' already exists");
+                    return Result<CreateSettingCommandResponse>.Failure(string.Format(AppResources.Setting_Error_KeyAlreadyExists, request.Key));
                 }
 
                 var setting = new Domain.Entities.Setting(request.Key, request.Value, request.Description);
@@ -55,7 +58,7 @@ namespace Location.Core.Application.Settings.Commands.CreateSetting
                 if (!result.IsSuccess || result.Data == null)
                 {
                     await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.DatabaseError, result.ErrorMessage), cancellationToken);
-                    return Result<CreateSettingCommandResponse>.Failure(result.ErrorMessage ?? "Failed to create setting");
+                    return Result<CreateSettingCommandResponse>.Failure(result.ErrorMessage ?? AppResources.Setting_Error_CreateFailed);
                 }
 
                 var createdSetting = result.Data;
@@ -74,17 +77,17 @@ namespace Location.Core.Application.Settings.Commands.CreateSetting
             catch (Domain.Exceptions.SettingDomainException ex) when (ex.Code == "DUPLICATE_KEY")
             {
                 await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.DuplicateKey), cancellationToken);
-                return Result<CreateSettingCommandResponse>.Failure($"Setting with key '{request.Key}' already exists");
+                return Result<CreateSettingCommandResponse>.Failure(string.Format(AppResources.Setting_Error_KeyAlreadyExists, request.Key));
             }
             catch (Domain.Exceptions.SettingDomainException ex) when (ex.Code == "INVALID_VALUE")
             {
                 await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.InvalidValue, ex.Message), cancellationToken);
-                return Result<CreateSettingCommandResponse>.Failure("Invalid setting value provided");
+                return Result<CreateSettingCommandResponse>.Failure(AppResources.Setting_Error_InvalidValueProvided);
             }
             catch (Exception ex)
             {
                 await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.DatabaseError, ex.Message), cancellationToken);
-                return Result<CreateSettingCommandResponse>.Failure($"Failed to create setting: {ex.Message}");
+                return Result<CreateSettingCommandResponse>.Failure(string.Format(AppResources.Setting_Error_CreateFailedWithException, ex.Message));
             }
         }
     }

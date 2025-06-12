@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Settings.Commands.DeleteSetting
@@ -44,7 +45,7 @@ namespace Location.Core.Application.Settings.Commands.DeleteSetting
                 if (!settingResult.IsSuccess || settingResult.Data == null)
                 {
                     await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.KeyNotFound), cancellationToken);
-                    return Result<bool>.Failure($"Setting with key '{request.Key}' not found");
+                    return Result<bool>.Failure(string.Format(AppResources.Setting_Error_KeyNotFoundSpecific, request.Key));
                 }
 
                 var result = await _unitOfWork.Settings.DeleteAsync(request.Key, cancellationToken);
@@ -59,12 +60,12 @@ namespace Location.Core.Application.Settings.Commands.DeleteSetting
             catch (Domain.Exceptions.SettingDomainException ex) when (ex.Code == "READ_ONLY_SETTING")
             {
                 await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.ReadOnlySetting, ex.Message), cancellationToken);
-                return Result<bool>.Failure("Cannot delete read-only setting");
+                return Result<bool>.Failure(AppResources.Setting_Error_CannotDeleteReadOnly);
             }
             catch (Exception ex)
             {
                 await _mediator.Publish(new SettingErrorEvent(request.Key, SettingErrorType.DatabaseError, ex.Message), cancellationToken);
-                return Result<bool>.Failure($"Failed to delete setting: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.Setting_Error_DeleteFailed, ex.Message));
             }
         }
     }

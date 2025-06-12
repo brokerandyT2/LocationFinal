@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Weather.Queries.GetWeatherForecast
 {
@@ -25,13 +26,13 @@ namespace Location.Core.Application.Weather.Queries.GetWeatherForecast
         public GetWeatherForecastQueryValidator()
         {
             RuleFor(x => x.Latitude)
-                .InclusiveBetween(-90, 90).WithMessage("Latitude must be between -90 and 90 degrees");
+                .InclusiveBetween(-90, 90).WithMessage(AppResources.Weather_ValidationError_LatitudeRange);
 
             RuleFor(x => x.Longitude)
-                .InclusiveBetween(-180, 180).WithMessage("Longitude must be between -180 and 180 degrees");
+                .InclusiveBetween(-180, 180).WithMessage(AppResources.Weather_ValidationError_LongitudeRange);
 
             RuleFor(x => x.Days)
-                .InclusiveBetween(1, 7).WithMessage("Days must be between 1 and 7");
+                .InclusiveBetween(1, 7).WithMessage(AppResources.Weather_ValidationError_DaysRange);
         }
     }
 }

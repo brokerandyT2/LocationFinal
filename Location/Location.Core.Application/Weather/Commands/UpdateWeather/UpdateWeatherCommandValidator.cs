@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Location.Core.Application.Commands.Weather;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Weather.Commands.UpdateWeather
 {
@@ -19,7 +20,7 @@ namespace Location.Core.Application.Weather.Commands.UpdateWeather
         public UpdateWeatherCommandValidator()
         {
             RuleFor(x => x.LocationId)
-                .GreaterThan(0).WithMessage("LocationId must be greater than 0");
+                .GreaterThan(0).WithMessage(AppResources.Location_ValidationError_LocationIdRequired);
         }
     }
 }

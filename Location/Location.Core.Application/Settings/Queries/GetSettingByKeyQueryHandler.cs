@@ -1,5 +1,6 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Settings.Queries.GetSettingByKey
@@ -14,6 +15,7 @@ namespace Location.Core.Application.Settings.Queries.GetSettingByKey
     public class GetSettingByKeyQueryHandler : IRequestHandler<GetSettingByKeyQuery, Result<GetSettingByKeyQueryResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GetSettingByKeyQueryHandler"/> class.
         /// </summary>
@@ -24,6 +26,7 @@ namespace Location.Core.Application.Settings.Queries.GetSettingByKey
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
+
         /// <summary>
         /// Handles the query to retrieve a setting by its key.
         /// </summary>
@@ -37,7 +40,7 @@ namespace Location.Core.Application.Settings.Queries.GetSettingByKey
 
             if (!result.IsSuccess || result.Data == null)
             {
-                return Result<GetSettingByKeyQueryResponse>.Failure(result.ErrorMessage ?? $"Setting with key '{request.Key}' not found");
+                return Result<GetSettingByKeyQueryResponse>.Failure(result.ErrorMessage ?? string.Format(AppResources.Setting_Error_KeyNotFoundSpecific, request.Key));
             }
 
             var setting = result.Data;

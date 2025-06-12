@@ -1,5 +1,5 @@
-﻿
-using FluentValidation;
+﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Settings.Commands.UpdateSetting
 {
@@ -22,12 +22,12 @@ namespace Location.Core.Application.Settings.Commands.UpdateSetting
         public UpdateSettingCommandValidator()
         {
             RuleFor(x => x.Key)
-                .NotEmpty().WithMessage("Key is required")
-                .MaximumLength(50).WithMessage("Key must not exceed 50 characters");
+                .NotEmpty().WithMessage(AppResources.Setting_ValidationError_KeyRequired)
+                .MaximumLength(50).WithMessage(AppResources.Setting_ValidationError_KeyMaxLength);
 
             RuleFor(x => x.Value)
-                .NotNull().WithMessage("Value cannot be null")
-                .MaximumLength(500).WithMessage("Value must not exceed 500 characters");
+                .NotNull().WithMessage(AppResources.Setting_ValidationError_ValueRequired)
+                .MaximumLength(500).WithMessage(AppResources.Setting_ValidationError_ValueMaxLength);
         }
     }
 }

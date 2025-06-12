@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using Location.Core.Application.Services;
 using Location.Core.Application.Weather.DTOs;
 using MediatR;
@@ -56,7 +57,7 @@ namespace Location.Core.Application.Queries.Weather
                 if (!weatherResult.IsSuccess)
                 {
                     await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, WeatherErrorType.DatabaseError, weatherResult.ErrorMessage), cancellationToken);
-                    return Result<WeatherDto>.Failure(weatherResult.ErrorMessage ?? "Failed to retrieve weather data");
+                    return Result<WeatherDto>.Failure(weatherResult.ErrorMessage ?? AppResources.Weather_Error_RetrieveDataFailed);
                 }
 
                 var (weather, location) = weatherResult.Data;
@@ -98,7 +99,7 @@ namespace Location.Core.Application.Queries.Weather
                 if (!freshWeatherResult.IsSuccess)
                 {
                     await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, WeatherErrorType.ApiUnavailable, freshWeatherResult.ErrorMessage), cancellationToken);
-                    return Result<WeatherDto>.Failure($"Failed to fetch weather data: {freshWeatherResult.ErrorMessage}");
+                    return Result<WeatherDto>.Failure(string.Format(AppResources.Weather_Error_FetchDataFailed, freshWeatherResult.ErrorMessage));
                 }
 
                 return freshWeatherResult;
@@ -106,12 +107,12 @@ namespace Location.Core.Application.Queries.Weather
             catch (TimeoutException ex)
             {
                 await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, WeatherErrorType.NetworkTimeout, ex.Message), cancellationToken);
-                return Result<WeatherDto>.Failure($"Weather service timeout: {ex.Message}");
+                return Result<WeatherDto>.Failure(string.Format(AppResources.Weather_Error_ServiceTimeout, ex.Message));
             }
             catch (Exception ex)
             {
                 await _mediator.Publish(new WeatherUpdateErrorEvent(request.LocationId, WeatherErrorType.ApiUnavailable, ex.Message), cancellationToken);
-                return Result<WeatherDto>.Failure($"Failed to retrieve weather data: {ex.Message}");
+                return Result<WeatherDto>.Failure(string.Format(AppResources.Weather_Error_RetrieveDataFailedWithException, ex.Message));
             }
         }
 
@@ -126,7 +127,7 @@ namespace Location.Core.Application.Queries.Weather
             var locationResult = await _unitOfWork.Locations.GetByIdAsync(locationId, cancellationToken);
             if (!locationResult.IsSuccess || locationResult.Data == null)
             {
-                return Result<(Domain.Entities.Weather?, Domain.Entities.Location)>.Failure("Location not found");
+                return Result<(Domain.Entities.Weather?, Domain.Entities.Location)>.Failure(AppResources.Weather_Error_LocationNotFound);
             }
 
             // Get weather data - this might be null for new locations

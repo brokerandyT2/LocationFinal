@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Weather.Queries.GetHourlyForecast
 {
@@ -24,11 +25,11 @@ namespace Location.Core.Application.Weather.Queries.GetHourlyForecast
         public GetHourlyForecastQueryValidator()
         {
             RuleFor(x => x.LocationId)
-                .GreaterThan(0).WithMessage("LocationId must be greater than 0");
+                .GreaterThan(0).WithMessage(AppResources.Weather_Error_InvalidLocation);
 
             RuleFor(x => x)
                 .Must(x => !x.StartTime.HasValue || !x.EndTime.HasValue || x.EndTime.Value > x.StartTime.Value)
-                .WithMessage("EndTime must be greater than StartTime when both are provided");
+                .WithMessage(AppResources.Weather_ValidationError_EndTimeAfterStartTime);
         }
     }
 }
