@@ -231,5 +231,142 @@ namespace Location.Photography.Application.Tests.Services
                 await _sunService.GetSunTimesAsync(latitude, longitude, date, token))
                 .Should().ThrowAsync<OperationCanceledException>();
         }
+
+        [Test]
+        public async Task GetSunPositionAsync_WithExtremeCoordinates_ShouldHandleGracefully()
+        {
+            // Arrange
+            double extremeLatitude = 89.9; // Near north pole
+            double extremeLongitude = -179.9;
+            DateTime dateTime = new DateTime(2024, 5, 15, 12, 0, 0);
+
+            _sunCalculatorServiceMock
+                .Setup(x => x.GetSolarAzimuth(dateTime, extremeLatitude, extremeLongitude, It.IsAny<string>()))
+                .Returns(0.0);
+
+            _sunCalculatorServiceMock
+                .Setup(x => x.GetSolarElevation(dateTime, extremeLatitude, extremeLongitude, It.IsAny<string>()))
+                .Returns(10.0);
+
+            // Act
+            var result = await _sunService.GetSunPositionAsync(extremeLatitude, extremeLongitude, dateTime, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Latitude.Should().Be(extremeLatitude);
+            result.Data.Longitude.Should().Be(extremeLongitude);
+        }
+
+        [Test]
+        public async Task GetSunTimesAsync_WithNegativeLatitude_ShouldHandleSouthernHemisphere()
+        {
+            // Arrange - Southern hemisphere location
+            double latitude = -33.8688; // Sydney, Australia
+            double longitude = 151.2093;
+            DateTime date = new DateTime(2024, 6, 21); // Winter solstice in southern hemisphere
+
+            var sunrise = new DateTime(2024, 6, 21, 7, 0, 0);
+            var sunset = new DateTime(2024, 6, 21, 17, 0, 0);
+            var solarNoon = new DateTime(2024, 6, 21, 12, 0, 0);
+
+            _sunCalculatorServiceMock.Setup(x => x.GetSunrise(date, latitude, longitude, It.IsAny<string>())).Returns(sunrise);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunset(date, latitude, longitude, It.IsAny<string>())).Returns(sunset);
+            _sunCalculatorServiceMock.Setup(x => x.GetSolarNoon(date, latitude, longitude, It.IsAny<string>())).Returns(solarNoon);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDawn(date, latitude, longitude, It.IsAny<string>())).Returns(sunrise.AddMinutes(-30));
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDusk(date, latitude, longitude, It.IsAny<string>())).Returns(sunset.AddMinutes(30));
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(sunrise.AddMinutes(-60));
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(sunset.AddMinutes(60));
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDawn(date, latitude, longitude, It.IsAny<string>())).Returns(sunrise.AddMinutes(-90));
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDusk(date, latitude, longitude, It.IsAny<string>())).Returns(sunset.AddMinutes(90));
+
+            // Act
+            var result = await _sunService.GetSunTimesAsync(latitude, longitude, date, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Latitude.Should().Be(latitude);
+            result.Data.Longitude.Should().Be(longitude);
+            result.Data.Sunrise.Should().Be(sunrise);
+            result.Data.Sunset.Should().Be(sunset);
+
+            // Verify twilight times are in correct order
+            result.Data.AstronomicalDawn.Should().BeBefore(result.Data.NauticalDawn);
+            result.Data.NauticalDawn.Should().BeBefore(result.Data.CivilDawn);
+            result.Data.CivilDawn.Should().BeBefore(result.Data.Sunrise);
+            result.Data.Sunset.Should().BeBefore(result.Data.CivilDusk);
+            result.Data.CivilDusk.Should().BeBefore(result.Data.NauticalDusk);
+            result.Data.NauticalDusk.Should().BeBefore(result.Data.AstronomicalDusk);
+        }
+
+        [Test]
+        public async Task GetSunPositionAsync_WithZeroCoordinates_ShouldHandleEquator()
+        {
+            // Arrange - Equator at prime meridian
+            double latitude = 0.0;
+            double longitude = 0.0;
+            DateTime dateTime = new DateTime(2024, 3, 20, 12, 0, 0); // Spring equinox
+
+            _sunCalculatorServiceMock
+                .Setup(x => x.GetSolarAzimuth(dateTime, latitude, longitude, It.IsAny<string>()))
+                .Returns(180.0); // Due south
+
+            _sunCalculatorServiceMock
+                .Setup(x => x.GetSolarElevation(dateTime, latitude, longitude, It.IsAny<string>()))
+                .Returns(90.0); // Directly overhead
+
+            // Act
+            var result = await _sunService.GetSunPositionAsync(latitude, longitude, dateTime, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Azimuth.Should().Be(180.0);
+            result.Data.Elevation.Should().Be(90.0);
+            result.Data.Latitude.Should().Be(0.0);
+            result.Data.Longitude.Should().Be(0.0);
+        }
+
+        [Test]
+        public async Task GetSunTimesAsync_WithDifferentSeasons_ShouldShowVariation()
+        {
+            // Arrange
+            double latitude = 47.6062;
+            double longitude = -122.3321;
+            var summerDate = new DateTime(2024, 6, 21); // Summer solstice
+            var winterDate = new DateTime(2024, 12, 21); // Winter solstice
+
+            var summerSunrise = new DateTime(2024, 6, 21, 5, 0, 0);
+            var summerSunset = new DateTime(2024, 6, 21, 21, 0, 0);
+            var winterSunrise = new DateTime(2024, 12, 21, 8, 0, 0);
+            var winterSunset = new DateTime(2024, 12, 21, 16, 0, 0);
+
+            _sunCalculatorServiceMock.Setup(x => x.GetSunrise(summerDate, latitude, longitude, It.IsAny<string>())).Returns(summerSunrise);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunset(summerDate, latitude, longitude, It.IsAny<string>())).Returns(summerSunset);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunrise(winterDate, latitude, longitude, It.IsAny<string>())).Returns(winterSunrise);
+            _sunCalculatorServiceMock.Setup(x => x.GetSunset(winterDate, latitude, longitude, It.IsAny<string>())).Returns(winterSunset);
+
+            // Setup other required methods for both dates
+            var mockNoon = new DateTime(2024, 6, 21, 12, 0, 0);
+            _sunCalculatorServiceMock.Setup(x => x.GetSolarNoon(It.IsAny<DateTime>(), latitude, longitude, It.IsAny<string>())).Returns(mockNoon);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDawn(It.IsAny<DateTime>(), latitude, longitude, It.IsAny<string>())).Returns(mockNoon);
+            _sunCalculatorServiceMock.Setup(x => x.GetCivilDusk(It.IsAny<DateTime>(), latitude, longitude, It.IsAny<string>())).Returns(mockNoon);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDawn(It.IsAny<DateTime>(), latitude, longitude, It.IsAny<string>())).Returns(mockNoon);
+            _sunCalculatorServiceMock.Setup(x => x.GetNauticalDusk(It.IsAny<DateTime>(), latitude, longitude, It.IsAny<string>())).Returns(mockNoon);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDawn(It.IsAny<DateTime>(), latitude, longitude, It.IsAny<string>())).Returns(mockNoon);
+            _sunCalculatorServiceMock.Setup(x => x.GetAstronomicalDusk(It.IsAny<DateTime>(), latitude, longitude, It.IsAny<string>())).Returns(mockNoon);
+
+            // Act
+            var summerResult = await _sunService.GetSunTimesAsync(latitude, longitude, summerDate, CancellationToken.None);
+            var winterResult = await _sunService.GetSunTimesAsync(latitude, longitude, winterDate, CancellationToken.None);
+
+            // Assert
+            summerResult.IsSuccess.Should().BeTrue();
+            winterResult.IsSuccess.Should().BeTrue();
+
+            // Summer should have longer daylight hours
+            var summerDaylight = summerResult.Data.Sunset - summerResult.Data.Sunrise;
+            var winterDaylight = winterResult.Data.Sunset - winterResult.Data.Sunrise;
+
+            summerDaylight.Should().BeGreaterThan(winterDaylight);
+        }
     }
 }

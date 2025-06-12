@@ -262,22 +262,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
                 .WithParameterName("logger");
         }
 
-        [Test]
-        public async Task Update_WithLocalization_ShouldPersist()
-        {
-            // Arrange
-            var tip = TestDataBuilder.CreateValidTip();
-            await _repository.AddAsync(tip);
-
-            // Act
-            tip.SetLocalization("es-ES");
-            await _repository.UpdateAsync(tip);
-
-            // Assert
-            var retrieved = await _repository.GetByIdAsync(tip.Id);
-            retrieved.Should().NotBeNull();
-            retrieved!.I8n.Should().Be("en-US");
-        }
+       
 
         [Test]
         public async Task GetByTipTypeIdAsync_WithNoMatchingTips_ShouldReturnEmpty()

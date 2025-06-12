@@ -1,0 +1,185 @@
+﻿Feature: Predictive Light Models
+  As a photographer
+  I want to predict optimal lighting conditions for photography
+  So that I can plan shooting sessions for the best possible light quality
+
+  Background:
+    Given the photography application is initialized for testing
+
+  Scenario: Generate predictive light recommendation
+    Given I want to predict optimal lighting conditions
+    And I am at location coordinates 40.7128, -74.0060
+    And today's date is "2024-06-15"
+    When I generate a predictive light recommendation
+    Then I should receive a successful photography result
+    And I should receive light prediction data
+    And the recommendation should include optimal shooting windows
+    And the best time window should have high optimality score
+
+  Scenario: Analyze weather impact on light quality
+    Given I want to analyze weather impact on photography
+    And I have current weather conditions:
+      | CloudCover | Precipitation | Humidity | Visibility | AirQualityIndex | WindSpeed |
+      | 30         | 0             | 65       | 10         | 50              | 5         |
+    When I analyze weather impact on light quality
+    Then I should receive a successful photography result
+    And I should receive weather impact analysis
+    And the light reduction factor should be calculated
+    And the overall summary should describe conditions
+
+  Scenario: Calculate hourly light predictions
+    Given I want to predict hourly lighting conditions
+    And I am at location coordinates 40.7128, -74.0060
+    And I want predictions for "2024-06-15" starting at "06:00"
+    When I calculate hourly light predictions for 12 hours
+    Then I should receive a successful photography result
+    And I should receive 12 hourly predictions
+    And each hour should have light quality assessment
+    And peak light hours should be identified
+
+  Scenario: Find optimal shooting windows
+    Given I want to find optimal shooting windows
+    And I am at location coordinates 40.7128, -74.0060
+    And I want to plan for "2024-06-15"
+    When I find optimal shooting windows for the day
+    Then I should receive a successful photography result
+    And I should receive multiple shooting windows
+    And the golden hour windows should be included
+    And each window should have quality scores and descriptions
+
+  Scenario: Generate shooting alerts
+    Given I want to receive shooting alerts
+    And I am at location coordinates 40.7128, -74.0060
+    And I have optimal light conditions predicted for tomorrow
+    When I generate shooting alerts for upcoming conditions
+    Then I should receive a successful photography result
+    And I should receive alert notifications
+    And the alerts should specify optimal time windows
+    And recommended camera settings should be included
+
+  Scenario: Analyze light quality for different photography types
+    Given I want to analyze light for specific photography types
+    And I have light conditions with the following characteristics:
+      | Hour | SolarElevation | CloudCover | ColorTemperature | LightIntensity |
+      | 07   | 15             | 20         | 4800             | 0.7            |
+      | 12   | 65             | 10         | 5500             | 1.0            |
+      | 19   | 10             | 30         | 3200             | 0.4            |
+    When I analyze light quality for "Portrait Photography"
+    Then I should receive a successful photography result
+    And the morning and evening hours should be rated higher
+    And the harsh midday light should be rated lower
+    And recommendations should favor soft, warm light
+
+  Scenario: Predict light quality with weather forecast
+    Given I want to predict light quality with weather
+    And I have a 5-day weather forecast:
+      | Day | CloudCover | Precipitation | Visibility | Description |
+      | 1   | 10         | 0             | 15         | Clear       |
+      | 2   | 80         | 5             | 8          | Overcast    |
+      | 3   | 50         | 0             | 12         | Partly Cloudy|
+      | 4   | 90         | 20            | 5          | Rainy       |
+      | 5   | 20         | 0             | 14         | Mostly Clear|
+    When I predict light quality for the forecast period
+    Then I should receive a successful photography result
+    And day 1 should have excellent light quality
+    And day 4 should have poor light quality
+    And day 3 should have moderate light quality
+
+  Scenario: Calculate light calibration accuracy
+    Given I want to assess light prediction accuracy
+    And I have historical light predictions with actual outcomes:
+      | PredictedQuality | ActualQuality | Hour | Date       |
+      | Excellent        | Good          | 07   | 2024-06-01 |
+      | Good             | Good          | 12   | 2024-06-01 |
+      | Poor             | Fair          | 19   | 2024-06-01 |
+    When I calculate light prediction calibration accuracy
+    Then I should receive a successful photography result
+    And the calibration accuracy should be calculated
+    And recommendations for recalibration should be provided
+    And accuracy trends should be identified
+
+  Scenario: Generate weather alerts for photography
+    Given I want to receive weather alerts for photography
+    And I have severe weather conditions predicted:
+      | AlertType | Severity | ValidFrom           | ValidTo             | Message                    |
+      | Weather   | Critical | 2024-06-15T14:00:00 | 2024-06-15T18:00:00 | Severe thunderstorm warning|
+    When I generate weather alerts for photography
+    Then I should receive a successful photography result
+    And I should receive critical weather alerts
+    And the alerts should recommend avoiding outdoor photography
+    And alternative indoor shooting suggestions should be provided
+
+  Scenario: Predict golden hour quality
+    Given I want to predict golden hour light quality
+    And I am at location coordinates 40.7128, -74.0060
+    And the date is "2024-06-21" (summer solstice)
+    When I predict golden hour conditions
+    Then I should receive a successful photography result
+    And both morning and evening golden hours should be identified
+    And the light quality should be rated as excellent
+    And the color temperature should be warm (2500-4000K)
+
+  Scenario: Analyze light pollution impact
+    Given I want to analyze light pollution impact on photography
+    And I am at location coordinates 40.7128, -74.0060 (New York City)
+    When I analyze light pollution effects
+    Then I should receive a successful photography result
+    And the light pollution level should be high for urban area
+    And recommendations should favor daytime photography
+    And alternative locations with less pollution should be suggested
+
+  Scenario: Generate multi-location light comparison
+    Given I want to compare light conditions across locations
+    And I have multiple photography locations:
+      | LocationId | Name         | Latitude  | Longitude   | Elevation |
+      | 1          | Central Park | 40.785091 | -73.968285  | 40        |
+      | 2          | Hudson Valley| 41.327801 | -74.007599  | 200       |
+      | 3          | Montauk Point| 41.071228 | -71.857670  | 30        |
+    When I compare light conditions across all locations
+    Then I should receive a successful photography result
+    And each location should have light quality scores
+    And the rural locations should generally score higher
+    And location-specific recommendations should be provided
+
+  Scenario: Predict blue hour conditions
+    Given I want to predict blue hour light quality
+    And I am at location coordinates 40.7128, -74.0060
+    And the date is "2024-06-15"
+    When I predict blue hour conditions
+    Then I should receive a successful photography result
+    And both morning and evening blue hours should be identified
+    And the light should be characterized as soft and even
+    And the color temperature should be cool (8000-12000K)
+
+  Scenario: Calculate optimal exposure for predicted light
+    Given I want to calculate exposure for predicted light conditions
+    And I have predicted light with the following characteristics:
+      | LightIntensity | ColorTemperature | LightQuality |
+      | 0.6            | 3800             | Good         |
+    And I am using camera settings:
+      | SensorSize | ISO | ApertureMode |
+      | Full Frame | 400 | Priority     |
+    When I calculate optimal exposure settings
+    Then I should receive a successful photography result
+    And recommended shutter speed should be calculated
+    And optimal aperture should be suggested
+    And ISO adjustments should be recommended if needed
+
+  Scenario: Handle prediction errors and uncertainties
+    Given I want to predict light conditions
+    And I have incomplete weather data with missing information
+    When I generate predictions with uncertain data
+    Then I should receive a successful photography result
+    And the predictions should include confidence levels
+    And warnings about data uncertainty should be provided
+    And fallback recommendations should be available
+
+  Scenario: Generate seasonal light recommendations
+    Given I want seasonal light recommendations
+    And I am at location coordinates 40.7128, -74.0060
+    And the current season is "Summer"
+    When I generate seasonal light recommendations
+    Then I should receive a successful photography result
+    And the recommendations should account for high sun angle
+    And early morning and late evening should be prioritized
+    And heat haze warnings should be included for midday

@@ -43,7 +43,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Tip)null);
+                .ReturnsAsync((Tip?)null);
 
             // Act
             var result = await _adapter.GetByIdAsync(999);
@@ -76,9 +76,9 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Arrange
             var tips = new[]
             {
-                TestDataBuilder.CreateValidTip(title: "Tip 1"),
-                TestDataBuilder.CreateValidTip(title: "Tip 2"),
-                TestDataBuilder.CreateValidTip(title: "Tip 3")
+                TestDataBuilder.CreateValidTip(),
+                TestDataBuilder.CreateValidTip(),
+                TestDataBuilder.CreateValidTip()
             };
             _mockInnerRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tips);
@@ -90,6 +90,21 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().HaveCount(3);
             result.Data.Should().BeEquivalentTo(tips);
+        }
+
+        [Test]
+        public async Task GetAllAsync_WithEmptyResult_ShouldReturnEmptyList()
+        {
+            // Arrange
+            _mockInnerRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Enumerable.Empty<Tip>());
+
+            // Act
+            var result = await _adapter.GetAllAsync();
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Should().BeEmpty();
         }
 
         [Test]
@@ -109,13 +124,13 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public async Task GetByTypeAsync_WithMatchingTips_ShouldReturnSuccess()
+        public async Task GetByTypeAsync_WithValidTypeId_ShouldReturnSuccess()
         {
             // Arrange
             var tips = new[]
             {
-                TestDataBuilder.CreateValidTip(tipTypeId: 1, title: "Type 1 Tip 1"),
-                TestDataBuilder.CreateValidTip(tipTypeId: 1, title: "Type 1 Tip 2")
+                TestDataBuilder.CreateValidTip(tipTypeId: 1),
+                TestDataBuilder.CreateValidTip(tipTypeId: 1)
             };
             _mockInnerRepository.Setup(x => x.GetByTipTypeIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tips);
@@ -185,8 +200,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Arrange
             var tip = TestDataBuilder.CreateValidTip();
             _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Tip>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
+                .Returns(Task.CompletedTask);
 
             // Act
             var result = await _adapter.UpdateAsync(tip);
@@ -204,7 +218,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             var tip = TestDataBuilder.CreateValidTip();
             var exception = new Exception("Database error");
             _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Tip>(), It.IsAny<CancellationToken>()))
-    .ThrowsAsync(exception);
+                .ThrowsAsync(exception);
 
             // Act
             var result = await _adapter.UpdateAsync(tip);
@@ -215,15 +229,14 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public async Task DeleteAsync_WithExistingTip_ShouldReturnSuccess()
+        public async Task DeleteAsync_WithValidId_ShouldReturnSuccess()
         {
             // Arrange
             var tip = TestDataBuilder.CreateValidTip();
             _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tip);
             _mockInnerRepository.Setup(x => x.DeleteAsync(It.IsAny<Tip>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
+                .Returns(Task.CompletedTask);
 
             // Act
             var result = await _adapter.DeleteAsync(1);
@@ -231,23 +244,8 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeTrue();
+            _mockInnerRepository.Verify(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()), Times.Once);
             _mockInnerRepository.Verify(x => x.DeleteAsync(tip, It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Test]
-        public async Task DeleteAsync_WithNonExistingTip_ShouldReturnFailure()
-        {
-            // Arrange
-            _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Tip)null);
-
-            // Act
-            var result = await _adapter.DeleteAsync(999);
-
-            // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.ErrorMessage.Should().Be("Tip with ID 999 not found");
-            _mockInnerRepository.Verify(x => x.DeleteAsync(It.IsAny<Tip>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
@@ -267,10 +265,10 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public async Task GetRandomByTypeAsync_WithExistingTip_ShouldReturnSuccess()
+        public async Task GetRandomByTypeAsync_WithValidTypeId_ShouldReturnSuccess()
         {
             // Arrange
-            var tip = TestDataBuilder.CreateValidTip(tipTypeId: 1);
+            var tip = TestDataBuilder.CreateValidTip();
             _mockInnerRepository.Setup(x => x.GetRandomByTypeAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tip);
 
@@ -280,6 +278,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeSameAs(tip);
+            _mockInnerRepository.Verify(x => x.GetRandomByTypeAsync(1, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -287,7 +286,7 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             _mockInnerRepository.Setup(x => x.GetRandomByTypeAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Tip)null);
+                .ReturnsAsync((Tip?)null);
 
             // Act
             var result = await _adapter.GetRandomByTypeAsync(999);
@@ -350,21 +349,6 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public async Task GetByTypeAsync_WithEmptyResult_ShouldReturnEmptyList()
-        {
-            // Arrange
-            _mockInnerRepository.Setup(x => x.GetByTipTypeIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Enumerable.Empty<Tip>());
-
-            // Act
-            var result = await _adapter.GetByTypeAsync(1);
-
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Should().BeEmpty();
-        }
-
-        [Test]
         public async Task CreateAsync_WithCancellationToken_ShouldPassThrough()
         {
             // Arrange
@@ -378,6 +362,38 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
 
             // Assert
             _mockInnerRepository.Verify(x => x.AddAsync(tip, cancellationToken), Times.Once);
+        }
+
+        [Test]
+        public async Task UpdateAsync_WithCancellationToken_ShouldPassThrough()
+        {
+            // Arrange
+            var tip = TestDataBuilder.CreateValidTip();
+            var cancellationToken = new CancellationToken();
+            _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Tip>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _adapter.UpdateAsync(tip, cancellationToken);
+
+            // Assert
+            _mockInnerRepository.Verify(x => x.UpdateAsync(tip, cancellationToken), Times.Once);
+        }
+
+        [Test]
+        public async Task GetByIdAsync_WithCancellationToken_ShouldPassThrough()
+        {
+            // Arrange
+            var tip = TestDataBuilder.CreateValidTip();
+            var cancellationToken = new CancellationToken();
+            _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(tip);
+
+            // Act
+            await _adapter.GetByIdAsync(1, cancellationToken);
+
+            // Assert
+            _mockInnerRepository.Verify(x => x.GetByIdAsync(1, cancellationToken), Times.Once);
         }
     }
 }

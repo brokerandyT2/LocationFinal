@@ -107,6 +107,7 @@ namespace Location.Photography.Domain.Models
         Overcast,
         Dramatic, Night,
         Flat, Direct
+        
     }
 
     // Predictive light models

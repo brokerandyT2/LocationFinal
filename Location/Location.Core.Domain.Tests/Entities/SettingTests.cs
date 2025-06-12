@@ -24,7 +24,7 @@ namespace Location.Core.Domain.Tests.Entities
         public void Constructor_WithoutDescription_ShouldSetEmptyDescription()
         {
             // Arrange & Act
-            var setting = new Setting("theme", "dark", "huh");
+            var setting = new Setting("theme", "dark", "");
 
             // Assert
             setting.Description.Should().BeEmpty();

@@ -16,6 +16,31 @@ namespace Location.Photography.Domain.Tests.Models
         }
 
         [Test]
+        public void SunPositionDto_IsAboveHorizon_WhenElevationIsPositive_ShouldReturnTrue()
+        {
+            // Arrange
+            _sunPositionDto.Elevation = 10.0;
+
+            // Act
+            var result = _sunPositionDto.IsAboveHorizon;
+
+            // Assert
+            result.Should().BeTrue();
+        }
+
+        [Test]
+        public void SunPositionDto_IsAboveHorizon_WhenElevationIsZeroOrNegative_ShouldReturnFalse()
+        {
+            // Arrange & Act & Assert - Zero elevation
+            _sunPositionDto.Elevation = 0.0;
+            _sunPositionDto.IsAboveHorizon.Should().BeFalse();
+
+            // Arrange & Act & Assert - Negative elevation
+            _sunPositionDto.Elevation = -10.0;
+            _sunPositionDto.IsAboveHorizon.Should().BeFalse();
+        }
+
+        [Test]
         public void SunPositionDto_Properties_ShouldHaveCorrectTypes()
         {
             // Arrange & Act & Assert

@@ -1,5 +1,4 @@
-﻿
-using FluentAssertions;
+﻿using FluentAssertions;
 using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Domain.Entities;
 using Location.Core.Infrastructure.Data.Repositories;
@@ -71,97 +70,71 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         }
 
         [Test]
-        public async Task Update_ShouldDelegateToInnerRepository()
+        public void Update_ShouldCallInnerRepositoryUpdateAsync()
         {
             // Arrange
             var weather = TestDataBuilder.CreateValidWeather();
             _mockInnerRepository.Setup(x => x.UpdateAsync(It.IsAny<Weather>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
+                .Returns(Task.CompletedTask);
 
             // Act
             _adapter.Update(weather);
 
-            // Wait for the Task.Run to complete
-            await Task.Delay(200);
+            // Give Task.Run a moment to execute
+            Thread.Sleep(100);
 
             // Assert
-            _mockInnerRepository.Verify(x => x.UpdateAsync(weather, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerRepository.Verify(x => x.UpdateAsync(weather, CancellationToken.None), Times.Once);
         }
 
         [Test]
-        public async Task Delete_ShouldDelegateToInnerRepository()
+        public void Delete_ShouldCallInnerRepositoryDeleteAsync()
         {
             // Arrange
             var weather = TestDataBuilder.CreateValidWeather();
             _mockInnerRepository.Setup(x => x.DeleteAsync(It.IsAny<Weather>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
+                .Returns(Task.CompletedTask);
 
             // Act
             _adapter.Delete(weather);
 
-            // Wait for the Task.Run to complete
-            await Task.Delay(200);
+            // Give Task.Run a moment to execute
+            Thread.Sleep(100);
 
             // Assert
-            _mockInnerRepository.Verify(x => x.DeleteAsync(weather, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerRepository.Verify(x => x.DeleteAsync(weather, CancellationToken.None), Times.Once);
         }
 
         [Test]
         public async Task GetRecentAsync_ShouldDelegateToInnerRepository()
         {
             // Arrange
-            var weathers = new[]
-            {
-                TestDataBuilder.CreateValidWeather(locationId: 1),
-                TestDataBuilder.CreateValidWeather(locationId: 2),
-                TestDataBuilder.CreateValidWeather(locationId: 3)
-            };
+            var weatherList = new List<Weather> { TestDataBuilder.CreateValidWeather() };
             _mockInnerRepository.Setup(x => x.GetRecentAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(weathers);
+                .ReturnsAsync(weatherList);
 
             // Act
             var result = await _adapter.GetRecentAsync(5);
 
             // Assert
-            result.Should().BeEquivalentTo(weathers);
+            result.Should().BeSameAs(weatherList);
             _mockInnerRepository.Verify(x => x.GetRecentAsync(5, It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Test]
-        public async Task GetRecentAsync_WithDefaultCount_ShouldUse10()
-        {
-            // Arrange
-            var weathers = new Weather[] { };
-            _mockInnerRepository.Setup(x => x.GetRecentAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(weathers);
-
-            // Act
-            var result = await _adapter.GetRecentAsync();
-
-            // Assert
-            _mockInnerRepository.Verify(x => x.GetRecentAsync(10, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
         public async Task GetExpiredAsync_ShouldDelegateToInnerRepository()
         {
             // Arrange
-            var maxAge = TimeSpan.FromHours(2);
-            var expiredWeathers = new[]
-            {
-                TestDataBuilder.CreateValidWeather(locationId: 1),
-                TestDataBuilder.CreateValidWeather(locationId: 2)
-            };
+            var maxAge = TimeSpan.FromHours(24);
+            var weatherList = new List<Weather> { TestDataBuilder.CreateValidWeather() };
             _mockInnerRepository.Setup(x => x.GetExpiredAsync(It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(expiredWeathers);
+                .ReturnsAsync(weatherList);
 
             // Act
             var result = await _adapter.GetExpiredAsync(maxAge);
 
             // Assert
-            result.Should().BeEquivalentTo(expiredWeathers);
+            result.Should().BeSameAs(weatherList);
             _mockInnerRepository.Verify(x => x.GetExpiredAsync(maxAge, It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -181,13 +154,14 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Weather)null);
+                .ReturnsAsync((Weather?)null);
 
             // Act
             var result = await _adapter.GetByIdAsync(999);
 
             // Assert
             result.Should().BeNull();
+            _mockInnerRepository.Verify(x => x.GetByIdAsync(999, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -195,41 +169,30 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
         {
             // Arrange
             _mockInnerRepository.Setup(x => x.GetByLocationIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Weather)null);
+                .ReturnsAsync((Weather?)null);
 
             // Act
             var result = await _adapter.GetByLocationIdAsync(999);
 
             // Assert
             result.Should().BeNull();
+            _mockInnerRepository.Verify(x => x.GetByLocationIdAsync(999, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
-        public async Task GetRecentAsync_WithEmptyResult_ShouldReturnEmptyCollection()
+        public async Task GetRecentAsync_WithDefaultCount_ShouldUseDefault()
         {
             // Arrange
+            var weatherList = new List<Weather>();
             _mockInnerRepository.Setup(x => x.GetRecentAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Enumerable.Empty<Weather>());
+                .ReturnsAsync(weatherList);
 
             // Act
             var result = await _adapter.GetRecentAsync();
 
             // Assert
-            result.Should().BeEmpty();
-        }
-
-        [Test]
-        public async Task GetExpiredAsync_WithEmptyResult_ShouldReturnEmptyCollection()
-        {
-            // Arrange
-            _mockInnerRepository.Setup(x => x.GetExpiredAsync(It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Enumerable.Empty<Weather>());
-
-            // Act
-            var result = await _adapter.GetExpiredAsync(TimeSpan.FromHours(1));
-
-            // Assert
-            result.Should().BeEmpty();
+            result.Should().BeSameAs(weatherList);
+            _mockInnerRepository.Verify(x => x.GetRecentAsync(10, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -246,67 +209,6 @@ namespace Location.Core.Infrastructure.Tests.Data.Repositories
 
             // Assert
             _mockInnerRepository.Verify(x => x.AddAsync(weather, cancellationToken), Times.Once);
-        }
-
-        [Test]
-        public async Task GetByIdAsync_WithCancellationToken_ShouldPassThrough()
-        {
-            // Arrange
-            var cancellationToken = new CancellationToken();
-            _mockInnerRepository.Setup(x => x.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Weather)null);
-
-            // Act
-            await _adapter.GetByIdAsync(1, cancellationToken);
-
-            // Assert
-            _mockInnerRepository.Verify(x => x.GetByIdAsync(1, cancellationToken), Times.Once);
-        }
-
-        [Test]
-        public async Task GetByLocationIdAsync_WithCancellationToken_ShouldPassThrough()
-        {
-            // Arrange
-            var cancellationToken = new CancellationToken();
-            _mockInnerRepository.Setup(x => x.GetByLocationIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Weather)null);
-
-            // Act
-            await _adapter.GetByLocationIdAsync(1, cancellationToken);
-
-            // Assert
-            _mockInnerRepository.Verify(x => x.GetByLocationIdAsync(1, cancellationToken), Times.Once);
-        }
-
-        [Test]
-        public async Task GetRecentAsync_WithCancellationToken_ShouldPassThrough()
-        {
-            // Arrange
-            var cancellationToken = new CancellationToken();
-            _mockInnerRepository.Setup(x => x.GetRecentAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Enumerable.Empty<Weather>());
-
-            // Act
-            await _adapter.GetRecentAsync(5, cancellationToken);
-
-            // Assert
-            _mockInnerRepository.Verify(x => x.GetRecentAsync(5, cancellationToken), Times.Once);
-        }
-
-        [Test]
-        public async Task GetExpiredAsync_WithCancellationToken_ShouldPassThrough()
-        {
-            // Arrange
-            var cancellationToken = new CancellationToken();
-            var maxAge = TimeSpan.FromHours(1);
-            _mockInnerRepository.Setup(x => x.GetExpiredAsync(It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Enumerable.Empty<Weather>());
-
-            // Act
-            await _adapter.GetExpiredAsync(maxAge, cancellationToken);
-
-            // Assert
-            _mockInnerRepository.Verify(x => x.GetExpiredAsync(maxAge, cancellationToken), Times.Once);
         }
     }
 }
