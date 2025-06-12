@@ -59,5 +59,2417 @@ namespace Location.Core.Application.Resources {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attach.
+        /// </summary>
+        internal static string Action_Attach {
+            get {
+                return ResourceManager.GetString("Action_Attach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create.
+        /// </summary>
+        internal static string Action_Create {
+            get {
+                return ResourceManager.GetString("Action_Create", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        internal static string Action_Delete {
+            get {
+                return ResourceManager.GetString("Action_Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove.
+        /// </summary>
+        internal static string Action_Remove {
+            get {
+                return ResourceManager.GetString("Action_Remove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restore.
+        /// </summary>
+        internal static string Action_Restore {
+            get {
+                return ResourceManager.GetString("Action_Restore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Retrieve.
+        /// </summary>
+        internal static string Action_Retrieve {
+            get {
+                return ResourceManager.GetString("Action_Retrieve", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save.
+        /// </summary>
+        internal static string Action_Save {
+            get {
+                return ResourceManager.GetString("Action_Save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update.
+        /// </summary>
+        internal static string Action_Update {
+            get {
+                return ResourceManager.GetString("Action_Update", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alert.
+        /// </summary>
+        internal static string Alert_DefaultTitle {
+            get {
+                return ResourceManager.GetString("Alert_DefaultTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error.
+        /// </summary>
+        internal static string Alert_Error {
+            get {
+                return ResourceManager.GetString("Alert_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Information.
+        /// </summary>
+        internal static string Alert_Information {
+            get {
+                return ResourceManager.GetString("Alert_Information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Success.
+        /// </summary>
+        internal static string Alert_Success {
+            get {
+                return ResourceManager.GetString("Alert_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        internal static string Alert_Warning {
+            get {
+                return ResourceManager.GetString("Alert_Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Access denied.
+        /// </summary>
+        internal static string Auth_AccessDenied {
+            get {
+                return ResourceManager.GetString("Auth_AccessDenied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication failed.
+        /// </summary>
+        internal static string Auth_Failed {
+            get {
+                return ResourceManager.GetString("Auth_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid credentials.
+        /// </summary>
+        internal static string Auth_InvalidCredentials {
+            get {
+                return ResourceManager.GetString("Auth_InvalidCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Business constraint violation.
+        /// </summary>
+        internal static string BusinessRule_ConstraintViolation {
+            get {
+                return ResourceManager.GetString("BusinessRule_ConstraintViolation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate entries are not allowed.
+        /// </summary>
+        internal static string BusinessRule_DuplicateNotAllowed {
+            get {
+                return ResourceManager.GetString("BusinessRule_DuplicateNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation is not allowed.
+        /// </summary>
+        internal static string BusinessRule_OperationNotAllowed {
+            get {
+                return ResourceManager.GetString("BusinessRule_OperationNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cache expired.
+        /// </summary>
+        internal static string Cache_Expired {
+            get {
+                return ResourceManager.GetString("Cache_Expired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cache hit.
+        /// </summary>
+        internal static string Cache_Hit {
+            get {
+                return ResourceManager.GetString("Cache_Hit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cache miss.
+        /// </summary>
+        internal static string Cache_Miss {
+            get {
+                return ResourceManager.GetString("Cache_Miss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cache updated.
+        /// </summary>
+        internal static string Cache_Updated {
+            get {
+                return ResourceManager.GetString("Cache_Updated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Concurrency conflict detected.
+        /// </summary>
+        internal static string Concurrency_ConflictDetected {
+            get {
+                return ResourceManager.GetString("Concurrency_ConflictDetected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resource is locked.
+        /// </summary>
+        internal static string Concurrency_ResourceLocked {
+            get {
+                return ResourceManager.GetString("Concurrency_ResourceLocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update conflict occurred.
+        /// </summary>
+        internal static string Concurrency_UpdateConflict {
+            get {
+                return ResourceManager.GetString("Concurrency_UpdateConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration value is invalid.
+        /// </summary>
+        internal static string Config_InvalidValue {
+            get {
+                return ResourceManager.GetString("Config_InvalidValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration load failed.
+        /// </summary>
+        internal static string Config_LoadFailed {
+            get {
+                return ResourceManager.GetString("Config_LoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration value is missing.
+        /// </summary>
+        internal static string Config_MissingValue {
+            get {
+                return ResourceManager.GetString("Config_MissingValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Coordinates.
+        /// </summary>
+        internal static string Coordinates_ValidationError_CoordinatesName {
+            get {
+                return ResourceManager.GetString("Coordinates_ValidationError_CoordinatesName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Database connection failed.
+        /// </summary>
+        internal static string Database_ConnectionFailed {
+            get {
+                return ResourceManager.GetString("Database_ConnectionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Database operation failed.
+        /// </summary>
+        internal static string Database_OperationFailed {
+            get {
+                return ResourceManager.GetString("Database_OperationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Database transaction failed.
+        /// </summary>
+        internal static string Database_TransactionFailed {
+            get {
+                return ResourceManager.GetString("Database_TransactionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Default_EmptyString {
+            get {
+                return ResourceManager.GetString("Default_EmptyString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to en-US.
+        /// </summary>
+        internal static string Default_LocalizationCode {
+            get {
+                return ResourceManager.GetString("Default_LocalizationCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location.
+        /// </summary>
+        internal static string Entity_Location {
+            get {
+                return ResourceManager.GetString("Entity_Location", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting.
+        /// </summary>
+        internal static string Entity_Setting {
+            get {
+                return ResourceManager.GetString("Entity_Setting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip.
+        /// </summary>
+        internal static string Entity_Tip {
+            get {
+                return ResourceManager.GetString("Entity_Tip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip Type.
+        /// </summary>
+        internal static string Entity_TipType {
+            get {
+                return ResourceManager.GetString("Entity_TipType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather.
+        /// </summary>
+        internal static string Entity_Weather {
+            get {
+                return ResourceManager.GetString("Entity_Weather", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot create failure result for type {0}.
+        /// </summary>
+        internal static string Error_CannotCreateFailureResult {
+            get {
+                return ResourceManager.GetString("Error_CannotCreateFailureResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred, please try again.
+        /// </summary>
+        internal static string Error_General {
+            get {
+                return ResourceManager.GetString("Error_General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid input.
+        /// </summary>
+        internal static string Error_InvalidInput {
+            get {
+                return ResourceManager.GetString("Error_InvalidInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid tip data.
+        /// </summary>
+        internal static string Error_InvalidTipData {
+            get {
+                return ResourceManager.GetString("Error_InvalidTipData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Database error occurred.
+        /// </summary>
+        internal static string ErrorDisplay_DatabaseError {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_DatabaseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid coordinates provided.
+        /// </summary>
+        internal static string ErrorDisplay_InvalidCoordinates {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_InvalidCoordinates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location &apos;{0}&apos; already exists.
+        /// </summary>
+        internal static string ErrorDisplay_LocationAlreadyExists {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_LocationAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple errors occurred ({0} total), please retry.
+        /// </summary>
+        internal static string ErrorDisplay_MultipleErrors {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_MultipleErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple validation errors occurred ({0} errors).
+        /// </summary>
+        internal static string ErrorDisplay_MultipleValidationErrors {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_MultipleValidationErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Network error occurred.
+        /// </summary>
+        internal static string ErrorDisplay_NetworkError {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_NetworkError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting &apos;{0}&apos; already exists.
+        /// </summary>
+        internal static string ErrorDisplay_SettingAlreadyExists {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_SettingAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} similar errors occurred: {1}.
+        /// </summary>
+        internal static string ErrorDisplay_SimilarErrors {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_SimilarErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip type &apos;{0}&apos; already exists.
+        /// </summary>
+        internal static string ErrorDisplay_TipTypeAlreadyExists {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_TipTypeAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip validation error: {0}.
+        /// </summary>
+        internal static string ErrorDisplay_TipValidationError {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_TipValidationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Validation error: {0}.
+        /// </summary>
+        internal static string ErrorDisplay_ValidationError {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_ValidationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service authentication failed.
+        /// </summary>
+        internal static string ErrorDisplay_WeatherServiceAuthFailed {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_WeatherServiceAuthFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service timeout.
+        /// </summary>
+        internal static string ErrorDisplay_WeatherServiceTimeout {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_WeatherServiceTimeout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service is unavailable.
+        /// </summary>
+        internal static string ErrorDisplay_WeatherServiceUnavailable {
+            get {
+                return ResourceManager.GetString("ErrorDisplay_WeatherServiceUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Content.
+        /// </summary>
+        internal static string Field_Content {
+            get {
+                return ResourceManager.GetString("Field_Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Days.
+        /// </summary>
+        internal static string Field_Days {
+            get {
+                return ResourceManager.GetString("Field_Days", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        internal static string Field_Description {
+            get {
+                return ResourceManager.GetString("Field_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Distance.
+        /// </summary>
+        internal static string Field_Distance {
+            get {
+                return ResourceManager.GetString("Field_Distance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to End Time.
+        /// </summary>
+        internal static string Field_EndTime {
+            get {
+                return ResourceManager.GetString("Field_EndTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Id.
+        /// </summary>
+        internal static string Field_Id {
+            get {
+                return ResourceManager.GetString("Field_Id", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Key.
+        /// </summary>
+        internal static string Field_Key {
+            get {
+                return ResourceManager.GetString("Field_Key", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Latitude.
+        /// </summary>
+        internal static string Field_Latitude {
+            get {
+                return ResourceManager.GetString("Field_Latitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Localization.
+        /// </summary>
+        internal static string Field_Localization {
+            get {
+                return ResourceManager.GetString("Field_Localization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LocationId.
+        /// </summary>
+        internal static string Field_LocationId {
+            get {
+                return ResourceManager.GetString("Field_LocationId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Longitude.
+        /// </summary>
+        internal static string Field_Longitude {
+            get {
+                return ResourceManager.GetString("Field_Longitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        internal static string Field_Name {
+            get {
+                return ResourceManager.GetString("Field_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Photo Path.
+        /// </summary>
+        internal static string Field_PhotoPath {
+            get {
+                return ResourceManager.GetString("Field_PhotoPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start Time.
+        /// </summary>
+        internal static string Field_StartTime {
+            get {
+                return ResourceManager.GetString("Field_StartTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TipTypeId.
+        /// </summary>
+        internal static string Field_TipTypeId {
+            get {
+                return ResourceManager.GetString("Field_TipTypeId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Title.
+        /// </summary>
+        internal static string Field_Title {
+            get {
+                return ResourceManager.GetString("Field_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value.
+        /// </summary>
+        internal static string Field_Value {
+            get {
+                return ResourceManager.GetString("Field_Value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File access denied.
+        /// </summary>
+        internal static string File_AccessDenied {
+            get {
+                return ResourceManager.GetString("File_AccessDenied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid file path.
+        /// </summary>
+        internal static string File_InvalidPath {
+            get {
+                return ResourceManager.GetString("File_InvalidPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File not found.
+        /// </summary>
+        internal static string File_NotFound {
+            get {
+                return ResourceManager.GetString("File_NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File operation failed.
+        /// </summary>
+        internal static string File_OperationFailed {
+            get {
+                return ResourceManager.GetString("File_OperationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to coordinates.
+        /// </summary>
+        internal static string Location_Coordinates {
+            get {
+                return ResourceManager.GetString("Location_Coordinates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to attach photo: {0}.
+        /// </summary>
+        internal static string Location_Error_AttachPhotoFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_AttachPhotoFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot delete location that is currently in use.
+        /// </summary>
+        internal static string Location_Error_CannotDeleteInUse {
+            get {
+                return ResourceManager.GetString("Location_Error_CannotDeleteInUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create location.
+        /// </summary>
+        internal static string Location_Error_CreateFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_CreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Database error occurred.
+        /// </summary>
+        internal static string Location_Error_DatabaseError {
+            get {
+                return ResourceManager.GetString("Location_Error_DatabaseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to delete location: {0}.
+        /// </summary>
+        internal static string Location_Error_DeleteFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_DeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location with title &apos;{0}&apos; already exists.
+        /// </summary>
+        internal static string Location_Error_DuplicateTitle {
+            get {
+                return ResourceManager.GetString("Location_Error_DuplicateTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid coordinates provided.
+        /// </summary>
+        internal static string Location_Error_InvalidCoordinates {
+            get {
+                return ResourceManager.GetString("Location_Error_InvalidCoordinates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve locations.
+        /// </summary>
+        internal static string Location_Error_ListRetrieveFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_ListRetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve locations: {0}.
+        /// </summary>
+        internal static string Location_Error_ListRetrieveFailedWithException {
+            get {
+                return ResourceManager.GetString("Location_Error_ListRetrieveFailedWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve nearby locations: {0}.
+        /// </summary>
+        internal static string Location_Error_NearbyRetrieveFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_NearbyRetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Network error occurred.
+        /// </summary>
+        internal static string Location_Error_NetworkError {
+            get {
+                return ResourceManager.GetString("Location_Error_NetworkError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location not found.
+        /// </summary>
+        internal static string Location_Error_NotFound {
+            get {
+                return ResourceManager.GetString("Location_Error_NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid photo path provided.
+        /// </summary>
+        internal static string Location_Error_PhotoPathInvalid {
+            get {
+                return ResourceManager.GetString("Location_Error_PhotoPathInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to remove photo: {0}.
+        /// </summary>
+        internal static string Location_Error_RemovePhotoFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_RemovePhotoFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to restore location: {0}.
+        /// </summary>
+        internal static string Location_Error_RestoreFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_RestoreFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve location: {0}.
+        /// </summary>
+        internal static string Location_Error_RetrieveFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_RetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save location: {0}.
+        /// </summary>
+        internal static string Location_Error_SaveFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_SaveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location with title &apos;{0}&apos; not found.
+        /// </summary>
+        internal static string Location_Error_TitleNotFound {
+            get {
+                return ResourceManager.GetString("Location_Error_TitleNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unknown location error occurred.
+        /// </summary>
+        internal static string Location_Error_Unknown {
+            get {
+                return ResourceManager.GetString("Location_Error_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update location.
+        /// </summary>
+        internal static string Location_Error_UpdateFailed {
+            get {
+                return ResourceManager.GetString("Location_Error_UpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Validation error occurred.
+        /// </summary>
+        internal static string Location_Error_ValidationError {
+            get {
+                return ResourceManager.GetString("Location_Error_ValidationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to nearby.
+        /// </summary>
+        internal static string Location_Nearby {
+            get {
+                return ResourceManager.GetString("Location_Nearby", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Null Island.
+        /// </summary>
+        internal static string Location_NullIsland {
+            get {
+                return ResourceManager.GetString("Location_NullIsland", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description must not exceed 500 characters.
+        /// </summary>
+        internal static string Location_ValidationError_DescriptionMaxLength {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_DescriptionMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Distance must not exceed 100km.
+        /// </summary>
+        internal static string Location_ValidationError_DistanceMaximum {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_DistanceMaximum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Distance must be greater than 0.
+        /// </summary>
+        internal static string Location_ValidationError_DistanceRequired {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_DistanceRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Latitude must be between -90 and 90 degrees.
+        /// </summary>
+        internal static string Location_ValidationError_LatitudeRange {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_LatitudeRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LocationId must be greater than 0.
+        /// </summary>
+        internal static string Location_ValidationError_LocationIdRequired {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_LocationIdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Longitude must be between -180 and 180 degrees.
+        /// </summary>
+        internal static string Location_ValidationError_LongitudeRange {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_LongitudeRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid coordinates: Cannot use Null Island (0,0).
+        /// </summary>
+        internal static string Location_ValidationError_NullIslandCoordinates {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_NullIslandCoordinates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Photo path is not valid.
+        /// </summary>
+        internal static string Location_ValidationError_PhotoPathInvalid {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_PhotoPathInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Photo path is required.
+        /// </summary>
+        internal static string Location_ValidationError_PhotoPathRequired {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_PhotoPathRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Title must not exceed 100 characters.
+        /// </summary>
+        internal static string Location_ValidationError_TitleMaxLength {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_TitleMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Title is required.
+        /// </summary>
+        internal static string Location_ValidationError_TitleRequired {
+            get {
+                return ResourceManager.GetString("Location_ValidationError_TitleRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation completed.
+        /// </summary>
+        internal static string Log_OperationCompleted {
+            get {
+                return ResourceManager.GetString("Log_OperationCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation failed.
+        /// </summary>
+        internal static string Log_OperationFailed {
+            get {
+                return ResourceManager.GetString("Log_OperationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation started.
+        /// </summary>
+        internal static string Log_OperationStarted {
+            get {
+                return ResourceManager.GetString("Log_OperationStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Validation failed.
+        /// </summary>
+        internal static string Log_ValidationFailed {
+            get {
+                return ResourceManager.GetString("Log_ValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Network connection failed.
+        /// </summary>
+        internal static string Network_ConnectionFailed {
+            get {
+                return ResourceManager.GetString("Network_ConnectionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Network request failed.
+        /// </summary>
+        internal static string Network_RequestFailed {
+            get {
+                return ResourceManager.GetString("Network_RequestFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Network timeout occurred.
+        /// </summary>
+        internal static string Network_TimeoutOccurred {
+            get {
+                return ResourceManager.GetString("Network_TimeoutOccurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation was cancelled.
+        /// </summary>
+        internal static string Operation_Cancelled {
+            get {
+                return ResourceManager.GetString("Operation_Cancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation failed.
+        /// </summary>
+        internal static string Operation_Failed {
+            get {
+                return ResourceManager.GetString("Operation_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation completed successfully.
+        /// </summary>
+        internal static string Operation_Successful {
+            get {
+                return ResourceManager.GetString("Operation_Successful", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation timed out.
+        /// </summary>
+        internal static string Operation_TimedOut {
+            get {
+                return ResourceManager.GetString("Operation_TimedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No results found.
+        /// </summary>
+        internal static string Pagination_NoResults {
+            get {
+                return ResourceManager.GetString("Pagination_NoResults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Page number.
+        /// </summary>
+        internal static string Pagination_PageNumber {
+            get {
+                return ResourceManager.GetString("Pagination_PageNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Page size.
+        /// </summary>
+        internal static string Pagination_PageSize {
+            get {
+                return ResourceManager.GetString("Pagination_PageSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total count.
+        /// </summary>
+        internal static string Pagination_TotalCount {
+            get {
+                return ResourceManager.GetString("Pagination_TotalCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Slow operation detected.
+        /// </summary>
+        internal static string Performance_SlowOperation {
+            get {
+                return ResourceManager.GetString("Performance_SlowOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation exceeded time limit.
+        /// </summary>
+        internal static string Performance_Timeout {
+            get {
+                return ResourceManager.GetString("Performance_Timeout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to F-stop.
+        /// </summary>
+        internal static string Photography_FStop {
+            get {
+                return ResourceManager.GetString("Photography_FStop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO.
+        /// </summary>
+        internal static string Photography_ISO {
+            get {
+                return ResourceManager.GetString("Photography_ISO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shutter Speed.
+        /// </summary>
+        internal static string Photography_ShutterSpeed {
+            get {
+                return ResourceManager.GetString("Photography_ShutterSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to between.
+        /// </summary>
+        internal static string Range_Between {
+            get {
+                return ResourceManager.GetString("Range_Between", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to greater than.
+        /// </summary>
+        internal static string Range_GreaterThan {
+            get {
+                return ResourceManager.GetString("Range_GreaterThan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to less than.
+        /// </summary>
+        internal static string Range_LessThan {
+            get {
+                return ResourceManager.GetString("Range_LessThan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to must be.
+        /// </summary>
+        internal static string Range_MustBe {
+            get {
+                return ResourceManager.GetString("Range_MustBe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to must not exceed.
+        /// </summary>
+        internal static string Range_MustNotExceed {
+            get {
+                return ResourceManager.GetString("Range_MustNotExceed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resource exhausted.
+        /// </summary>
+        internal static string Resource_Exhausted {
+            get {
+                return ResourceManager.GetString("Resource_Exhausted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resource limit exceeded.
+        /// </summary>
+        internal static string Resource_LimitExceeded {
+            get {
+                return ResourceManager.GetString("Resource_LimitExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resource not available.
+        /// </summary>
+        internal static string Resource_NotAvailable {
+            get {
+                return ResourceManager.GetString("Resource_NotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search criteria.
+        /// </summary>
+        internal static string Search_Criteria {
+            get {
+                return ResourceManager.GetString("Search_Criteria", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No search results found.
+        /// </summary>
+        internal static string Search_NoResults {
+            get {
+                return ResourceManager.GetString("Search_NoResults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search term.
+        /// </summary>
+        internal static string Search_Term {
+            get {
+                return ResourceManager.GetString("Search_Term", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insufficient permissions.
+        /// </summary>
+        internal static string Security_InsufficientPermissions {
+            get {
+                return ResourceManager.GetString("Security_InsufficientPermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security violation detected.
+        /// </summary>
+        internal static string Security_SecurityViolation {
+            get {
+                return ResourceManager.GetString("Security_SecurityViolation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unauthorized access attempt.
+        /// </summary>
+        internal static string Security_UnauthorizedAccess {
+            get {
+                return ResourceManager.GetString("Security_UnauthorizedAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot delete read-only setting.
+        /// </summary>
+        internal static string Setting_Error_CannotDeleteReadOnly {
+            get {
+                return ResourceManager.GetString("Setting_Error_CannotDeleteReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot update read-only setting.
+        /// </summary>
+        internal static string Setting_Error_CannotUpdateReadOnly {
+            get {
+                return ResourceManager.GetString("Setting_Error_CannotUpdateReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create setting.
+        /// </summary>
+        internal static string Setting_Error_CreateFailed {
+            get {
+                return ResourceManager.GetString("Setting_Error_CreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create setting: {0}.
+        /// </summary>
+        internal static string Setting_Error_CreateFailedWithException {
+            get {
+                return ResourceManager.GetString("Setting_Error_CreateFailedWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Database error occurred.
+        /// </summary>
+        internal static string Setting_Error_DatabaseError {
+            get {
+                return ResourceManager.GetString("Setting_Error_DatabaseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to delete setting: {0}.
+        /// </summary>
+        internal static string Setting_Error_DeleteFailed {
+            get {
+                return ResourceManager.GetString("Setting_Error_DeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting &apos;{0}&apos; already exists.
+        /// </summary>
+        internal static string Setting_Error_DuplicateKey {
+            get {
+                return ResourceManager.GetString("Setting_Error_DuplicateKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid setting value.
+        /// </summary>
+        internal static string Setting_Error_InvalidValue {
+            get {
+                return ResourceManager.GetString("Setting_Error_InvalidValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid setting value provided.
+        /// </summary>
+        internal static string Setting_Error_InvalidValueProvided {
+            get {
+                return ResourceManager.GetString("Setting_Error_InvalidValueProvided", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting with key &apos;{0}&apos; already exists.
+        /// </summary>
+        internal static string Setting_Error_KeyAlreadyExists {
+            get {
+                return ResourceManager.GetString("Setting_Error_KeyAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting key not found.
+        /// </summary>
+        internal static string Setting_Error_KeyNotFound {
+            get {
+                return ResourceManager.GetString("Setting_Error_KeyNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting with key &apos;{0}&apos; not found.
+        /// </summary>
+        internal static string Setting_Error_KeyNotFoundSpecific {
+            get {
+                return ResourceManager.GetString("Setting_Error_KeyNotFoundSpecific", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting is read-only.
+        /// </summary>
+        internal static string Setting_Error_ReadOnlySetting {
+            get {
+                return ResourceManager.GetString("Setting_Error_ReadOnlySetting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve settings.
+        /// </summary>
+        internal static string Setting_Error_RetrieveFailed {
+            get {
+                return ResourceManager.GetString("Setting_Error_RetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unknown setting error occurred.
+        /// </summary>
+        internal static string Setting_Error_Unknown {
+            get {
+                return ResourceManager.GetString("Setting_Error_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update setting.
+        /// </summary>
+        internal static string Setting_Error_UpdateFailed {
+            get {
+                return ResourceManager.GetString("Setting_Error_UpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update setting: {0}.
+        /// </summary>
+        internal static string Setting_Error_UpdateFailedWithException {
+            get {
+                return ResourceManager.GetString("Setting_Error_UpdateFailedWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description must not exceed 200 characters.
+        /// </summary>
+        internal static string Setting_ValidationError_DescriptionMaxLength {
+            get {
+                return ResourceManager.GetString("Setting_ValidationError_DescriptionMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Key must not exceed 50 characters.
+        /// </summary>
+        internal static string Setting_ValidationError_KeyMaxLength {
+            get {
+                return ResourceManager.GetString("Setting_ValidationError_KeyMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Key is required.
+        /// </summary>
+        internal static string Setting_ValidationError_KeyRequired {
+            get {
+                return ResourceManager.GetString("Setting_ValidationError_KeyRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value must not exceed 500 characters.
+        /// </summary>
+        internal static string Setting_ValidationError_ValueMaxLength {
+            get {
+                return ResourceManager.GetString("Setting_ValidationError_ValueMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value cannot be null.
+        /// </summary>
+        internal static string Setting_ValidationError_ValueRequired {
+            get {
+                return ResourceManager.GetString("Setting_ValidationError_ValueRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to already exists.
+        /// </summary>
+        internal static string Status_AlreadyExists {
+            get {
+                return ResourceManager.GetString("Status_AlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to currently in use.
+        /// </summary>
+        internal static string Status_InUse {
+            get {
+                return ResourceManager.GetString("Status_InUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to invalid.
+        /// </summary>
+        internal static string Status_Invalid {
+            get {
+                return ResourceManager.GetString("Status_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to not found.
+        /// </summary>
+        internal static string Status_NotFound {
+            get {
+                return ResourceManager.GetString("Status_NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to read-only.
+        /// </summary>
+        internal static string Status_ReadOnly {
+            get {
+                return ResourceManager.GetString("Status_ReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to required.
+        /// </summary>
+        internal static string Status_Required {
+            get {
+                return ResourceManager.GetString("Status_Required", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation was cancelled.
+        /// </summary>
+        internal static string System_OperationCancelled {
+            get {
+                return ResourceManager.GetString("System_OperationCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation timed out.
+        /// </summary>
+        internal static string System_OperationTimeout {
+            get {
+                return ResourceManager.GetString("System_OperationTimeout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unexpected error occurred.
+        /// </summary>
+        internal static string System_UnexpectedError {
+            get {
+                return ResourceManager.GetString("System_UnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EndTime.
+        /// </summary>
+        internal static string Time_EndTime {
+            get {
+                return ResourceManager.GetString("Time_EndTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to StartTime.
+        /// </summary>
+        internal static string Time_StartTime {
+            get {
+                return ResourceManager.GetString("Time_StartTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to when both are provided.
+        /// </summary>
+        internal static string Time_WhenBothProvided {
+            get {
+                return ResourceManager.GetString("Time_WhenBothProvided", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot delete tip that is currently in use.
+        /// </summary>
+        internal static string Tip_Error_CannotDeleteInUse {
+            get {
+                return ResourceManager.GetString("Tip_Error_CannotDeleteInUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create tip: {0}.
+        /// </summary>
+        internal static string Tip_Error_CreateFailed {
+            get {
+                return ResourceManager.GetString("Tip_Error_CreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to delete tip: {0}.
+        /// </summary>
+        internal static string Tip_Error_DeleteFailed {
+            get {
+                return ResourceManager.GetString("Tip_Error_DeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip with title &apos;{0}&apos; already exists.
+        /// </summary>
+        internal static string Tip_Error_DuplicateTitle {
+            get {
+                return ResourceManager.GetString("Tip_Error_DuplicateTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid tip content provided.
+        /// </summary>
+        internal static string Tip_Error_InvalidContent {
+            get {
+                return ResourceManager.GetString("Tip_Error_InvalidContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid tip type specified.
+        /// </summary>
+        internal static string Tip_Error_InvalidTipType {
+            get {
+                return ResourceManager.GetString("Tip_Error_InvalidTipType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve tips.
+        /// </summary>
+        internal static string Tip_Error_ListRetrieveFailed {
+            get {
+                return ResourceManager.GetString("Tip_Error_ListRetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip not found.
+        /// </summary>
+        internal static string Tip_Error_NotFound {
+            get {
+                return ResourceManager.GetString("Tip_Error_NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No tips found for the specified type.
+        /// </summary>
+        internal static string Tip_Error_NoTipsFoundForType {
+            get {
+                return ResourceManager.GetString("Tip_Error_NoTipsFoundForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve random tip: {0}.
+        /// </summary>
+        internal static string Tip_Error_RandomRetrieveFailed {
+            get {
+                return ResourceManager.GetString("Tip_Error_RandomRetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve tips: {0}.
+        /// </summary>
+        internal static string Tip_Error_RetrieveFailed {
+            get {
+                return ResourceManager.GetString("Tip_Error_RetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve tips by type.
+        /// </summary>
+        internal static string Tip_Error_TypeRetrieveFailed {
+            get {
+                return ResourceManager.GetString("Tip_Error_TypeRetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve tips by type: {0}.
+        /// </summary>
+        internal static string Tip_Error_TypeRetrieveFailedWithException {
+            get {
+                return ResourceManager.GetString("Tip_Error_TypeRetrieveFailedWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update tip: {0}.
+        /// </summary>
+        internal static string Tip_Error_UpdateFailed {
+            get {
+                return ResourceManager.GetString("Tip_Error_UpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple tip validation errors occurred ({0} errors).
+        /// </summary>
+        internal static string Tip_Validation_Error_Multiple {
+            get {
+                return ResourceManager.GetString("Tip_Validation_Error_Multiple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip validation error: {0}.
+        /// </summary>
+        internal static string Tip_Validation_Error_Single {
+            get {
+                return ResourceManager.GetString("Tip_Validation_Error_Single", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Content must not exceed 1000 characters.
+        /// </summary>
+        internal static string Tip_ValidationError_ContentMaxLength {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_ContentMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Content is required.
+        /// </summary>
+        internal static string Tip_ValidationError_ContentRequired {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_ContentRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to F-stop must not exceed 20 characters.
+        /// </summary>
+        internal static string Tip_ValidationError_FStopMaxLength {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_FStopMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Id must be greater than 0.
+        /// </summary>
+        internal static string Tip_ValidationError_IdRequired {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_IdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO must not exceed 20 characters.
+        /// </summary>
+        internal static string Tip_ValidationError_IsoMaxLength {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_IsoMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Localization must not exceed 10 characters.
+        /// </summary>
+        internal static string Tip_ValidationError_LocalizationMaxLength {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_LocalizationMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Localization is required.
+        /// </summary>
+        internal static string Tip_ValidationError_LocalizationRequired {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_LocalizationRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shutter speed must not exceed 20 characters.
+        /// </summary>
+        internal static string Tip_ValidationError_ShutterSpeedMaxLength {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_ShutterSpeedMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TipTypeId must be greater than 0.
+        /// </summary>
+        internal static string Tip_ValidationError_TipTypeIdRequired {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_TipTypeIdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Title must not exceed 100 characters.
+        /// </summary>
+        internal static string Tip_ValidationError_TitleMaxLength {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_TitleMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Title is required.
+        /// </summary>
+        internal static string Tip_ValidationError_TitleRequired {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_TitleRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create tip type: {0}.
+        /// </summary>
+        internal static string TipType_Error_CreateFailed {
+            get {
+                return ResourceManager.GetString("TipType_Error_CreateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Database error occurred.
+        /// </summary>
+        internal static string TipType_Error_DatabaseError {
+            get {
+                return ResourceManager.GetString("TipType_Error_DatabaseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip type with name &apos;{0}&apos; already exists.
+        /// </summary>
+        internal static string TipType_Error_DuplicateName {
+            get {
+                return ResourceManager.GetString("TipType_Error_DuplicateName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip type is currently in use.
+        /// </summary>
+        internal static string TipType_Error_InUse {
+            get {
+                return ResourceManager.GetString("TipType_Error_InUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid tip type name.
+        /// </summary>
+        internal static string TipType_Error_InvalidName {
+            get {
+                return ResourceManager.GetString("TipType_Error_InvalidName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve tip types.
+        /// </summary>
+        internal static string TipType_Error_ListRetrieveFailed {
+            get {
+                return ResourceManager.GetString("TipType_Error_ListRetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve tip types: {0}.
+        /// </summary>
+        internal static string TipType_Error_ListRetrieveFailedWithException {
+            get {
+                return ResourceManager.GetString("TipType_Error_ListRetrieveFailedWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid tip type name provided.
+        /// </summary>
+        internal static string TipType_Error_NameInvalid {
+            get {
+                return ResourceManager.GetString("TipType_Error_NameInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip type not found.
+        /// </summary>
+        internal static string TipType_Error_NotFound {
+            get {
+                return ResourceManager.GetString("TipType_Error_NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tip type with ID {0} not found.
+        /// </summary>
+        internal static string TipType_Error_NotFoundById {
+            get {
+                return ResourceManager.GetString("TipType_Error_NotFoundById", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve tip type: {0}.
+        /// </summary>
+        internal static string TipType_Error_RetrieveFailed {
+            get {
+                return ResourceManager.GetString("TipType_Error_RetrieveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unknown tip type error occurred.
+        /// </summary>
+        internal static string TipType_Error_Unknown {
+            get {
+                return ResourceManager.GetString("TipType_Error_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Id must be greater than 0.
+        /// </summary>
+        internal static string TipType_ValidationError_IdRequired {
+            get {
+                return ResourceManager.GetString("TipType_ValidationError_IdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Localization must not exceed 10 characters.
+        /// </summary>
+        internal static string TipType_ValidationError_LocalizationMaxLength {
+            get {
+                return ResourceManager.GetString("TipType_ValidationError_LocalizationMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Localization is required.
+        /// </summary>
+        internal static string TipType_ValidationError_LocalizationRequired {
+            get {
+                return ResourceManager.GetString("TipType_ValidationError_LocalizationRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name must not exceed 100 characters.
+        /// </summary>
+        internal static string TipType_ValidationError_NameMaxLength {
+            get {
+                return ResourceManager.GetString("TipType_ValidationError_NameMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name is required.
+        /// </summary>
+        internal static string TipType_ValidationError_NameRequired {
+            get {
+                return ResourceManager.GetString("TipType_ValidationError_NameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to characters.
+        /// </summary>
+        internal static string Unit_Characters {
+            get {
+                return ResourceManager.GetString("Unit_Characters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to degrees.
+        /// </summary>
+        internal static string Unit_Degrees {
+            get {
+                return ResourceManager.GetString("Unit_Degrees", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to km.
+        /// </summary>
+        internal static string Unit_Kilometers {
+            get {
+                return ResourceManager.GetString("Unit_Kilometers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to cannot be empty.
+        /// </summary>
+        internal static string Validation_CannotBeEmpty {
+            get {
+                return ResourceManager.GetString("Validation_CannotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to cannot be null.
+        /// </summary>
+        internal static string Validation_CannotBeNull {
+            get {
+                return ResourceManager.GetString("Validation_CannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple validation errors occurred ({0} errors).
+        /// </summary>
+        internal static string Validation_Error_Multiple {
+            get {
+                return ResourceManager.GetString("Validation_Error_Multiple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Validation error: {0}.
+        /// </summary>
+        internal static string Validation_Error_Single {
+            get {
+                return ResourceManager.GetString("Validation_Error_Single", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to has invalid format.
+        /// </summary>
+        internal static string Validation_InvalidFormat {
+            get {
+                return ResourceManager.GetString("Validation_InvalidFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is required.
+        /// </summary>
+        internal static string Validation_IsRequired {
+            get {
+                return ResourceManager.GetString("Validation_IsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is out of range.
+        /// </summary>
+        internal static string Validation_OutOfRange {
+            get {
+                return ResourceManager.GetString("Validation_OutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to authentication.
+        /// </summary>
+        internal static string Weather_Authentication {
+            get {
+                return ResourceManager.GetString("Weather_Authentication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to weather data.
+        /// </summary>
+        internal static string Weather_Data {
+            get {
+                return ResourceManager.GetString("Weather_Data", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service is unavailable.
+        /// </summary>
+        internal static string Weather_Error_ApiUnavailable {
+            get {
+                return ResourceManager.GetString("Weather_Error_ApiUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Database error occurred.
+        /// </summary>
+        internal static string Weather_Error_DatabaseError {
+            get {
+                return ResourceManager.GetString("Weather_Error_DatabaseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather data not found for location.
+        /// </summary>
+        internal static string Weather_Error_DataNotFound {
+            get {
+                return ResourceManager.GetString("Weather_Error_DataNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to fetch and persist weather data.
+        /// </summary>
+        internal static string Weather_Error_FetchAndPersistFailed {
+            get {
+                return ResourceManager.GetString("Weather_Error_FetchAndPersistFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to fetch weather data: {0}.
+        /// </summary>
+        internal static string Weather_Error_FetchDataFailed {
+            get {
+                return ResourceManager.GetString("Weather_Error_FetchDataFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to get weather forecast.
+        /// </summary>
+        internal static string Weather_Error_GetForecastFailed {
+            get {
+                return ResourceManager.GetString("Weather_Error_GetForecastFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service authentication failed.
+        /// </summary>
+        internal static string Weather_Error_InvalidApiKey {
+            get {
+                return ResourceManager.GetString("Weather_Error_InvalidApiKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid location for weather.
+        /// </summary>
+        internal static string Weather_Error_InvalidLocation {
+            get {
+                return ResourceManager.GetString("Weather_Error_InvalidLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location not found.
+        /// </summary>
+        internal static string Weather_Error_LocationNotFound {
+            get {
+                return ResourceManager.GetString("Weather_Error_LocationNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service timeout.
+        /// </summary>
+        internal static string Weather_Error_NetworkTimeout {
+            get {
+                return ResourceManager.GetString("Weather_Error_NetworkTimeout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service rate limit exceeded.
+        /// </summary>
+        internal static string Weather_Error_RateLimitExceeded {
+            get {
+                return ResourceManager.GetString("Weather_Error_RateLimitExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve weather data.
+        /// </summary>
+        internal static string Weather_Error_RetrieveDataFailed {
+            get {
+                return ResourceManager.GetString("Weather_Error_RetrieveDataFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve weather data: {0}.
+        /// </summary>
+        internal static string Weather_Error_RetrieveDataFailedWithException {
+            get {
+                return ResourceManager.GetString("Weather_Error_RetrieveDataFailedWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve weather forecast: {0}.
+        /// </summary>
+        internal static string Weather_Error_RetrieveForecastFailed {
+            get {
+                return ResourceManager.GetString("Weather_Error_RetrieveForecastFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve hourly weather forecast: {0}.
+        /// </summary>
+        internal static string Weather_Error_RetrieveHourlyForecastFailed {
+            get {
+                return ResourceManager.GetString("Weather_Error_RetrieveHourlyForecastFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service authentication failed.
+        /// </summary>
+        internal static string Weather_Error_ServiceAuthenticationFailed {
+            get {
+                return ResourceManager.GetString("Weather_Error_ServiceAuthenticationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service timeout: {0}.
+        /// </summary>
+        internal static string Weather_Error_ServiceTimeout {
+            get {
+                return ResourceManager.GetString("Weather_Error_ServiceTimeout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unknown weather error occurred.
+        /// </summary>
+        internal static string Weather_Error_Unknown {
+            get {
+                return ResourceManager.GetString("Weather_Error_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update all weather data: {0}.
+        /// </summary>
+        internal static string Weather_Error_UpdateAllFailed {
+            get {
+                return ResourceManager.GetString("Weather_Error_UpdateAllFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update weather: {0}.
+        /// </summary>
+        internal static string Weather_Error_UpdateFailed {
+            get {
+                return ResourceManager.GetString("Weather_Error_UpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to forecast.
+        /// </summary>
+        internal static string Weather_Forecast {
+            get {
+                return ResourceManager.GetString("Weather_Forecast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hourly.
+        /// </summary>
+        internal static string Weather_Hourly {
+            get {
+                return ResourceManager.GetString("Weather_Hourly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather service.
+        /// </summary>
+        internal static string Weather_Service {
+            get {
+                return ResourceManager.GetString("Weather_Service", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to timeout.
+        /// </summary>
+        internal static string Weather_Timeout {
+            get {
+                return ResourceManager.GetString("Weather_Timeout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unavailable.
+        /// </summary>
+        internal static string Weather_Unavailable {
+            get {
+                return ResourceManager.GetString("Weather_Unavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Days must be between 1 and 7.
+        /// </summary>
+        internal static string Weather_ValidationError_DaysRange {
+            get {
+                return ResourceManager.GetString("Weather_ValidationError_DaysRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EndTime must be greater than StartTime when both are provided.
+        /// </summary>
+        internal static string Weather_ValidationError_EndTimeAfterStartTime {
+            get {
+                return ResourceManager.GetString("Weather_ValidationError_EndTimeAfterStartTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Latitude must be between -90 and 90 degrees.
+        /// </summary>
+        internal static string Weather_ValidationError_LatitudeRange {
+            get {
+                return ResourceManager.GetString("Weather_ValidationError_LatitudeRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LocationId must be greater than 0.
+        /// </summary>
+        internal static string Weather_ValidationError_LocationIdRequired {
+            get {
+                return ResourceManager.GetString("Weather_ValidationError_LocationIdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Longitude must be between -180 and 180 degrees.
+        /// </summary>
+        internal static string Weather_ValidationError_LongitudeRange {
+            get {
+                return ResourceManager.GetString("Weather_ValidationError_LongitudeRange", resourceCulture);
+            }
+        }
     }
 }

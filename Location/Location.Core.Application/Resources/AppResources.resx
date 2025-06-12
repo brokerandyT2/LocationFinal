@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-	<!-- 
+  <!-- 
 		Microsoft ResX Schema
 
 		Version 1.3
@@ -58,44 +58,1213 @@
 			: using a System.ComponentModel.TypeConverter
 			: and then encoded with base64 encoding.
 	-->
-	
-	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-		<xsd:element name="root" msdata:IsDataSet="true">
-			<xsd:complexType>
-				<xsd:choice maxOccurs="unbounded">
-					<xsd:element name="data">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-								<xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
-							<xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-							<xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="resheader">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" use="required" />
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:choice>
-			</xsd:complexType>
-		</xsd:element>
-	</xsd:schema>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>1.3</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
+
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ===== ALERT DEFAULTS ===== -->
+  <data name="Alert_DefaultTitle">
+    <value>Alert</value>
+    <comment>Default title for alert messages</comment>
+  </data>
+  <data name="Alert_Information">
+    <value>Information</value>
+    <comment>Default title for info alerts</comment>
+  </data>
+  <data name="Alert_Success">
+    <value>Success</value>
+    <comment>Default title for success alerts</comment>
+  </data>
+  <data name="Alert_Warning">
+    <value>Warning</value>
+    <comment>Default title for warning alerts</comment>
+  </data>
+  <data name="Alert_Error">
+    <value>Error</value>
+    <comment>Default title for error alerts</comment>
+  </data>
+
+  <!-- ===== LOCATION VALIDATION MESSAGES ===== -->
+  <data name="Location_ValidationError_LocationIdRequired">
+    <value>LocationId must be greater than 0</value>
+    <comment>Validation error for invalid location ID</comment>
+  </data>
+  <data name="Location_ValidationError_PhotoPathRequired">
+    <value>Photo path is required</value>
+    <comment>Validation error for missing photo path</comment>
+  </data>
+  <data name="Location_ValidationError_PhotoPathInvalid">
+    <value>Photo path is not valid</value>
+    <comment>Validation error for invalid photo path</comment>
+  </data>
+  <data name="Location_ValidationError_TitleRequired">
+    <value>Title is required</value>
+    <comment>Validation error for missing title</comment>
+  </data>
+  <data name="Location_ValidationError_TitleMaxLength">
+    <value>Title must not exceed 100 characters</value>
+    <comment>Validation error for title too long</comment>
+  </data>
+  <data name="Location_ValidationError_DescriptionMaxLength">
+    <value>Description must not exceed 500 characters</value>
+    <comment>Validation error for description too long</comment>
+  </data>
+  <data name="Location_ValidationError_LatitudeRange">
+    <value>Latitude must be between -90 and 90 degrees</value>
+    <comment>Validation error for invalid latitude</comment>
+  </data>
+  <data name="Location_ValidationError_LongitudeRange">
+    <value>Longitude must be between -180 and 180 degrees</value>
+    <comment>Validation error for invalid longitude</comment>
+  </data>
+  <data name="Location_ValidationError_NullIslandCoordinates">
+    <value>Invalid coordinates: Cannot use Null Island (0,0)</value>
+    <comment>Validation error for null island coordinates</comment>
+  </data>
+  <data name="Location_ValidationError_DistanceRequired">
+    <value>Distance must be greater than 0</value>
+    <comment>Validation error for invalid distance</comment>
+  </data>
+  <data name="Location_ValidationError_DistanceMaximum">
+    <value>Distance must not exceed 100km</value>
+    <comment>Validation error for distance too large</comment>
+  </data>
+
+  <!-- ===== LOCATION ERROR MESSAGES ===== -->
+  <data name="Location_Error_NotFound">
+    <value>Location not found</value>
+    <comment>Error message when location is not found</comment>
+  </data>
+  <data name="Location_Error_UpdateFailed">
+    <value>Failed to update location</value>
+    <comment>Error message when location update fails</comment>
+  </data>
+  <data name="Location_Error_CreateFailed">
+    <value>Failed to create location</value>
+    <comment>Error message when location creation fails</comment>
+  </data>
+  <data name="Location_Error_AttachPhotoFailed">
+    <value>Failed to attach photo: {0}</value>
+    <comment>Error message when photo attachment fails</comment>
+  </data>
+  <data name="Location_Error_RemovePhotoFailed">
+    <value>Failed to remove photo: {0}</value>
+    <comment>Error message when photo removal fails</comment>
+  </data>
+  <data name="Location_Error_DeleteFailed">
+    <value>Failed to delete location: {0}</value>
+    <comment>Error message when location deletion fails</comment>
+  </data>
+  <data name="Location_Error_RestoreFailed">
+    <value>Failed to restore location: {0}</value>
+    <comment>Error message when location restoration fails</comment>
+  </data>
+  <data name="Location_Error_SaveFailed">
+    <value>Failed to save location: {0}</value>
+    <comment>Error message when location save fails</comment>
+  </data>
+  <data name="Location_Error_RetrieveFailed">
+    <value>Failed to retrieve location: {0}</value>
+    <comment>Error message when location retrieval fails</comment>
+  </data>
+  <data name="Location_Error_NearbyRetrieveFailed">
+    <value>Failed to retrieve nearby locations: {0}</value>
+    <comment>Error message when nearby location retrieval fails</comment>
+  </data>
+  <data name="Location_Error_ListRetrieveFailed">
+    <value>Failed to retrieve locations</value>
+    <comment>Error message when location list retrieval fails</comment>
+  </data>
+  <data name="Location_Error_ListRetrieveFailedWithException">
+    <value>Failed to retrieve locations: {0}</value>
+    <comment>Error message when location list retrieval fails with exception</comment>
+  </data>
+  <data name="Location_Error_TitleNotFound">
+    <value>Location with title '{0}' not found</value>
+    <comment>Error message when location with specific title is not found</comment>
+  </data>
+  <data name="Location_Error_PhotoPathInvalid">
+    <value>Invalid photo path provided</value>
+    <comment>Error message for invalid photo path</comment>
+  </data>
+  <data name="Location_Error_CannotDeleteInUse">
+    <value>Cannot delete location that is currently in use</value>
+    <comment>Error message when trying to delete location in use</comment>
+  </data>
+
+  <!-- ===== LOCATION BUSINESS LOGIC ERRORS ===== -->
+  <data name="Location_Error_DuplicateTitle">
+    <value>Location with title '{0}' already exists</value>
+    <comment>Error message for duplicate location title</comment>
+  </data>
+  <data name="Location_Error_InvalidCoordinates">
+    <value>Invalid coordinates provided</value>
+    <comment>Error message for invalid coordinates</comment>
+  </data>
+  <data name="Location_Error_NetworkError">
+    <value>Network error occurred</value>
+    <comment>Error message for network issues</comment>
+  </data>
+  <data name="Location_Error_DatabaseError">
+    <value>Database error occurred</value>
+    <comment>Error message for database issues</comment>
+  </data>
+  <data name="Location_Error_ValidationError">
+    <value>Validation error occurred</value>
+    <comment>Error message for validation issues</comment>
+  </data>
+  <data name="Location_Error_Unknown">
+    <value>An unknown location error occurred</value>
+    <comment>Error message for unknown location errors</comment>
+  </data>
+
+  <!-- ===== TIP TYPE VALIDATION MESSAGES ===== -->
+  <data name="TipType_ValidationError_NameRequired">
+    <value>Name is required</value>
+    <comment>Validation error for missing tip type name</comment>
+  </data>
+  <data name="TipType_ValidationError_NameMaxLength">
+    <value>Name must not exceed 100 characters</value>
+    <comment>Validation error for tip type name too long</comment>
+  </data>
+  <data name="TipType_ValidationError_LocalizationRequired">
+    <value>Localization is required</value>
+    <comment>Validation error for missing localization</comment>
+  </data>
+  <data name="TipType_ValidationError_LocalizationMaxLength">
+    <value>Localization must not exceed 10 characters</value>
+    <comment>Validation error for localization too long</comment>
+  </data>
+  <data name="TipType_ValidationError_IdRequired">
+    <value>Id must be greater than 0</value>
+    <comment>Validation error for invalid tip type ID</comment>
+  </data>
+
+  <!-- ===== TIP TYPE ERROR MESSAGES ===== -->
+  <data name="TipType_Error_CreateFailed">
+    <value>Failed to create tip type: {0}</value>
+    <comment>Error message when tip type creation fails</comment>
+  </data>
+  <data name="TipType_Error_RetrieveFailed">
+    <value>Failed to retrieve tip type: {0}</value>
+    <comment>Error message when tip type retrieval fails</comment>
+  </data>
+  <data name="TipType_Error_ListRetrieveFailed">
+    <value>Failed to retrieve tip types</value>
+    <comment>Error message when tip type list retrieval fails</comment>
+  </data>
+  <data name="TipType_Error_ListRetrieveFailedWithException">
+    <value>Failed to retrieve tip types: {0}</value>
+    <comment>Error message when tip type list retrieval fails with exception</comment>
+  </data>
+  <data name="TipType_Error_NotFoundById">
+    <value>Tip type with ID {0} not found</value>
+    <comment>Error message when tip type with specific ID is not found</comment>
+  </data>
+  <data name="TipType_Error_NameInvalid">
+    <value>Invalid tip type name provided</value>
+    <comment>Error message for invalid tip type name</comment>
+  </data>
+
+  <!-- ===== TIP TYPE BUSINESS LOGIC ERRORS ===== -->
+  <data name="TipType_Error_DuplicateName">
+    <value>Tip type with name '{0}' already exists</value>
+    <comment>Error message for duplicate tip type name</comment>
+  </data>
+  <data name="TipType_Error_NotFound">
+    <value>Tip type not found</value>
+    <comment>Error message when tip type is not found</comment>
+  </data>
+  <data name="TipType_Error_InUse">
+    <value>Tip type is currently in use</value>
+    <comment>Error message when tip type is in use</comment>
+  </data>
+  <data name="TipType_Error_InvalidName">
+    <value>Invalid tip type name</value>
+    <comment>Error message for invalid tip type name</comment>
+  </data>
+  <data name="TipType_Error_DatabaseError">
+    <value>Database error occurred</value>
+    <comment>Error message for database issues</comment>
+  </data>
+  <data name="TipType_Error_Unknown">
+    <value>An unknown tip type error occurred</value>
+    <comment>Error message for unknown tip type errors</comment>
+  </data>
+
+  <!-- ===== TIP VALIDATION MESSAGES ===== -->
+  <data name="Tip_ValidationError_TipTypeIdRequired">
+    <value>TipTypeId must be greater than 0</value>
+    <comment>Validation error for invalid tip type ID</comment>
+  </data>
+  <data name="Tip_ValidationError_TitleRequired">
+    <value>Title is required</value>
+    <comment>Validation error for missing tip title</comment>
+  </data>
+  <data name="Tip_ValidationError_TitleMaxLength">
+    <value>Title must not exceed 100 characters</value>
+    <comment>Validation error for tip title too long</comment>
+  </data>
+  <data name="Tip_ValidationError_ContentRequired">
+    <value>Content is required</value>
+    <comment>Validation error for missing tip content</comment>
+  </data>
+  <data name="Tip_ValidationError_ContentMaxLength">
+    <value>Content must not exceed 1000 characters</value>
+    <comment>Validation error for tip content too long</comment>
+  </data>
+  <data name="Tip_ValidationError_FStopMaxLength">
+    <value>F-stop must not exceed 20 characters</value>
+    <comment>Validation error for F-stop too long</comment>
+  </data>
+  <data name="Tip_ValidationError_ShutterSpeedMaxLength">
+    <value>Shutter speed must not exceed 20 characters</value>
+    <comment>Validation error for shutter speed too long</comment>
+  </data>
+  <data name="Tip_ValidationError_IsoMaxLength">
+    <value>ISO must not exceed 20 characters</value>
+    <comment>Validation error for ISO too long</comment>
+  </data>
+  <data name="Tip_ValidationError_LocalizationRequired">
+    <value>Localization is required</value>
+    <comment>Validation error for missing localization</comment>
+  </data>
+  <data name="Tip_ValidationError_LocalizationMaxLength">
+    <value>Localization must not exceed 10 characters</value>
+    <comment>Validation error for localization too long</comment>
+  </data>
+  <data name="Tip_ValidationError_IdRequired">
+    <value>Id must be greater than 0</value>
+    <comment>Validation error for invalid tip ID</comment>
+  </data>
+
+  <!-- ===== TIP ERROR MESSAGES ===== -->
+  <data name="Tip_Error_NotFound">
+    <value>Tip not found</value>
+    <comment>Error message when tip is not found</comment>
+  </data>
+  <data name="Tip_Error_CreateFailed">
+    <value>Failed to create tip: {0}</value>
+    <comment>Error message when tip creation fails</comment>
+  </data>
+  <data name="Tip_Error_UpdateFailed">
+    <value>Failed to update tip: {0}</value>
+    <comment>Error message when tip update fails</comment>
+  </data>
+  <data name="Tip_Error_DeleteFailed">
+    <value>Failed to delete tip: {0}</value>
+    <comment>Error message when tip deletion fails</comment>
+  </data>
+  <data name="Tip_Error_RetrieveFailed">
+    <value>Failed to retrieve tips: {0}</value>
+    <comment>Error message when tip retrieval fails</comment>
+  </data>
+  <data name="Tip_Error_ListRetrieveFailed">
+    <value>Failed to retrieve tips</value>
+    <comment>Error message when tip list retrieval fails</comment>
+  </data>
+  <data name="Tip_Error_TypeRetrieveFailed">
+    <value>Failed to retrieve tips by type</value>
+    <comment>Error message when tip retrieval by type fails</comment>
+  </data>
+  <data name="Tip_Error_TypeRetrieveFailedWithException">
+    <value>Failed to retrieve tips by type: {0}</value>
+    <comment>Error message when tip retrieval by type fails with exception</comment>
+  </data>
+  <data name="Tip_Error_RandomRetrieveFailed">
+    <value>Failed to retrieve random tip: {0}</value>
+    <comment>Error message when random tip retrieval fails</comment>
+  </data>
+  <data name="Tip_Error_NoTipsFoundForType">
+    <value>No tips found for the specified type</value>
+    <comment>Error message when no tips found for type</comment>
+  </data>
+  <data name="Tip_Error_DuplicateTitle">
+    <value>Tip with title '{0}' already exists</value>
+    <comment>Error message for duplicate tip title</comment>
+  </data>
+  <data name="Tip_Error_InvalidTipType">
+    <value>Invalid tip type specified</value>
+    <comment>Error message for invalid tip type</comment>
+  </data>
+  <data name="Tip_Error_InvalidContent">
+    <value>Invalid tip content provided</value>
+    <comment>Error message for invalid tip content</comment>
+  </data>
+  <data name="Tip_Error_CannotDeleteInUse">
+    <value>Cannot delete tip that is currently in use</value>
+    <comment>Error message when trying to delete tip in use</comment>
+  </data>
+
+  <!-- ===== TIP BUSINESS LOGIC ERRORS ===== -->
+  <data name="Tip_Validation_Error_Single">
+    <value>Tip validation error: {0}</value>
+    <comment>Single tip validation error message</comment>
+  </data>
+  <data name="Tip_Validation_Error_Multiple">
+    <value>Multiple tip validation errors occurred ({0} errors)</value>
+    <comment>Multiple tip validation errors message</comment>
+  </data>
+
+  <!-- ===== SETTING VALIDATION MESSAGES ===== -->
+  <data name="Setting_ValidationError_KeyRequired">
+    <value>Key is required</value>
+    <comment>Validation error for missing setting key</comment>
+  </data>
+  <data name="Setting_ValidationError_KeyMaxLength">
+    <value>Key must not exceed 50 characters</value>
+    <comment>Validation error for setting key too long</comment>
+  </data>
+  <data name="Setting_ValidationError_ValueRequired">
+    <value>Value cannot be null</value>
+    <comment>Validation error for null setting value</comment>
+  </data>
+  <data name="Setting_ValidationError_ValueMaxLength">
+    <value>Value must not exceed 500 characters</value>
+    <comment>Validation error for setting value too long</comment>
+  </data>
+  <data name="Setting_ValidationError_DescriptionMaxLength">
+    <value>Description must not exceed 200 characters</value>
+    <comment>Validation error for setting description too long</comment>
+  </data>
+
+  <!-- ===== SETTING ERROR MESSAGES ===== -->
+  <data name="Setting_Error_CreateFailed">
+    <value>Failed to create setting</value>
+    <comment>Error message when setting creation fails</comment>
+  </data>
+  <data name="Setting_Error_CreateFailedWithException">
+    <value>Failed to create setting: {0}</value>
+    <comment>Error message when setting creation fails with exception</comment>
+  </data>
+  <data name="Setting_Error_UpdateFailed">
+    <value>Failed to update setting</value>
+    <comment>Error message when setting update fails</comment>
+  </data>
+  <data name="Setting_Error_UpdateFailedWithException">
+    <value>Failed to update setting: {0}</value>
+    <comment>Error message when setting update fails with exception</comment>
+  </data>
+  <data name="Setting_Error_DeleteFailed">
+    <value>Failed to delete setting: {0}</value>
+    <comment>Error message when setting deletion fails</comment>
+  </data>
+  <data name="Setting_Error_RetrieveFailed">
+    <value>Failed to retrieve settings</value>
+    <comment>Error message when settings retrieval fails</comment>
+  </data>
+  <data name="Setting_Error_KeyNotFoundSpecific">
+    <value>Setting with key '{0}' not found</value>
+    <comment>Error message when setting with specific key is not found</comment>
+  </data>
+  <data name="Setting_Error_KeyAlreadyExists">
+    <value>Setting with key '{0}' already exists</value>
+    <comment>Error message for duplicate setting key</comment>
+  </data>
+  <data name="Setting_Error_InvalidValueProvided">
+    <value>Invalid setting value provided</value>
+    <comment>Error message for invalid setting value</comment>
+  </data>
+  <data name="Setting_Error_CannotUpdateReadOnly">
+    <value>Cannot update read-only setting</value>
+    <comment>Error message when trying to update read-only setting</comment>
+  </data>
+  <data name="Setting_Error_CannotDeleteReadOnly">
+    <value>Cannot delete read-only setting</value>
+    <comment>Error message when trying to delete read-only setting</comment>
+  </data>
+
+  <!-- ===== SETTING BUSINESS LOGIC ERRORS ===== -->
+  <data name="Setting_Error_DuplicateKey">
+    <value>Setting '{0}' already exists</value>
+    <comment>Error message for duplicate setting key</comment>
+  </data>
+  <data name="Setting_Error_KeyNotFound">
+    <value>Setting key not found</value>
+    <comment>Error message when setting key is not found</comment>
+  </data>
+  <data name="Setting_Error_InvalidValue">
+    <value>Invalid setting value</value>
+    <comment>Error message for invalid setting value</comment>
+  </data>
+  <data name="Setting_Error_ReadOnlySetting">
+    <value>Setting is read-only</value>
+    <comment>Error message for read-only setting</comment>
+  </data>
+  <data name="Setting_Error_DatabaseError">
+    <value>Database error occurred</value>
+    <comment>Error message for database issues</comment>
+  </data>
+  <data name="Setting_Error_Unknown">
+    <value>An unknown setting error occurred</value>
+    <comment>Error message for unknown setting errors</comment>
+  </data>
+
+  <!-- ===== WEATHER VALIDATION MESSAGES ===== -->
+  <data name="Weather_ValidationError_LocationIdRequired">
+    <value>LocationId must be greater than 0</value>
+    <comment>Validation error for invalid location ID in weather context</comment>
+  </data>
+  <data name="Weather_ValidationError_LatitudeRange">
+    <value>Latitude must be between -90 and 90 degrees</value>
+    <comment>Validation error for invalid latitude in weather context</comment>
+  </data>
+  <data name="Weather_ValidationError_LongitudeRange">
+    <value>Longitude must be between -180 and 180 degrees</value>
+    <comment>Validation error for invalid longitude in weather context</comment>
+  </data>
+  <data name="Weather_ValidationError_DaysRange">
+    <value>Days must be between 1 and 7</value>
+    <comment>Validation error for invalid number of forecast days</comment>
+  </data>
+  <data name="Weather_ValidationError_EndTimeAfterStartTime">
+    <value>EndTime must be greater than StartTime when both are provided</value>
+    <comment>Validation error for invalid time range</comment>
+  </data>
+
+  <!-- ===== WEATHER ERROR MESSAGES ===== -->
+  <data name="Weather_Error_LocationNotFound">
+    <value>Location not found</value>
+    <comment>Error message when location is not found for weather</comment>
+  </data>
+  <data name="Weather_Error_DataNotFound">
+    <value>Weather data not found for location</value>
+    <comment>Error message when weather data is not found</comment>
+  </data>
+  <data name="Weather_Error_FetchAndPersistFailed">
+    <value>Failed to fetch and persist weather data</value>
+    <comment>Error message when weather fetch and persist fails</comment>
+  </data>
+  <data name="Weather_Error_FetchDataFailed">
+    <value>Failed to fetch weather data: {0}</value>
+    <comment>Error message when weather data fetch fails</comment>
+  </data>
+  <data name="Weather_Error_GetForecastFailed">
+    <value>Failed to get weather forecast</value>
+    <comment>Error message when weather forecast retrieval fails</comment>
+  </data>
+  <data name="Weather_Error_RetrieveDataFailed">
+    <value>Failed to retrieve weather data</value>
+    <comment>Error message when weather data retrieval fails</comment>
+  </data>
+  <data name="Weather_Error_RetrieveDataFailedWithException">
+    <value>Failed to retrieve weather data: {0}</value>
+    <comment>Error message when weather data retrieval fails with exception</comment>
+  </data>
+  <data name="Weather_Error_RetrieveForecastFailed">
+    <value>Failed to retrieve weather forecast: {0}</value>
+    <comment>Error message when weather forecast retrieval fails</comment>
+  </data>
+  <data name="Weather_Error_RetrieveHourlyForecastFailed">
+    <value>Failed to retrieve hourly weather forecast: {0}</value>
+    <comment>Error message when hourly weather forecast retrieval fails</comment>
+  </data>
+  <data name="Weather_Error_UpdateAllFailed">
+    <value>Failed to update all weather data: {0}</value>
+    <comment>Error message when updating all weather data fails</comment>
+  </data>
+  <data name="Weather_Error_UpdateFailed">
+    <value>Failed to update weather: {0}</value>
+    <comment>Error message when weather update fails</comment>
+  </data>
+  <data name="Weather_Error_ServiceTimeout">
+    <value>Weather service timeout: {0}</value>
+    <comment>Error message for weather service timeout</comment>
+  </data>
+  <data name="Weather_Error_ServiceAuthenticationFailed">
+    <value>Weather service authentication failed</value>
+    <comment>Error message for weather service authentication failure</comment>
+  </data>
+
+  <!-- ===== WEATHER BUSINESS LOGIC ERRORS ===== -->
+  <data name="Weather_Error_ApiUnavailable">
+    <value>Weather service is unavailable</value>
+    <comment>Weather API unavailable error</comment>
+  </data>
+  <data name="Weather_Error_InvalidLocation">
+    <value>Invalid location for weather</value>
+    <comment>Invalid location error for weather</comment>
+  </data>
+  <data name="Weather_Error_NetworkTimeout">
+    <value>Weather service timeout</value>
+    <comment>Network timeout error for weather</comment>
+  </data>
+  <data name="Weather_Error_InvalidApiKey">
+    <value>Weather service authentication failed</value>
+    <comment>Invalid API key error for weather</comment>
+  </data>
+  <data name="Weather_Error_RateLimitExceeded">
+    <value>Weather service rate limit exceeded</value>
+    <comment>Rate limit exceeded error for weather</comment>
+  </data>
+  <data name="Weather_Error_DatabaseError">
+    <value>Database error occurred</value>
+    <comment>Database error for weather operations</comment>
+  </data>
+  <data name="Weather_Error_Unknown">
+    <value>An unknown weather error occurred</value>
+    <comment>Unknown weather error message</comment>
+  </data>
+
+  <!-- ===== VALIDATION ERROR MESSAGES ===== -->
+  <data name="Validation_Error_Single">
+    <value>Validation error: {0}</value>
+    <comment>Single validation error message</comment>
+  </data>
+  <data name="Validation_Error_Multiple">
+    <value>Multiple validation errors occurred ({0} errors)</value>
+    <comment>Multiple validation errors message</comment>
+  </data>
+
+  <!-- ===== GENERAL ERROR MESSAGES ===== -->
+  <data name="Error_CannotCreateFailureResult">
+    <value>Cannot create failure result for type {0}</value>
+    <comment>Error when unable to create failure result</comment>
+  </data>
+  <data name="Error_General">
+    <value>An error occurred, please try again</value>
+    <comment>General error message fallback</comment>
+  </data>
+  <data name="Error_InvalidInput">
+    <value>Invalid input</value>
+    <comment>General invalid input error</comment>
+  </data>
+  <data name="Error_InvalidTipData">
+    <value>Invalid tip data</value>
+    <comment>Invalid tip data error</comment>
+  </data>
+
+  <!-- ===== ERROR DISPLAY SERVICE MESSAGES ===== -->
+  <data name="ErrorDisplay_LocationAlreadyExists">
+    <value>Location '{0}' already exists</value>
+    <comment>Error display message for duplicate location</comment>
+  </data>
+  <data name="ErrorDisplay_InvalidCoordinates">
+    <value>Invalid coordinates provided</value>
+    <comment>Error display message for invalid coordinates</comment>
+  </data>
+  <data name="ErrorDisplay_NetworkError">
+    <value>Network error occurred</value>
+    <comment>Error display message for network issues</comment>
+  </data>
+  <data name="ErrorDisplay_DatabaseError">
+    <value>Database error occurred</value>
+    <comment>Error display message for database issues</comment>
+  </data>
+  <data name="ErrorDisplay_WeatherServiceUnavailable">
+    <value>Weather service is unavailable</value>
+    <comment>Error display message for weather service unavailable</comment>
+  </data>
+  <data name="ErrorDisplay_WeatherServiceTimeout">
+    <value>Weather service timeout</value>
+    <comment>Error display message for weather service timeout</comment>
+  </data>
+  <data name="ErrorDisplay_WeatherServiceAuthFailed">
+    <value>Weather service authentication failed</value>
+    <comment>Error display message for weather service auth failure</comment>
+  </data>
+  <data name="ErrorDisplay_ValidationError">
+    <value>Validation error: {0}</value>
+    <comment>Error display message for validation errors</comment>
+  </data>
+  <data name="ErrorDisplay_MultipleValidationErrors">
+    <value>Multiple validation errors occurred ({0} errors)</value>
+    <comment>Error display message for multiple validation errors</comment>
+  </data>
+  <data name="ErrorDisplay_TipValidationError">
+    <value>Tip validation error: {0}</value>
+    <comment>Error display message for tip validation errors</comment>
+  </data>
+  <data name="ErrorDisplay_SettingAlreadyExists">
+    <value>Setting '{0}' already exists</value>
+    <comment>Error display message for duplicate setting</comment>
+  </data>
+  <data name="ErrorDisplay_TipTypeAlreadyExists">
+    <value>Tip type '{0}' already exists</value>
+    <comment>Error display message for duplicate tip type</comment>
+  </data>
+  <data name="ErrorDisplay_SimilarErrors">
+    <value>{0} similar errors occurred: {1}</value>
+    <comment>Error display message for similar errors</comment>
+  </data>
+  <data name="ErrorDisplay_MultipleErrors">
+    <value>Multiple errors occurred ({0} total), please retry</value>
+    <comment>Error display message for multiple different errors</comment>
+  </data>
+
+  <!-- ===== DEFAULT VALUES ===== -->
+  <data name="Default_LocalizationCode">
+    <value>en-US</value>
+    <comment>Default localization code</comment>
+  </data>
+  <data name="Default_EmptyString">
+    <value></value>
+    <comment>Default empty string value</comment>
+  </data>
+
+  <!-- ===== SYSTEM MESSAGES ===== -->
+  <data name="System_OperationCancelled">
+    <value>Operation was cancelled</value>
+    <comment>Message when operation is cancelled</comment>
+  </data>
+  <data name="System_OperationTimeout">
+    <value>Operation timed out</value>
+    <comment>Message when operation times out</comment>
+  </data>
+  <data name="System_UnexpectedError">
+    <value>An unexpected error occurred</value>
+    <comment>Message for unexpected system errors</comment>
+  </data>
+
+  <!-- ===== COORDINATE VALIDATION MESSAGES ===== -->
+  <data name="Coordinates_ValidationError_CoordinatesName">
+    <value>Coordinates</value>
+    <comment>Name for coordinates validation group</comment>
+  </data>
+
+  <!-- ===== PHOTOGRAPHY SETTINGS ===== -->
+  <data name="Photography_FStop">
+    <value>F-stop</value>
+    <comment>Label for F-stop photography setting</comment>
+  </data>
+  <data name="Photography_ShutterSpeed">
+    <value>Shutter Speed</value>
+    <comment>Label for shutter speed photography setting</comment>
+  </data>
+  <data name="Photography_ISO">
+    <value>ISO</value>
+    <comment>Label for ISO photography setting</comment>
+  </data>
+
+  <!-- ===== FIELD LABELS ===== -->
+  <data name="Field_Title">
+    <value>Title</value>
+    <comment>Label for title field</comment>
+  </data>
+  <data name="Field_Description">
+    <value>Description</value>
+    <comment>Label for description field</comment>
+  </data>
+  <data name="Field_Content">
+    <value>Content</value>
+    <comment>Label for content field</comment>
+  </data>
+  <data name="Field_Name">
+    <value>Name</value>
+    <comment>Label for name field</comment>
+  </data>
+  <data name="Field_Key">
+    <value>Key</value>
+    <comment>Label for key field</comment>
+  </data>
+  <data name="Field_Value">
+    <value>Value</value>
+    <comment>Label for value field</comment>
+  </data>
+  <data name="Field_Latitude">
+    <value>Latitude</value>
+    <comment>Label for latitude field</comment>
+  </data>
+  <data name="Field_Longitude">
+    <value>Longitude</value>
+    <comment>Label for longitude field</comment>
+  </data>
+  <data name="Field_Distance">
+    <value>Distance</value>
+    <comment>Label for distance field</comment>
+  </data>
+  <data name="Field_Days">
+    <value>Days</value>
+    <comment>Label for days field</comment>
+  </data>
+  <data name="Field_Id">
+    <value>Id</value>
+    <comment>Label for ID field</comment>
+  </data>
+  <data name="Field_LocationId">
+    <value>LocationId</value>
+    <comment>Label for location ID field</comment>
+  </data>
+  <data name="Field_TipTypeId">
+    <value>TipTypeId</value>
+    <comment>Label for tip type ID field</comment>
+  </data>
+  <data name="Field_Localization">
+    <value>Localization</value>
+    <comment>Label for localization field</comment>
+  </data>
+  <data name="Field_PhotoPath">
+    <value>Photo Path</value>
+    <comment>Label for photo path field</comment>
+  </data>
+  <data name="Field_StartTime">
+    <value>Start Time</value>
+    <comment>Label for start time field</comment>
+  </data>
+  <data name="Field_EndTime">
+    <value>End Time</value>
+    <comment>Label for end time field</comment>
+  </data>
+
+  <!-- ===== ENTITY NAMES ===== -->
+  <data name="Entity_Location">
+    <value>Location</value>
+    <comment>Entity name for location</comment>
+  </data>
+  <data name="Entity_Tip">
+    <value>Tip</value>
+    <comment>Entity name for tip</comment>
+  </data>
+  <data name="Entity_TipType">
+    <value>Tip Type</value>
+    <comment>Entity name for tip type</comment>
+  </data>
+  <data name="Entity_Setting">
+    <value>Setting</value>
+    <comment>Entity name for setting</comment>
+  </data>
+  <data name="Entity_Weather">
+    <value>Weather</value>
+    <comment>Entity name for weather</comment>
+  </data>
+
+  <!-- ===== UNIT MEASUREMENTS ===== -->
+  <data name="Unit_Kilometers">
+    <value>km</value>
+    <comment>Kilometers unit abbreviation</comment>
+  </data>
+  <data name="Unit_Degrees">
+    <value>degrees</value>
+    <comment>Degrees unit</comment>
+  </data>
+  <data name="Unit_Characters">
+    <value>characters</value>
+    <comment>Characters unit</comment>
+  </data>
+
+  <!-- ===== COMMON ACTION WORDS ===== -->
+  <data name="Action_Create">
+    <value>Create</value>
+    <comment>Create action</comment>
+  </data>
+  <data name="Action_Update">
+    <value>Update</value>
+    <comment>Update action</comment>
+  </data>
+  <data name="Action_Delete">
+    <value>Delete</value>
+    <comment>Delete action</comment>
+  </data>
+  <data name="Action_Restore">
+    <value>Restore</value>
+    <comment>Restore action</comment>
+  </data>
+  <data name="Action_Attach">
+    <value>Attach</value>
+    <comment>Attach action</comment>
+  </data>
+  <data name="Action_Remove">
+    <value>Remove</value>
+    <comment>Remove action</comment>
+  </data>
+  <data name="Action_Retrieve">
+    <value>Retrieve</value>
+    <comment>Retrieve action</comment>
+  </data>
+  <data name="Action_Save">
+    <value>Save</value>
+    <comment>Save action</comment>
+  </data>
+
+  <!-- ===== STATUS MESSAGES ===== -->
+  <data name="Status_NotFound">
+    <value>not found</value>
+    <comment>Not found status</comment>
+  </data>
+  <data name="Status_AlreadyExists">
+    <value>already exists</value>
+    <comment>Already exists status</comment>
+  </data>
+  <data name="Status_InUse">
+    <value>currently in use</value>
+    <comment>In use status</comment>
+  </data>
+  <data name="Status_ReadOnly">
+    <value>read-only</value>
+    <comment>Read-only status</comment>
+  </data>
+  <data name="Status_Invalid">
+    <value>invalid</value>
+    <comment>Invalid status</comment>
+  </data>
+  <data name="Status_Required">
+    <value>required</value>
+    <comment>Required status</comment>
+  </data>
+
+  <!-- ===== RANGE AND LIMIT MESSAGES ===== -->
+  <data name="Range_Between">
+    <value>between</value>
+    <comment>Between range indicator</comment>
+  </data>
+  <data name="Range_GreaterThan">
+    <value>greater than</value>
+    <comment>Greater than range indicator</comment>
+  </data>
+  <data name="Range_LessThan">
+    <value>less than</value>
+    <comment>Less than range indicator</comment>
+  </data>
+  <data name="Range_MustNotExceed">
+    <value>must not exceed</value>
+    <comment>Must not exceed limit phrase</comment>
+  </data>
+  <data name="Range_MustBe">
+    <value>must be</value>
+    <comment>Must be requirement phrase</comment>
+  </data>
+
+  <!-- ===== LOCATION SPECIFIC TERMS ===== -->
+  <data name="Location_NullIsland">
+    <value>Null Island</value>
+    <comment>Reference to coordinates 0,0 known as Null Island</comment>
+  </data>
+  <data name="Location_Coordinates">
+    <value>coordinates</value>
+    <comment>Coordinates term</comment>
+  </data>
+  <data name="Location_Nearby">
+    <value>nearby</value>
+    <comment>Nearby locations term</comment>
+  </data>
+
+  <!-- ===== WEATHER SPECIFIC TERMS ===== -->
+  <data name="Weather_Forecast">
+    <value>forecast</value>
+    <comment>Weather forecast term</comment>
+  </data>
+  <data name="Weather_Hourly">
+    <value>hourly</value>
+    <comment>Hourly weather term</comment>
+  </data>
+  <data name="Weather_Service">
+    <value>Weather service</value>
+    <comment>Weather service term</comment>
+  </data>
+  <data name="Weather_Data">
+    <value>weather data</value>
+    <comment>Weather data term</comment>
+  </data>
+  <data name="Weather_Authentication">
+    <value>authentication</value>
+    <comment>Weather service authentication term</comment>
+  </data>
+  <data name="Weather_Timeout">
+    <value>timeout</value>
+    <comment>Weather service timeout term</comment>
+  </data>
+  <data name="Weather_Unavailable">
+    <value>unavailable</value>
+    <comment>Weather service unavailable term</comment>
+  </data>
+
+  <!-- ===== TIME RELATED TERMS ===== -->
+  <data name="Time_StartTime">
+    <value>StartTime</value>
+    <comment>Start time field name</comment>
+  </data>
+  <data name="Time_EndTime">
+    <value>EndTime</value>
+    <comment>End time field name</comment>
+  </data>
+  <data name="Time_WhenBothProvided">
+    <value>when both are provided</value>
+    <comment>Conditional phrase for time validation</comment>
+  </data>
+
+  <!-- ===== OPERATION RESULT MESSAGES ===== -->
+  <data name="Operation_Successful">
+    <value>Operation completed successfully</value>
+    <comment>Generic success message</comment>
+  </data>
+  <data name="Operation_Failed">
+    <value>Operation failed</value>
+    <comment>Generic failure message</comment>
+  </data>
+  <data name="Operation_Cancelled">
+    <value>Operation was cancelled</value>
+    <comment>Operation cancelled message</comment>
+  </data>
+  <data name="Operation_TimedOut">
+    <value>Operation timed out</value>
+    <comment>Operation timeout message</comment>
+  </data>
+
+  <!-- ===== DATABASE OPERATION MESSAGES ===== -->
+  <data name="Database_ConnectionFailed">
+    <value>Database connection failed</value>
+    <comment>Database connection error</comment>
+  </data>
+  <data name="Database_OperationFailed">
+    <value>Database operation failed</value>
+    <comment>Generic database operation error</comment>
+  </data>
+  <data name="Database_TransactionFailed">
+    <value>Database transaction failed</value>
+    <comment>Database transaction error</comment>
+  </data>
+
+  <!-- ===== NETWORK OPERATION MESSAGES ===== -->
+  <data name="Network_ConnectionFailed">
+    <value>Network connection failed</value>
+    <comment>Network connection error</comment>
+  </data>
+  <data name="Network_RequestFailed">
+    <value>Network request failed</value>
+    <comment>Network request error</comment>
+  </data>
+  <data name="Network_TimeoutOccurred">
+    <value>Network timeout occurred</value>
+    <comment>Network timeout error</comment>
+  </data>
+
+  <!-- ===== AUTHENTICATION MESSAGES ===== -->
+  <data name="Auth_Failed">
+    <value>Authentication failed</value>
+    <comment>Authentication failure message</comment>
+  </data>
+  <data name="Auth_InvalidCredentials">
+    <value>Invalid credentials</value>
+    <comment>Invalid credentials message</comment>
+  </data>
+  <data name="Auth_AccessDenied">
+    <value>Access denied</value>
+    <comment>Access denied message</comment>
+  </data>
+
+  <!-- ===== PERFORMANCE MESSAGES ===== -->
+  <data name="Performance_SlowOperation">
+    <value>Slow operation detected</value>
+    <comment>Performance warning for slow operations</comment>
+  </data>
+  <data name="Performance_Timeout">
+    <value>Operation exceeded time limit</value>
+    <comment>Performance timeout message</comment>
+  </data>
+
+  <!-- ===== VALIDATION CONSTRAINT MESSAGES ===== -->
+  <data name="Validation_CannotBeNull">
+    <value>cannot be null</value>
+    <comment>Cannot be null validation message</comment>
+  </data>
+  <data name="Validation_CannotBeEmpty">
+    <value>cannot be empty</value>
+    <comment>Cannot be empty validation message</comment>
+  </data>
+  <data name="Validation_IsRequired">
+    <value>is required</value>
+    <comment>Is required validation message</comment>
+  </data>
+  <data name="Validation_InvalidFormat">
+    <value>has invalid format</value>
+    <comment>Invalid format validation message</comment>
+  </data>
+  <data name="Validation_OutOfRange">
+    <value>is out of range</value>
+    <comment>Out of range validation message</comment>
+  </data>
+
+  <!-- ===== BUSINESS RULE MESSAGES ===== -->
+  <data name="BusinessRule_DuplicateNotAllowed">
+    <value>Duplicate entries are not allowed</value>
+    <comment>Duplicate entry business rule message</comment>
+  </data>
+  <data name="BusinessRule_OperationNotAllowed">
+    <value>Operation is not allowed</value>
+    <comment>Operation not allowed business rule message</comment>
+  </data>
+  <data name="BusinessRule_ConstraintViolation">
+    <value>Business constraint violation</value>
+    <comment>Business constraint violation message</comment>
+  </data>
+
+  <!-- ===== PAGINATION MESSAGES ===== -->
+  <data name="Pagination_PageNumber">
+    <value>Page number</value>
+    <comment>Page number label</comment>
+  </data>
+  <data name="Pagination_PageSize">
+    <value>Page size</value>
+    <comment>Page size label</comment>
+  </data>
+  <data name="Pagination_TotalCount">
+    <value>Total count</value>
+    <comment>Total count label</comment>
+  </data>
+  <data name="Pagination_NoResults">
+    <value>No results found</value>
+    <comment>No pagination results message</comment>
+  </data>
+
+  <!-- ===== SEARCH MESSAGES ===== -->
+  <data name="Search_NoResults">
+    <value>No search results found</value>
+    <comment>No search results message</comment>
+  </data>
+  <data name="Search_Term">
+    <value>Search term</value>
+    <comment>Search term label</comment>
+  </data>
+  <data name="Search_Criteria">
+    <value>Search criteria</value>
+    <comment>Search criteria label</comment>
+  </data>
+
+  <!-- ===== FILE OPERATION MESSAGES ===== -->
+  <data name="File_NotFound">
+    <value>File not found</value>
+    <comment>File not found error</comment>
+  </data>
+  <data name="File_AccessDenied">
+    <value>File access denied</value>
+    <comment>File access denied error</comment>
+  </data>
+  <data name="File_InvalidPath">
+    <value>Invalid file path</value>
+    <comment>Invalid file path error</comment>
+  </data>
+  <data name="File_OperationFailed">
+    <value>File operation failed</value>
+    <comment>File operation failure error</comment>
+  </data>
+
+  <!-- ===== LOGGING MESSAGES ===== -->
+  <data name="Log_OperationStarted">
+    <value>Operation started</value>
+    <comment>Logging message for operation start</comment>
+  </data>
+  <data name="Log_OperationCompleted">
+    <value>Operation completed</value>
+    <comment>Logging message for operation completion</comment>
+  </data>
+  <data name="Log_OperationFailed">
+    <value>Operation failed</value>
+    <comment>Logging message for operation failure</comment>
+  </data>
+  <data name="Log_ValidationFailed">
+    <value>Validation failed</value>
+    <comment>Logging message for validation failure</comment>
+  </data>
+
+  <!-- ===== CACHE MESSAGES ===== -->
+  <data name="Cache_Hit">
+    <value>Cache hit</value>
+    <comment>Cache hit message</comment>
+  </data>
+  <data name="Cache_Miss">
+    <value>Cache miss</value>
+    <comment>Cache miss message</comment>
+  </data>
+  <data name="Cache_Expired">
+    <value>Cache expired</value>
+    <comment>Cache expired message</comment>
+  </data>
+  <data name="Cache_Updated">
+    <value>Cache updated</value>
+    <comment>Cache updated message</comment>
+  </data>
+
+  <!-- ===== CONCURRENCY MESSAGES ===== -->
+  <data name="Concurrency_ConflictDetected">
+    <value>Concurrency conflict detected</value>
+    <comment>Concurrency conflict error</comment>
+  </data>
+  <data name="Concurrency_ResourceLocked">
+    <value>Resource is locked</value>
+    <comment>Resource locked error</comment>
+  </data>
+  <data name="Concurrency_UpdateConflict">
+    <value>Update conflict occurred</value>
+    <comment>Update conflict error</comment>
+  </data>
+
+  <!-- ===== CONFIGURATION MESSAGES ===== -->
+  <data name="Config_MissingValue">
+    <value>Configuration value is missing</value>
+    <comment>Missing configuration value error</comment>
+  </data>
+  <data name="Config_InvalidValue">
+    <value>Configuration value is invalid</value>
+    <comment>Invalid configuration value error</comment>
+  </data>
+  <data name="Config_LoadFailed">
+    <value>Configuration load failed</value>
+    <comment>Configuration load failure error</comment>
+  </data>
+
+  <!-- ===== SECURITY MESSAGES ===== -->
+  <data name="Security_UnauthorizedAccess">
+    <value>Unauthorized access attempt</value>
+    <comment>Unauthorized access error</comment>
+  </data>
+  <data name="Security_InsufficientPermissions">
+    <value>Insufficient permissions</value>
+    <comment>Insufficient permissions error</comment>
+  </data>
+  <data name="Security_SecurityViolation">
+    <value>Security violation detected</value>
+    <comment>Security violation error</comment>
+  </data>
+
+  <!-- ===== RESOURCE MANAGEMENT MESSAGES ===== -->
+  <data name="Resource_NotAvailable">
+    <value>Resource not available</value>
+    <comment>Resource not available error</comment>
+  </data>
+  <data name="Resource_Exhausted">
+    <value>Resource exhausted</value>
+    <comment>Resource exhausted error</comment>
+  </data>
+  <data name="Resource_LimitExceeded">
+    <value>Resource limit exceeded</value>
+    <comment>Resource limit exceeded error</comment>
+  </data>
+
 </root>

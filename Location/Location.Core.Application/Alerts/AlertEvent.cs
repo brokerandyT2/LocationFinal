@@ -1,4 +1,5 @@
 ﻿// Location.Core.Application/Alerts/AlertEvent.cs
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Alerts
@@ -16,6 +17,10 @@ namespace Location.Core.Application.Alerts
         /// <param name="type"></param>
         public AlertEvent(string message, string title = "Alert", AlertType type = AlertType.Info)
         {
+
+            if (title == "Alert")
+                title = AppResources.Alert_DefaultTitle;
+
             Message = message;
             Title = title;
             Type = type;
