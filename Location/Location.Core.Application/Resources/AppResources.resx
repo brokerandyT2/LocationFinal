@@ -120,7 +120,10 @@
     <value>Error</value>
     <comment>Default title for error alerts</comment>
   </data>
-
+  <data name="Location_Error_NotFoundById">
+    <value>Location ID {0}</value>
+    <comment>Location ID format for error messages</comment>
+  </data>
   <!-- ===== LOCATION VALIDATION MESSAGES ===== -->
   <data name="Location_ValidationError_LocationIdRequired">
     <value>LocationId must be greater than 0</value>

@@ -1,5 +1,6 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Resources;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
 
@@ -49,7 +50,7 @@ namespace Location.Core.Application.Commands.Tips
 
                 if (!result.IsSuccess || result.Data == null)
                 {
-                    return Result<TipDto>.Failure(result.ErrorMessage ?? "No tips found for the specified type");
+                    return Result<TipDto>.Failure(result.ErrorMessage ?? AppResources.Tip_Error_NoTipsFoundForType);
                 }
 
                 var tip = result.Data;
@@ -69,7 +70,7 @@ namespace Location.Core.Application.Commands.Tips
             }
             catch (Exception ex)
             {
-                return Result<TipDto>.Failure($"Failed to retrieve random tip: {ex.Message}");
+                return Result<TipDto>.Failure(string.Format(AppResources.Tip_Error_RandomRetrieveFailed, ex.Message));
             }
         }
     }

@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Queries.Locations
@@ -61,7 +62,8 @@ namespace Location.Core.Application.Queries.Locations
 
                 if (!locationsResult.IsSuccess || locationsResult.Data == null)
                 {
-                    return Result<PagedList<LocationListDto>>.Failure(locationsResult.ErrorMessage ?? "Failed to retrieve locations");
+                    return Result<PagedList<LocationListDto>>.Failure(
+                        locationsResult.ErrorMessage ?? AppResources.Location_Error_ListRetrieveFailed);
                 }
 
                 var locationList = locationsResult.Data;
@@ -86,7 +88,7 @@ namespace Location.Core.Application.Queries.Locations
             }
             catch (Exception ex)
             {
-                return Result<PagedList<LocationListDto>>.Failure($"Failed to retrieve locations: {ex.Message}");
+                return Result<PagedList<LocationListDto>>.Failure(string.Format(AppResources.Location_Error_ListRetrieveFailedWithException, ex.Message));
             }
         }
     }

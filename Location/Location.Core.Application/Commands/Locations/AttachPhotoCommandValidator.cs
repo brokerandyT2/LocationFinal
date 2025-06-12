@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Commands.Locations
 {
@@ -23,13 +24,13 @@ namespace Location.Core.Application.Commands.Locations
         {
             RuleFor(x => x.LocationId)
                 .GreaterThan(0)
-                .WithMessage("LocationId must be greater than 0");
+                .WithMessage(AppResources.Location_ValidationError_LocationIdRequired);
 
             RuleFor(x => x.PhotoPath)
                 .NotEmpty()
-                .WithMessage("Photo path is required")
+                .WithMessage(AppResources.Location_ValidationError_PhotoPathRequired)
                 .Must(BeValidPath)
-                .WithMessage("Photo path is not valid");
+                .WithMessage(AppResources.Location_ValidationError_PhotoPathInvalid);
         }
         /// <summary>
         /// Determines whether the specified path is valid.

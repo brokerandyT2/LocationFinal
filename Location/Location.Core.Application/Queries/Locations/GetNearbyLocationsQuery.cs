@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Queries.Locations
@@ -75,7 +76,7 @@ namespace Location.Core.Application.Queries.Locations
             }
             catch (Exception ex)
             {
-                return Result<List<LocationListDto>>.Failure($"Failed to retrieve nearby locations: {ex.Message}");
+                return Result<List<LocationListDto>>.Failure(string.Format(AppResources.Location_Error_NearbyRetrieveFailed, ex.Message));
             }
         }
     }

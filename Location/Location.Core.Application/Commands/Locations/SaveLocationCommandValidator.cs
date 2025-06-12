@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Commands.Locations
 {
@@ -28,27 +29,33 @@ namespace Location.Core.Application.Commands.Locations
         public SaveLocationCommandValidator()
         {
             RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Title is required")
-                .MaximumLength(100).WithMessage("Title must not exceed 100 characters");
+                .NotEmpty()
+                .WithMessage(AppResources.Location_ValidationError_TitleRequired)
+                .MaximumLength(100)
+                .WithMessage(AppResources.Location_ValidationError_TitleMaxLength);
 
             RuleFor(x => x.Description)
-                .MaximumLength(500).WithMessage("Description must not exceed 500 characters");
+                .MaximumLength(500)
+                .WithMessage(AppResources.Location_ValidationError_DescriptionMaxLength);
 
             RuleFor(x => x.Latitude)
-                .InclusiveBetween(-90, 90).WithMessage("Latitude must be between -90 and 90 degrees");
+                .InclusiveBetween(-90, 90)
+                .WithMessage(AppResources.Location_ValidationError_LatitudeRange);
 
             RuleFor(x => x.Longitude)
-                .InclusiveBetween(-180, 180).WithMessage("Longitude must be between -180 and 180 degrees");
+                .InclusiveBetween(-180, 180)
+                .WithMessage(AppResources.Location_ValidationError_LongitudeRange);
 
             // Null Island validation (0,0 coordinates)
             RuleFor(x => x)
                 .Must(x => !(x.Latitude == 0 && x.Longitude == 0))
-                .WithMessage("Invalid coordinates: Cannot use Null Island (0,0)")
-                .WithName("Coordinates");
+                .WithMessage(AppResources.Location_ValidationError_NullIslandCoordinates)
+                .WithName(AppResources.Coordinates_ValidationError_CoordinatesName);
 
             RuleFor(x => x.PhotoPath)
-                .Must(BeAValidPath).When(x => !string.IsNullOrEmpty(x.PhotoPath))
-                .WithMessage("Photo path is not valid");
+                .Must(BeAValidPath)
+                .When(x => !string.IsNullOrEmpty(x.PhotoPath))
+                .WithMessage(AppResources.Location_ValidationError_PhotoPathInvalid);
         }
         /// <summary>
         /// Determines whether the specified path is valid.

@@ -3,6 +3,7 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Locations.DTOs;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Locations.Queries.GetLocationById
@@ -47,8 +48,8 @@ namespace Location.Core.Application.Locations.Queries.GetLocationById
 
                 if (!locationResult.IsSuccess || locationResult.Data == null)
                 {
-                    await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.Id}", LocationErrorType.DatabaseError, "Location not found"), cancellationToken);
-                    return Result<LocationDto>.Failure("Location not found");
+                    await _mediator.Publish(new LocationSaveErrorEvent(string.Format(AppResources.Location_Error_NotFoundById, request.Id), LocationErrorType.DatabaseError, AppResources.Location_Error_NotFound), cancellationToken);
+                    return Result<LocationDto>.Failure(AppResources.Location_Error_NotFound);
                 }
 
                 var dto = _mapper.Map<LocationDto>(locationResult.Data);
@@ -56,8 +57,8 @@ namespace Location.Core.Application.Locations.Queries.GetLocationById
             }
             catch (Exception ex)
             {
-                await _mediator.Publish(new LocationSaveErrorEvent($"Location ID {request.Id}", LocationErrorType.DatabaseError, ex.Message), cancellationToken);
-                return Result<LocationDto>.Failure($"Failed to retrieve location: {ex.Message}");
+                await _mediator.Publish(new LocationSaveErrorEvent(string.Format(AppResources.Location_Error_NotFoundById, request.Id), LocationErrorType.DatabaseError, ex.Message), cancellationToken);
+                return Result<LocationDto>.Failure(string.Format(AppResources.Location_Error_RetrieveFailed, ex.Message));
             }
         }
     }

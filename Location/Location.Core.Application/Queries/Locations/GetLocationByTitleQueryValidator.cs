@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Queries.Locations
 {
@@ -19,8 +20,10 @@ namespace Location.Core.Application.Queries.Locations
         public GetLocationByTitleQueryValidator()
         {
             RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Title is required")
-                .MaximumLength(100).WithMessage("Title must not exceed 100 characters");
+                .NotEmpty()
+                .WithMessage(AppResources.Location_ValidationError_TitleRequired)
+                .MaximumLength(100)
+                .WithMessage(AppResources.Location_ValidationError_TitleMaxLength);
         }
     }
 }

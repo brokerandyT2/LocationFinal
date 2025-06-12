@@ -3,6 +3,7 @@ using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
 using Location.Core.Application.Locations.DTOs;
+using Location.Core.Application.Resources;
 using Location.Core.Domain.ValueObjects;
 using MediatR;
 
@@ -72,8 +73,8 @@ namespace Location.Core.Application.Commands.Locations
                     var existingLocationResult = await _unitOfWork.Locations.GetByIdAsync(request.Id.Value, cancellationToken);
                     if (!existingLocationResult.IsSuccess || existingLocationResult.Data == null)
                     {
-                        await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.DatabaseError, "Location not found"), cancellationToken);
-                        return Result<LocationDto>.Failure("Location not found");
+                        await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.DatabaseError, AppResources.Location_Error_NotFound), cancellationToken);
+                        return Result<LocationDto>.Failure(AppResources.Location_Error_NotFound);
                     }
 
                     location = existingLocationResult.Data;
@@ -91,7 +92,7 @@ namespace Location.Core.Application.Commands.Locations
                     if (!updateResult.IsSuccess)
                     {
                         await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.DatabaseError, updateResult.ErrorMessage), cancellationToken);
-                        return Result<LocationDto>.Failure("Failed to update location");
+                        return Result<LocationDto>.Failure(AppResources.Location_Error_UpdateFailed);
                     }
                 }
                 else
@@ -114,7 +115,7 @@ namespace Location.Core.Application.Commands.Locations
                     if (!createResult.IsSuccess || createResult.Data == null)
                     {
                         await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.DatabaseError, createResult.ErrorMessage), cancellationToken);
-                        return Result<LocationDto>.Failure("Failed to create location");
+                        return Result<LocationDto>.Failure(AppResources.Location_Error_CreateFailed);
                     }
                     location = createResult.Data;
                 }
@@ -127,17 +128,17 @@ namespace Location.Core.Application.Commands.Locations
             catch (Domain.Exceptions.LocationDomainException ex) when (ex.Code == "DUPLICATE_TITLE")
             {
                 await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.DuplicateTitle), cancellationToken);
-                return Result<LocationDto>.Failure($"Location with title '{request.Title}' already exists");
+                return Result<LocationDto>.Failure(string.Format(AppResources.Location_Error_DuplicateTitle, request.Title));
             }
             catch (Domain.Exceptions.LocationDomainException ex) when (ex.Code == "INVALID_COORDINATES")
             {
                 await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.InvalidCoordinates), cancellationToken);
-                return Result<LocationDto>.Failure("Invalid coordinates provided");
+                return Result<LocationDto>.Failure(AppResources.Location_Error_InvalidCoordinates);
             }
             catch (Exception ex)
             {
                 await _mediator.Publish(new LocationSaveErrorEvent(request.Title, LocationErrorType.NetworkError, ex.Message), cancellationToken);
-                return Result<LocationDto>.Failure($"Failed to save location: {ex.Message}");
+                return Result<LocationDto>.Failure(string.Format(AppResources.Location_Error_SaveFailed, ex.Message));
             }
         }
     }

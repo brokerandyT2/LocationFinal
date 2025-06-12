@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
 
@@ -69,17 +70,17 @@ namespace Location.Core.Application.Commands.TipTypes
             catch (Domain.Exceptions.TipTypeDomainException ex) when (ex.Code == "DUPLICATE_NAME")
             {
                 await _mediator.Publish(new TipTypeErrorEvent(request.Name, null, TipTypeErrorType.DuplicateName), cancellationToken);
-                return Result<TipTypeDto>.Failure($"Tip type with name '{request.Name}' already exists");
+                return Result<TipTypeDto>.Failure(string.Format(AppResources.TipType_Error_DuplicateName, request.Name));
             }
             catch (Domain.Exceptions.TipTypeDomainException ex) when (ex.Code == "INVALID_NAME")
             {
                 await _mediator.Publish(new TipTypeErrorEvent(request.Name, null, TipTypeErrorType.InvalidName, ex.Message), cancellationToken);
-                return Result<TipTypeDto>.Failure("Invalid tip type name provided");
+                return Result<TipTypeDto>.Failure(AppResources.TipType_Error_NameInvalid);
             }
             catch (Exception ex)
             {
                 await _mediator.Publish(new TipTypeErrorEvent(request.Name, null, TipTypeErrorType.DatabaseError, ex.Message), cancellationToken);
-                return Result<TipTypeDto>.Failure($"Failed to create tip type: {ex.Message}");
+                return Result<TipTypeDto>.Failure(string.Format(AppResources.TipType_Error_CreateFailed, ex.Message));
             }
         }
     }

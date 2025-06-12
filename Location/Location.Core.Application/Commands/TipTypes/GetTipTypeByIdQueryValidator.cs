@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Queries.TipTypes
 {
@@ -16,7 +17,8 @@ namespace Location.Core.Application.Queries.TipTypes
         public GetTipTypeByIdQueryValidator()
         {
             RuleFor(x => x.Id)
-                .GreaterThan(0).WithMessage("Id must be greater than 0");
+                .GreaterThan(0)
+                .WithMessage(AppResources.TipType_ValidationError_IdRequired);
         }
     }
 }

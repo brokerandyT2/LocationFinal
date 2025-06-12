@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Common.Behaviors
@@ -19,10 +20,6 @@ namespace Location.Core.Application.Common.Behaviors
     {
         private readonly IValidator<TRequest>[] _validators;
         private readonly IMediator _mediator;
-
-        // Pre-allocated collections for performance
-        private static readonly List<FluentValidation.Results.ValidationFailure> _reusableFailuresList = new();
-        private static readonly List<Error> _reusableErrorsList = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidationBehavior{TRequest, TResponse}"/> class.
@@ -61,11 +58,13 @@ namespace Location.Core.Application.Common.Behaviors
             {
                 // Publish validation error event (fire-and-forget for performance)
                 var entityType = typeof(TRequest).Name.Replace("Command", "").Replace("Query", "");
+                var handlerName = typeof(TRequest).Name + "Handler";
+
                 _ = Task.Run(async () =>
                 {
                     try
                     {
-                        await _mediator.Publish(new ValidationErrorEvent(entityType, validationResult.Errors, $"{typeof(TRequest).Name}Handler"), cancellationToken);
+                        await _mediator.Publish(new ValidationErrorEvent(entityType, validationResult.Errors, handlerName), cancellationToken);
                     }
                     catch
                     {
@@ -85,12 +84,6 @@ namespace Location.Core.Application.Common.Behaviors
         /// </summary>
         private async Task<ValidationResultOptimized> ValidateWithFailFastAsync(TRequest request, CancellationToken cancellationToken)
         {
-            // Clear and reuse collections to avoid allocations
-            lock (_reusableFailuresList)
-            {
-                _reusableFailuresList.Clear();
-            }
-
             // Create validation context once and reuse
             var context = new ValidationContext<TRequest>(request);
 
@@ -165,7 +158,7 @@ namespace Location.Core.Application.Common.Behaviors
                 return (TResponse)(object)Result.Failure(errorArray);
             }
 
-            throw new InvalidOperationException($"Cannot create failure result for type {typeof(TResponse).Name}");
+            throw new InvalidOperationException(string.Format(AppResources.Error_CannotCreateFailureResult, typeof(TResponse).Name));
         }
 
         /// <summary>

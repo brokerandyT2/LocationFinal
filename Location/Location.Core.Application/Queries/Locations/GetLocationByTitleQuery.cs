@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Queries.Locations
@@ -51,7 +52,7 @@ namespace Location.Core.Application.Queries.Locations
                 var locationResult = await _unitOfWork.Locations.GetByTitleAsync(request.Title, cancellationToken);
                 if (!locationResult.IsSuccess)
                 {
-                    return Result<LocationDto>.Failure($"Location with title '{request.Title}' not found");
+                    return Result<LocationDto>.Failure(string.Format(AppResources.Location_Error_TitleNotFound, request.Title));
                 }
 
                 var locationDto = _mapper.Map<LocationDto>(locationResult);
@@ -59,7 +60,7 @@ namespace Location.Core.Application.Queries.Locations
             }
             catch (Exception ex)
             {
-                return Result<LocationDto>.Failure($"Failed to retrieve location: {ex.Message}");
+                return Result<LocationDto>.Failure(string.Format(AppResources.Location_Error_RetrieveFailed, ex.Message));
             }
         }
     }

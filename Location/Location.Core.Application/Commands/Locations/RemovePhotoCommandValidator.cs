@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Commands.Locations
 {
@@ -17,7 +18,8 @@ namespace Location.Core.Application.Commands.Locations
         public RemovePhotoCommandValidator()
         {
             RuleFor(x => x.LocationId)
-                .GreaterThan(0).WithMessage("LocationId must be greater than 0");
+                .GreaterThan(0)
+                .WithMessage(AppResources.Location_ValidationError_LocationIdRequired);
         }
     }
 }

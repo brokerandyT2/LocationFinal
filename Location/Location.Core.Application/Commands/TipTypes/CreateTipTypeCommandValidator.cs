@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Commands.TipTypes
 {
@@ -20,12 +21,16 @@ namespace Location.Core.Application.Commands.TipTypes
         public CreateTipTypeCommandValidator()
         {
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("Name is required")
-                .MaximumLength(100).WithMessage("Name must not exceed 100 characters");
+                .NotEmpty()
+                .WithMessage(AppResources.TipType_ValidationError_NameRequired)
+                .MaximumLength(100)
+                .WithMessage(AppResources.TipType_ValidationError_NameMaxLength);
 
             RuleFor(x => x.I8n)
-                .NotEmpty().WithMessage("Localization is required")
-                .MaximumLength(10).WithMessage("Localization must not exceed 10 characters");
+                .NotEmpty()
+                .WithMessage(AppResources.TipType_ValidationError_LocalizationRequired)
+                .MaximumLength(10)
+                .WithMessage(AppResources.TipType_ValidationError_LocalizationMaxLength);
         }
     }
 }

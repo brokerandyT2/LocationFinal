@@ -1,5 +1,6 @@
 ﻿using Location.Core.Application.Common.Interfaces.Persistence;
 using Location.Core.Application.Common.Models;
+using Location.Core.Application.Resources;
 using Location.Core.Application.Tips.DTOs;
 using MediatR;
 namespace Location.Core.Application.Queries.TipTypes
@@ -49,7 +50,7 @@ namespace Location.Core.Application.Queries.TipTypes
 
                 if (tipType == null)
                 {
-                    return Result<TipTypeDto>.Failure($"Tip type with ID {request.Id} not found");
+                    return Result<TipTypeDto>.Failure(string.Format(AppResources.TipType_Error_NotFoundById, request.Id));
                 }
 
                 var tipTypeDto = new TipTypeDto
@@ -63,7 +64,7 @@ namespace Location.Core.Application.Queries.TipTypes
             }
             catch (Exception ex)
             {
-                return Result<TipTypeDto>.Failure($"Failed to retrieve tip type: {ex.Message}");
+                return Result<TipTypeDto>.Failure(string.Format(AppResources.TipType_Error_RetrieveFailed, ex.Message));
             }
         }
     }

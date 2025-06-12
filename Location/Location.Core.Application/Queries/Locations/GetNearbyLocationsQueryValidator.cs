@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Queries.Locations
 {
@@ -24,14 +25,18 @@ namespace Location.Core.Application.Queries.Locations
         public GetNearbyLocationsQueryValidator()
         {
             RuleFor(x => x.Latitude)
-                .InclusiveBetween(-90, 90).WithMessage("Latitude must be between -90 and 90 degrees");
+                .InclusiveBetween(-90, 90)
+                .WithMessage(AppResources.Location_ValidationError_LatitudeRange);
 
             RuleFor(x => x.Longitude)
-                .InclusiveBetween(-180, 180).WithMessage("Longitude must be between -180 and 180 degrees");
+                .InclusiveBetween(-180, 180)
+                .WithMessage(AppResources.Location_ValidationError_LongitudeRange);
 
             RuleFor(x => x.DistanceKm)
-                .GreaterThan(0).WithMessage("Distance must be greater than 0")
-                .LessThanOrEqualTo(100).WithMessage("Distance must not exceed 100km");
+                .GreaterThan(0)
+                .WithMessage(AppResources.Location_ValidationError_DistanceRequired)
+                .LessThanOrEqualTo(100)
+                .WithMessage(AppResources.Location_ValidationError_DistanceMaximum);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Commands.Tips
 {
@@ -17,7 +18,8 @@ namespace Location.Core.Application.Commands.Tips
         public GetRandomTipCommandValidator()
         {
             RuleFor(x => x.TipTypeId)
-                .GreaterThan(0).WithMessage("TipTypeId must be greater than 0");
+                .GreaterThan(0)
+                .WithMessage(AppResources.Tip_ValidationError_TipTypeIdRequired);
         }
     }
 }

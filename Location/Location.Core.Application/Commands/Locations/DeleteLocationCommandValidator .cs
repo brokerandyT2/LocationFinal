@@ -1,5 +1,5 @@
-﻿
-using FluentValidation;
+﻿using FluentValidation;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Commands.Locations
 {
@@ -17,7 +17,8 @@ namespace Location.Core.Application.Commands.Locations
         public DeleteLocationCommandValidator()
         {
             RuleFor(x => x.Id)
-                .GreaterThan(0).WithMessage("Location ID must be greater than 0");
+                .GreaterThan(0)
+                .WithMessage(AppResources.Location_ValidationError_LocationIdRequired);
         }
     }
 }

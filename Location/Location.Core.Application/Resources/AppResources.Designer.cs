@@ -889,6 +889,15 @@ namespace Location.Core.Application.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Location ID {0}.
+        /// </summary>
+        internal static string Location_Error_NotFoundById {
+            get {
+                return ResourceManager.GetString("Location_Error_NotFoundById", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid photo path provided.
         /// </summary>
         internal static string Location_Error_PhotoPathInvalid {

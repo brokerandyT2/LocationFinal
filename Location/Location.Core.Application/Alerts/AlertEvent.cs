@@ -18,11 +18,9 @@ namespace Location.Core.Application.Alerts
         public AlertEvent(string message, string title = "Alert", AlertType type = AlertType.Info)
         {
 
-            if (title == "Alert")
-                title = AppResources.Alert_DefaultTitle;
-
+          
             Message = message;
-            Title = title;
+            Title = title ?? AppResources.Alert_DefaultTitle; 
             Type = type;
         }
     }
