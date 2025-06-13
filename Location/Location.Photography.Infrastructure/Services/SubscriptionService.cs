@@ -5,6 +5,7 @@ using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Queries.Subscription;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
 using Plugin.InAppBilling;
@@ -65,62 +66,7 @@ namespace Location.Photography.Infrastructure.Services
             {
                 _logger.LogError(ex, "Failed to initialize billing service");
                 _isConnected = false;
-                return Result<bool>.Failure("Network connectivity issue. Please check your connection and try again.");
-            }
-        }
-
-        public async Task<Result<List<SubscriptionProductDto>>> GetAvailableProductsAsync(CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Ensure we're connected before attempting to get products
-                var initResult = await InitializeAsync(cancellationToken).ConfigureAwait(false);
-                if (!initResult.IsSuccess || !initResult.Data)
-                {
-                    return Result<List<SubscriptionProductDto>>.Failure("Billing service not available");
-                }
-
-                // Move product retrieval to background thread to prevent UI blocking
-                var subscriptionProducts = await Task.Run(async () =>
-                {
-                    var productIds = new List<string> { "monthly_subscription", "yearly_subscription" };
-                    var products = await CrossInAppBilling.Current.GetProductInfoAsync(ItemType.Subscription, productIds.ToArray()).ConfigureAwait(false);
-
-                    if (products == null || !products.Any())
-                    {
-                        return null;
-                    }
-
-                    return products.Select(p => new SubscriptionProductDto
-                    {
-                        ProductId = p.ProductId,
-                        Title = p.Name,
-                        Description = p.Description,
-                        Price = p.LocalizedPrice,
-                        PriceAmountMicros = p.MicrosPrice.ToString(),
-                        CurrencyCode = p.CurrencyCode,
-                        Period = p.ProductId.Contains("monthly") ? Domain.Entities.SubscriptionPeriod.Monthly : Domain.Entities.SubscriptionPeriod.Yearly
-                    }).ToList();
-
-                }, cancellationToken).ConfigureAwait(false);
-
-                if (subscriptionProducts == null)
-                {
-                    return Result<List<SubscriptionProductDto>>.Failure("No subscription products available");
-                }
-
-                return Result<List<SubscriptionProductDto>>.Success(subscriptionProducts);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get available products");
-                return Result<List<SubscriptionProductDto>>.Failure("Network connectivity issue. Please check your connection and try again.");
+                return Result<bool>.Failure(AppResources.Subscription_Error_NetworkConnectivity);
             }
         }
 
@@ -134,7 +80,7 @@ namespace Location.Photography.Infrastructure.Services
                 var initResult = await InitializeAsync(cancellationToken).ConfigureAwait(false);
                 if (!initResult.IsSuccess || !initResult.Data)
                 {
-                    return Result<ProcessSubscriptionResultDto>.Failure("Billing service not available");
+                    return Result<ProcessSubscriptionResultDto>.Failure(AppResources.Subscription_Error_BillingServiceNotAvailable);
                 }
 
                 // Move purchase operation to background thread to prevent UI blocking
@@ -144,7 +90,7 @@ namespace Location.Photography.Infrastructure.Services
 
                     if (purchase == null)
                     {
-                        return Result<ProcessSubscriptionResultDto>.Failure("There was an error processing your request, please try again");
+                        return Result<ProcessSubscriptionResultDto>.Failure(AppResources.Subscription_Error_ProcessingRequest);
                     }
 
                     var subscriptionResult = new ProcessSubscriptionResultDto
@@ -171,12 +117,12 @@ namespace Location.Photography.Infrastructure.Services
             catch (InAppBillingPurchaseException ex)
             {
                 _logger.LogWarning(ex, "Purchase failed: {Message}", ex.Message);
-                return Result<ProcessSubscriptionResultDto>.Failure("There was an error processing your request, please try again");
+                return Result<ProcessSubscriptionResultDto>.Failure(AppResources.Subscription_Error_ProcessingRequest);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to purchase subscription");
-                return Result<ProcessSubscriptionResultDto>.Failure("Network connectivity issue. Please check your connection and try again.");
+                return Result<ProcessSubscriptionResultDto>.Failure(AppResources.Subscription_Error_NetworkConnectivity);
             }
         }
 
@@ -214,7 +160,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to store subscription");
-                return Result<bool>.Failure("Failed to store subscription data");
+                return Result<bool>.Failure(AppResources.Subscription_Error_FailedToStoreSubscriptionData);
             }
         }
 
@@ -264,7 +210,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get subscription status");
-                return Result<SubscriptionStatusDto>.Failure("Failed to retrieve subscription status");
+                return Result<SubscriptionStatusDto>.Failure(AppResources.Subscription_Error_FailedToRetrieveSubscriptionStatus);
             }
         }
 
@@ -278,7 +224,7 @@ namespace Location.Photography.Infrastructure.Services
                 var initResult = await InitializeAsync(cancellationToken).ConfigureAwait(false);
                 if (!initResult.IsSuccess || !initResult.Data)
                 {
-                    return Result<bool>.Failure("Billing service not available for validation");
+                    return Result<bool>.Failure(AppResources.Subscription_Error_BillingServiceNotAvailableForValidation);
                 }
 
                 // Move validation to background thread to prevent UI blocking
@@ -316,7 +262,62 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to validate subscription");
-                return Result<bool>.Failure("Network connectivity issue. Please check your connection and try again.");
+                return Result<bool>.Failure(AppResources.Subscription_Error_NetworkConnectivity);
+            }
+        }
+
+        public async Task<Result<List<SubscriptionProductDto>>> GetAvailableProductsAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Ensure we're connected before attempting to get products
+                var initResult = await InitializeAsync(cancellationToken).ConfigureAwait(false);
+                if (!initResult.IsSuccess || !initResult.Data)
+                {
+                    return Result<List<SubscriptionProductDto>>.Failure(AppResources.Subscription_Error_BillingServiceNotAvailable);
+                }
+
+                // Move product retrieval to background thread to prevent UI blocking
+                var subscriptionProducts = await Task.Run(async () =>
+                {
+                    var productIds = new List<string> { "monthly_subscription", "yearly_subscription" };
+                    var products = await CrossInAppBilling.Current.GetProductInfoAsync(ItemType.Subscription, productIds.ToArray()).ConfigureAwait(false);
+
+                    if (products == null || !products.Any())
+                    {
+                        return null;
+                    }
+
+                    return products.Select(p => new SubscriptionProductDto
+                    {
+                        ProductId = p.ProductId,
+                        Title = p.Name,
+                        Description = p.Description,
+                        Price = p.LocalizedPrice,
+                        PriceAmountMicros = p.MicrosPrice.ToString(),
+                        CurrencyCode = p.CurrencyCode,
+                        Period = p.ProductId.Contains("monthly") ? Domain.Entities.SubscriptionPeriod.Monthly : Domain.Entities.SubscriptionPeriod.Yearly
+                    }).ToList();
+
+                }, cancellationToken).ConfigureAwait(false);
+
+                if (subscriptionProducts == null)
+                {
+                    return Result<List<SubscriptionProductDto>>.Failure(AppResources.Subscription_Error_NoSubscriptionProductsAvailable);
+                }
+
+                return Result<List<SubscriptionProductDto>>.Success(subscriptionProducts);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get available products");
+                return Result<List<SubscriptionProductDto>>.Failure(AppResources.Subscription_Error_NetworkConnectivity);
             }
         }
 
@@ -353,7 +354,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to store subscription in settings");
-                return Result<bool>.Failure("Failed to store subscription in settings");
+                return Result<bool>.Failure(AppResources.Subscription_Error_FailedToStoreSubscriptionInSettings);
             }
         }
 

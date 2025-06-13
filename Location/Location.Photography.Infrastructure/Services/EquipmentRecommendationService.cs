@@ -1,10 +1,10 @@
-﻿
-// Location.Photography.Infrastructure/Services/EquipmentRecommendationService.cs
+﻿// Location.Photography.Infrastructure/Services/EquipmentRecommendationService.cs
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
+using Location.Photography.Infrastructure.Resources;
 using Location.Photography.ViewModels;
 using Microsoft.Extensions.Logging;
 using System;
@@ -48,7 +48,7 @@ namespace Location.Photography.Infrastructure.Services
 
                 if (!userCamerasResult.IsSuccess || !userLensesResult.IsSuccess)
                 {
-                    return Result<UserEquipmentRecommendation>.Failure("Failed to load user equipment");
+                    return Result<UserEquipmentRecommendation>.Failure(AppResources.Equipment_Error_FailedToLoadUserEquipment);
                 }
 
                 var userCameras = userCamerasResult.Data ?? new List<CameraBody>();
@@ -89,7 +89,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error generating user equipment recommendation for {Target}", target);
-                return Result<UserEquipmentRecommendation>.Failure($"Error generating recommendation: {ex.Message}");
+                return Result<UserEquipmentRecommendation>.Failure(string.Format(AppResources.Equipment_Error_GeneratingRecommendation, ex.Message));
             }
         }
 
@@ -124,11 +124,11 @@ namespace Location.Photography.Infrastructure.Services
                     else if (genericRecommendationResult.IsSuccess)
                     {
                         hourlyRec.GenericRecommendation = genericRecommendationResult.Data.LensRecommendation;
-                        hourlyRec.Recommendation = $"Recommended: {genericRecommendationResult.Data.LensRecommendation}";
+                        hourlyRec.Recommendation = string.Format(AppResources.Equipment_Recommended, genericRecommendationResult.Data.LensRecommendation);
                     }
                     else
                     {
-                        hourlyRec.Recommendation = "No equipment recommendations available";
+                        hourlyRec.Recommendation = AppResources.Equipment_NoRecommendationsAvailable;
                     }
 
                     hourlyRecommendations.Add(hourlyRec);
@@ -139,7 +139,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error generating hourly equipment recommendations");
-                return Result<List<HourlyEquipmentRecommendation>>.Failure($"Error generating hourly recommendations: {ex.Message}");
+                return Result<List<HourlyEquipmentRecommendation>>.Failure(string.Format(AppResources.Equipment_Error_GeneratingHourlyRecommendations, ex.Message));
             }
         }
 
@@ -165,7 +165,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error generating generic recommendation for {Target}", target);
-                return Result<GenericEquipmentRecommendation>.Failure($"Error generating generic recommendation: {ex.Message}");
+                return Result<GenericEquipmentRecommendation>.Failure(string.Format(AppResources.Equipment_Error_GeneratingGenericRecommendation, ex.Message));
             }
         }
 
@@ -324,14 +324,11 @@ namespace Location.Photography.Infrastructure.Services
                 strengths.Add($"Fast f/{lens.MaxFStop} aperture ideal for {specs.RecommendedSettings}");
 
             var userFocalLength = lens.IsPrime ? lens.MinMM : (lens.MinMM + (lens.MaxMM ?? lens.MinMM)) / 2;
-            if (Math.Abs(userFocalLength - specs.OptimalFocalLength) <= 5)
-                strengths.Add($"Perfect {userFocalLength}mm focal length for target");
+            if (userFocalLength >= specs.MinFocalLength && userFocalLength <= specs.MaxFocalLength)
+                strengths.Add($"{userFocalLength}mm focal length perfect for target");
 
-            if (camera.IsUserCreated)
-                strengths.Add("Your personal camera - familiar controls");
-
-            if (lens.IsUserCreated)
-                strengths.Add("Your personal lens - familiar handling");
+            if (camera.SensorWidth >= 35.0) // Full frame or larger
+                strengths.Add("Full frame sensor excellent for low light performance");
 
             return strengths;
         }
@@ -341,44 +338,55 @@ namespace Location.Photography.Infrastructure.Services
             var limitations = new List<string>();
 
             if (lens.MaxFStop > specs.MaxAperture)
-                limitations.Add($"f/{lens.MaxFStop} aperture slower than ideal f/{specs.MaxAperture}");
+                limitations.Add($"f/{lens.MaxFStop} slower than ideal f/{specs.MaxAperture} - may need higher ISO");
 
             var userFocalLength = lens.IsPrime ? lens.MinMM : (lens.MinMM + (lens.MaxMM ?? lens.MinMM)) / 2;
             if (userFocalLength < specs.MinFocalLength)
-                limitations.Add($"{userFocalLength}mm shorter than ideal {specs.MinFocalLength}-{specs.MaxFocalLength}mm range");
+                limitations.Add($"{userFocalLength}mm may be too wide for optimal framing");
             else if (userFocalLength > specs.MaxFocalLength)
-                limitations.Add($"{userFocalLength}mm longer than ideal {specs.MinFocalLength}-{specs.MaxFocalLength}mm range");
+                limitations.Add($"{userFocalLength}mm may be too narrow - consider cropping or backing up");
+
+            if (camera.SensorWidth < 35.0) // Crop sensor
+                limitations.Add("Crop sensor reduces effective field of view");
 
             return limitations;
         }
 
-        private string GenerateRecommendationReason(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs, double score)
+        private string GenerateRecommendationReason(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs, double matchScore)
         {
-            if (score >= 85)
-                return "Excellent match - optimal for this target";
-            if (score >= 70)
-                return "Very good match - will produce great results";
-            if (score >= 50)
-                return "Good alternative - workable for this target";
-
-            return "Functional but not ideal for this target";
-        }
-
-        private string GenerateDetailedRecommendation(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs, double score)
-        {
-            var recommendation = $"Use your {camera.Name} with {lens.NameForLens}. ";
-
-            if (score >= 85)
+            if (matchScore >= 85)
             {
-                recommendation += "This combination is ideal for " + GetTargetDescription(specs) + ". ";
+                return $"Excellent match for {specs.RecommendedSettings}";
             }
-            else if (score >= 70)
+            else if (matchScore >= 70)
             {
-                recommendation += "This combination will work very well for " + GetTargetDescription(specs) + ". ";
+                return $"Very good for {specs.RecommendedSettings} with minor compromises";
+            }
+            else if (matchScore >= 40)
+            {
+                return $"Workable option with some limitations for {specs.RecommendedSettings}";
             }
             else
             {
-                recommendation += "This combination can work for " + GetTargetDescription(specs) + " with some compromises. ";
+                return $"Not recommended - significant limitations for {specs.RecommendedSettings}";
+            }
+        }
+
+        private string GenerateDetailedRecommendation(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs, double matchScore)
+        {
+            var recommendation = "";
+
+            if (matchScore >= 85)
+            {
+                recommendation = "This is an excellent combination for your target. ";
+            }
+            else if (matchScore >= 70)
+            {
+                recommendation = "This is a very good combination with minor limitations. ";
+            }
+            else
+            {
+                recommendation = string.Format(AppResources.Equipment_CombinationWorksWith, GetTargetDescription(specs));
             }
 
             recommendation += specs.RecommendedSettings;
@@ -388,27 +396,27 @@ namespace Location.Photography.Infrastructure.Services
 
         private string GetTargetDescription(ViewModels.OptimalEquipmentSpecs specs)
         {
-            return specs.Notes.Split('.').FirstOrDefault() ?? "astrophotography";
+            return specs.Notes.Split('.').FirstOrDefault() ?? AppResources.Equipment_DefaultTargetDescription;
         }
 
         private string GenerateRecommendationSummary(List<CameraLensCombination> combinations, ViewModels.OptimalEquipmentSpecs specs, AstroTarget target)
         {
             if (!combinations.Any())
             {
-                return $"No compatible user equipment found for {target}. Consider: {GenerateGenericLensRecommendation(specs)}";
+                return string.Format(AppResources.Equipment_NoCompatibleEquipmentFound, target, GenerateGenericLensRecommendation(specs));
             }
 
             var bestCombination = combinations.First();
             if (bestCombination.MatchScore >= 85)
             {
-                return $"✓ Excellent: {bestCombination.DisplayText} is ideal for {target}";
+                return string.Format(AppResources.Equipment_ExcellentMatch, bestCombination.DisplayText, target);
             }
             if (bestCombination.MatchScore >= 70)
             {
-                return $"✓ Very Good: {bestCombination.DisplayText} works very well for {target}";
+                return string.Format(AppResources.Equipment_VeryGoodMatch, bestCombination.DisplayText, target);
             }
 
-            return $"⚠ Workable: {bestCombination.DisplayText} can work for {target} with compromises";
+            return string.Format(AppResources.Equipment_WorkableMatch, bestCombination.DisplayText, target);
         }
 
         private string GenerateGenericLensRecommendation(ViewModels.OptimalEquipmentSpecs specs)
@@ -417,29 +425,31 @@ namespace Location.Photography.Infrastructure.Services
                 ? $"{specs.OptimalFocalLength}mm"
                 : $"{specs.MinFocalLength}-{specs.MaxFocalLength}mm";
 
-            var apertureDesc = specs.MaxAperture <= 2.8 ? "fast" : specs.MaxAperture <= 4.0 ? "moderate" : "standard";
+            var apertureDesc = specs.MaxAperture <= 2.8 ? AppResources.Equipment_ApertureDescription_Fast :
+                              specs.MaxAperture <= 4.0 ? AppResources.Equipment_ApertureDescription_Moderate :
+                              AppResources.Equipment_ApertureDescription_Standard;
 
-            return $"{focalLengthDesc} f/{specs.MaxAperture} {apertureDesc} lens";
+            return string.Format(AppResources.Equipment_LensRecommendationFormat, focalLengthDesc, specs.MaxAperture, apertureDesc);
         }
 
         private string GenerateGenericCameraRecommendation(ViewModels.OptimalEquipmentSpecs specs)
         {
-            return "Camera with good high ISO performance (ISO " + specs.MinISO + "-" + specs.MaxISO + ")";
+            return string.Format(AppResources.Equipment_CameraRecommendationFormat, specs.MinISO, specs.MaxISO);
         }
 
         private List<string> GenerateShoppingList(ViewModels.OptimalEquipmentSpecs specs, AstroTarget target)
         {
             var list = new List<string>
             {
-                $"Lens: {GenerateGenericLensRecommendation(specs)}",
-                $"Camera: {GenerateGenericCameraRecommendation(specs)}",
-                "Sturdy tripod for stability",
-                "Remote shutter release or intervalometer"
+                string.Format(AppResources.Equipment_ShoppingList_Lens, GenerateGenericLensRecommendation(specs)),
+                string.Format(AppResources.Equipment_ShoppingList_Camera, GenerateGenericCameraRecommendation(specs)),
+                AppResources.Equipment_ShoppingList_Tripod,
+                AppResources.Equipment_ShoppingList_RemoteShutter
             };
 
             if (target == AstroTarget.DeepSkyObjects || target == AstroTarget.StarTrails)
             {
-                list.Add("Star tracking mount for long exposures");
+                list.Add(AppResources.Equipment_ShoppingList_StarTracker);
             }
 
             return list;
@@ -488,10 +498,10 @@ namespace Location.Photography.Infrastructure.Services
                     MaxFocalLength = 300,
                     OptimalFocalLength = 135,
                     MaxAperture = 4.0,
-                    MinISO = 1600,
-                    MaxISO = 12800,
-                    RecommendedSettings = "ISO 6400, f/4, 4-8 minutes",
-                    Notes = "Medium telephoto for framing. Very high ISO capability needed. Tracking mount essential."
+                    MinISO = 800,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 1600, f/4, 2-5 minutes (with tracking)",
+                    Notes = "Medium telephoto with tracking mount. Requires dark skies and precise tracking."
                 },
                 AstroTarget.StarTrails => new ViewModels.OptimalEquipmentSpecs
                 {
@@ -501,69 +511,21 @@ namespace Location.Photography.Infrastructure.Services
                     MaxAperture = 4.0,
                     MinISO = 100,
                     MaxISO = 800,
-                    RecommendedSettings = "ISO 400, f/4, 30s intervals",
-                    Notes = "Wide-angle for interesting compositions. Multiple exposures combined in post-processing."
-                },
-                AstroTarget.MeteorShowers => new ViewModels.OptimalEquipmentSpecs
-                {
-                    MinFocalLength = 14,
-                    MaxFocalLength = 35,
-                    OptimalFocalLength = 24,
-                    MaxAperture = 2.8,
-                    MinISO = 1600,
-                    MaxISO = 6400,
-                    RecommendedSettings = "ISO 3200, f/2.8, 15-30s",
-                    Notes = "Wide field to capture meteors. Point 45-60° away from radiant for longer trails."
-                },
-                AstroTarget.Constellations => new ViewModels.OptimalEquipmentSpecs
-                {
-                    MinFocalLength = 35,
-                    MaxFocalLength = 135,
-                    OptimalFocalLength = 85,
-                    MaxAperture = 4.0,
-                    MinISO = 800,
-                    MaxISO = 3200,
-                    RecommendedSettings = "ISO 1600, f/4, 60s",
-                    Notes = "Medium lens for constellation framing. Balance stars with constellation patterns."
-                },
-                AstroTarget.PolarAlignment => new ViewModels.OptimalEquipmentSpecs
-                {
-                    MinFocalLength = 50,
-                    MaxFocalLength = 200,
-                    OptimalFocalLength = 100,
-                    MaxAperture = 5.6,
-                    MinISO = 800,
-                    MaxISO = 3200,
-                    RecommendedSettings = "ISO 1600, f/5.6, 30s",
-                    Notes = "Medium telephoto to see Polaris clearly. Used for mount alignment verification."
+                    RecommendedSettings = "ISO 400, f/5.6, 30 minutes - 4 hours",
+                    Notes = "Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures."
                 },
                 _ => new ViewModels.OptimalEquipmentSpecs
                 {
                     MinFocalLength = 24,
-                    MaxFocalLength = 200,
+                    MaxFocalLength = 70,
                     OptimalFocalLength = 50,
-                    MaxAperture = 4.0,
-                    MinISO = 1600,
-                    MaxISO = 6400,
-                    RecommendedSettings = "ISO 3200, f/4, 30s",
-                    Notes = "General astrophotography setup."
+                    MaxAperture = 2.8,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/2.8, 15-30 seconds",
+                    Notes = "General astrophotography setup. Versatile for various targets."
                 }
             };
-        }
-
-        Task<Result<UserEquipmentRecommendation>> IEquipmentRecommendationService.GetUserEquipmentRecommendationAsync(AstroTarget target, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<Result<List<HourlyEquipmentRecommendation>>> IEquipmentRecommendationService.GetHourlyEquipmentRecommendationsAsync(AstroTarget target, List<DateTime> predictionTimes, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<Result<GenericEquipmentRecommendation>> IEquipmentRecommendationService.GetGenericRecommendationAsync(AstroTarget target, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }

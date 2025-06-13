@@ -3,6 +3,7 @@ using Location.Core.Application.Common.Models;
 using Location.Core.Infrastructure.Data;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Domain.Entities;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -30,14 +31,14 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (userCameraBody == null)
                 {
-                    return Result<UserCameraBody>.Failure("UserCameraBody cannot be null");
+                    return Result<UserCameraBody>.Failure(AppResources.UserCameraBody_Error_CannotBeNull);
                 }
 
                 // Check if already exists
                 var existsResult = await ExistsAsync(userCameraBody.UserId, userCameraBody.CameraBodyId, cancellationToken);
                 if (existsResult.IsSuccess && existsResult.Data)
                 {
-                    return Result<UserCameraBody>.Failure("Camera body is already saved by this user");
+                    return Result<UserCameraBody>.Failure(AppResources.UserCameraBody_Error_CameraAlreadySaved);
                 }
 
                 await _context.InsertAsync(userCameraBody);
@@ -51,7 +52,7 @@ namespace Location.Photography.Infrastructure.Repositories
             {
                 _logger.LogError(ex, "Error creating user camera body for UserId: {UserId}, CameraBodyId: {CameraBodyId}",
                     userCameraBody?.UserId, userCameraBody?.CameraBodyId);
-                return Result<UserCameraBody>.Failure($"Error saving camera body: {ex.Message}");
+                return Result<UserCameraBody>.Failure(string.Format(AppResources.UserCameraBody_Error_SavingCameraBody, ex.Message));
             }
         }
 
@@ -73,7 +74,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving user camera bodies for UserId: {UserId}", userId);
-                return Result<List<UserCameraBody>>.Failure($"Error retrieving saved cameras: {ex.Message}");
+                return Result<List<UserCameraBody>>.Failure(string.Format(AppResources.UserCameraBody_Error_RetrievingSavedCameras, ex.Message));
             }
         }
 
@@ -85,7 +86,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (string.IsNullOrWhiteSpace(userId))
                 {
-                    return Result<UserCameraBody>.Failure("UserId cannot be null or empty");
+                    return Result<UserCameraBody>.Failure(AppResources.UserCameraBody_Error_UserIdCannotBeNullOrEmpty);
                 }
 
                 var userCameraBody = await _context.Table<UserCameraBody>()
@@ -94,7 +95,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (userCameraBody == null)
                 {
-                    return Result<UserCameraBody>.Failure("User camera body not found");
+                    return Result<UserCameraBody>.Failure(AppResources.UserCameraBody_Error_UserCameraBodyNotFound);
                 }
 
                 return Result<UserCameraBody>.Success(userCameraBody);
@@ -107,7 +108,7 @@ namespace Location.Photography.Infrastructure.Repositories
             {
                 _logger.LogError(ex, "Error retrieving user camera body for UserId: {UserId}, CameraBodyId: {CameraBodyId}",
                     userId, cameraBodyId);
-                return Result<UserCameraBody>.Failure($"Error retrieving saved camera: {ex.Message}");
+                return Result<UserCameraBody>.Failure(string.Format(AppResources.UserCameraBody_Error_RetrievingSavedCamera, ex.Message));
             }
         }
 
@@ -136,7 +137,7 @@ namespace Location.Photography.Infrastructure.Repositories
             {
                 _logger.LogError(ex, "Error checking if user camera body exists for UserId: {UserId}, CameraBodyId: {CameraBodyId}",
                     userId, cameraBodyId);
-                return Result<bool>.Failure($"Error checking saved camera: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.UserCameraBody_Error_CheckingSavedCamera, ex.Message));
             }
         }
 
@@ -148,7 +149,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (userCameraBody == null)
                 {
-                    return Result<UserCameraBody>.Failure("UserCameraBody cannot be null");
+                    return Result<UserCameraBody>.Failure(AppResources.UserCameraBody_Error_CannotBeNull);
                 }
 
                 await _context.UpdateAsync(userCameraBody);
@@ -161,7 +162,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user camera body");
-                return Result<UserCameraBody>.Failure($"Error updating saved camera: {ex.Message}");
+                return Result<UserCameraBody>.Failure(string.Format(AppResources.UserCameraBody_Error_UpdatingSavedCamera, ex.Message));
             }
         }
 
@@ -174,7 +175,7 @@ namespace Location.Photography.Infrastructure.Repositories
                 var getUserCameraBodyResult = await GetByUserAndCameraIdAsync(userId, cameraBodyId, cancellationToken);
                 if (!getUserCameraBodyResult.IsSuccess)
                 {
-                    return Result<bool>.Failure(getUserCameraBodyResult.ErrorMessage ?? "User camera body not found");
+                    return Result<bool>.Failure(getUserCameraBodyResult.ErrorMessage ?? AppResources.UserCameraBody_Error_UserCameraBodyNotFound);
                 }
 
                 var deleted = await _context.DeleteAsync(getUserCameraBodyResult.Data);
@@ -188,7 +189,7 @@ namespace Location.Photography.Infrastructure.Repositories
             {
                 _logger.LogError(ex, "Error deleting user camera body for UserId: {UserId}, CameraBodyId: {CameraBodyId}",
                     userId, cameraBodyId);
-                return Result<bool>.Failure($"Error removing saved camera: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.UserCameraBody_Error_RemovingSavedCamera, ex.Message));
             }
         }
 
@@ -212,9 +213,10 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving favorite cameras for UserId: {UserId}", userId);
-                return Result<List<UserCameraBody>>.Failure($"Error retrieving favorite cameras: {ex.Message}");
+                return Result<List<UserCameraBody>>.Failure(string.Format(AppResources.UserCameraBody_Error_RetrievingFavoriteCameras, ex.Message));
             }
         }
+
         public async Task<Result<List<UserCameraBody>>> GetAll()
         {
             try
@@ -225,7 +227,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving all user camera bodies");
-                throw new Exception($"Error retrieving all user camera bodies: {ex.Message}");
+                throw new Exception(string.Format(AppResources.UserCameraBody_Error_RetrievingAllUserCameraBodies, ex.Message));
             }
         }
     }

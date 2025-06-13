@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using SkiaSharp;
 using System;
@@ -45,7 +46,7 @@ namespace Location.Photography.Infrastructure.Services
                 var captureResult = await _mediaService.CapturePhotoAsync(cancellationToken).ConfigureAwait(false);
                 if (!captureResult.IsSuccess)
                 {
-                    return Result<SceneEvaluationResultDto>.Failure($"Failed to capture image: {captureResult.ErrorMessage}");
+                    return Result<SceneEvaluationResultDto>.Failure(string.Format(AppResources.SceneEvaluation_Error_FailedToCaptureImage, captureResult.ErrorMessage));
                 }
 
                 // Analyze the captured image
@@ -58,7 +59,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error evaluating scene");
-                return Result<SceneEvaluationResultDto>.Failure($"Error evaluating scene: {ex.Message}");
+                return Result<SceneEvaluationResultDto>.Failure(string.Format(AppResources.SceneEvaluation_Error_EvaluatingScene, ex.Message));
             }
         }
 
@@ -70,7 +71,7 @@ namespace Location.Photography.Infrastructure.Services
 
                 if (!File.Exists(imagePath))
                 {
-                    return Result<SceneEvaluationResultDto>.Failure("File not found");
+                    return Result<SceneEvaluationResultDto>.Failure(AppResources.SceneEvaluation_Error_FileNotFound);
                 }
 
                 // Move heavy image processing to background thread to prevent UI blocking
@@ -80,7 +81,7 @@ namespace Location.Photography.Infrastructure.Services
                     using SKBitmap bitmap = SKBitmap.Decode(imagePath);
                     if (bitmap == null)
                     {
-                        return Result<SceneEvaluationResultDto>.Failure("Failed to decode image");
+                        return Result<SceneEvaluationResultDto>.Failure(AppResources.SceneEvaluation_Error_FailedToDecodeImage);
                     }
 
                     // Initialize arrays for histogram data
@@ -128,7 +129,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error analyzing image");
-                return Result<SceneEvaluationResultDto>.Failure($"Failed to process image: {ex.Message}");
+                return Result<SceneEvaluationResultDto>.Failure(string.Format(AppResources.SceneEvaluation_Error_FailedToProcessImage, ex.Message));
             }
         }
 
@@ -174,23 +175,28 @@ namespace Location.Photography.Infrastructure.Services
                             IsAntialias = true
                         };
 
-                        for (int i = 0; i < HistogramBuckets; i++)
+                        for (int i = 0; i < HistogramBuckets - 1; i++)
                         {
-                            float barHeight = (float)(histograms[h][i] / maxValue * height);
-                            canvas.DrawLine(i, height, i, height - barHeight, paint);
+                            float x1 = i;
+                            float y1 = height - (float)(histograms[h][i] / maxValue * height);
+                            float x2 = i + 1;
+                            float y2 = height - (float)(histograms[h][i + 1] / maxValue * height);
+
+                            canvas.DrawLine(x1, y1, x2, y2, paint);
                         }
                     }
 
+                    // Save the stacked histogram
                     string filePath = Path.Combine(_cacheDirectory, fileName);
-                    using SKFileWStream fileStream = new SKFileWStream(filePath);
-                    stackedBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
+                    using FileStream stream = File.OpenWrite(filePath);
+                    stackedBitmap.Encode(stream, SKEncodedImageFormat.Png, 100);
 
                     return filePath;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error generating stacked histogram image");
-                    throw;
+                    return string.Empty;
                 }
             });
         }
@@ -203,32 +209,26 @@ namespace Location.Photography.Infrastructure.Services
             int[] contrastHistogram,
             CancellationToken cancellationToken)
         {
-            // Initialize statistics values
-            long redSum = 0;
-            long greenSum = 0;
-            long blueSum = 0;
-            long contrastSum = 0;
-            long redSumSquared = 0;
-            long greenSumSquared = 0;
-            long blueSumSquared = 0;
-            long contrastSumSquared = 0;
+            // Optimization: Process pixels in chunks to allow for better cancellation and responsiveness
+            const int pixelChunkSize = 10000;
 
-            int totalPixels = bitmap.Width * bitmap.Height;
-            const int batchSize = 1000; // Process pixels in batches to allow for cancellation
+            int width = bitmap.Width;
+            int height = bitmap.Height;
+            int totalPixels = width * height;
+
+            long redSum = 0, greenSum = 0, blueSum = 0, contrastSum = 0;
+            long redSumSquared = 0, greenSumSquared = 0, blueSumSquared = 0, contrastSumSquared = 0;
             int processedPixels = 0;
 
-            // Process pixels in batches with cancellation support
-            for (int y = 0; y < bitmap.Height; y++)
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < bitmap.Width; x++)
+                for (int x = 0; x < width; x++)
                 {
-                    // Check for cancellation periodically
-                    if (processedPixels % batchSize == 0)
+                    // Yield control every chunk of pixels to allow cancellation and prevent UI freezing
+                    if (processedPixels % pixelChunkSize == 0)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-
-                        // Yield control to prevent UI blocking
-                        if (processedPixels > 0)
+                        if (processedPixels > 0) // Don't yield on first iteration
                         {
                             await Task.Yield();
                         }
@@ -290,57 +290,65 @@ namespace Location.Photography.Infrastructure.Services
 
         private async Task<string> SaveHistogramAsync(
             int[] histogram,
-            string channel,
+            string colorName,
             string timestamp,
             SKColor color,
             CancellationToken cancellationToken)
         {
-            // Move histogram image generation to background thread
             return await Task.Run(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                int width = HistogramBuckets;
-                int height = 200;
-
-                // Find maximum value for scaling
-                int maxValue = 1; // Avoid division by zero
-                foreach (int value in histogram)
+                try
                 {
-                    maxValue = Math.Max(maxValue, value);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    int width = HistogramBuckets;
+                    int height = 200;
+
+                    // Find maximum value for scaling
+                    int maxValue = 1; // Avoid division by zero
+                    foreach (int value in histogram)
+                    {
+                        maxValue = Math.Max(maxValue, value);
+                    }
+
+                    using SKBitmap histogramBitmap = new SKBitmap(width, height);
+                    using SKCanvas canvas = new SKCanvas(histogramBitmap);
+
+                    canvas.Clear(SKColors.White);
+
+                    using SKPaint paint = new SKPaint
+                    {
+                        Color = color,
+                        StrokeWidth = 1,
+                        IsAntialias = true
+                    };
+
+                    // Draw histogram
+                    for (int i = 0; i < HistogramBuckets - 1; i++)
+                    {
+                        float x1 = i;
+                        float y1 = height - ((float)histogram[i] / maxValue * height);
+                        float x2 = i + 1;
+                        float y2 = height - ((float)histogram[i + 1] / maxValue * height);
+
+                        canvas.DrawLine(x1, y1, x2, y2, paint);
+                    }
+
+                    // Save the histogram
+                    string fileName = $"histogram_{colorName}_{timestamp}.png";
+                    string filePath = Path.Combine(_cacheDirectory, fileName);
+
+                    using FileStream stream = File.OpenWrite(filePath);
+                    histogramBitmap.Encode(stream, SKEncodedImageFormat.Png, 100);
+
+                    return filePath;
                 }
-
-                // Create the histogram image
-                using SKBitmap histogramBitmap = new SKBitmap(width, height);
-                using SKCanvas canvas = new SKCanvas(histogramBitmap);
-
-                // Clear the canvas
-                canvas.Clear(SKColors.White);
-
-                // Draw the histogram
-                using SKPaint paint = new SKPaint
+                catch (Exception ex)
                 {
-                    Color = color,
-                    StrokeWidth = 1,
-                    IsAntialias = true
-                };
-
-                for (int i = 0; i < HistogramBuckets; i++)
-                {
-                    float barHeight = (float)histogram[i] / maxValue * height;
-                    canvas.DrawLine(i, height, i, height - barHeight, paint);
+                    _logger.LogError(ex, "Error saving {ColorName} histogram", colorName);
+                    return string.Empty;
                 }
-
-                // Save the histogram image
-                string fileName = $"histogram_{channel}_{timestamp}.png";
-                string filePath = Path.Combine(_cacheDirectory, fileName);
-
-                using SKFileWStream fileStream = new SKFileWStream(filePath);
-                histogramBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
-
-                return filePath;
-
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
     }
 }

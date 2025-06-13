@@ -4,6 +4,7 @@ using Location.Core.Application.Services;
 using Location.Core.Domain.Entities;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Enums;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -160,7 +161,7 @@ namespace Location.Photography.Infrastructure
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during complete database initialization");
-                await _alertService.ShowErrorAlertAsync("Failed to initialize database: " + ex.Message, "Error").ConfigureAwait(false);
+                await _alertService.ShowErrorAlertAsync(string.Format(AppResources.DatabaseInitializer_Error_InitializationFailed, ex.Message), AppResources.DatabaseInitializer_Error_Title).ConfigureAwait(false);
                 throw;
             }
         }
@@ -171,9 +172,11 @@ namespace Location.Photography.Infrastructure
             {
                 var tipTypeNames = new[]
                 {
-                   "Landscape", "Silouette", "Building", "Person", "Baby", "Animals",
-                   "Blury Water", "Night", "Blue Hour", "Golden Hour", "Sunset"
-               };
+           AppResources.TipType_Landscape, AppResources.TipType_Silhouette, AppResources.TipType_Building,
+           AppResources.TipType_Person, AppResources.TipType_Baby, AppResources.TipType_Animals,
+           AppResources.TipType_BlurryWater, AppResources.TipType_Night, AppResources.TipType_BlueHour,
+           AppResources.TipType_GoldenHour, AppResources.TipType_Sunset
+       };
 
                 // Process tip types in batches to improve performance and reduce database contention
                 const int batchSize = 3;
@@ -199,8 +202,8 @@ namespace Location.Photography.Infrastructure
                         // Create a sample tip for each type
                         var tip = new Tip(
                             typeResult.Data.Id,
-                            $"How to Take Great {name} Photos",
-                            "Text of the tip would appear here. Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit​​, morbo vel maleficia? De apocalypsi gorger omero undead survivor dictum mauris."
+                            string.Format(AppResources.Tip_Title_HowToTakeGreatPhotos, name),
+                            AppResources.Tip_Content_Placeholder
                         );
                         tip.UpdatePhotographySettings("f/1", "1/125", "50");
                         tip.SetLocalization("en-US");

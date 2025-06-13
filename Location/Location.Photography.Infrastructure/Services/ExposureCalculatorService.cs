@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Errors;
 using Location.Photography.Application.Services;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -67,7 +68,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error calculating shutter speed");
-                return Result<ExposureSettingsDto>.Failure($"Error calculating shutter speed: {ex.Message}");
+                return Result<ExposureSettingsDto>.Failure(string.Format(AppResources.ExposureCalculator_Error_CalculatingShutterSpeed, ex.Message));
             }
         }
 
@@ -118,7 +119,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error calculating aperture");
-                return Result<ExposureSettingsDto>.Failure($"Error calculating aperture: {ex.Message}");
+                return Result<ExposureSettingsDto>.Failure(string.Format(AppResources.ExposureCalculator_Error_CalculatingAperture, ex.Message));
             }
         }
 
@@ -169,7 +170,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error calculating ISO");
-                return Result<ExposureSettingsDto>.Failure($"Error calculating ISO: {ex.Message}");
+                return Result<ExposureSettingsDto>.Failure(string.Format(AppResources.ExposureCalculator_Error_CalculatingISO, ex.Message));
             }
         }
 
@@ -195,7 +196,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving shutter speeds");
-                return Result<string[]>.Failure($"Error retrieving shutter speeds: {ex.Message}");
+                return Result<string[]>.Failure(string.Format(AppResources.ExposureCalculator_Error_RetrievingShutterSpeeds, ex.Message));
             }
         }
 
@@ -221,7 +222,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving apertures");
-                return Result<string[]>.Failure($"Error retrieving apertures: {ex.Message}");
+                return Result<string[]>.Failure(string.Format(AppResources.ExposureCalculator_Error_RetrievingApertures, ex.Message));
             }
         }
 
@@ -247,7 +248,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving ISOs");
-                return Result<string[]>.Failure($"Error retrieving ISOs: {ex.Message}");
+                return Result<string[]>.Failure(string.Format(AppResources.ExposureCalculator_Error_RetrievingISOs, ex.Message));
             }
         }
 
