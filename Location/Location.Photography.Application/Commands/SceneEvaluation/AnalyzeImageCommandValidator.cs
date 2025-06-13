@@ -1,5 +1,5 @@
-﻿// Location.Photography.Application/Commands/SceneEvaluation/AnalyzeImageCommandValidator.cs
-using FluentValidation;
+﻿using FluentValidation;
+using Location.Photography.Application.Resources;
 
 namespace Location.Photography.Application.Commands.SceneEvaluation
 {
@@ -7,15 +7,28 @@ namespace Location.Photography.Application.Commands.SceneEvaluation
     {
         public AnalyzeImageCommandValidator()
         {
-            /*  RuleFor(x => x.ImagePath)
-                  .NotEmpty()
-                  .WithMessage("Image path is required")
-                  .Must(BeValidPath)
-                  .WithMessage("Image path is not valid")
-                  .Must(BeValidImageExtension)
-                  .WithMessage("Image must be a valid image file (jpg, jpeg, png, bmp, gif)"); */
+            RuleFor(x => x.ImagePath)
+                .NotEmpty()
+                .WithMessage(AppResources.CameraEvaluation_ValidationError_ImagePathRequired)
+                .Must(BeValidPath)
+                .WithMessage(AppResources.CameraEvaluation_ValidationError_ImagePathRequired)
+                .Must(BeValidImageExtension)
+                .WithMessage(AppResources.CameraEvaluation_ValidationError_ImagePathRequired);
         }
 
+        private bool BeValidPath(string path)
+        {
+            return !string.IsNullOrWhiteSpace(path);
+        }
 
+        private bool BeValidImageExtension(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return false;
+
+            var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".bmp", ".gif" };
+            var extension = System.IO.Path.GetExtension(path).ToLowerInvariant();
+            return validExtensions.Contains(extension);
+        }
     }
 }

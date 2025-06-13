@@ -1,7 +1,7 @@
-﻿// Location.Photography.Application/Queries/Subscription/GetSubscriptionStatusQuery.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
+using Location.Photography.Application.Resources;
 using MediatR;
 
 namespace Location.Photography.Application.Queries.Subscription
@@ -42,7 +42,7 @@ namespace Location.Photography.Application.Queries.Subscription
 
                 if (!result.IsSuccess)
                 {
-                    return Result<SubscriptionStatusDto>.Failure(result.ErrorMessage ?? "Failed to retrieve subscription status");
+                    return Result<SubscriptionStatusDto>.Failure(result.ErrorMessage ?? AppResources.Subscription_Error_RetrievalFailed);
                 }
 
                 return Result<SubscriptionStatusDto>.Success(result.Data);
@@ -53,7 +53,7 @@ namespace Location.Photography.Application.Queries.Subscription
             }
             catch (Exception ex)
             {
-                return Result<SubscriptionStatusDto>.Failure($"Error retrieving subscription status: {ex.Message}");
+                return Result<SubscriptionStatusDto>.Failure(string.Format(AppResources.Subscription_Error_RetrievalFailed + ": {0}", ex.Message));
             }
         }
     }

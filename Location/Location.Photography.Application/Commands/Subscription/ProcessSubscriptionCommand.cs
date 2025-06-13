@@ -1,7 +1,7 @@
-﻿// Location.Photography.Application/Commands/Subscription/ProcessSubscriptionCommand.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
+using Location.Photography.Application.Resources;
 using MediatR;
 
 namespace Location.Photography.Application.Commands.Subscription
@@ -45,7 +45,7 @@ namespace Location.Photography.Application.Commands.Subscription
 
                 if (!result.IsSuccess)
                 {
-                    return Result<ProcessSubscriptionResultDto>.Failure(result.ErrorMessage ?? "Failed to process subscription");
+                    return Result<ProcessSubscriptionResultDto>.Failure(result.ErrorMessage ?? AppResources.Subscription_Error_ProcessingFailed);
                 }
 
                 // Store subscription data in SQLite
@@ -53,7 +53,7 @@ namespace Location.Photography.Application.Commands.Subscription
 
                 if (!storeResult.IsSuccess)
                 {
-                    return Result<ProcessSubscriptionResultDto>.Failure("Subscription processed but failed to store locally");
+                    return Result<ProcessSubscriptionResultDto>.Failure(AppResources.Subscription_Error_ProcessingFailed);
                 }
 
                 // Store subscription details in settings table
@@ -81,7 +81,7 @@ namespace Location.Photography.Application.Commands.Subscription
             }
             catch (Exception ex)
             {
-                return Result<ProcessSubscriptionResultDto>.Failure($"Error processing subscription: {ex.Message}");
+                return Result<ProcessSubscriptionResultDto>.Failure(string.Format(AppResources.Subscription_Error_ProcessingFailed + ": {0}", ex.Message));
             }
         }
     }

@@ -1,5 +1,5 @@
-﻿// Location.Photography.Application/Queries/SunLocation/GetSunPositionQueryValidator.cs
-using FluentValidation;
+﻿using FluentValidation;
+using Location.Photography.Application.Resources;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {
@@ -9,17 +9,17 @@ namespace Location.Photography.Application.Queries.SunLocation
         {
             RuleFor(x => x.Latitude)
                 .InclusiveBetween(-90.0, 90.0)
-                .WithMessage("Latitude must be between -90 and 90 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LatitudeRange);
 
             RuleFor(x => x.Longitude)
                 .InclusiveBetween(-180.0, 180.0)
-                .WithMessage("Longitude must be between -180 and 180 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LongitudeRange);
 
             RuleFor(x => x.DateTime)
                 .NotEmpty()
-                .WithMessage("DateTime is required")
+                .WithMessage(AppResources.SunLocation_ValidationError_DateTimeRequired)
                 .Must(BeValidDateTime)
-                .WithMessage("DateTime must be a valid date and time within reasonable range");
+                .WithMessage(AppResources.SunLocation_ValidationError_InvalidDateTimeRange);
         }
 
         private bool BeValidDateTime(DateTime dateTime)

@@ -1,5 +1,5 @@
-﻿// Location.Photography.Application/Commands/ExposureCalculator/CalculateExposureCommandValidator.cs
-using FluentValidation;
+﻿using FluentValidation;
+using Location.Photography.Application.Resources;
 using Location.Photography.Application.Services;
 
 namespace Location.Photography.Application.Commands.ExposureCalculator
@@ -8,81 +8,81 @@ namespace Location.Photography.Application.Commands.ExposureCalculator
     {
         public CalculateExposureCommandValidator()
         {
-            RuleFor(x => x.BaseExposure).NotNull().WithMessage("Base exposure settings are required");
+            RuleFor(x => x.BaseExposure).NotNull().WithMessage(AppResources.ExposureCalculator_ValidationError_BaseExposureRequired);
 
             RuleFor(x => x.BaseExposure.ShutterSpeed)
-                .NotEmpty().WithMessage("Base shutter speed is required")
+                .NotEmpty().WithMessage(AppResources.ExposureCalculator_ValidationError_ShutterSpeedRequired)
                 .When(x => x.BaseExposure != null);
 
             RuleFor(x => x.BaseExposure.Aperture)
-                .NotEmpty().WithMessage("Base aperture is required")
+                .NotEmpty().WithMessage(AppResources.ExposureCalculator_ValidationError_ApertureRequired)
                 .When(x => x.BaseExposure != null);
 
             RuleFor(x => x.BaseExposure.Iso)
-                .NotEmpty().WithMessage("Base ISO is required")
+                .NotEmpty().WithMessage(AppResources.ExposureCalculator_ValidationError_ISORequired)
                 .When(x => x.BaseExposure != null);
 
             RuleFor(x => x.Increments)
                 .IsInEnum()
-                .WithMessage("Invalid exposure increment value");
+                .WithMessage(AppResources.ExposureCalculator_ValidationError_IncrementValue);
 
             RuleFor(x => x.ToCalculate)
                 .IsInEnum()
-                .WithMessage("Invalid calculation type");
+                .WithMessage(AppResources.ExposureCalculator_ValidationError_CalculationType);
 
             RuleFor(x => x.EvCompensation)
                 .InclusiveBetween(-5.0, 5.0)
-                .WithMessage("EV compensation must be between -5 and +5 stops");
+                .WithMessage(AppResources.ExposureCalculator_ValidationError_EVCompensationRange);
 
             // Validate target values based on what's being calculated
             When(x => x.ToCalculate == FixedValue.ShutterSpeeds, () =>
             {
-                RuleFor(x => x.TargetAperture).NotEmpty().WithMessage("Target aperture is required");
+                RuleFor(x => x.TargetAperture).NotEmpty().WithMessage(AppResources.ExposureCalculator_ValidationError_TargetApertureRequired);
 
                 RuleFor(x => x.TargetAperture)
                     .Must(BeValidAperture)
-                    .WithMessage("Target aperture must be in valid f-stop format (e.g., f/2.8)")
+                    .WithMessage(AppResources.ExposureCalculator_ValidationError_ValidAperture)
                     .When(x => !string.IsNullOrEmpty(x.TargetAperture));
 
-                RuleFor(x => x.TargetIso).NotEmpty().WithMessage("Target ISO is required");
+                RuleFor(x => x.TargetIso).NotEmpty().WithMessage(AppResources.ExposureCalculator_ValidationError_TargetISORequired);
 
                 RuleFor(x => x.TargetIso)
                     .Must(BeValidIso)
-                    .WithMessage("Target ISO must be a valid numeric value (e.g., 100, 400, 1600)")
+                    .WithMessage(AppResources.ExposureCalculator_ValidationError_ValidISO)
                     .When(x => !string.IsNullOrEmpty(x.TargetIso));
             });
 
             When(x => x.ToCalculate == FixedValue.Aperture, () =>
             {
-                RuleFor(x => x.TargetShutterSpeed).NotEmpty().WithMessage("Target shutter speed is required");
+                RuleFor(x => x.TargetShutterSpeed).NotEmpty().WithMessage(AppResources.ExposureCalculator_ValidationError_TargetShutterSpeedRequired);
 
                 RuleFor(x => x.TargetShutterSpeed)
                     .Must(BeValidShutterSpeed)
-                    .WithMessage("Target shutter speed must be in valid format (e.g., 1/125, 2\", 0.5)")
+                    .WithMessage(AppResources.ExposureCalculator_ValidationError_ValidShutterSpeed)
                     .When(x => !string.IsNullOrEmpty(x.TargetShutterSpeed));
 
-                RuleFor(x => x.TargetIso).NotEmpty().WithMessage("Target ISO is required");
+                RuleFor(x => x.TargetIso).NotEmpty().WithMessage(AppResources.ExposureCalculator_ValidationError_TargetISORequired);
 
                 RuleFor(x => x.TargetIso)
                     .Must(BeValidIso)
-                    .WithMessage("Target ISO must be a valid numeric value (e.g., 100, 400, 1600)")
+                    .WithMessage(AppResources.ExposureCalculator_ValidationError_ValidISO)
                     .When(x => !string.IsNullOrEmpty(x.TargetIso));
             });
 
             When(x => x.ToCalculate == FixedValue.ISO, () =>
             {
-                RuleFor(x => x.TargetShutterSpeed).NotEmpty().WithMessage("Target shutter speed is required");
+                RuleFor(x => x.TargetShutterSpeed).NotEmpty().WithMessage(AppResources.ExposureCalculator_ValidationError_TargetShutterSpeedRequired);
 
                 RuleFor(x => x.TargetShutterSpeed)
                     .Must(BeValidShutterSpeed)
-                    .WithMessage("Target shutter speed must be in valid format (e.g., 1/125, 2\", 0.5)")
+                    .WithMessage(AppResources.ExposureCalculator_ValidationError_ValidShutterSpeed)
                     .When(x => !string.IsNullOrEmpty(x.TargetShutterSpeed));
 
-                RuleFor(x => x.TargetAperture).NotEmpty().WithMessage("Target aperture is required");
+                RuleFor(x => x.TargetAperture).NotEmpty().WithMessage(AppResources.ExposureCalculator_ValidationError_TargetApertureRequired);
 
                 RuleFor(x => x.TargetAperture)
                     .Must(BeValidAperture)
-                    .WithMessage("Target aperture must be in valid f-stop format (e.g., f/2.8)")
+                    .WithMessage(AppResources.ExposureCalculator_ValidationError_ValidAperture)
                     .When(x => !string.IsNullOrEmpty(x.TargetAperture));
             });
         }

@@ -1,5 +1,6 @@
 ﻿// Location.Photography.Application/Queries/SunLocation/EnhancedSunQueryValidators.cs
 using FluentValidation;
+using Location.Photography.Application.Resources;
 
 namespace Location.Photography.Application.Queries.SunLocation
 {
@@ -9,17 +10,17 @@ namespace Location.Photography.Application.Queries.SunLocation
         {
             RuleFor(x => x.Latitude)
                 .InclusiveBetween(-90.0, 90.0)
-                .WithMessage("Latitude must be between -90 and 90 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LatitudeRange);
 
             RuleFor(x => x.Longitude)
                 .InclusiveBetween(-180.0, 180.0)
-                .WithMessage("Longitude must be between -180 and 180 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LongitudeRange);
 
             RuleFor(x => x.Date)
                 .NotEmpty()
-                .WithMessage("Date is required")
+                .WithMessage(AppResources.SunLocation_ValidationError_DateRequired)
                 .Must(BeValidDate)
-                .WithMessage("Date must be a valid date within reasonable range");
+                .WithMessage(AppResources.SunLocation_ValidationError_InvalidDateRange);
         }
 
         private bool BeValidDate(DateTime date)
@@ -36,17 +37,17 @@ namespace Location.Photography.Application.Queries.SunLocation
         {
             RuleFor(x => x.Latitude)
                 .InclusiveBetween(-90.0, 90.0)
-                .WithMessage("Latitude must be between -90 and 90 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LatitudeRange);
 
             RuleFor(x => x.Longitude)
                 .InclusiveBetween(-180.0, 180.0)
-                .WithMessage("Longitude must be between -180 and 180 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LongitudeRange);
 
             RuleFor(x => x.Date)
                 .NotEmpty()
-                .WithMessage("Date is required")
+                .WithMessage(AppResources.SunLocation_ValidationError_DateRequired)
                 .Must(BeValidDate)
-                .WithMessage("Date must be a valid date within reasonable range");
+                .WithMessage(AppResources.SunLocation_ValidationError_InvalidDateRange);
         }
 
         private bool BeValidDate(DateTime date)
@@ -63,21 +64,21 @@ namespace Location.Photography.Application.Queries.SunLocation
         {
             RuleFor(x => x.Latitude)
                 .InclusiveBetween(-90.0, 90.0)
-                .WithMessage("Latitude must be between -90 and 90 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LatitudeRange);
 
             RuleFor(x => x.Longitude)
                 .InclusiveBetween(-180.0, 180.0)
-                .WithMessage("Longitude must be between -180 and 180 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LongitudeRange);
 
             RuleFor(x => x.Date)
                 .NotEmpty()
-                .WithMessage("Date is required")
+                .WithMessage(AppResources.SunLocation_ValidationError_DateRequired)
                 .Must(BeValidDate)
-                .WithMessage("Date must be a valid date within reasonable range");
+                .WithMessage(AppResources.SunLocation_ValidationError_InvalidDateRange);
 
             RuleFor(x => x.IntervalMinutes)
                 .InclusiveBetween(1, 60)
-                .WithMessage("Interval minutes must be between 1 and 60");
+                .WithMessage(AppResources.SunLocation_ValidationError_IntervalMinutes);
         }
 
         private bool BeValidDate(DateTime date)
@@ -93,21 +94,22 @@ namespace Location.Photography.Application.Queries.SunLocation
 
     public class GetOptimalShootingTimesQueryValidator : AbstractValidator<GetOptimalShootingTimesQuery>
     {
+
         public GetOptimalShootingTimesQueryValidator()
         {
             RuleFor(x => x.Latitude)
                 .InclusiveBetween(-90.0, 90.0)
-                .WithMessage("Latitude must be between -90 and 90 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LatitudeRange);
 
             RuleFor(x => x.Longitude)
                 .InclusiveBetween(-180.0, 180.0)
-                .WithMessage("Longitude must be between -180 and 180 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LongitudeRange);
 
             RuleFor(x => x.Date)
                 .NotEmpty()
-                .WithMessage("Date is required")
+                .WithMessage(AppResources.SunLocation_ValidationError_DateRequired)
                 .Must(BeValidDate)
-                .WithMessage("Date must be a valid date within reasonable range");
+                .WithMessage(AppResources.SunLocation_ValidationError_InvalidDateRange);
         }
 
         private bool BeValidDate(DateTime date)
@@ -125,33 +127,35 @@ namespace Location.Photography.Application.Queries.SunLocation
         {
             RuleFor(x => x.Latitude)
                 .InclusiveBetween(-90.0, 90.0)
-                .WithMessage("Latitude must be between -90 and 90 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LatitudeRange);
 
             RuleFor(x => x.Longitude)
                 .InclusiveBetween(-180.0, 180.0)
-                .WithMessage("Longitude must be between -180 and 180 degrees");
+                .WithMessage(AppResources.SunLocation_ValidationError_LongitudeRange);
 
             RuleFor(x => x.DateTime)
                 .NotEmpty()
-                .WithMessage("DateTime is required")
+                .WithMessage(AppResources.SunLocation_ValidationError_DateTimeRequired)
                 .Must(BeValidDateTime)
-                .WithMessage("DateTime must be a valid date and time within reasonable range");
+                .WithMessage(AppResources.SunLocation_ValidationError_InvalidDateTimeRange);
 
             RuleFor(x => x.ObjectHeight)
                 .GreaterThan(0)
-                .WithMessage("Object height must be greater than 0")
+                .WithMessage(AppResources.SunLocation_ValidationError_ObjectHeight)
                 .LessThanOrEqualTo(1000)
-                .WithMessage("Object height must be less than or equal to 1000 meters");
+                .WithMessage(AppResources.SunLocation_ValidationError_ObjectHeightMaximum);
 
             RuleFor(x => x.TerrainType)
                 .IsInEnum()
-                .WithMessage("Invalid terrain type");
+                .WithMessage(AppResources.SunLocation_ValidationError_TerrainType);
         }
 
         private bool BeValidDateTime(DateTime dateTime)
         {
+            // Ensure datetime is not default and within reasonable range for shadow calculations
             var minDate = new DateTime(1900, 1, 1);
             var maxDate = new DateTime(2100, 12, 31);
+
             return dateTime != default && dateTime >= minDate && dateTime <= maxDate;
         }
     }

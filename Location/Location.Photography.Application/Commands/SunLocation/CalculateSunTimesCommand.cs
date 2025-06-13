@@ -1,7 +1,7 @@
-﻿// Location.Photography.Application/Commands/SunLocation/CalculateSunTimesCommand.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
+using Location.Photography.Application.Resources;
 using MediatR;
 
 namespace Location.Photography.Application.Commands.SunLocation
@@ -42,7 +42,7 @@ namespace Location.Photography.Application.Commands.SunLocation
                 catch (Exception ex)
                 {
                     // Handle unexpected exceptions by returning a failure result
-                    return Result<SunTimesDto>.Failure($"Error calculating sun times: {ex.Message}");
+                    return Result<SunTimesDto>.Failure(string.Format(AppResources.SunLocation_Error_CalculatingSunTimes + ": {0}", ex.Message));
                 }
             }
         }

@@ -1,5 +1,5 @@
-﻿// Location.Photography.Application/Queries/ExposureCalculator/GetExposureValuesQueryValidator.cs
-using FluentValidation;
+﻿using FluentValidation;
+using Location.Photography.Application.Resources;
 
 namespace Location.Photography.Application.Queries.ExposureCalculator
 {
@@ -9,7 +9,7 @@ namespace Location.Photography.Application.Queries.ExposureCalculator
         {
             RuleFor(x => x.Increments)
                 .IsInEnum()
-                .WithMessage("Invalid exposure increment value. Must be Full, Half, or Third stops.");
+                .WithMessage(AppResources.ExposureCalculator_ValidationError_IncrementRequired);
         }
     }
 }

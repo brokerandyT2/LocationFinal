@@ -1,8 +1,8 @@
-﻿// Location.Photography.Application/Commands/Subscription/StoreSubscriptionInSettingsCommand.cs
-using Location.Core.Application.Common.Interfaces;
+﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Domain.Entities;
 using Location.Photography.Application.Common.Constants;
+using Location.Photography.Application.Resources;
 using MediatR;
 
 namespace Location.Photography.Application.Commands.Subscription
@@ -63,7 +63,7 @@ namespace Location.Photography.Application.Commands.Subscription
             }
             catch (Exception ex)
             {
-                return Result<bool>.Failure($"Error storing subscription in settings: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.Subscription_Error_StoringFailed + ": {0}", ex.Message));
             }
         }
 

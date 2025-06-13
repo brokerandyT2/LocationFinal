@@ -1,7 +1,7 @@
-﻿// Location.Photography.Application/Commands/Subscription/InitializeSubscriptionCommand.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
+using Location.Photography.Application.Resources;
 using MediatR;
 
 namespace Location.Photography.Application.Commands.Subscription
@@ -50,14 +50,14 @@ namespace Location.Photography.Application.Commands.Subscription
 
                 if (!result.IsSuccess)
                 {
-                    return Result<InitializeSubscriptionResultDto>.Failure(result.ErrorMessage ?? "Failed to initialize subscription service");
+                    return Result<InitializeSubscriptionResultDto>.Failure(result.ErrorMessage ?? AppResources.Subscription_Error_InitializationFailed);
                 }
 
                 var products = await _subscriptionService.GetAvailableProductsAsync(cancellationToken);
 
                 if (!products.IsSuccess)
                 {
-                    return Result<InitializeSubscriptionResultDto>.Failure(products.ErrorMessage ?? "Failed to retrieve subscription products");
+                    return Result<InitializeSubscriptionResultDto>.Failure(products.ErrorMessage ?? AppResources.Subscription_Error_ProductRetrievalFailed);
                 }
 
                 return Result<InitializeSubscriptionResultDto>.Success(new InitializeSubscriptionResultDto
@@ -73,7 +73,7 @@ namespace Location.Photography.Application.Commands.Subscription
             }
             catch (Exception ex)
             {
-                return Result<InitializeSubscriptionResultDto>.Failure($"Error initializing subscription: {ex.Message}");
+                return Result<InitializeSubscriptionResultDto>.Failure(string.Format(AppResources.Subscription_Error_InitializationFailed + ": {0}", ex.Message));
             }
         }
     }

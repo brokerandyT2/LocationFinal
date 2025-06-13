@@ -1,5 +1,5 @@
-﻿// Location.Photography.Application/Commands/Subscription/ProcessSubscriptionCommandValidator.cs
-using FluentValidation;
+﻿using FluentValidation;
+using Location.Photography.Application.Resources;
 
 namespace Location.Photography.Application.Commands.Subscription
 {
@@ -9,13 +9,13 @@ namespace Location.Photography.Application.Commands.Subscription
         {
             RuleFor(x => x.ProductId)
                 .NotEmpty()
-                .WithMessage("Product ID is required")
+                .WithMessage(AppResources.Subscription_ValidationError_ProductIdRequired)
                 .Must(BeValidProductId)
-                .WithMessage("Product ID must be a valid subscription product identifier");
+                .WithMessage(AppResources.Subscription_ValidationError_InvalidProductId);
 
             RuleFor(x => x.Period)
                 .IsInEnum()
-                .WithMessage("Subscription period must be Monthly or Yearly");
+                .WithMessage(AppResources.Subscription_ValidationError_PeriodRequired);
         }
 
         private bool BeValidProductId(string productId)

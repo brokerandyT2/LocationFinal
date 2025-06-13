@@ -1,6 +1,6 @@
-﻿// Location.Photography.Application/Commands/ExposureCalculator/CalculateExposureCommand.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
+using Location.Photography.Application.Resources;
 using MediatR;
 
 namespace Location.Photography.Application.Commands.ExposureCalculator
@@ -48,12 +48,12 @@ namespace Location.Photography.Application.Commands.ExposureCalculator
                             cancellationToken, request.EvCompensation);
 
                     default:
-                        return Result<ExposureSettingsDto>.Failure("Invalid calculation type");
+                        return Result<ExposureSettingsDto>.Failure(AppResources.ExposureCalculator_Error_InvalidCalculationType);
                 }
             }
             catch (Exception ex)
             {
-                return Result<ExposureSettingsDto>.Failure($"Error calculating exposure: {ex.Message}");
+                return Result<ExposureSettingsDto>.Failure(string.Format(AppResources.ExposureCalculator_Error_CalculatingExposure + ": {0}", ex.Message));
             }
         }
     }

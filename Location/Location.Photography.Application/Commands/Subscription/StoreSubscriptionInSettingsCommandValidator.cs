@@ -1,5 +1,5 @@
-﻿// Location.Photography.Application/Commands/Subscription/StoreSubscriptionInSettingsCommandValidator.cs
-using FluentValidation;
+﻿using FluentValidation;
+using Location.Photography.Application.Resources;
 
 namespace Location.Photography.Application.Commands.Subscription
 {
@@ -9,31 +9,31 @@ namespace Location.Photography.Application.Commands.Subscription
         {
             RuleFor(x => x.ProductId)
                 .NotEmpty()
-                .WithMessage("Product ID is required")
+                .WithMessage(AppResources.Subscription_ValidationError_ProductIdRequired)
                 .Must(BeValidProductId)
-                .WithMessage("Product ID must be a valid subscription product identifier");
+                .WithMessage(AppResources.Subscription_ValidationError_InvalidProductId);
 
             RuleFor(x => x.ExpirationDate)
                 .NotEmpty()
-                .WithMessage("Expiration date is required")
+                .WithMessage(AppResources.Subscription_ValidationError_ExpirationDateRequired)
                 .Must(BeFutureDate)
-                .WithMessage("Expiration date must be in the future");
+                .WithMessage(AppResources.Subscription_ValidationError_ExpirationDateFuture);
 
             RuleFor(x => x.PurchaseDate)
                 .NotEmpty()
-                .WithMessage("Purchase date is required")
+                .WithMessage(AppResources.Subscription_ValidationError_PurchaseDateRequired)
                 .Must(BeValidPurchaseDate)
-                .WithMessage("Purchase date must be a valid date not in the future");
+                .WithMessage(AppResources.Subscription_ValidationError_InvalidPurchaseDate);
 
             RuleFor(x => x.TransactionId)
                 .NotEmpty()
-                .WithMessage("Transaction ID is required")
+                .WithMessage(AppResources.Subscription_ValidationError_TransactionIdRequired)
                 .MinimumLength(5)
-                .WithMessage("Transaction ID must be at least 5 characters long");
+                .WithMessage(AppResources.Subscription_ValidationError_TransactionIdMinLength);
 
             RuleFor(x => x)
                 .Must(HaveValidDateRange)
-                .WithMessage("Purchase date must be before expiration date");
+                .WithMessage(AppResources.Subscription_ValidationError_InvalidDateRange);
         }
 
         private bool BeValidProductId(string productId)

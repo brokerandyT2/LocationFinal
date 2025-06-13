@@ -1,101 +1,1809 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<root>
-	<!-- 
-		Microsoft ResX Schema
+  <root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+      <xsd:element name="root" msdata:IsDataSet="true">
+        <xsd:complexType>
+          <xsd:choice maxOccurs="unbounded">
+            <xsd:element name="data">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                  <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+                </xsd:sequence>
+                <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+                <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="resheader">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                </xsd:sequence>
+                <xsd:attribute name="name" type="xsd:string" use="required" />
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:choice>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema> <resheader name="resmimetype">
+      <value>text/microsoft-resx</value>
+    </resheader> <resheader name="version">
+      <value>1.3</value>
+    </resheader> <resheader name="reader">
+      <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader> <resheader name="writer">
+      <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader> <!-- ===== PHOTOGRAPHY CAMERA SETTINGS ===== --> <data name="Camera_Settings_Aperture">
+      <value>Aperture</value>
+      <comment>Camera aperture setting label</comment>
+    </data> <data name="Camera_Settings_ShutterSpeed">
+      <value>Shutter Speed</value>
+      <comment>Camera shutter speed setting label</comment>
+    </data> <data name="Camera_Settings_ISO">
+      <value>ISO</value>
+      <comment>Camera ISO setting label</comment>
+    </data> <data name="Camera_Settings_FocalLength">
+      <value>Focal Length</value>
+      <comment>Camera focal length setting label</comment>
+    </data> <data name="Camera_Settings_ExposureCompensation">
+      <value>Exposure Compensation</value>
+      <comment>Camera exposure compensation setting label</comment>
+    </data> <!-- ===== SUBSCRIPTION VALIDATION ERRORS ===== --> <data name="Subscription_ValidationError_ProductIdRequired">
+      <value>Product ID is required</value>
+      <comment>Validation error for missing product ID</comment>
+    </data> <data name="Subscription_ValidationError_InvalidProductId">
+      <value>Product ID must be a valid subscription product identifier</value>
+      <comment>Validation error for invalid product ID</comment>
+    </data> <data name="Subscription_ValidationError_ExpirationDateRequired">
+      <value>Expiration date is required</value>
+      <comment>Validation error for missing expiration date</comment>
+    </data> <data name="Subscription_ValidationError_ExpirationDateFuture">
+      <value>Expiration date must be in the future</value>
+      <comment>Validation error for expiration date not in future</comment>
+    </data> <data name="Subscription_ValidationError_PurchaseDateRequired">
+      <value>Purchase date is required</value>
+      <comment>Validation error for missing purchase date</comment>
+    </data> <data name="Subscription_ValidationError_InvalidPurchaseDate">
+      <value>Purchase date must be a valid date not in the future</value>
+      <comment>Validation error for invalid purchase date</comment>
+    </data> <data name="Subscription_ValidationError_TransactionIdRequired">
+      <value>Transaction ID is required</value>
+      <comment>Validation error for missing transaction ID</comment>
+    </data> <data name="Subscription_ValidationError_TransactionIdMinLength">
+      <value>Transaction ID must be at least 5 characters long</value>
+      <comment>Validation error for transaction ID too short</comment>
+    </data> <data name="Subscription_ValidationError_InvalidDateRange">
+      <value>Purchase date must be before expiration date</value>
+      <comment>Validation error for invalid date range</comment>
+    </data> <data name="Subscription_ValidationError_PeriodRequired">
+      <value>Subscription period must be Monthly or Yearly</value>
+      <comment>Validation error for invalid subscription period</comment>
+    </data> <!-- ===== SUBSCRIPTION ERROR MESSAGES ===== --> <data name="Subscription_Error_InitializationFailed">
+      <value>Failed to initialize subscription service</value>
+      <comment>Error message when subscription initialization fails</comment>
+    </data> <data name="Subscription_Error_ProcessingFailed">
+      <value>Failed to process subscription</value>
+      <comment>Error message when subscription processing fails</comment>
+    </data> <data name="Subscription_Error_StatusCheckFailed">
+      <value>Error checking subscription status</value>
+      <comment>Error message when subscription status check fails</comment>
+    </data> <data name="Subscription_Error_StoringFailed">
+      <value>Error storing subscription in settings</value>
+      <comment>Error message when storing subscription fails</comment>
+    </data> <data name="Subscription_Error_RetrievalFailed">
+      <value>Failed to retrieve subscription status</value>
+      <comment>Error message when subscription retrieval fails</comment>
+    </data> <data name="Subscription_Error_ProductRetrievalFailed">
+      <value>Failed to retrieve subscription products</value>
+      <comment>Error message when product retrieval fails</comment>
+    </data> <!-- ===== SUBSCRIPTION FEATURE GUARD MESSAGES ===== --> <data name="Subscription_FeatureGuard_PremiumRequired">
+      <value>Premium subscription required to access this feature</value>
+      <comment>Message when premium subscription is required</comment>
+    </data> <data name="Subscription_FeatureGuard_ProfessionalRequired">
+      <value>Professional subscription required to access this feature</value>
+      <comment>Message when professional subscription is required</comment>
+    </data> <data name="Subscription_FeatureGuard_PaidRequired">
+      <value>Premium or Professional subscription required to access this feature</value>
+      <comment>Message when any paid subscription is required</comment>
+    </data> <data name="Subscription_FeatureGuard_ExpiredGracePeriod">
+      <value>Your premium subscription has expired. You have limited time remaining to renew.</value>
+      <comment>Message when subscription has expired but in grace period</comment>
+    </data> <data name="Subscription_FeatureGuard_ExpiredProGracePeriod">
+      <value>Your professional subscription has expired. You have limited time remaining to renew.</value>
+      <comment>Message when pro subscription has expired but in grace period</comment>
+    </data> <!-- ===== SUN LOCATION VALIDATION ERRORS ===== --> <data name="SunLocation_ValidationError_LatitudeRange">
+      <value>Latitude must be between -90 and 90 degrees</value>
+      <comment>Validation error for invalid latitude in sun calculations</comment>
+    </data> <data name="SunLocation_ValidationError_LongitudeRange">
+      <value>Longitude must be between -180 and 180 degrees</value>
+      <comment>Validation error for invalid longitude in sun calculations</comment>
+    </data> <data name="SunLocation_ValidationError_DateRequired">
+      <value>Date is required</value>
+      <comment>Validation error for missing date in sun calculations</comment>
+    </data> <data name="SunLocation_ValidationError_DateTimeRequired">
+      <value>DateTime is required</value>
+      <comment>Validation error for missing datetime in sun calculations</comment>
+    </data> <data name="SunLocation_ValidationError_InvalidDateRange">
+      <value>Date must be a valid date within reasonable range</value>
+      <comment>Validation error for invalid date range in sun calculations</comment>
+    </data> <data name="SunLocation_ValidationError_InvalidDateTimeRange">
+      <value>DateTime must be a valid date and time within reasonable range</value>
+      <comment>Validation error for invalid datetime range in sun calculations</comment>
+    </data> <data name="SunLocation_ValidationError_ObjectHeight">
+      <value>Object height must be greater than 0</value>
+      <comment>Validation error for invalid object height in shadow calculations</comment>
+    </data> <data name="SunLocation_ValidationError_ObjectHeightMaximum">
+      <value>Object height must be less than or equal to 1000 meters</value>
+      <comment>Validation error for object height too large in shadow calculations</comment>
+    </data> <data name="SunLocation_ValidationError_TerrainType">
+      <value>Invalid terrain type</value>
+      <comment>Validation error for invalid terrain type in shadow calculations</comment>
+    </data> <data name="SunLocation_ValidationError_IntervalMinutes">
+      <value>Interval minutes must be between 1 and 60</value>
+      <comment>Validation error for invalid interval in sun path calculations</comment>
+    </data> <!-- ===== SUN LOCATION ERROR MESSAGES ===== --> <data name="SunLocation_Error_CalculatingSunTimes">
+      <value>Error calculating sun times</value>
+      <comment>Error message when sun times calculation fails</comment>
+    </data> <data name="SunLocation_Error_CalculatingSunPosition">
+      <value>Error calculating sun position</value>
+      <comment>Error message when sun position calculation fails</comment>
+    </data> <data name="SunLocation_Error_CalculatingOptimalTimes">
+      <value>Error calculating optimal times</value>
+      <comment>Error message when optimal times calculation fails</comment>
+    </data> <data name="SunLocation_Error_CalculatingSunPath">
+      <value>Error calculating sun path</value>
+      <comment>Error message when sun path calculation fails</comment>
+    </data> <data name="SunLocation_Error_CalculatingShadows">
+      <value>Error calculating shadows</value>
+      <comment>Error message when shadow calculation fails</comment>
+    </data> <data name="SunLocation_Error_CalculatingMoonData">
+      <value>Error calculating moon data</value>
+      <comment>Error message when moon data calculation fails</comment>
+    </data> <!-- ===== EXPOSURE CALCULATOR VALIDATION ERRORS ===== --> <data name="ExposureCalculator_ValidationError_BaseExposureRequired">
+      <value>Base exposure settings are required</value>
+      <comment>Validation error for missing base exposure settings</comment>
+    </data> <data name="ExposureCalculator_ValidationError_ShutterSpeedRequired">
+      <value>Base shutter speed is required</value>
+      <comment>Validation error for missing base shutter speed</comment>
+    </data> <data name="ExposureCalculator_ValidationError_ApertureRequired">
+      <value>Base aperture is required</value>
+      <comment>Validation error for missing base aperture</comment>
+    </data> <data name="ExposureCalculator_ValidationError_ISORequired">
+      <value>Base ISO is required</value>
+      <comment>Validation error for missing base ISO</comment>
+    </data> <data name="ExposureCalculator_ValidationError_IncrementValue">
+      <value>Invalid exposure increment value</value>
+      <comment>Validation error for invalid exposure increment</comment>
+    </data> <data name="ExposureCalculator_ValidationError_CalculationType">
+      <value>Invalid calculation type</value>
+      <comment>Validation error for invalid calculation type</comment>
+    </data> <data name="ExposureCalculator_ValidationError_EVCompensationRange">
+      <value>EV compensation must be between -5 and +5 stops</value>
+      <comment>Validation error for EV compensation out of range</comment>
+    </data> <data name="ExposureCalculator_ValidationError_TargetApertureRequired">
+      <value>Target aperture is required</value>
+      <comment>Validation error for missing target aperture</comment>
+    </data> <data name="ExposureCalculator_ValidationError_TargetShutterSpeedRequired">
+      <value>Target shutter speed is required</value>
+      <comment>Validation error for missing target shutter speed</comment>
+    </data> <data name="ExposureCalculator_ValidationError_TargetISORequired">
+      <value>Target ISO is required</value>
+      <comment>Validation error for missing target ISO</comment>
+    </data> <data name="ExposureCalculator_ValidationError_ValidAperture">
+      <value>Target aperture must be in valid f-stop format (e.g., f/2.8)</value>
+      <comment>Validation error for invalid aperture format</comment>
+    </data> <data name="ExposureCalculator_ValidationError_ValidShutterSpeed">
+      <value>Target shutter speed must be in valid format (e.g., 1/125, 2", 0.5)</value>
+      <comment>Validation error for invalid shutter speed format</comment>
+    </data> <data name="ExposureCalculator_ValidationError_ValidISO">
+      <value>Target ISO must be a valid numeric value (e.g., 100, 400, 1600)</value>
+      <comment>Validation error for invalid ISO format</comment>
+    </data> <data name="ExposureCalculator_ValidationError_IncrementRequired">
+      <value>Invalid exposure increment value. Must be Full, Half, or Third stops.</value>
+      <comment>Validation error for invalid exposure increment</comment>
+    </data> <!-- ===== EXPOSURE CALCULATOR ERROR MESSAGES ===== --> <data name="ExposureCalculator_Error_CalculatingExposure">
+      <value>Error calculating exposure</value>
+      <comment>Error message when exposure calculation fails</comment>
+    </data> <data name="ExposureCalculator_Error_RetrievingValues">
+      <value>Error retrieving exposure values</value>
+      <comment>Error message when retrieving exposure values fails</comment>
+    </data> <data name="ExposureCalculator_Error_InvalidCalculationType">
+      <value>Invalid calculation type</value>
+      <comment>Error message for invalid calculation type</comment>
+    </data> <!-- ===== EXPOSURE ERROR MESSAGES ===== --> <data name="Exposure_Error_Overexposed">
+      <value>Image will be overexposed by approximately {0:F1} stops</value>
+      <comment>Error message for overexposed image</comment>
+    </data> <data name="Exposure_Error_Underexposed">
+      <value>Image will be underexposed by approximately {0:F1} stops</value>
+      <comment>Error message for underexposed image</comment>
+    </data> <data name="Exposure_Error_ParameterLimit">
+      <value>The requested {0} ({1}) exceeds available limits. The closest available value is {2}.</value>
+      <comment>Error message for parameter exceeding limits</comment>
+    </data> <!-- ===== CAMERA EVALUATION VALIDATION ERRORS ===== --> <data name="CameraEvaluation_ValidationError_NameRequired">
+      <value>Name is required</value>
+      <comment>Validation error for missing camera name</comment>
+    </data> <data name="CameraEvaluation_ValidationError_SensorTypeRequired">
+      <value>Sensor type is required</value>
+      <comment>Validation error for missing sensor type</comment>
+    </data> <data name="CameraEvaluation_ValidationError_SensorWidthRequired">
+      <value>Sensor width must be greater than 0</value>
+      <comment>Validation error for invalid sensor width</comment>
+    </data> <data name="CameraEvaluation_ValidationError_SensorHeightRequired">
+      <value>Sensor height must be greater than 0</value>
+      <comment>Validation error for invalid sensor height</comment>
+    </data> <data name="CameraEvaluation_ValidationError_FocalLengthRequired">
+      <value>Focal length must be greater than 0</value>
+      <comment>Validation error for invalid focal length</comment>
+    </data> <data name="CameraEvaluation_ValidationError_CompatibleCameraRequired">
+      <value>At least one compatible camera must be selected</value>
+      <comment>Validation error for missing compatible cameras</comment>
+    </data> <data name="CameraEvaluation_ValidationError_ImagePathRequired">
+      <value>Image path is required</value>
+      <comment>Validation error for missing image path</comment>
+    </data> <data name="CameraEvaluation_ValidationError_ImageNotExists">
+      <value>Image file does not exist</value>
+      <comment>Validation error for non-existent image file</comment>
+    </data> <!-- ===== CAMERA EVALUATION ERROR MESSAGES ===== --> <data name="CameraEvaluation_Error_CreatingCamera">
+      <value>Error creating camera body</value>
+      <comment>Error message when camera creation fails</comment>
+    </data> <data name="CameraEvaluation_Error_CreatingLens">
+      <value>Error creating lens</value>
+      <comment>Error message when lens creation fails</comment>
+    </data> <data name="CameraEvaluation_Error_RetrievingCameras">
+      <value>Error retrieving cameras</value>
+      <comment>Error message when camera retrieval fails</comment>
+    </data> <data name="CameraEvaluation_Error_RetrievingLenses">
+      <value>Error retrieving lenses</value>
+      <comment>Error message when lens retrieval fails</comment>
+    </data> <data name="CameraEvaluation_Error_ExtractingEXIF">
+      <value>Failed to extract EXIF data</value>
+      <comment>Error message when EXIF extraction fails</comment>
+    </data> <data name="CameraEvaluation_Error_InvalidFocalLength">
+      <value>Image does not contain valid focal length data. Please ensure camera settings allow EXIF data to be saved.</value>
+      <comment>Error message for invalid focal length in EXIF</comment>
+    </data> <data name="CameraEvaluation_Error_MissingCameraModel">
+      <value>Image does not contain camera model information</value>
+      <comment>Error message for missing camera model in EXIF</comment>
+    </data> <data name="CameraEvaluation_Error_CameraProfileFailed">
+      <value>Failed to create camera profile</value>
+      <comment>Error message when camera profile creation fails</comment>
+    </data> <data name="CameraEvaluation_Error_SavingProfile">
+      <value>Failed to save camera profile</value>
+      <comment>Error message when camera profile saving fails</comment>
+    </data> <data name="CameraEvaluation_Error_CalibrationFailed">
+      <value>Unexpected error during camera calibration</value>
+      <comment>Error message when camera calibration fails</comment>
+    </data> <data name="CameraEvaluation_Error_NoActiveProfile">
+      <value>No active phone camera profile found</value>
+      <comment>Error message when no active camera profile found</comment>
+    </data> <data name="CameraEvaluation_Error_RetrievingProfile">
+      <value>Error retrieving phone camera profile</value>
+      <comment>Error message when phone camera profile retrieval fails</comment>
+    </data> <data name="CameraEvaluation_Error_CheckingDuplicates">
+      <value>Error checking duplicates</value>
+      <comment>Error message when checking for duplicates fails</comment>
+    </data> <data name="CameraEvaluation_Error_GettingMountTypes">
+      <value>Error getting mount types</value>
+      <comment>Error message when retrieving mount types fails</comment>
+    </data> <data name="CameraEvaluation_Error_UpdatingCompatibility">
+      <value>Error updating compatibility</value>
+      <comment>Error message when updating lens compatibility fails</comment>
+    </data> <data name="CameraEvaluation_Error_GettingUserCameras">
+      <value>Error getting user cameras</value>
+      <comment>Error message when retrieving user cameras fails</comment>
+    </data> <!-- ===== SCENE EVALUATION ERROR MESSAGES ===== --> <data name="SceneEvaluation_Error_EvaluatingScene">
+      <value>Error evaluating scene</value>
+      <comment>Error message when scene evaluation fails</comment>
+    </data> <data name="SceneEvaluation_Error_AnalyzingImage">
+      <value>Error analyzing image</value>
+      <comment>Error message when image analysis fails</comment>
+    </data> <!-- ===== ASTRO LOCATION ERROR MESSAGES ===== --> <data name="AstroLocation_Error_RetrievingEvents">
+      <value>Error retrieving astro events</value>
+      <comment>Error message when astro events retrieval fails</comment>
+    </data> <data name="AstroLocation_Error_CalculatingRecommendations">
+      <value>Error calculating equipment recommendations</value>
+      <comment>Error message when astro equipment recommendations fail</comment>
+    </data> <!-- ===== OPTICAL SHOOTING TIME LABELS ===== --> <data name="OptimalTime_Sunrise">
+      <value>Sunrise</value>
+      <comment>Label for sunrise optimal shooting time</comment>
+    </data> <data name="OptimalTime_Sunset">
+      <value>Sunset</value>
+      <comment>Label for sunset optimal shooting time</comment>
+    </data> <data name="OptimalTime_GoldenHourMorning">
+      <value>Golden Hour Morning</value>
+      <comment>Label for morning golden hour</comment>
+    </data> <data name="OptimalTime_GoldenHourEvening">
+      <value>Golden Hour Evening</value>
+      <comment>Label for evening golden hour</comment>
+    </data> <data name="OptimalTime_BlueHourMorning">
+      <value>Blue Hour Morning</value>
+      <comment>Label for morning blue hour</comment>
+    </data> <data name="OptimalTime_BlueHourEvening">
+      <value>Blue Hour Evening</value>
+      <comment>Label for evening blue hour</comment>
+    </data> <data name="OptimalTime_SolarNoon">
+      <value>Solar Noon</value>
+      <comment>Label for solar noon</comment>
+    </data> <data name="OptimalTime_Dusk">
+      <value>Dusk</value>
+      <comment>Label for dusk time</comment>
+    </data> <data name="OptimalTime_NauticalDusk">
+      <value>Nautical Dusk</value>
+      <comment>Label for nautical dusk</comment>
+    </data> <data name="OptimalTime_Night">
+      <value>Night</value>
+      <comment>Label for night time</comment>
+    </data> <data name="OptimalTime_NauticalDawn">
+      <value>Nautical Dawn</value>
+      <comment>Label for nautical dawn</comment>
+    </data> <!-- ===== OPTICAL SHOOTING TIME DESCRIPTIONS ===== --> <data name="OptimalTime_Description_SunrisePhotography">
+      <value>Sunrise Photography</value>
+      <comment>Description for sunrise photography</comment>
+    </data> <data name="OptimalTime_Description_SunsetPhotography">
+      <value>Sunset Photography</value>
+      <comment>Description for sunset photography</comment>
+    </data> <data name="OptimalTime_Description_Landscapes">
+      <value>Landscapes</value>
+      <comment>Description for landscape photography</comment>
+    </data> <data name="OptimalTime_Description_Portraits">
+      <value>Portraits</value>
+      <comment>Description for portrait photography</comment>
+    </data> <data name="OptimalTime_Description_GoldenHour">
+      <value>Golden Hour</value>
+      <comment>Description for golden hour photography</comment>
+    </data> <data name="OptimalTime_Description_BlueHour">
+      <value>Blue Hour</value>
+      <comment>Description for blue hour photography</comment>
+    </data> <data name="OptimalTime_Description_Cityscapes">
+      <value>Cityscapes</value>
+      <comment>Description for cityscape photography</comment>
+    </data> <data name="OptimalTime_Description_Architecture">
+      <value>Architecture</value>
+      <comment>Description for architecture photography</comment>
+    </data> <data name="OptimalTime_Description_Silhouettes">
+      <value>Silhouettes</value>
+      <comment>Description for silhouette photography</comment>
+    </data> <data name="OptimalTime_Description_MinimalShadows">
+      <value>Minimal Shadows</value>
+      <comment>Description for minimal shadow photography</comment>
+    </data> <data name="OptimalTime_Description_NightCityscapes">
+      <value>Night Cityscapes</value>
+      <comment>Description for night cityscape photography</comment>
+    </data> <data name="OptimalTime_Description_Astrophotography">
+      <value>Astrophotography</value>
+      <comment>Description for astrophotography</comment>
+    </data> <data name="OptimalTime_Description_NightPhotography">
+      <value>Night Photography</value>
+      <comment>Description for night photography</comment>
+    </data> <data name="OptimalTime_Description_LongExposure">
+      <value>Long Exposure</value>
+      <comment>Description for long exposure photography</comment>
+    </data> <data name="OptimalTime_Description_DawnPhotography">
+      <value>Dawn Photography</value>
+      <comment>Description for dawn photography</comment>
+    </data> <!-- ===== QUALITY DESCRIPTIONS ===== --> <data name="Quality_Excellent">
+      <value>Excellent</value>
+      <comment>Excellent quality rating</comment>
+    </data> <data name="Quality_Good">
+      <value>Good</value>
+      <comment>Good quality rating</comment>
+    </data> <data name="Quality_Fair">
+      <value>Fair</value>
+      <comment>Fair quality rating</comment>
+    </data> <data name="Quality_Poor">
+      <value>Poor</value>
+      <comment>Poor quality rating</comment>
+    </data> <!-- ===== LIGHT QUALITY DESCRIPTIONS ===== --> <data name="LightQuality_SoftEvenBlue">
+      <value>Soft, even blue light ideal for cityscapes and landscapes</value>
+      <comment>Description for blue hour light quality</comment>
+    </data> <data name="LightQuality_WarmSoftPortraits">
+      <value>Warm, soft light with long shadows perfect for portraits</value>
+      <comment>Description for golden hour morning light quality</comment>
+    </data> <data name="LightQuality_WarmDramaticLandscapes">
+      <value>Warm, dramatic lighting ideal for portraits and landscapes</value>
+      <comment>Description for golden hour evening light quality</comment>
+    </data> <data name="LightQuality_BlueSkyCityLights">
+      <value>Deep blue sky with city lights beginning to show</value>
+      <comment>Description for evening blue hour light quality</comment>
+    </data> <!-- ===== SEASONAL NOTES ===== --> <data name="Seasonal_WinterShortDays">
+      <value>Winter: Short days, low sun angle</value>
+      <comment>Seasonal note for winter photography</comment>
+    </data> <data name="Seasonal_SummerLongDays">
+      <value>Summer: Long days, high sun angle</value>
+      <comment>Seasonal note for summer photography</comment>
+    </data> <data name="Seasonal_SpringGettingLonger">
+      <value>Spring: Days getting longer</value>
+      <comment>Seasonal note for spring photography</comment>
+    </data> <data name="Seasonal_AutumnGettingShorter">
+      <value>Autumn: Days getting shorter</value>
+      <comment>Seasonal note for autumn photography</comment>
+    </data> <!-- ===== EQUIPMENT RECOMMENDATIONS ===== --> <data name="Equipment_FullFrameCamera">
+      <value>Full-frame or APS-C camera</value>
+      <comment>Camera equipment recommendation</comment>
+    </data> <data name="Equipment_HighResolutionCamera">
+      <value>High-resolution camera with good sensor</value>
+      <comment>Camera equipment recommendation for planets</comment>
+    </data> <data name="Equipment_HighISOCamera">
+      <value>Full-frame camera with good high-ISO performance</value>
+      <comment>Camera equipment recommendation for Milky Way</comment>
+    </data> <data name="Equipment_CooledCamera">
+      <value>Cooled camera or modified DSLR</value>
+      <comment>Camera equipment recommendation for deep sky</comment>
+    </data> <data name="Equipment_ManualControlsCamera">
+      <value>Any camera with manual controls</value>
+      <comment>Camera equipment recommendation for meteors</comment>
+    </data> <data name="Equipment_DSLRMirrorless">
+      <value>DSLR or mirrorless camera</value>
+      <comment>General camera equipment recommendation</comment>
+    </data> <data name="Equipment_TelephotoLens">
+      <value>300-600mm telephoto lens</value>
+      <comment>Lens equipment recommendation for moon</comment>
+    </data> <data name="Equipment_SuperTelephoto">
+      <value>500mm+ telephoto or telescope</value>
+      <comment>Lens equipment recommendation for planets</comment>
+    </data> <data name="Equipment_WideAngleLens">
+      <value>14-24mm wide-angle lens f/2.8</value>
+      <comment>Lens equipment recommendation for Milky Way</comment>
+    </data>
 
-		Version 1.3
+    <data name="Equipment_WideAngleLens">
+      <value>14-24mm wide-angle lens f/2.8</value>
+      <comment>Lens equipment recommendation for Milky Way</comment>
+    </data>
+ <data name="Equipment_WideAngleLens">
+    <value>14-24mm wide-angle lens f/2.8</value>
+    <comment>Lens equipment recommendation for Milky Way</comment>
+  </data>
+  <data name="Equipment_StandardTelephoto">
+    <value>50-200mm telephoto lens</value>
+    <comment>Lens equipment recommendation for deep sky objects</comment>
+  </data>
+  <data name="Equipment_WideAngleMeteor">
+    <value>14-35mm wide-angle lens</value>
+    <comment>Lens equipment recommendation for meteor showers</comment>
+  </data>
+  <data name="Equipment_StandardLens">
+    <value>24-70mm standard lens</value>
+    <comment>General lens equipment recommendation</comment>
+  </data>
+  <data name="Equipment_TelephonoOrTelescope">
+    <value>Telephoto lens or telescope</value>
+    <comment>Equipment recommendation for moon photography</comment>
+  </data>
+  <data name="Equipment_WideAngleTracker">
+    <value>Wide-angle lens, tracker recommended</value>
+    <comment>Equipment recommendation for Milky Way with tracking</comment>
+  </data>
+  <data name="Equipment_WideAngleNoTracking">
+    <value>Wide-angle lens, no tracking</value>
+    <comment>Equipment recommendation for meteor showers</comment>
+  </data>
+  <data name="Equipment_BinocularsNakedEye">
+    <value>Binoculars or naked eye</value>
+    <comment>Equipment recommendation for satellite passes</comment>
+  </data>
+  <!-- ===== MOUNT TYPE DISPLAY NAMES ===== -->
+  <data name="MountType_CanonEF">
+    <value>Canon EF</value>
+    <comment>Canon EF mount type display name</comment>
+  </data>
+  <data name="MountType_CanonEFS">
+    <value>Canon EF-S</value>
+    <comment>Canon EF-S mount type display name</comment>
+  </data>
+  <data name="MountType_CanonEFM">
+    <value>Canon EF-M</value>
+    <comment>Canon EF-M mount type display name</comment>
+  </data>
+  <data name="MountType_CanonRF">
+    <value>Canon RF</value>
+    <comment>Canon RF mount type display name</comment>
+  </data>
+  <data name="MountType_CanonFD">
+    <value>Canon FD</value>
+    <comment>Canon FD mount type display name</comment>
+  </data>
+  <data name="MountType_NikonF">
+    <value>Nikon F</value>
+    <comment>Nikon F mount type display name</comment>
+  </data>
+  <data name="MountType_NikonZ">
+    <value>Nikon Z</value>
+    <comment>Nikon Z mount type display name</comment>
+  </data>
+  <data name="MountType_Nikon1">
+    <value>Nikon 1</value>
+    <comment>Nikon 1 mount type display name</comment>
+  </data>
+  <data name="MountType_SonyE">
+    <value>Sony E</value>
+    <comment>Sony E mount type display name</comment>
+  </data>
+  <data name="MountType_SonyFE">
+    <value>Sony FE</value>
+    <comment>Sony FE mount type display name</comment>
+  </data>
+  <data name="MountType_SonyA">
+    <value>Sony A</value>
+    <comment>Sony A mount type display name</comment>
+  </data>
+  <data name="MountType_FujifilmX">
+    <value>Fujifilm X</value>
+    <comment>Fujifilm X mount type display name</comment>
+  </data>
+  <data name="MountType_FujifilmGFX">
+    <value>Fujifilm GFX</value>
+    <comment>Fujifilm GFX mount type display name</comment>
+  </data>
+  <data name="MountType_PentaxK">
+    <value>Pentax K</value>
+    <comment>Pentax K mount type display name</comment>
+  </data>
+  <data name="MountType_PentaxQ">
+    <value>Pentax Q</value>
+    <comment>Pentax Q mount type display name</comment>
+  </data>
+  <data name="MountType_MicroFourThirds">
+    <value>Micro Four Thirds</value>
+    <comment>Micro Four Thirds mount type display name</comment>
+  </data>
+  <data name="MountType_LeicaM">
+    <value>Leica M</value>
+    <comment>Leica M mount type display name</comment>
+  </data>
+  <data name="MountType_LeicaL">
+    <value>Leica L</value>
+    <comment>Leica L mount type display name</comment>
+  </data>
+  <data name="MountType_LeicaSL">
+    <value>Leica SL</value>
+    <comment>Leica SL mount type display name</comment>
+  </data>
+  <data name="MountType_LeicaTL">
+    <value>Leica TL</value>
+    <comment>Leica TL mount type display name</comment>
+  </data>
+  <data name="MountType_OlympusFourThirds">
+    <value>Four Thirds</value>
+    <comment>Four Thirds mount type display name</comment>
+  </data>
+  <data name="MountType_PanasonicL">
+    <value>Panasonic L</value>
+    <comment>Panasonic L mount type display name</comment>
+  </data>
+  <data name="MountType_SigmaSA">
+    <value>Sigma SA</value>
+    <comment>Sigma SA mount type display name</comment>
+  </data>
+  <data name="MountType_TamronAdaptall">
+    <value>Tamron Adaptall</value>
+    <comment>Tamron Adaptall mount type display name</comment>
+  </data>
+  <data name="MountType_CMount">
+    <value>C Mount</value>
+    <comment>C Mount type display name</comment>
+  </data>
+  <data name="MountType_CSMount">
+    <value>CS Mount</value>
+    <comment>CS Mount type display name</comment>
+  </data>
+  <data name="MountType_M42">
+    <value>M42</value>
+    <comment>M42 mount type display name</comment>
+  </data>
+  <data name="MountType_T2">
+    <value>T2</value>
+    <comment>T2 mount type display name</comment>
+  </data>
+  <data name="MountType_Other">
+    <value>Other</value>
+    <comment>Other mount type display name</comment>
+  </data>
+  <!-- ===== MOUNT TYPE BRAND NAMES ===== -->
+  <data name="MountBrand_Canon">
+    <value>Canon</value>
+    <comment>Canon brand name</comment>
+  </data>
+  <data name="MountBrand_Nikon">
+    <value>Nikon</value>
+    <comment>Nikon brand name</comment>
+  </data>
+  <data name="MountBrand_Sony">
+    <value>Sony</value>
+    <comment>Sony brand name</comment>
+  </data>
+  <data name="MountBrand_Fujifilm">
+    <value>Fujifilm</value>
+    <comment>Fujifilm brand name</comment>
+  </data>
+  <data name="MountBrand_Pentax">
+    <value>Pentax</value>
+    <comment>Pentax brand name</comment>
+  </data>
+  <data name="MountBrand_MicroFourThirds">
+    <value>M4/3</value>
+    <comment>Micro Four Thirds brand abbreviation</comment>
+  </data>
+  <data name="MountBrand_Leica">
+    <value>Leica</value>
+    <comment>Leica brand name</comment>
+  </data>
+  <data name="MountBrand_Olympus">
+    <value>Olympus</value>
+    <comment>Olympus brand name</comment>
+  </data>
+  <data name="MountBrand_Panasonic">
+    <value>Panasonic</value>
+    <comment>Panasonic brand name</comment>
+  </data>
+  <data name="MountBrand_Sigma">
+    <value>Sigma</value>
+    <comment>Sigma brand name</comment>
+  </data>
+  <data name="MountBrand_Tamron">
+    <value>Tamron</value>
+    <comment>Tamron brand name</comment>
+  </data>
+  <data name="MountBrand_Generic">
+    <value>Generic</value>
+    <comment>Generic brand name</comment>
+  </data>
+  <data name="MountBrand_Other">
+    <value>Other</value>
+    <comment>Other brand name</comment>
+  </data>
+  <!-- ===== TIMEZONE ERROR MESSAGES ===== -->
+  <data name="Timezone_Error_DeterminingTimezone">
+    <value>Error determining timezone</value>
+    <comment>Error message when timezone determination fails</comment>
+  </data>
+  <data name="Timezone_Error_UnableToDetermine">
+    <value>Unable to determine timezone for coordinates</value>
+    <comment>Error message when timezone cannot be determined</comment>
+  </data>
+  <data name="Timezone_Error_DeterminingBatch">
+    <value>Error determining batch timezones</value>
+    <comment>Error message when batch timezone determination fails</comment>
+  </data>
+  <!-- ===== MOON PHASE NAMES ===== -->
+  <data name="MoonPhase_NewMoon">
+    <value>New Moon</value>
+    <comment>New moon phase name</comment>
+  </data>
+  <data name="MoonPhase_WaxingCrescent">
+    <value>Waxing Crescent</value>
+    <comment>Waxing crescent moon phase name</comment>
+  </data>
+  <data name="MoonPhase_FirstQuarter">
+    <value>First Quarter</value>
+    <comment>First quarter moon phase name</comment>
+  </data>
+  <data name="MoonPhase_WaxingGibbous">
+    <value>Waxing Gibbous</value>
+    <comment>Waxing gibbous moon phase name</comment>
+  </data>
+  <data name="MoonPhase_FullMoon">
+    <value>Full Moon</value>
+    <comment>Full moon phase name</comment>
+  </data>
+  <data name="MoonPhase_WaningGibbous">
+    <value>Waning Gibbous</value>
+    <comment>Waning gibbous moon phase name</comment>
+  </data>
+  <data name="MoonPhase_ThirdQuarter">
+    <value>Third Quarter</value>
+    <comment>Third quarter moon phase name</comment>
+  </data>
+  <data name="MoonPhase_WaningCrescent">
+    <value>Waning Crescent</value>
+    <comment>Waning crescent moon phase name</comment>
+  </data>
+  <!-- ===== PLANET NAMES ===== -->
+  <data name="Planet_Mercury">
+    <value>Mercury</value>
+    <comment>Mercury planet name</comment>
+  </data>
+  <data name="Planet_Venus">
+    <value>Venus</value>
+    <comment>Venus planet name</comment>
+  </data>
+  <data name="Planet_Mars">
+    <value>Mars</value>
+    <comment>Mars planet name</comment>
+  </data>
+  <data name="Planet_Jupiter">
+    <value>Jupiter</value>
+    <comment>Jupiter planet name</comment>
+  </data>
+  <data name="Planet_Saturn">
+    <value>Saturn</value>
+    <comment>Saturn planet name</comment>
+  </data>
+  <data name="Planet_Uranus">
+    <value>Uranus</value>
+    <comment>Uranus planet name</comment>
+  </data>
+  <data name="Planet_Neptune">
+    <value>Neptune</value>
+    <comment>Neptune planet name</comment>
+  </data>
+  <data name="Planet_Pluto">
+    <value>Pluto</value>
+    <comment>Pluto dwarf planet name</comment>
+  </data>
+  <!-- ===== ASTRO TARGET NAMES ===== -->
+  <data name="AstroTarget_Moon">
+    <value>Moon</value>
+    <comment>Moon astro target name</comment>
+  </data>
+  <data name="AstroTarget_Planets">
+    <value>Planets</value>
+    <comment>Planets astro target name</comment>
+  </data>
+  <data name="AstroTarget_MilkyWayCore">
+    <value>Milky Way Core</value>
+    <comment>Milky Way Core astro target name</comment>
+  </data>
+  <data name="AstroTarget_DeepSkyObjects">
+    <value>Deep Sky Objects</value>
+    <comment>Deep Sky Objects astro target name</comment>
+  </data>
+  <data name="AstroTarget_MeteorShowers">
+    <value>Meteor Showers</value>
+    <comment>Meteor Showers astro target name</comment>
+  </data>
+  <data name="AstroTarget_StarTrails">
+    <value>Star Trails</value>
+    <comment>Star Trails astro target name</comment>
+  </data>
+  <data name="AstroTarget_Comets">
+    <value>Comets</value>
+    <comment>Comets astro target name</comment>
+  </data>
+  <!-- ===== ASTRO EVENT TYPES ===== -->
+  <data name="AstroEvent_Planet">
+    <value>Planet</value>
+    <comment>Planet astro event type</comment>
+  </data>
+  <data name="AstroEvent_GalacticCore">
+    <value>Galactic Core</value>
+    <comment>Galactic Core astro event type</comment>
+  </data>
+  <data name="AstroEvent_MeteorShower">
+    <value>Meteor Shower</value>
+    <comment>Meteor Shower astro event type</comment>
+  </data>
+  <data name="AstroEvent_SatellitePass">
+    <value>Satellite Pass</value>
+    <comment>Satellite Pass astro event type</comment>
+  </data>
+  <!-- ===== ASTRO DESCRIPTIONS ===== -->
+  <data name="AstroEvent_Description_MoonPhase">
+    <value>Phase: {0:F0}%, Distance: {1:F0}km</value>
+    <comment>Moon event description with phase and distance</comment>
+  </data>
+  <data name="AstroEvent_Description_PlanetMagnitude">
+    <value>Magnitude {0:F1}, {1:F1}″</value>
+    <comment>Planet event description with magnitude and angular size</comment>
+  </data>
+  <data name="AstroEvent_Description_DarkSkyQuality">
+    <value>Dark sky quality: {0:P0}</value>
+    <comment>Milky Way event description with dark sky quality</comment>
+  </data>
+  <data name="AstroEvent_Description_DSOMagnitude">
+    <value>{0}, Mag {1:F1}, {2:F1}'</value>
+    <comment>Deep Sky Object description with type, magnitude, and size</comment>
+  </data>
+  <data name="AstroEvent_Description_MeteorZHR">
+    <value>ZHR: {0}, Radiant: {1}</value>
+    <comment>Meteor shower description with ZHR and radiant direction</comment>
+  </data>
+  <data name="AstroEvent_Description_ISSPass">
+    <value>Max altitude: {0:F0}°, Duration: {1:F0}m</value>
+    <comment>ISS pass description with max altitude and duration</comment>
+  </data>
+  <!-- ===== CONSTELLATION NAMES ===== -->
+  <data name="Constellation_Sagittarius">
+    <value>Sagittarius</value>
+    <comment>Sagittarius constellation name</comment>
+  </data>
+  <!-- ===== TERRAIN TYPE NAMES ===== -->
+  <data name="Terrain_Flat">
+    <value>Flat</value>
+    <comment>Flat terrain type</comment>
+  </data>
+  <data name="Terrain_Urban">
+    <value>Urban</value>
+    <comment>Urban terrain type</comment>
+  </data>
+  <data name="Terrain_Forest">
+    <value>Forest</value>
+    <comment>Forest terrain type</comment>
+  </data>
+  <data name="Terrain_Mountain">
+    <value>Mountain</value>
+    <comment>Mountain terrain type</comment>
+  </data>
+  <data name="Terrain_Beach">
+    <value>Beach</value>
+    <comment>Beach terrain type</comment>
+  </data>
+  <!-- ===== EXPOSURE RECOMMENDATIONS ===== -->
+  <data name="Exposure_Recommendation_IncreaseExposure">
+    <value>Increase exposure (+1 to +2 stops)</value>
+    <comment>Recommendation to increase exposure</comment>
+  </data>
+  <data name="Exposure_Recommendation_DecreaseExposure">
+    <value>Decrease exposure (-1 to -2 stops)</value>
+    <comment>Recommendation to decrease exposure</comment>
+  </data>
+  <data name="Exposure_Recommendation_ShadowClipping">
+    <value>Shadow clipping detected - lift shadows</value>
+    <comment>Recommendation for shadow clipping</comment>
+  </data>
+  <data name="Exposure_Recommendation_HighlightClipping">
+    <value>Highlight clipping detected - reduce highlights</value>
+    <comment>Recommendation for highlight clipping</comment>
+  </data>
+  <data name="Exposure_Recommendation_HighDynamicRange">
+    <value>High dynamic range - consider HDR or graduated filters</value>
+    <comment>Recommendation for high dynamic range scenes</comment>
+  </data>
+  <!-- ===== ASTRO QUALITY SCORES ===== -->
+  <data name="AstroQuality_Excellent">
+    <value>{0}% excellent</value>
+    <comment>Excellent astro quality score format</comment>
+  </data>
+  <!-- ===== ASTRO STACKING RECOMMENDATIONS ===== -->
+  <data name="AstroStacking_CalibrationFramesDSO">
+    <value>20 darks, 20 flats, 20 bias</value>
+    <comment>Calibration frames recommendation for deep sky objects</comment>
+  </data>
+  <data name="AstroStacking_CalibrationFramesGeneral">
+    <value>10 darks recommended</value>
+    <comment>General calibration frames recommendation</comment>
+  </data>
+  <data name="AstroStacking_RecommendationFormat">
+    <value>{0} frames @ {1} each</value>
+    <comment>Astro stacking recommendation format</comment>
+  </data>
+  <data name="AstroStacking_TotalTimeMinutes">
+    <value>Total: {0:F1} minutes</value>
+    <comment>Total stacking time in minutes format</comment>
+  </data>
+  <data name="AstroStacking_TotalTimeHours">
+    <value>Total: {0:F1} hours</value>
+    <comment>Total stacking time in hours format</comment>
+  </data>
+  <data name="AstroStacking_ExposureSeconds">
+    <value>1/{0}s</value>
+    <comment>Exposure time in seconds format for fast shutter speeds</comment>
+  </data>
+  <data name="AstroStacking_ExposureSecondsLong">
+    <value>{0:F0}s</value>
+    <comment>Exposure time in seconds format for long exposures</comment>
+  </data>
+  <!-- ===== ASTRO FOCUS DISTANCES ===== -->
+  <data name="AstroFocus_Infinity">
+    <value>Infinity</value>
+    <comment>Infinity focus distance for astro photography</comment>
+  </data>
+  <!-- ===== SUBSCRIPTION TYPES ===== -->
+  <data name="SubscriptionType_Free">
+    <value>Free</value>
+    <comment>Free subscription type</comment>
+  </data>
+  <data name="SubscriptionType_Pro">
+    <value>Pro</value>
+    <comment>Pro subscription type</comment>
+  </data>
+  <data name="SubscriptionType_Premium">
+    <value>Premium</value>
+    <comment>Premium subscription type</comment>
+  </data>
+  <!-- ===== WEATHER IMPACT DESCRIPTIONS ===== -->
+  <data name="Weather_CloudCover">
+    <value>Cloud Cover</value>
+    <comment>Cloud cover weather parameter</comment>
+  </data>
+  <data name="Weather_Humidity">
+    <value>Humidity</value>
+    <comment>Humidity weather parameter</comment>
+  </data>
+  <data name="Weather_WindSpeed">
+    <value>Wind Speed</value>
+    <comment>Wind speed weather parameter</comment>
+  </data>
+  <data name="Weather_Visibility">
+    <value>Visibility</value>
+    <comment>Visibility weather parameter</comment>
+  </data>
+  <data name="Weather_Suitability_Good">
+    <value>Good</value>
+    <comment>Good weather suitability rating</comment>
+  </data>
+  <data name="Weather_Suitability_Fair">
+    <value>Fair</value>
+    <comment>Fair weather suitability rating</comment>
+  </data>
+  <data name="Weather_Suitability_Poor">
+    <value>Poor</value>
+    <comment>Poor weather suitability rating</comment>
+  </data>
+  <!-- ===== CAMERA CALIBRATION MESSAGES ===== -->
+  <data name="Camera_Calibration_Successful">
+    <value>Successfully created phone camera profile for {0} with {1}mm focal length and {2}° FOV</value>
+    <comment>Success message for camera calibration</comment>
+  </data>
+  <data name="Camera_Calibration_Failed">
+    <value>Camera calibration failed</value>
+    <comment>General camera calibration failure message</comment>
+  </data>
+  <!-- ===== ACTION BUTTON LABELS ===== -->
+  <data name="Action_Calibrate">
+    <value>Calibrate</value>
+    <comment>Calibrate action button</comment>
+  </data>
+  <data name="Action_Analyze">
+    <value>Analyze</value>
+    <comment>Analyze action button</comment>
+  </data>
+  <data name="Action_Calculate">
+    <value>Calculate</value>
+    <comment>Calculate action button</comment>
+  </data>
+  <data name="Action_Initialize">
+    <value>Initialize</value>
+    <comment>Initialize action button</comment>
+  </data>
+  <data name="Action_Process">
+    <value>Process</value>
+    <comment>Process action button</comment>
+  </data>
+  <data name="Action_Check">
+    <value>Check</value>
+    <comment>Check action button</comment>
+  </data>
+  <data name="Action_Evaluate">
+    <value>Evaluate</value>
+    <comment>Evaluate action button</comment>
+  </data>
+  <!-- ===== NAVIGATION LABELS ===== -->
+  <data name="Navigation_Camera">
+    <value>Camera</value>
+    <comment>Camera navigation label</comment>
+  </data>
+  <data name="Navigation_Lens">
+    <value>Lens</value>
+    <comment>Lens navigation label</comment>
+  </data>
+  <data name="Navigation_Exposure">
+    <value>Exposure</value>
+    <comment>Exposure navigation label</comment>
+  </data>
+  <data name="Navigation_Sun">
+    <value>Sun</value>
+    <comment>Sun navigation label</comment>
+  </data>
+  <data name="Navigation_Moon">
+    <value>Moon</value>
+    <comment>Moon navigation label</comment>
+  </data>
+  <data name="Navigation_Astro">
+    <value>Astro</value>
+    <comment>Astro navigation label</comment>
+  </data>
+  <data name="Navigation_Scene">
+    <value>Scene</value>
+    <comment>Scene navigation label</comment>
+  </data>
+  <data name="Navigation_Subscription">
+    <value>Subscription</value>
+    <comment>Subscription navigation label</comment>
+  </data>
+  <!-- ===== UNITS AND MEASUREMENTS ===== -->
+  <data name="Unit_Millimeters">
+    <value>mm</value>
+    <comment>Millimeters unit abbreviation</comment>
+  </data>
+  <data name="Unit_Meters">
+    <value>m</value>
+    <comment>Meters unit abbreviation</comment>
+  </data>
+  <data name="Unit_Seconds">
+    <value>s</value>
+    <comment>Seconds unit abbreviation</comment>
+  </data>
+  <data name="Unit_Minutes">
+    <value>min</value>
+    <comment>Minutes unit abbreviation</comment>
+  </data>
+  <data name="Unit_Hours">
+    <value>h</value>
+    <comment>Hours unit abbreviation</comment>
+  </data>
+  <data name="Unit_Percent">
+    <value>%</value>
+    <comment>Percent unit symbol</comment>
+  </data>
+  <data name="Unit_DegreesSymbol">
+    <value>°</value>
+    <comment>Degrees unit symbol</comment>
+  </data>
+  <data name="Unit_ArcSeconds">
+    <value>″</value>
+    <comment>Arc seconds unit symbol</comment>
+  </data>
+  <data name="Unit_ArcMinutes">
+    <value>'</value>
+    <comment>Arc minutes unit symbol</comment>
+  </data>
+  <!-- ===== COMMON PHOTOGRAPHY TERMS ===== -->
+  <data name="Photography_FieldOfView">
+    <value>Field of View</value>
+    <comment>Field of view photography term</comment>
+  </data>
+  <data name="Photography_Magnification">
+    <value>Magnification</value>
+    <comment>Magnification photography term</comment>
+  </data>
+  <data name="Photography_Prime">
+    <value>Prime</value>
+    <comment>Prime lens term</comment>
+  </data>
+  <data name="Photography_Zoom">
+    <value>Zoom</value>
+    <comment>Zoom lens term</comment>
+  </data>
+  <data name="Photography_SensorSize">
+    <value>Sensor Size</value>
+    <comment>Sensor size photography term</comment>
+  </data>
+  <data name="Photography_CropFactor">
+    <value>Crop Factor</value>
+    <comment>Crop factor photography term</comment>
+  </data>
+  <data name="Photography_ExposureTriangle">
+    <value>Exposure Triangle</value>
+    <comment>Exposure triangle photography term</comment>
+  </data>
+  <data name="Photography_DepthOfField">
+    <value>Depth of Field</value>
+    <comment>Depth of field photography term</comment>
+  </data>
+  <!-- ===== STATUS MESSAGES ===== -->
+  <data name="Status_Active">
+    <value>Active</value>
+    <comment>Active status</comment>
+  </data>
+  <data name="Status_Inactive">
+    <value>Inactive</value>
+    <comment>Inactive status</comment>
+  </data>
+  <data name="Status_Expired">
+    <value>Expired</value>
+    <comment>Expired status</comment>
+  </data>
+  <data name="Status_Processing">
+    <value>Processing</value>
+    <comment>Processing status</comment>
+  </data>
+  <data name="Status_Completed">
+    <value>Completed</value>
+    <comment>Completed status</comment>
+  </data>
+  <data name="Status_Failed">
+    <value>Failed</value>
+    <comment>Failed status</comment>
+  </data>
+  <data name="Status_Pending">
+    <value>Pending</value>
+    <comment>Pending status</comment>
+  </data>
+  <!-- ===== COMMON MESSAGES ===== -->
+  <data name="Message_NoDataAvailable">
+    <value>No data available</value>
+    <comment>No data available message</comment>
+  </data>
+  <data name="Message_LoadingData">
+    <value>Loading data...</value>
+    <comment>Loading data message</comment>
+  </data>
+  <data name="Message_OperationInProgress">
+    <value>Operation in progress...</value>
+    <comment>Operation in progress message</comment>
+  </data>
+  <data name="Message_PleaseWait">
+    <value>Please wait...</value>
+    <comment>Please wait message</comment>
+  </data>
+  <data name="Message_TryAgain">
+    <value>Please try again</value>
+    <comment>Try again message</comment>
+  </data>
+  <data name="Message_ContactSupport">
+    <value>Please contact support if the problem persists</value>
+    <comment>Contact support message</comment>
+  </data>
+<data name="Equipment_WideAngleLens">
+    <value>14-24mm wide-angle lens f/2.8</value>
+    <comment>Lens equipment recommendation for Milky Way</comment>
+  </data>
+  <data name="Equipment_StandardTelephoto">
+    <value>50-200mm telephoto lens</value>
+    <comment>Lens equipment recommendation for deep sky objects</comment>
+  </data>
+  <data name="Equipment_WideAngleMeteor">
+    <value>14-35mm wide-angle lens</value>
+    <comment>Lens equipment recommendation for meteor showers</comment>
+  </data>
+  <data name="Equipment_StandardLens">
+    <value>24-70mm standard lens</value>
+    <comment>General lens equipment recommendation</comment>
+  </data>
+  <data name="Equipment_TelephonoOrTelescope">
+    <value>Telephoto lens or telescope</value>
+    <comment>Equipment recommendation for moon photography</comment>
+  </data>
+  <data name="Equipment_WideAngleTracker">
+    <value>Wide-angle lens, tracker recommended</value>
+    <comment>Equipment recommendation for Milky Way with tracking</comment>
+  </data>
+  <data name="Equipment_WideAngleNoTracking">
+    <value>Wide-angle lens, no tracking</value>
+    <comment>Equipment recommendation for meteor showers</comment>
+  </data>
+  <data name="Equipment_BinocularsNakedEye">
+    <value>Binoculars or naked eye</value>
+    <comment>Equipment recommendation for satellite passes</comment>
+  </data>
+  <!-- ===== MOUNT TYPE DISPLAY NAMES ===== -->
+  <data name="MountType_CanonEF">
+    <value>Canon EF</value>
+    <comment>Canon EF mount type display name</comment>
+  </data>
+  <data name="MountType_CanonEFS">
+    <value>Canon EF-S</value>
+    <comment>Canon EF-S mount type display name</comment>
+  </data>
+  <data name="MountType_CanonEFM">
+    <value>Canon EF-M</value>
+    <comment>Canon EF-M mount type display name</comment>
+  </data>
+  <data name="MountType_CanonRF">
+    <value>Canon RF</value>
+    <comment>Canon RF mount type display name</comment>
+  </data>
+  <data name="MountType_CanonFD">
+    <value>Canon FD</value>
+    <comment>Canon FD mount type display name</comment>
+  </data>
+  <data name="MountType_NikonF">
+    <value>Nikon F</value>
+    <comment>Nikon F mount type display name</comment>
+  </data>
+  <data name="MountType_NikonZ">
+    <value>Nikon Z</value>
+    <comment>Nikon Z mount type display name</comment>
+  </data>
+  <data name="MountType_Nikon1">
+    <value>Nikon 1</value>
+    <comment>Nikon 1 mount type display name</comment>
+  </data>
+  <data name="MountType_SonyE">
+    <value>Sony E</value>
+    <comment>Sony E mount type display name</comment>
+  </data>
+  <data name="MountType_SonyFE">
+    <value>Sony FE</value>
+    <comment>Sony FE mount type display name</comment>
+  </data>
+  <data name="MountType_SonyA">
+    <value>Sony A</value>
+    <comment>Sony A mount type display name</comment>
+  </data>
+  <data name="MountType_FujifilmX">
+    <value>Fujifilm X</value>
+    <comment>Fujifilm X mount type display name</comment>
+  </data>
+  <data name="MountType_FujifilmGFX">
+    <value>Fujifilm GFX</value>
+    <comment>Fujifilm GFX mount type display name</comment>
+  </data>
+  <data name="MountType_PentaxK">
+    <value>Pentax K</value>
+    <comment>Pentax K mount type display name</comment>
+  </data>
+  <data name="MountType_PentaxQ">
+    <value>Pentax Q</value>
+    <comment>Pentax Q mount type display name</comment>
+  </data>
+  <data name="MountType_MicroFourThirds">
+    <value>Micro Four Thirds</value>
+    <comment>Micro Four Thirds mount type display name</comment>
+  </data>
+  <data name="MountType_LeicaM">
+    <value>Leica M</value>
+    <comment>Leica M mount type display name</comment>
+  </data>
+  <data name="MountType_LeicaL">
+    <value>Leica L</value>
+    <comment>Leica L mount type display name</comment>
+  </data>
+  <data name="MountType_LeicaSL">
+    <value>Leica SL</value>
+    <comment>Leica SL mount type display name</comment>
+  </data>
+  <data name="MountType_LeicaTL">
+    <value>Leica TL</value>
+    <comment>Leica TL mount type display name</comment>
+  </data>
+  <data name="MountType_OlympusFourThirds">
+    <value>Four Thirds</value>
+    <comment>Four Thirds mount type display name</comment>
+  </data>
+  <data name="MountType_PanasonicL">
+    <value>Panasonic L</value>
+    <comment>Panasonic L mount type display name</comment>
+  </data>
+  <data name="MountType_SigmaSA">
+    <value>Sigma SA</value>
+    <comment>Sigma SA mount type display name</comment>
+  </data>
+  <data name="MountType_TamronAdaptall">
+    <value>Tamron Adaptall</value>
+    <comment>Tamron Adaptall mount type display name</comment>
+  </data>
+  <data name="MountType_CMount">
+    <value>C Mount</value>
+    <comment>C Mount type display name</comment>
+  </data>
+  <data name="MountType_CSMount">
+    <value>CS Mount</value>
+    <comment>CS Mount type display name</comment>
+  </data>
+  <data name="MountType_M42">
+    <value>M42</value>
+    <comment>M42 mount type display name</comment>
+  </data>
+  <data name="MountType_T2">
+    <value>T2</value>
+    <comment>T2 mount type display name</comment>
+  </data>
+  <data name="MountType_Other">
+    <value>Other</value>
+    <comment>Other mount type display name</comment>
+  </data>
+  <!-- ===== MOUNT TYPE BRAND NAMES ===== -->
+  <data name="MountBrand_Canon">
+    <value>Canon</value>
+    <comment>Canon brand name</comment>
+  </data>
+  <data name="MountBrand_Nikon">
+    <value>Nikon</value>
+    <comment>Nikon brand name</comment>
+  </data>
+  <data name="MountBrand_Sony">
+    <value>Sony</value>
+    <comment>Sony brand name</comment>
+  </data>
+  <data name="MountBrand_Fujifilm">
+    <value>Fujifilm</value>
+    <comment>Fujifilm brand name</comment>
+  </data>
+  <data name="MountBrand_Pentax">
+    <value>Pentax</value>
+    <comment>Pentax brand name</comment>
+  </data>
+  <data name="MountBrand_MicroFourThirds">
+    <value>M4/3</value>
+    <comment>Micro Four Thirds brand abbreviation</comment>
+  </data>
+  <data name="MountBrand_Leica">
+    <value>Leica</value>
+    <comment>Leica brand name</comment>
+  </data>
+  <data name="MountBrand_Olympus">
+    <value>Olympus</value>
+    <comment>Olympus brand name</comment>
+  </data>
+  <data name="MountBrand_Panasonic">
+    <value>Panasonic</value>
+    <comment>Panasonic brand name</comment>
+  </data>
+  <data name="MountBrand_Sigma">
+    <value>Sigma</value>
+    <comment>Sigma brand name</comment>
+  </data>
+  <data name="MountBrand_Tamron">
+    <value>Tamron</value>
+    <comment>Tamron brand name</comment>
+  </data>
+  <data name="MountBrand_Generic">
+    <value>Generic</value>
+    <comment>Generic brand name</comment>
+  </data>
+  <data name="MountBrand_Other">
+    <value>Other</value>
+    <comment>Other brand name</comment>
+  </data>
+  <!-- ===== TIMEZONE ERROR MESSAGES ===== -->
+  <data name="Timezone_Error_DeterminingTimezone">
+    <value>Error determining timezone</value>
+    <comment>Error message when timezone determination fails</comment>
+  </data>
+  <data name="Timezone_Error_UnableToDetermine">
+    <value>Unable to determine timezone for coordinates</value>
+    <comment>Error message when timezone cannot be determined</comment>
+  </data>
+  <data name="Timezone_Error_DeterminingBatch">
+    <value>Error determining batch timezones</value>
+    <comment>Error message when batch timezone determination fails</comment>
+  </data>
+  <!-- ===== MOON PHASE NAMES ===== -->
+  <data name="MoonPhase_NewMoon">
+    <value>New Moon</value>
+    <comment>New moon phase name</comment>
+  </data>
+  <data name="MoonPhase_WaxingCrescent">
+    <value>Waxing Crescent</value>
+    <comment>Waxing crescent moon phase name</comment>
+  </data>
+  <data name="MoonPhase_FirstQuarter">
+    <value>First Quarter</value>
+    <comment>First quarter moon phase name</comment>
+  </data>
+  <data name="MoonPhase_WaxingGibbous">
+    <value>Waxing Gibbous</value>
+    <comment>Waxing gibbous moon phase name</comment>
+  </data>
+  <data name="MoonPhase_FullMoon">
+    <value>Full Moon</value>
+    <comment>Full moon phase name</comment>
+  </data>
+  <data name="MoonPhase_WaningGibbous">
+    <value>Waning Gibbous</value>
+    <comment>Waning gibbous moon phase name</comment>
+  </data>
+  <data name="MoonPhase_ThirdQuarter">
+    <value>Third Quarter</value>
+    <comment>Third quarter moon phase name</comment>
+  </data>
+  <data name="MoonPhase_WaningCrescent">
+    <value>Waning Crescent</value>
+    <comment>Waning crescent moon phase name</comment>
+  </data>
+  <!-- ===== PLANET NAMES ===== -->
+  <data name="Planet_Mercury">
+    <value>Mercury</value>
+    <comment>Mercury planet name</comment>
+  </data>
+  <data name="Planet_Venus">
+    <value>Venus</value>
+    <comment>Venus planet name</comment>
+  </data>
+  <data name="Planet_Mars">
+    <value>Mars</value>
+    <comment>Mars planet name</comment>
+  </data>
+  <data name="Planet_Jupiter">
+    <value>Jupiter</value>
+    <comment>Jupiter planet name</comment>
+  </data>
+  <data name="Planet_Saturn">
+    <value>Saturn</value>
+    <comment>Saturn planet name</comment>
+  </data>
+  <data name="Planet_Uranus">
+    <value>Uranus</value>
+    <comment>Uranus planet name</comment>
+  </data>
+  <data name="Planet_Neptune">
+    <value>Neptune</value>
+    <comment>Neptune planet name</comment>
+  </data>
+  <data name="Planet_Pluto">
+    <value>Pluto</value>
+    <comment>Pluto dwarf planet name</comment>
+  </data>
+  <!-- ===== ASTRO TARGET NAMES ===== -->
+  <data name="AstroTarget_Moon">
+    <value>Moon</value>
+    <comment>Moon astro target name</comment>
+  </data>
+  <data name="AstroTarget_Planets">
+    <value>Planets</value>
+    <comment>Planets astro target name</comment>
+  </data>
+  <data name="AstroTarget_MilkyWayCore">
+    <value>Milky Way Core</value>
+    <comment>Milky Way Core astro target name</comment>
+  </data>
+  <data name="AstroTarget_DeepSkyObjects">
+    <value>Deep Sky Objects</value>
+    <comment>Deep Sky Objects astro target name</comment>
+  </data>
+  <data name="AstroTarget_MeteorShowers">
+    <value>Meteor Showers</value>
+    <comment>Meteor Showers astro target name</comment>
+  </data>
+  <data name="AstroTarget_StarTrails">
+    <value>Star Trails</value>
+    <comment>Star Trails astro target name</comment>
+  </data>
+  <data name="AstroTarget_Comets">
+    <value>Comets</value>
+    <comment>Comets astro target name</comment>
+  </data>
+  <!-- ===== ASTRO EVENT TYPES ===== -->
+  <data name="AstroEvent_Planet">
+    <value>Planet</value>
+    <comment>Planet astro event type</comment>
+  </data>
+  <data name="AstroEvent_GalacticCore">
+    <value>Galactic Core</value>
+    <comment>Galactic Core astro event type</comment>
+  </data>
+  <data name="AstroEvent_MeteorShower">
+    <value>Meteor Shower</value>
+    <comment>Meteor Shower astro event type</comment>
+  </data>
+  <data name="AstroEvent_SatellitePass">
+    <value>Satellite Pass</value>
+    <comment>Satellite Pass astro event type</comment>
+  </data>
+  <!-- ===== ASTRO DESCRIPTIONS ===== -->
+  <data name="AstroEvent_Description_MoonPhase">
+    <value>Phase: {0:F0}%, Distance: {1:F0}km</value>
+    <comment>Moon event description with phase and distance</comment>
+  </data>
+  <data name="AstroEvent_Description_PlanetMagnitude">
+    <value>Magnitude {0:F1}, {1:F1}″</value>
+    <comment>Planet event description with magnitude and angular size</comment>
+  </data>
+  <data name="AstroEvent_Description_DarkSkyQuality">
+    <value>Dark sky quality: {0:P0}</value>
+    <comment>Milky Way event description with dark sky quality</comment>
+  </data>
+  <data name="AstroEvent_Description_DSOMagnitude">
+    <value>{0}, Mag {1:F1}, {2:F1}'</value>
+    <comment>Deep Sky Object description with type, magnitude, and size</comment>
+  </data>
+  <data name="AstroEvent_Description_MeteorZHR">
+    <value>ZHR: {0}, Radiant: {1}</value>
+    <comment>Meteor shower description with ZHR and radiant direction</comment>
+  </data>
+  <data name="AstroEvent_Description_ISSPass">
+    <value>Max altitude: {0:F0}°, Duration: {1:F0}m</value>
+    <comment>ISS pass description with max altitude and duration</comment>
+  </data>
+  <!-- ===== CONSTELLATION NAMES ===== -->
+  <data name="Constellation_Sagittarius">
+    <value>Sagittarius</value>
+    <comment>Sagittarius constellation name</comment>
+  </data>
+  <!-- ===== TERRAIN TYPE NAMES ===== -->
+  <data name="Terrain_Flat">
+    <value>Flat</value>
+    <comment>Flat terrain type</comment>
+  </data>
+  <data name="Terrain_Urban">
+    <value>Urban</value>
+    <comment>Urban terrain type</comment>
+  </data>
+  <data name="Terrain_Forest">
+    <value>Forest</value>
+    <comment>Forest terrain type</comment>
+  </data>
+  <data name="Terrain_Mountain">
+    <value>Mountain</value>
+    <comment>Mountain terrain type</comment>
+  </data>
+  <data name="Terrain_Beach">
+    <value>Beach</value>
+    <comment>Beach terrain type</comment>
+  </data>
+  <!-- ===== EXPOSURE RECOMMENDATIONS ===== -->
+  <data name="Exposure_Recommendation_IncreaseExposure">
+    <value>Increase exposure (+1 to +2 stops)</value>
+    <comment>Recommendation to increase exposure</comment>
+  </data>
+  <data name="Exposure_Recommendation_DecreaseExposure">
+    <value>Decrease exposure (-1 to -2 stops)</value>
+    <comment>Recommendation to decrease exposure</comment>
+  </data>
+  <data name="Exposure_Recommendation_ShadowClipping">
+    <value>Shadow clipping detected - lift shadows</value>
+    <comment>Recommendation for shadow clipping</comment>
+  </data>
+  <data name="Exposure_Recommendation_HighlightClipping">
+    <value>Highlight clipping detected - reduce highlights</value>
+    <comment>Recommendation for highlight clipping</comment>
+  </data>
+  <data name="Exposure_Recommendation_HighDynamicRange">
+    <value>High dynamic range - consider HDR or graduated filters</value>
+    <comment>Recommendation for high dynamic range scenes</comment>
+  </data>
+  <!-- ===== ASTRO QUALITY SCORES ===== -->
+  <data name="AstroQuality_Excellent">
+    <value>{0}% excellent</value>
+    <comment>Excellent astro quality score format</comment>
+  </data>
+  <!-- ===== ASTRO STACKING RECOMMENDATIONS ===== -->
+  <data name="AstroStacking_CalibrationFramesDSO">
+    <value>20 darks, 20 flats, 20 bias</value>
+    <comment>Calibration frames recommendation for deep sky objects</comment>
+  </data>
+  <data name="AstroStacking_CalibrationFramesGeneral">
+    <value>10 darks recommended</value>
+    <comment>General calibration frames recommendation</comment>
+  </data>
+  <data name="AstroStacking_RecommendationFormat">
+    <value>{0} frames @ {1} each</value>
+    <comment>Astro stacking recommendation format</comment>
+  </data>
+  <data name="AstroStacking_TotalTimeMinutes">
+    <value>Total: {0:F1} minutes</value>
+    <comment>Total stacking time in minutes format</comment>
+  </data>
+  <data name="AstroStacking_TotalTimeHours">
+    <value>Total: {0:F1} hours</value>
+    <comment>Total stacking time in hours format</comment>
+  </data>
+  <data name="AstroStacking_ExposureSeconds">
+    <value>1/{0}s</value>
+    <comment>Exposure time in seconds format for fast shutter speeds</comment>
+  </data>
+  <data name="AstroStacking_ExposureSecondsLong">
+    <value>{0:F0}s</value>
+    <comment>Exposure time in seconds format for long exposures</comment>
+  </data>
+  <!-- ===== ASTRO FOCUS DISTANCES ===== -->
+  <data name="AstroFocus_Infinity">
+    <value>Infinity</value>
+    <comment>Infinity focus distance for astro photography</comment>
+  </data>
+  <!-- ===== SUBSCRIPTION TYPES ===== -->
+  <data name="SubscriptionType_Free">
+    <value>Free</value>
+    <comment>Free subscription type</comment>
+  </data>
+  <data name="SubscriptionType_Pro">
+    <value>Pro</value>
+    <comment>Pro subscription type</comment>
+  </data>
+  <data name="SubscriptionType_Premium">
+    <value>Premium</value>
+    <comment>Premium subscription type</comment>
+  </data>
+  <!-- ===== WEATHER IMPACT DESCRIPTIONS ===== -->
+  <data name="Weather_CloudCover">
+    <value>Cloud Cover</value>
+    <comment>Cloud cover weather parameter</comment>
+  </data>
+  <data name="Weather_Humidity">
+    <value>Humidity</value>
+    <comment>Humidity weather parameter</comment>
+  </data>
+  <data name="Weather_WindSpeed">
+    <value>Wind Speed</value>
+    <comment>Wind speed weather parameter</comment>
+  </data>
+  <data name="Weather_Visibility">
+    <value>Visibility</value>
+    <comment>Visibility weather parameter</comment>
+  </data>
+  <data name="Weather_Suitability_Good">
+    <value>Good</value>
+    <comment>Good weather suitability rating</comment>
+  </data>
+  <data name="Weather_Suitability_Fair">
+    <value>Fair</value>
+    <comment>Fair weather suitability rating</comment>
+  </data>
+  <data name="Weather_Suitability_Poor">
+    <value>Poor</value>
+    <comment>Poor weather suitability rating</comment>
+  </data>
+  <!-- ===== CAMERA CALIBRATION MESSAGES ===== -->
+  <data name="Camera_Calibration_Successful">
+    <value>Successfully created phone camera profile for {0} with {1}mm focal length and {2}° FOV</value>
+    <comment>Success message for camera calibration</comment>
+  </data>
+  <data name="Camera_Calibration_Failed">
+    <value>Camera calibration failed</value>
+    <comment>General camera calibration failure message</comment>
+  </data>
+  <!-- ===== ACTION BUTTON LABELS ===== -->
+  <data name="Action_Calibrate">
+    <value>Calibrate</value>
+    <comment>Calibrate action button</comment>
+  </data>
+  <data name="Action_Analyze">
+    <value>Analyze</value>
+    <comment>Analyze action button</comment>
+  </data>
+  <data name="Action_Calculate">
+    <value>Calculate</value>
+    <comment>Calculate action button</comment>
+  </data>
+  <data name="Action_Initialize">
+    <value>Initialize</value>
+    <comment>Initialize action button</comment>
+  </data>
+  <data name="Action_Process">
+    <value>Process</value>
+    <comment>Process action button</comment>
+  </data>
+  <data name="Action_Check">
+    <value>Check</value>
+    <comment>Check action button</comment>
+  </data>
+  <data name="Action_Evaluate">
+    <value>Evaluate</value>
+    <comment>Evaluate action button</comment>
+  </data>
+  <!-- ===== NAVIGATION LABELS ===== -->
+  <data name="Navigation_Camera">
+    <value>Camera</value>
+    <comment>Camera navigation label</comment>
+  </data>
+  <data name="Navigation_Lens">
+    <value>Lens</value>
+    <comment>Lens navigation label</comment>
+  </data>
+  <data name="Navigation_Exposure">
+    <value>Exposure</value>
+    <comment>Exposure navigation label</comment>
+  </data>
+  <data name="Navigation_Sun">
+    <value>Sun</value>
+    <comment>Sun navigation label</comment>
+  </data>
+  <data name="Navigation_Moon">
+    <value>Moon</value>
+    <comment>Moon navigation label</comment>
+  </data>
+  <data name="Navigation_Astro">
+    <value>Astro</value>
+    <comment>Astro navigation label</comment>
+  </data>
+  <data name="Navigation_Scene">
+    <value>Scene</value>
+    <comment>Scene navigation label</comment>
+  </data>
+  <data name="Navigation_Subscription">
+    <value>Subscription</value>
+    <comment>Subscription navigation label</comment>
+  </data>
+  <!-- ===== UNITS AND MEASUREMENTS ===== -->
+  <data name="Unit_Millimeters">
+    <value>mm</value>
+    <comment>Millimeters unit abbreviation</comment>
+  </data>
+  <data name="Unit_Meters">
+    <value>m</value>
+    <comment>Meters unit abbreviation</comment>
+  </data>
+  <data name="Unit_Seconds">
+    <value>s</value>
+    <comment>Seconds unit abbreviation</comment>
+  </data>
+  <data name="Unit_Minutes">
+    <value>min</value>
+    <comment>Minutes unit abbreviation</comment>
+  </data>
+  <data name="Unit_Hours">
+    <value>h</value>
+    <comment>Hours unit abbreviation</comment>
+  </data>
+  <data name="Unit_Percent">
+    <value>%</value>
+    <comment>Percent unit symbol</comment>
+  </data>
+  <data name="Unit_DegreesSymbol">
+    <value>°</value>
+    <comment>Degrees unit symbol</comment>
+  </data>
+  <data name="Unit_ArcSeconds">
+    <value>″</value>
+    <comment>Arc seconds unit symbol</comment>
+  </data>
+  <data name="Unit_ArcMinutes">
+    <value>'</value>
+    <comment>Arc minutes unit symbol</comment>
+  </data>
+  <!-- ===== COMMON PHOTOGRAPHY TERMS ===== -->
+  <data name="Photography_FieldOfView">
+    <value>Field of View</value>
+    <comment>Field of view photography term</comment>
+  </data>
+  <data name="Photography_Magnification">
+    <value>Magnification</value>
+    <comment>Magnification photography term</comment>
+  </data>
+  <data name="Photography_Prime">
+    <value>Prime</value>
+    <comment>Prime lens term</comment>
+  </data>
+  <data name="Photography_Zoom">
+    <value>Zoom</value>
+    <comment>Zoom lens term</comment>
+  </data>
+  <data name="Photography_SensorSize">
+    <value>Sensor Size</value>
+    <comment>Sensor size photography term</comment>
+  </data>
+  <data name="Photography_CropFactor">
+    <value>Crop Factor</value>
+    <comment>Crop factor photography term</comment>
+  </data>
+  <data name="Photography_ExposureTriangle">
+    <value>Exposure Triangle</value>
+    <comment>Exposure triangle photography term</comment>
+  </data>
+  <data name="Photography_DepthOfField">
+    <value>Depth of Field</value>
+    <comment>Depth of field photography term</comment>
+  </data>
+  <!-- ===== STATUS MESSAGES ===== -->
+  <data name="Status_Active">
+    <value>Active</value>
+    <comment>Active status</comment>
+  </data>
+  <data name="Status_Inactive">
+    <value>Inactive</value>
+    <comment>Inactive status</comment>
+  </data>
+  <data name="Status_Expired">
+    <value>Expired</value>
+    <comment>Expired status</comment>
+  </data>
+  <data name="Status_Processing">
+    <value>Processing</value>
+    <comment>Processing status</comment>
+  </data>
+  <data name="Status_Completed">
+    <value>Completed</value>
+    <comment>Completed status</comment>
+  </data>
+  <data name="Status_Failed">
+    <value>Failed</value>
+    <comment>Failed status</comment>
+  </data>
+  <data name="Status_Pending">
+    <value>Pending</value>
+    <comment>Pending status</comment>
+  </data>
+  <!-- ===== COMMON MESSAGES ===== -->
+  <data name="Message_NoDataAvailable">
+    <value>No data available</value>
+    <comment>No data available message</comment>
+  </data>
+  <data name="Message_LoadingData">
+    <value>Loading data...</value>
+    <comment>Loading data message</comment>
+  </data>
+  <data name="Message_OperationInProgress">
+    <value>Operation in progress...</value>
+    <comment>Operation in progress message</comment>
+  </data>
+  <data name="Message_PleaseWait">
+    <value>Please wait...</value>
+    <comment>Please wait message</comment>
+  </data>
+  <data name="Message_TryAgain">
+    <value>Please try again</value>
+    <comment>Try again message</comment>
+  </data>
+  <data name="Message_ContactSupport">
+    <value>Please contact support if the problem persists</value>
+    <comment>Contact support message</comment>
+  </data>
+  </root>
 
-		The primary goals of this format is to allow a simple XML format 
-		that is mostly human readable. The generation and parsing of the 
-		various data types are done through the TypeConverter classes 
-		associated with the data types.
 
-		Example:
 
-		... ado.net/XML headers & schema ...
-		<resheader name="resmimetype">text/microsoft-resx</resheader>
-		<resheader name="version">1.3</resheader>
-		<resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-		<resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-		<data name="Name1">this is my long string</data>
-		<data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-		<data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-			[base64 mime encoded serialized .NET Framework object]
-		</data>
-		<data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-			[base64 mime encoded string representing a byte array form of the .NET Framework object]
-		</data>
 
-		There are any number of "resheader" rows that contain simple 
-		name/value pairs.
-
-		Each data row contains a name, and value. The row also contains a 
-		type or mimetype. Type corresponds to a .NET class that support 
-		text/value conversion through the TypeConverter architecture. 
-		Classes that don't support this are serialized and stored with the 
-		mimetype set.
-
-		The mimetype is used for serialized objects, and tells the 
-		ResXResourceReader how to depersist the object. This is currently not 
-		extensible. For a given mimetype the value must be set accordingly:
-
-		Note - application/x-microsoft.net.object.binary.base64 is the format 
-		that the ResXResourceWriter will generate, however the reader can 
-		read any of the formats listed below.
-
-		mimetype: application/x-microsoft.net.object.binary.base64
-		value   : The object must be serialized with 
-			: System.Serialization.Formatters.Binary.BinaryFormatter
-			: and then encoded with base64 encoding.
-
-		mimetype: application/x-microsoft.net.object.soap.base64
-		value   : The object must be serialized with 
-			: System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-			: and then encoded with base64 encoding.
-
-		mimetype: application/x-microsoft.net.object.bytearray.base64
-		value   : The object must be serialized into a byte array 
-			: using a System.ComponentModel.TypeConverter
-			: and then encoded with base64 encoding.
-	-->
-	
-	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-		<xsd:element name="root" msdata:IsDataSet="true">
-			<xsd:complexType>
-				<xsd:choice maxOccurs="unbounded">
-					<xsd:element name="data">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-								<xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
-							<xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-							<xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="resheader">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" use="required" />
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:choice>
-			</xsd:complexType>
-		</xsd:element>
-	</xsd:schema>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>1.3</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-</root>
+  

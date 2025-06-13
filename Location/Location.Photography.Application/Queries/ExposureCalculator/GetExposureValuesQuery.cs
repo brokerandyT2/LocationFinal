@@ -1,6 +1,6 @@
-﻿// Location.Photography.Application/Queries/ExposureCalculator/GetExposureValuesQuery.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
+using Location.Photography.Application.Resources;
 using MediatR;
 
 namespace Location.Photography.Application.Queries.ExposureCalculator
@@ -36,7 +36,7 @@ namespace Location.Photography.Application.Queries.ExposureCalculator
 
                 if (!shutterSpeedsResult.IsSuccess || !aperturesResult.IsSuccess || !isosResult.IsSuccess)
                 {
-                    string errorMessage = shutterSpeedsResult.ErrorMessage ?? aperturesResult.ErrorMessage ?? isosResult.ErrorMessage ?? "Failed to retrieve exposure values";
+                    string errorMessage = shutterSpeedsResult.ErrorMessage ?? aperturesResult.ErrorMessage ?? isosResult.ErrorMessage ?? AppResources.ExposureCalculator_Error_RetrievingValues;
                     return Result<ExposureValuesDto>.Failure(errorMessage);
                 }
 
@@ -51,7 +51,7 @@ namespace Location.Photography.Application.Queries.ExposureCalculator
             }
             catch (Exception ex)
             {
-                return Result<ExposureValuesDto>.Failure($"Error retrieving exposure values: {ex.Message}");
+                return Result<ExposureValuesDto>.Failure(string.Format(AppResources.ExposureCalculator_Error_RetrievingValues + ": {0}", ex.Message));
             }
         }
     }

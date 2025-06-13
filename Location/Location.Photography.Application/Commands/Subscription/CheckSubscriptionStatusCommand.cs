@@ -1,6 +1,6 @@
-﻿// Location.Photography.Application/Commands/Subscription/CheckSubscriptionStatusCommand.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
+using Location.Photography.Application.Resources;
 using MediatR;
 
 namespace Location.Photography.Application.Commands.Subscription
@@ -33,7 +33,7 @@ namespace Location.Photography.Application.Commands.Subscription
             }
             catch (Exception ex)
             {
-                return Result<SubscriptionStatusResult>.Failure($"Error checking subscription status: {ex.Message}");
+                return Result<SubscriptionStatusResult>.Failure(string.Format(AppResources.Subscription_Error_StatusCheckFailed + ": {0}", ex.Message));
             }
         }
     }

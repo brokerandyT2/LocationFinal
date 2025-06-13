@@ -1,6 +1,6 @@
-﻿// Location.Photography.Application/Commands/SceneEvaluation/AnalyzeImageCommand.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
+using Location.Photography.Application.Resources;
 using MediatR;
 
 namespace Location.Photography.Application.Commands.SceneEvaluation
@@ -33,7 +33,7 @@ namespace Location.Photography.Application.Commands.SceneEvaluation
             }
             catch (Exception ex)
             {
-                return Result<SceneEvaluationResultDto>.Failure($"Error analyzing image: {ex.Message}");
+                return Result<SceneEvaluationResultDto>.Failure(string.Format(AppResources.SceneEvaluation_Error_AnalyzingImage + ": {0}", ex.Message));
             }
         }
     }

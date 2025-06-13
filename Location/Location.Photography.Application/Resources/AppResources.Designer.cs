@@ -59,5 +59,2696 @@ namespace Location.Photography.Application.Resources {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyze.
+        /// </summary>
+        internal static string Action_Analyze {
+            get {
+                return ResourceManager.GetString("Action_Analyze", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calculate.
+        /// </summary>
+        internal static string Action_Calculate {
+            get {
+                return ResourceManager.GetString("Action_Calculate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calibrate.
+        /// </summary>
+        internal static string Action_Calibrate {
+            get {
+                return ResourceManager.GetString("Action_Calibrate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Check.
+        /// </summary>
+        internal static string Action_Check {
+            get {
+                return ResourceManager.GetString("Action_Check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Evaluate.
+        /// </summary>
+        internal static string Action_Evaluate {
+            get {
+                return ResourceManager.GetString("Action_Evaluate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize.
+        /// </summary>
+        internal static string Action_Initialize {
+            get {
+                return ResourceManager.GetString("Action_Initialize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Process.
+        /// </summary>
+        internal static string Action_Process {
+            get {
+                return ResourceManager.GetString("Action_Process", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dark sky quality: {0:P0}.
+        /// </summary>
+        internal static string AstroEvent_Description_DarkSkyQuality {
+            get {
+                return ResourceManager.GetString("AstroEvent_Description_DarkSkyQuality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}, Mag {1:F1}, {2:F1}&apos;.
+        /// </summary>
+        internal static string AstroEvent_Description_DSOMagnitude {
+            get {
+                return ResourceManager.GetString("AstroEvent_Description_DSOMagnitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max altitude: {0:F0}°, Duration: {1:F0}m.
+        /// </summary>
+        internal static string AstroEvent_Description_ISSPass {
+            get {
+                return ResourceManager.GetString("AstroEvent_Description_ISSPass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ZHR: {0}, Radiant: {1}.
+        /// </summary>
+        internal static string AstroEvent_Description_MeteorZHR {
+            get {
+                return ResourceManager.GetString("AstroEvent_Description_MeteorZHR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Phase: {0:F0}%, Distance: {1:F0}km.
+        /// </summary>
+        internal static string AstroEvent_Description_MoonPhase {
+            get {
+                return ResourceManager.GetString("AstroEvent_Description_MoonPhase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Magnitude {0:F1}, {1:F1}″.
+        /// </summary>
+        internal static string AstroEvent_Description_PlanetMagnitude {
+            get {
+                return ResourceManager.GetString("AstroEvent_Description_PlanetMagnitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Galactic Core.
+        /// </summary>
+        internal static string AstroEvent_GalacticCore {
+            get {
+                return ResourceManager.GetString("AstroEvent_GalacticCore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Meteor Shower.
+        /// </summary>
+        internal static string AstroEvent_MeteorShower {
+            get {
+                return ResourceManager.GetString("AstroEvent_MeteorShower", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Planet.
+        /// </summary>
+        internal static string AstroEvent_Planet {
+            get {
+                return ResourceManager.GetString("AstroEvent_Planet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Satellite Pass.
+        /// </summary>
+        internal static string AstroEvent_SatellitePass {
+            get {
+                return ResourceManager.GetString("AstroEvent_SatellitePass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Infinity.
+        /// </summary>
+        internal static string AstroFocus_Infinity {
+            get {
+                return ResourceManager.GetString("AstroFocus_Infinity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error calculating equipment recommendations.
+        /// </summary>
+        internal static string AstroLocation_Error_CalculatingRecommendations {
+            get {
+                return ResourceManager.GetString("AstroLocation_Error_CalculatingRecommendations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error retrieving astro events.
+        /// </summary>
+        internal static string AstroLocation_Error_RetrievingEvents {
+            get {
+                return ResourceManager.GetString("AstroLocation_Error_RetrievingEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}% excellent.
+        /// </summary>
+        internal static string AstroQuality_Excellent {
+            get {
+                return ResourceManager.GetString("AstroQuality_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 20 darks, 20 flats, 20 bias.
+        /// </summary>
+        internal static string AstroStacking_CalibrationFramesDSO {
+            get {
+                return ResourceManager.GetString("AstroStacking_CalibrationFramesDSO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 10 darks recommended.
+        /// </summary>
+        internal static string AstroStacking_CalibrationFramesGeneral {
+            get {
+                return ResourceManager.GetString("AstroStacking_CalibrationFramesGeneral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1/{0}s.
+        /// </summary>
+        internal static string AstroStacking_ExposureSeconds {
+            get {
+                return ResourceManager.GetString("AstroStacking_ExposureSeconds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0:F0}s.
+        /// </summary>
+        internal static string AstroStacking_ExposureSecondsLong {
+            get {
+                return ResourceManager.GetString("AstroStacking_ExposureSecondsLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} frames @ {1} each.
+        /// </summary>
+        internal static string AstroStacking_RecommendationFormat {
+            get {
+                return ResourceManager.GetString("AstroStacking_RecommendationFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total: {0:F1} hours.
+        /// </summary>
+        internal static string AstroStacking_TotalTimeHours {
+            get {
+                return ResourceManager.GetString("AstroStacking_TotalTimeHours", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total: {0:F1} minutes.
+        /// </summary>
+        internal static string AstroStacking_TotalTimeMinutes {
+            get {
+                return ResourceManager.GetString("AstroStacking_TotalTimeMinutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comets.
+        /// </summary>
+        internal static string AstroTarget_Comets {
+            get {
+                return ResourceManager.GetString("AstroTarget_Comets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deep Sky Objects.
+        /// </summary>
+        internal static string AstroTarget_DeepSkyObjects {
+            get {
+                return ResourceManager.GetString("AstroTarget_DeepSkyObjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Meteor Showers.
+        /// </summary>
+        internal static string AstroTarget_MeteorShowers {
+            get {
+                return ResourceManager.GetString("AstroTarget_MeteorShowers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Milky Way Core.
+        /// </summary>
+        internal static string AstroTarget_MilkyWayCore {
+            get {
+                return ResourceManager.GetString("AstroTarget_MilkyWayCore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moon.
+        /// </summary>
+        internal static string AstroTarget_Moon {
+            get {
+                return ResourceManager.GetString("AstroTarget_Moon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Planets.
+        /// </summary>
+        internal static string AstroTarget_Planets {
+            get {
+                return ResourceManager.GetString("AstroTarget_Planets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Star Trails.
+        /// </summary>
+        internal static string AstroTarget_StarTrails {
+            get {
+                return ResourceManager.GetString("AstroTarget_StarTrails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Camera calibration failed.
+        /// </summary>
+        internal static string Camera_Calibration_Failed {
+            get {
+                return ResourceManager.GetString("Camera_Calibration_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully created phone camera profile for {0} with {1}mm focal length and {2}° FOV.
+        /// </summary>
+        internal static string Camera_Calibration_Successful {
+            get {
+                return ResourceManager.GetString("Camera_Calibration_Successful", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Aperture.
+        /// </summary>
+        internal static string Camera_Settings_Aperture {
+            get {
+                return ResourceManager.GetString("Camera_Settings_Aperture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exposure Compensation.
+        /// </summary>
+        internal static string Camera_Settings_ExposureCompensation {
+            get {
+                return ResourceManager.GetString("Camera_Settings_ExposureCompensation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focal Length.
+        /// </summary>
+        internal static string Camera_Settings_FocalLength {
+            get {
+                return ResourceManager.GetString("Camera_Settings_FocalLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO.
+        /// </summary>
+        internal static string Camera_Settings_ISO {
+            get {
+                return ResourceManager.GetString("Camera_Settings_ISO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shutter Speed.
+        /// </summary>
+        internal static string Camera_Settings_ShutterSpeed {
+            get {
+                return ResourceManager.GetString("Camera_Settings_ShutterSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected error during camera calibration.
+        /// </summary>
+        internal static string CameraEvaluation_Error_CalibrationFailed {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_CalibrationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create camera profile.
+        /// </summary>
+        internal static string CameraEvaluation_Error_CameraProfileFailed {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_CameraProfileFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error checking duplicates.
+        /// </summary>
+        internal static string CameraEvaluation_Error_CheckingDuplicates {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_CheckingDuplicates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error creating camera body.
+        /// </summary>
+        internal static string CameraEvaluation_Error_CreatingCamera {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_CreatingCamera", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error creating lens.
+        /// </summary>
+        internal static string CameraEvaluation_Error_CreatingLens {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_CreatingLens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to extract EXIF data.
+        /// </summary>
+        internal static string CameraEvaluation_Error_ExtractingEXIF {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_ExtractingEXIF", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error getting mount types.
+        /// </summary>
+        internal static string CameraEvaluation_Error_GettingMountTypes {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_GettingMountTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error getting user cameras.
+        /// </summary>
+        internal static string CameraEvaluation_Error_GettingUserCameras {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_GettingUserCameras", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image does not contain valid focal length data. Please ensure camera settings allow EXIF data to be saved..
+        /// </summary>
+        internal static string CameraEvaluation_Error_InvalidFocalLength {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_InvalidFocalLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image does not contain camera model information.
+        /// </summary>
+        internal static string CameraEvaluation_Error_MissingCameraModel {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_MissingCameraModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No active phone camera profile found.
+        /// </summary>
+        internal static string CameraEvaluation_Error_NoActiveProfile {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_NoActiveProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error retrieving cameras.
+        /// </summary>
+        internal static string CameraEvaluation_Error_RetrievingCameras {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_RetrievingCameras", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error retrieving lenses.
+        /// </summary>
+        internal static string CameraEvaluation_Error_RetrievingLenses {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_RetrievingLenses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error retrieving phone camera profile.
+        /// </summary>
+        internal static string CameraEvaluation_Error_RetrievingProfile {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_RetrievingProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save camera profile.
+        /// </summary>
+        internal static string CameraEvaluation_Error_SavingProfile {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_SavingProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating compatibility.
+        /// </summary>
+        internal static string CameraEvaluation_Error_UpdatingCompatibility {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_UpdatingCompatibility", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least one compatible camera must be selected.
+        /// </summary>
+        internal static string CameraEvaluation_ValidationError_CompatibleCameraRequired {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_ValidationError_CompatibleCameraRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focal length must be greater than 0.
+        /// </summary>
+        internal static string CameraEvaluation_ValidationError_FocalLengthRequired {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_ValidationError_FocalLengthRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image file does not exist.
+        /// </summary>
+        internal static string CameraEvaluation_ValidationError_ImageNotExists {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_ValidationError_ImageNotExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image path is required.
+        /// </summary>
+        internal static string CameraEvaluation_ValidationError_ImagePathRequired {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_ValidationError_ImagePathRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name is required.
+        /// </summary>
+        internal static string CameraEvaluation_ValidationError_NameRequired {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_ValidationError_NameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sensor height must be greater than 0.
+        /// </summary>
+        internal static string CameraEvaluation_ValidationError_SensorHeightRequired {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_ValidationError_SensorHeightRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sensor type is required.
+        /// </summary>
+        internal static string CameraEvaluation_ValidationError_SensorTypeRequired {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_ValidationError_SensorTypeRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sensor width must be greater than 0.
+        /// </summary>
+        internal static string CameraEvaluation_ValidationError_SensorWidthRequired {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_ValidationError_SensorWidthRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sagittarius.
+        /// </summary>
+        internal static string Constellation_Sagittarius {
+            get {
+                return ResourceManager.GetString("Constellation_Sagittarius", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Binoculars or naked eye.
+        /// </summary>
+        internal static string Equipment_BinocularsNakedEye {
+            get {
+                return ResourceManager.GetString("Equipment_BinocularsNakedEye", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cooled camera or modified DSLR.
+        /// </summary>
+        internal static string Equipment_CooledCamera {
+            get {
+                return ResourceManager.GetString("Equipment_CooledCamera", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DSLR or mirrorless camera.
+        /// </summary>
+        internal static string Equipment_DSLRMirrorless {
+            get {
+                return ResourceManager.GetString("Equipment_DSLRMirrorless", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full-frame or APS-C camera.
+        /// </summary>
+        internal static string Equipment_FullFrameCamera {
+            get {
+                return ResourceManager.GetString("Equipment_FullFrameCamera", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full-frame camera with good high-ISO performance.
+        /// </summary>
+        internal static string Equipment_HighISOCamera {
+            get {
+                return ResourceManager.GetString("Equipment_HighISOCamera", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to High-resolution camera with good sensor.
+        /// </summary>
+        internal static string Equipment_HighResolutionCamera {
+            get {
+                return ResourceManager.GetString("Equipment_HighResolutionCamera", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Any camera with manual controls.
+        /// </summary>
+        internal static string Equipment_ManualControlsCamera {
+            get {
+                return ResourceManager.GetString("Equipment_ManualControlsCamera", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 24-70mm standard lens.
+        /// </summary>
+        internal static string Equipment_StandardLens {
+            get {
+                return ResourceManager.GetString("Equipment_StandardLens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 50-200mm telephoto lens.
+        /// </summary>
+        internal static string Equipment_StandardTelephoto {
+            get {
+                return ResourceManager.GetString("Equipment_StandardTelephoto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 500mm+ telephoto or telescope.
+        /// </summary>
+        internal static string Equipment_SuperTelephoto {
+            get {
+                return ResourceManager.GetString("Equipment_SuperTelephoto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telephoto lens or telescope.
+        /// </summary>
+        internal static string Equipment_TelephonoOrTelescope {
+            get {
+                return ResourceManager.GetString("Equipment_TelephonoOrTelescope", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 300-600mm telephoto lens.
+        /// </summary>
+        internal static string Equipment_TelephotoLens {
+            get {
+                return ResourceManager.GetString("Equipment_TelephotoLens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 14-24mm wide-angle lens f/2.8.
+        /// </summary>
+        internal static string Equipment_WideAngleLens {
+            get {
+                return ResourceManager.GetString("Equipment_WideAngleLens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 14-35mm wide-angle lens.
+        /// </summary>
+        internal static string Equipment_WideAngleMeteor {
+            get {
+                return ResourceManager.GetString("Equipment_WideAngleMeteor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide-angle lens, no tracking.
+        /// </summary>
+        internal static string Equipment_WideAngleNoTracking {
+            get {
+                return ResourceManager.GetString("Equipment_WideAngleNoTracking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide-angle lens, tracker recommended.
+        /// </summary>
+        internal static string Equipment_WideAngleTracker {
+            get {
+                return ResourceManager.GetString("Equipment_WideAngleTracker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image will be overexposed by approximately {0:F1} stops.
+        /// </summary>
+        internal static string Exposure_Error_Overexposed {
+            get {
+                return ResourceManager.GetString("Exposure_Error_Overexposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The requested {0} ({1}) exceeds available limits. The closest available value is {2}..
+        /// </summary>
+        internal static string Exposure_Error_ParameterLimit {
+            get {
+                return ResourceManager.GetString("Exposure_Error_ParameterLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image will be underexposed by approximately {0:F1} stops.
+        /// </summary>
+        internal static string Exposure_Error_Underexposed {
+            get {
+                return ResourceManager.GetString("Exposure_Error_Underexposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decrease exposure (-1 to -2 stops).
+        /// </summary>
+        internal static string Exposure_Recommendation_DecreaseExposure {
+            get {
+                return ResourceManager.GetString("Exposure_Recommendation_DecreaseExposure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to High dynamic range - consider HDR or graduated filters.
+        /// </summary>
+        internal static string Exposure_Recommendation_HighDynamicRange {
+            get {
+                return ResourceManager.GetString("Exposure_Recommendation_HighDynamicRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Highlight clipping detected - reduce highlights.
+        /// </summary>
+        internal static string Exposure_Recommendation_HighlightClipping {
+            get {
+                return ResourceManager.GetString("Exposure_Recommendation_HighlightClipping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Increase exposure (+1 to +2 stops).
+        /// </summary>
+        internal static string Exposure_Recommendation_IncreaseExposure {
+            get {
+                return ResourceManager.GetString("Exposure_Recommendation_IncreaseExposure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shadow clipping detected - lift shadows.
+        /// </summary>
+        internal static string Exposure_Recommendation_ShadowClipping {
+            get {
+                return ResourceManager.GetString("Exposure_Recommendation_ShadowClipping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error calculating exposure.
+        /// </summary>
+        internal static string ExposureCalculator_Error_CalculatingExposure {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_Error_CalculatingExposure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid calculation type.
+        /// </summary>
+        internal static string ExposureCalculator_Error_InvalidCalculationType {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_Error_InvalidCalculationType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error retrieving exposure values.
+        /// </summary>
+        internal static string ExposureCalculator_Error_RetrievingValues {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_Error_RetrievingValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base aperture is required.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_ApertureRequired {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_ApertureRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base exposure settings are required.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_BaseExposureRequired {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_BaseExposureRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid calculation type.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_CalculationType {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_CalculationType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EV compensation must be between -5 and +5 stops.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_EVCompensationRange {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_EVCompensationRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid exposure increment value. Must be Full, Half, or Third stops..
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_IncrementRequired {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_IncrementRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid exposure increment value.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_IncrementValue {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_IncrementValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base ISO is required.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_ISORequired {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_ISORequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base shutter speed is required.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_ShutterSpeedRequired {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_ShutterSpeedRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target aperture is required.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_TargetApertureRequired {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_TargetApertureRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target ISO is required.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_TargetISORequired {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_TargetISORequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target shutter speed is required.
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_TargetShutterSpeedRequired {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_TargetShutterSpeedRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target aperture must be in valid f-stop format (e.g., f/2.8).
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_ValidAperture {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_ValidAperture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target ISO must be a valid numeric value (e.g., 100, 400, 1600).
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_ValidISO {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_ValidISO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target shutter speed must be in valid format (e.g., 1/125, 2&quot;, 0.5).
+        /// </summary>
+        internal static string ExposureCalculator_ValidationError_ValidShutterSpeed {
+            get {
+                return ResourceManager.GetString("ExposureCalculator_ValidationError_ValidShutterSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deep blue sky with city lights beginning to show.
+        /// </summary>
+        internal static string LightQuality_BlueSkyCityLights {
+            get {
+                return ResourceManager.GetString("LightQuality_BlueSkyCityLights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Soft, even blue light ideal for cityscapes and landscapes.
+        /// </summary>
+        internal static string LightQuality_SoftEvenBlue {
+            get {
+                return ResourceManager.GetString("LightQuality_SoftEvenBlue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warm, dramatic lighting ideal for portraits and landscapes.
+        /// </summary>
+        internal static string LightQuality_WarmDramaticLandscapes {
+            get {
+                return ResourceManager.GetString("LightQuality_WarmDramaticLandscapes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warm, soft light with long shadows perfect for portraits.
+        /// </summary>
+        internal static string LightQuality_WarmSoftPortraits {
+            get {
+                return ResourceManager.GetString("LightQuality_WarmSoftPortraits", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please contact support if the problem persists.
+        /// </summary>
+        internal static string Message_ContactSupport {
+            get {
+                return ResourceManager.GetString("Message_ContactSupport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading data....
+        /// </summary>
+        internal static string Message_LoadingData {
+            get {
+                return ResourceManager.GetString("Message_LoadingData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No data available.
+        /// </summary>
+        internal static string Message_NoDataAvailable {
+            get {
+                return ResourceManager.GetString("Message_NoDataAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation in progress....
+        /// </summary>
+        internal static string Message_OperationInProgress {
+            get {
+                return ResourceManager.GetString("Message_OperationInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please wait....
+        /// </summary>
+        internal static string Message_PleaseWait {
+            get {
+                return ResourceManager.GetString("Message_PleaseWait", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please try again.
+        /// </summary>
+        internal static string Message_TryAgain {
+            get {
+                return ResourceManager.GetString("Message_TryAgain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First Quarter.
+        /// </summary>
+        internal static string MoonPhase_FirstQuarter {
+            get {
+                return ResourceManager.GetString("MoonPhase_FirstQuarter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full Moon.
+        /// </summary>
+        internal static string MoonPhase_FullMoon {
+            get {
+                return ResourceManager.GetString("MoonPhase_FullMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Moon.
+        /// </summary>
+        internal static string MoonPhase_NewMoon {
+            get {
+                return ResourceManager.GetString("MoonPhase_NewMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Third Quarter.
+        /// </summary>
+        internal static string MoonPhase_ThirdQuarter {
+            get {
+                return ResourceManager.GetString("MoonPhase_ThirdQuarter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waning Crescent.
+        /// </summary>
+        internal static string MoonPhase_WaningCrescent {
+            get {
+                return ResourceManager.GetString("MoonPhase_WaningCrescent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waning Gibbous.
+        /// </summary>
+        internal static string MoonPhase_WaningGibbous {
+            get {
+                return ResourceManager.GetString("MoonPhase_WaningGibbous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waxing Crescent.
+        /// </summary>
+        internal static string MoonPhase_WaxingCrescent {
+            get {
+                return ResourceManager.GetString("MoonPhase_WaxingCrescent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waxing Gibbous.
+        /// </summary>
+        internal static string MoonPhase_WaxingGibbous {
+            get {
+                return ResourceManager.GetString("MoonPhase_WaxingGibbous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Canon.
+        /// </summary>
+        internal static string MountBrand_Canon {
+            get {
+                return ResourceManager.GetString("MountBrand_Canon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fujifilm.
+        /// </summary>
+        internal static string MountBrand_Fujifilm {
+            get {
+                return ResourceManager.GetString("MountBrand_Fujifilm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generic.
+        /// </summary>
+        internal static string MountBrand_Generic {
+            get {
+                return ResourceManager.GetString("MountBrand_Generic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Leica.
+        /// </summary>
+        internal static string MountBrand_Leica {
+            get {
+                return ResourceManager.GetString("MountBrand_Leica", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to M4/3.
+        /// </summary>
+        internal static string MountBrand_MicroFourThirds {
+            get {
+                return ResourceManager.GetString("MountBrand_MicroFourThirds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nikon.
+        /// </summary>
+        internal static string MountBrand_Nikon {
+            get {
+                return ResourceManager.GetString("MountBrand_Nikon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Olympus.
+        /// </summary>
+        internal static string MountBrand_Olympus {
+            get {
+                return ResourceManager.GetString("MountBrand_Olympus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other.
+        /// </summary>
+        internal static string MountBrand_Other {
+            get {
+                return ResourceManager.GetString("MountBrand_Other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Panasonic.
+        /// </summary>
+        internal static string MountBrand_Panasonic {
+            get {
+                return ResourceManager.GetString("MountBrand_Panasonic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pentax.
+        /// </summary>
+        internal static string MountBrand_Pentax {
+            get {
+                return ResourceManager.GetString("MountBrand_Pentax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sigma.
+        /// </summary>
+        internal static string MountBrand_Sigma {
+            get {
+                return ResourceManager.GetString("MountBrand_Sigma", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sony.
+        /// </summary>
+        internal static string MountBrand_Sony {
+            get {
+                return ResourceManager.GetString("MountBrand_Sony", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tamron.
+        /// </summary>
+        internal static string MountBrand_Tamron {
+            get {
+                return ResourceManager.GetString("MountBrand_Tamron", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Canon EF.
+        /// </summary>
+        internal static string MountType_CanonEF {
+            get {
+                return ResourceManager.GetString("MountType_CanonEF", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Canon EF-M.
+        /// </summary>
+        internal static string MountType_CanonEFM {
+            get {
+                return ResourceManager.GetString("MountType_CanonEFM", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Canon EF-S.
+        /// </summary>
+        internal static string MountType_CanonEFS {
+            get {
+                return ResourceManager.GetString("MountType_CanonEFS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Canon FD.
+        /// </summary>
+        internal static string MountType_CanonFD {
+            get {
+                return ResourceManager.GetString("MountType_CanonFD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Canon RF.
+        /// </summary>
+        internal static string MountType_CanonRF {
+            get {
+                return ResourceManager.GetString("MountType_CanonRF", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to C Mount.
+        /// </summary>
+        internal static string MountType_CMount {
+            get {
+                return ResourceManager.GetString("MountType_CMount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CS Mount.
+        /// </summary>
+        internal static string MountType_CSMount {
+            get {
+                return ResourceManager.GetString("MountType_CSMount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fujifilm GFX.
+        /// </summary>
+        internal static string MountType_FujifilmGFX {
+            get {
+                return ResourceManager.GetString("MountType_FujifilmGFX", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fujifilm X.
+        /// </summary>
+        internal static string MountType_FujifilmX {
+            get {
+                return ResourceManager.GetString("MountType_FujifilmX", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Leica L.
+        /// </summary>
+        internal static string MountType_LeicaL {
+            get {
+                return ResourceManager.GetString("MountType_LeicaL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Leica M.
+        /// </summary>
+        internal static string MountType_LeicaM {
+            get {
+                return ResourceManager.GetString("MountType_LeicaM", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Leica SL.
+        /// </summary>
+        internal static string MountType_LeicaSL {
+            get {
+                return ResourceManager.GetString("MountType_LeicaSL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Leica TL.
+        /// </summary>
+        internal static string MountType_LeicaTL {
+            get {
+                return ResourceManager.GetString("MountType_LeicaTL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to M42.
+        /// </summary>
+        internal static string MountType_M42 {
+            get {
+                return ResourceManager.GetString("MountType_M42", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Micro Four Thirds.
+        /// </summary>
+        internal static string MountType_MicroFourThirds {
+            get {
+                return ResourceManager.GetString("MountType_MicroFourThirds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nikon 1.
+        /// </summary>
+        internal static string MountType_Nikon1 {
+            get {
+                return ResourceManager.GetString("MountType_Nikon1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nikon F.
+        /// </summary>
+        internal static string MountType_NikonF {
+            get {
+                return ResourceManager.GetString("MountType_NikonF", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nikon Z.
+        /// </summary>
+        internal static string MountType_NikonZ {
+            get {
+                return ResourceManager.GetString("MountType_NikonZ", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Four Thirds.
+        /// </summary>
+        internal static string MountType_OlympusFourThirds {
+            get {
+                return ResourceManager.GetString("MountType_OlympusFourThirds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other.
+        /// </summary>
+        internal static string MountType_Other {
+            get {
+                return ResourceManager.GetString("MountType_Other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Panasonic L.
+        /// </summary>
+        internal static string MountType_PanasonicL {
+            get {
+                return ResourceManager.GetString("MountType_PanasonicL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pentax K.
+        /// </summary>
+        internal static string MountType_PentaxK {
+            get {
+                return ResourceManager.GetString("MountType_PentaxK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pentax Q.
+        /// </summary>
+        internal static string MountType_PentaxQ {
+            get {
+                return ResourceManager.GetString("MountType_PentaxQ", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sigma SA.
+        /// </summary>
+        internal static string MountType_SigmaSA {
+            get {
+                return ResourceManager.GetString("MountType_SigmaSA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sony A.
+        /// </summary>
+        internal static string MountType_SonyA {
+            get {
+                return ResourceManager.GetString("MountType_SonyA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sony E.
+        /// </summary>
+        internal static string MountType_SonyE {
+            get {
+                return ResourceManager.GetString("MountType_SonyE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sony FE.
+        /// </summary>
+        internal static string MountType_SonyFE {
+            get {
+                return ResourceManager.GetString("MountType_SonyFE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to T2.
+        /// </summary>
+        internal static string MountType_T2 {
+            get {
+                return ResourceManager.GetString("MountType_T2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tamron Adaptall.
+        /// </summary>
+        internal static string MountType_TamronAdaptall {
+            get {
+                return ResourceManager.GetString("MountType_TamronAdaptall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Astro.
+        /// </summary>
+        internal static string Navigation_Astro {
+            get {
+                return ResourceManager.GetString("Navigation_Astro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Camera.
+        /// </summary>
+        internal static string Navigation_Camera {
+            get {
+                return ResourceManager.GetString("Navigation_Camera", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exposure.
+        /// </summary>
+        internal static string Navigation_Exposure {
+            get {
+                return ResourceManager.GetString("Navigation_Exposure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lens.
+        /// </summary>
+        internal static string Navigation_Lens {
+            get {
+                return ResourceManager.GetString("Navigation_Lens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moon.
+        /// </summary>
+        internal static string Navigation_Moon {
+            get {
+                return ResourceManager.GetString("Navigation_Moon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scene.
+        /// </summary>
+        internal static string Navigation_Scene {
+            get {
+                return ResourceManager.GetString("Navigation_Scene", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Subscription.
+        /// </summary>
+        internal static string Navigation_Subscription {
+            get {
+                return ResourceManager.GetString("Navigation_Subscription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sun.
+        /// </summary>
+        internal static string Navigation_Sun {
+            get {
+                return ResourceManager.GetString("Navigation_Sun", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blue Hour Evening.
+        /// </summary>
+        internal static string OptimalTime_BlueHourEvening {
+            get {
+                return ResourceManager.GetString("OptimalTime_BlueHourEvening", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blue Hour Morning.
+        /// </summary>
+        internal static string OptimalTime_BlueHourMorning {
+            get {
+                return ResourceManager.GetString("OptimalTime_BlueHourMorning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Architecture.
+        /// </summary>
+        internal static string OptimalTime_Description_Architecture {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_Architecture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Astrophotography.
+        /// </summary>
+        internal static string OptimalTime_Description_Astrophotography {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_Astrophotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blue Hour.
+        /// </summary>
+        internal static string OptimalTime_Description_BlueHour {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_BlueHour", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cityscapes.
+        /// </summary>
+        internal static string OptimalTime_Description_Cityscapes {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_Cityscapes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dawn Photography.
+        /// </summary>
+        internal static string OptimalTime_Description_DawnPhotography {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_DawnPhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Golden Hour.
+        /// </summary>
+        internal static string OptimalTime_Description_GoldenHour {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_GoldenHour", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Landscapes.
+        /// </summary>
+        internal static string OptimalTime_Description_Landscapes {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_Landscapes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Long Exposure.
+        /// </summary>
+        internal static string OptimalTime_Description_LongExposure {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_LongExposure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimal Shadows.
+        /// </summary>
+        internal static string OptimalTime_Description_MinimalShadows {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_MinimalShadows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Night Cityscapes.
+        /// </summary>
+        internal static string OptimalTime_Description_NightCityscapes {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_NightCityscapes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Night Photography.
+        /// </summary>
+        internal static string OptimalTime_Description_NightPhotography {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_NightPhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Portraits.
+        /// </summary>
+        internal static string OptimalTime_Description_Portraits {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_Portraits", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Silhouettes.
+        /// </summary>
+        internal static string OptimalTime_Description_Silhouettes {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_Silhouettes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sunrise Photography.
+        /// </summary>
+        internal static string OptimalTime_Description_SunrisePhotography {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_SunrisePhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sunset Photography.
+        /// </summary>
+        internal static string OptimalTime_Description_SunsetPhotography {
+            get {
+                return ResourceManager.GetString("OptimalTime_Description_SunsetPhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dusk.
+        /// </summary>
+        internal static string OptimalTime_Dusk {
+            get {
+                return ResourceManager.GetString("OptimalTime_Dusk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Golden Hour Evening.
+        /// </summary>
+        internal static string OptimalTime_GoldenHourEvening {
+            get {
+                return ResourceManager.GetString("OptimalTime_GoldenHourEvening", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Golden Hour Morning.
+        /// </summary>
+        internal static string OptimalTime_GoldenHourMorning {
+            get {
+                return ResourceManager.GetString("OptimalTime_GoldenHourMorning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nautical Dawn.
+        /// </summary>
+        internal static string OptimalTime_NauticalDawn {
+            get {
+                return ResourceManager.GetString("OptimalTime_NauticalDawn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nautical Dusk.
+        /// </summary>
+        internal static string OptimalTime_NauticalDusk {
+            get {
+                return ResourceManager.GetString("OptimalTime_NauticalDusk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Night.
+        /// </summary>
+        internal static string OptimalTime_Night {
+            get {
+                return ResourceManager.GetString("OptimalTime_Night", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solar Noon.
+        /// </summary>
+        internal static string OptimalTime_SolarNoon {
+            get {
+                return ResourceManager.GetString("OptimalTime_SolarNoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sunrise.
+        /// </summary>
+        internal static string OptimalTime_Sunrise {
+            get {
+                return ResourceManager.GetString("OptimalTime_Sunrise", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sunset.
+        /// </summary>
+        internal static string OptimalTime_Sunset {
+            get {
+                return ResourceManager.GetString("OptimalTime_Sunset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Crop Factor.
+        /// </summary>
+        internal static string Photography_CropFactor {
+            get {
+                return ResourceManager.GetString("Photography_CropFactor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Depth of Field.
+        /// </summary>
+        internal static string Photography_DepthOfField {
+            get {
+                return ResourceManager.GetString("Photography_DepthOfField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exposure Triangle.
+        /// </summary>
+        internal static string Photography_ExposureTriangle {
+            get {
+                return ResourceManager.GetString("Photography_ExposureTriangle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field of View.
+        /// </summary>
+        internal static string Photography_FieldOfView {
+            get {
+                return ResourceManager.GetString("Photography_FieldOfView", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Magnification.
+        /// </summary>
+        internal static string Photography_Magnification {
+            get {
+                return ResourceManager.GetString("Photography_Magnification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prime.
+        /// </summary>
+        internal static string Photography_Prime {
+            get {
+                return ResourceManager.GetString("Photography_Prime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sensor Size.
+        /// </summary>
+        internal static string Photography_SensorSize {
+            get {
+                return ResourceManager.GetString("Photography_SensorSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Zoom.
+        /// </summary>
+        internal static string Photography_Zoom {
+            get {
+                return ResourceManager.GetString("Photography_Zoom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Jupiter.
+        /// </summary>
+        internal static string Planet_Jupiter {
+            get {
+                return ResourceManager.GetString("Planet_Jupiter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mars.
+        /// </summary>
+        internal static string Planet_Mars {
+            get {
+                return ResourceManager.GetString("Planet_Mars", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mercury.
+        /// </summary>
+        internal static string Planet_Mercury {
+            get {
+                return ResourceManager.GetString("Planet_Mercury", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Neptune.
+        /// </summary>
+        internal static string Planet_Neptune {
+            get {
+                return ResourceManager.GetString("Planet_Neptune", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pluto.
+        /// </summary>
+        internal static string Planet_Pluto {
+            get {
+                return ResourceManager.GetString("Planet_Pluto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saturn.
+        /// </summary>
+        internal static string Planet_Saturn {
+            get {
+                return ResourceManager.GetString("Planet_Saturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uranus.
+        /// </summary>
+        internal static string Planet_Uranus {
+            get {
+                return ResourceManager.GetString("Planet_Uranus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Venus.
+        /// </summary>
+        internal static string Planet_Venus {
+            get {
+                return ResourceManager.GetString("Planet_Venus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent.
+        /// </summary>
+        internal static string Quality_Excellent {
+            get {
+                return ResourceManager.GetString("Quality_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fair.
+        /// </summary>
+        internal static string Quality_Fair {
+            get {
+                return ResourceManager.GetString("Quality_Fair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good.
+        /// </summary>
+        internal static string Quality_Good {
+            get {
+                return ResourceManager.GetString("Quality_Good", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poor.
+        /// </summary>
+        internal static string Quality_Poor {
+            get {
+                return ResourceManager.GetString("Quality_Poor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error analyzing image.
+        /// </summary>
+        internal static string SceneEvaluation_Error_AnalyzingImage {
+            get {
+                return ResourceManager.GetString("SceneEvaluation_Error_AnalyzingImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error evaluating scene.
+        /// </summary>
+        internal static string SceneEvaluation_Error_EvaluatingScene {
+            get {
+                return ResourceManager.GetString("SceneEvaluation_Error_EvaluatingScene", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autumn: Days getting shorter.
+        /// </summary>
+        internal static string Seasonal_AutumnGettingShorter {
+            get {
+                return ResourceManager.GetString("Seasonal_AutumnGettingShorter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spring: Days getting longer.
+        /// </summary>
+        internal static string Seasonal_SpringGettingLonger {
+            get {
+                return ResourceManager.GetString("Seasonal_SpringGettingLonger", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summer: Long days, high sun angle.
+        /// </summary>
+        internal static string Seasonal_SummerLongDays {
+            get {
+                return ResourceManager.GetString("Seasonal_SummerLongDays", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Winter: Short days, low sun angle.
+        /// </summary>
+        internal static string Seasonal_WinterShortDays {
+            get {
+                return ResourceManager.GetString("Seasonal_WinterShortDays", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active.
+        /// </summary>
+        internal static string Status_Active {
+            get {
+                return ResourceManager.GetString("Status_Active", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Completed.
+        /// </summary>
+        internal static string Status_Completed {
+            get {
+                return ResourceManager.GetString("Status_Completed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expired.
+        /// </summary>
+        internal static string Status_Expired {
+            get {
+                return ResourceManager.GetString("Status_Expired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed.
+        /// </summary>
+        internal static string Status_Failed {
+            get {
+                return ResourceManager.GetString("Status_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inactive.
+        /// </summary>
+        internal static string Status_Inactive {
+            get {
+                return ResourceManager.GetString("Status_Inactive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending.
+        /// </summary>
+        internal static string Status_Pending {
+            get {
+                return ResourceManager.GetString("Status_Pending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Processing.
+        /// </summary>
+        internal static string Status_Processing {
+            get {
+                return ResourceManager.GetString("Status_Processing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to initialize subscription service.
+        /// </summary>
+        internal static string Subscription_Error_InitializationFailed {
+            get {
+                return ResourceManager.GetString("Subscription_Error_InitializationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to process subscription.
+        /// </summary>
+        internal static string Subscription_Error_ProcessingFailed {
+            get {
+                return ResourceManager.GetString("Subscription_Error_ProcessingFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve subscription products.
+        /// </summary>
+        internal static string Subscription_Error_ProductRetrievalFailed {
+            get {
+                return ResourceManager.GetString("Subscription_Error_ProductRetrievalFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve subscription status.
+        /// </summary>
+        internal static string Subscription_Error_RetrievalFailed {
+            get {
+                return ResourceManager.GetString("Subscription_Error_RetrievalFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error checking subscription status.
+        /// </summary>
+        internal static string Subscription_Error_StatusCheckFailed {
+            get {
+                return ResourceManager.GetString("Subscription_Error_StatusCheckFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error storing subscription in settings.
+        /// </summary>
+        internal static string Subscription_Error_StoringFailed {
+            get {
+                return ResourceManager.GetString("Subscription_Error_StoringFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your premium subscription has expired. You have limited time remaining to renew..
+        /// </summary>
+        internal static string Subscription_FeatureGuard_ExpiredGracePeriod {
+            get {
+                return ResourceManager.GetString("Subscription_FeatureGuard_ExpiredGracePeriod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your professional subscription has expired. You have limited time remaining to renew..
+        /// </summary>
+        internal static string Subscription_FeatureGuard_ExpiredProGracePeriod {
+            get {
+                return ResourceManager.GetString("Subscription_FeatureGuard_ExpiredProGracePeriod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premium or Professional subscription required to access this feature.
+        /// </summary>
+        internal static string Subscription_FeatureGuard_PaidRequired {
+            get {
+                return ResourceManager.GetString("Subscription_FeatureGuard_PaidRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premium subscription required to access this feature.
+        /// </summary>
+        internal static string Subscription_FeatureGuard_PremiumRequired {
+            get {
+                return ResourceManager.GetString("Subscription_FeatureGuard_PremiumRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Professional subscription required to access this feature.
+        /// </summary>
+        internal static string Subscription_FeatureGuard_ProfessionalRequired {
+            get {
+                return ResourceManager.GetString("Subscription_FeatureGuard_ProfessionalRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expiration date must be in the future.
+        /// </summary>
+        internal static string Subscription_ValidationError_ExpirationDateFuture {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_ExpirationDateFuture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expiration date is required.
+        /// </summary>
+        internal static string Subscription_ValidationError_ExpirationDateRequired {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_ExpirationDateRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Purchase date must be before expiration date.
+        /// </summary>
+        internal static string Subscription_ValidationError_InvalidDateRange {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_InvalidDateRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Product ID must be a valid subscription product identifier.
+        /// </summary>
+        internal static string Subscription_ValidationError_InvalidProductId {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_InvalidProductId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Purchase date must be a valid date not in the future.
+        /// </summary>
+        internal static string Subscription_ValidationError_InvalidPurchaseDate {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_InvalidPurchaseDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Subscription period must be Monthly or Yearly.
+        /// </summary>
+        internal static string Subscription_ValidationError_PeriodRequired {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_PeriodRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Product ID is required.
+        /// </summary>
+        internal static string Subscription_ValidationError_ProductIdRequired {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_ProductIdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Purchase date is required.
+        /// </summary>
+        internal static string Subscription_ValidationError_PurchaseDateRequired {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_PurchaseDateRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Transaction ID must be at least 5 characters long.
+        /// </summary>
+        internal static string Subscription_ValidationError_TransactionIdMinLength {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_TransactionIdMinLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Transaction ID is required.
+        /// </summary>
+        internal static string Subscription_ValidationError_TransactionIdRequired {
+            get {
+                return ResourceManager.GetString("Subscription_ValidationError_TransactionIdRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Free.
+        /// </summary>
+        internal static string SubscriptionType_Free {
+            get {
+                return ResourceManager.GetString("SubscriptionType_Free", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premium.
+        /// </summary>
+        internal static string SubscriptionType_Premium {
+            get {
+                return ResourceManager.GetString("SubscriptionType_Premium", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pro.
+        /// </summary>
+        internal static string SubscriptionType_Pro {
+            get {
+                return ResourceManager.GetString("SubscriptionType_Pro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error calculating moon data.
+        /// </summary>
+        internal static string SunLocation_Error_CalculatingMoonData {
+            get {
+                return ResourceManager.GetString("SunLocation_Error_CalculatingMoonData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error calculating optimal times.
+        /// </summary>
+        internal static string SunLocation_Error_CalculatingOptimalTimes {
+            get {
+                return ResourceManager.GetString("SunLocation_Error_CalculatingOptimalTimes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error calculating shadows.
+        /// </summary>
+        internal static string SunLocation_Error_CalculatingShadows {
+            get {
+                return ResourceManager.GetString("SunLocation_Error_CalculatingShadows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error calculating sun path.
+        /// </summary>
+        internal static string SunLocation_Error_CalculatingSunPath {
+            get {
+                return ResourceManager.GetString("SunLocation_Error_CalculatingSunPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error calculating sun position.
+        /// </summary>
+        internal static string SunLocation_Error_CalculatingSunPosition {
+            get {
+                return ResourceManager.GetString("SunLocation_Error_CalculatingSunPosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error calculating sun times.
+        /// </summary>
+        internal static string SunLocation_Error_CalculatingSunTimes {
+            get {
+                return ResourceManager.GetString("SunLocation_Error_CalculatingSunTimes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Date is required.
+        /// </summary>
+        internal static string SunLocation_ValidationError_DateRequired {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_DateRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DateTime is required.
+        /// </summary>
+        internal static string SunLocation_ValidationError_DateTimeRequired {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_DateTimeRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interval minutes must be between 1 and 60.
+        /// </summary>
+        internal static string SunLocation_ValidationError_IntervalMinutes {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_IntervalMinutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Date must be a valid date within reasonable range.
+        /// </summary>
+        internal static string SunLocation_ValidationError_InvalidDateRange {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_InvalidDateRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DateTime must be a valid date and time within reasonable range.
+        /// </summary>
+        internal static string SunLocation_ValidationError_InvalidDateTimeRange {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_InvalidDateTimeRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Latitude must be between -90 and 90 degrees.
+        /// </summary>
+        internal static string SunLocation_ValidationError_LatitudeRange {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_LatitudeRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Longitude must be between -180 and 180 degrees.
+        /// </summary>
+        internal static string SunLocation_ValidationError_LongitudeRange {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_LongitudeRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object height must be greater than 0.
+        /// </summary>
+        internal static string SunLocation_ValidationError_ObjectHeight {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_ObjectHeight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object height must be less than or equal to 1000 meters.
+        /// </summary>
+        internal static string SunLocation_ValidationError_ObjectHeightMaximum {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_ObjectHeightMaximum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid terrain type.
+        /// </summary>
+        internal static string SunLocation_ValidationError_TerrainType {
+            get {
+                return ResourceManager.GetString("SunLocation_ValidationError_TerrainType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Beach.
+        /// </summary>
+        internal static string Terrain_Beach {
+            get {
+                return ResourceManager.GetString("Terrain_Beach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Flat.
+        /// </summary>
+        internal static string Terrain_Flat {
+            get {
+                return ResourceManager.GetString("Terrain_Flat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Forest.
+        /// </summary>
+        internal static string Terrain_Forest {
+            get {
+                return ResourceManager.GetString("Terrain_Forest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mountain.
+        /// </summary>
+        internal static string Terrain_Mountain {
+            get {
+                return ResourceManager.GetString("Terrain_Mountain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Urban.
+        /// </summary>
+        internal static string Terrain_Urban {
+            get {
+                return ResourceManager.GetString("Terrain_Urban", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error determining batch timezones.
+        /// </summary>
+        internal static string Timezone_Error_DeterminingBatch {
+            get {
+                return ResourceManager.GetString("Timezone_Error_DeterminingBatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error determining timezone.
+        /// </summary>
+        internal static string Timezone_Error_DeterminingTimezone {
+            get {
+                return ResourceManager.GetString("Timezone_Error_DeterminingTimezone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to determine timezone for coordinates.
+        /// </summary>
+        internal static string Timezone_Error_UnableToDetermine {
+            get {
+                return ResourceManager.GetString("Timezone_Error_UnableToDetermine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;.
+        /// </summary>
+        internal static string Unit_ArcMinutes {
+            get {
+                return ResourceManager.GetString("Unit_ArcMinutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ″.
+        /// </summary>
+        internal static string Unit_ArcSeconds {
+            get {
+                return ResourceManager.GetString("Unit_ArcSeconds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to °.
+        /// </summary>
+        internal static string Unit_DegreesSymbol {
+            get {
+                return ResourceManager.GetString("Unit_DegreesSymbol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to h.
+        /// </summary>
+        internal static string Unit_Hours {
+            get {
+                return ResourceManager.GetString("Unit_Hours", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to m.
+        /// </summary>
+        internal static string Unit_Meters {
+            get {
+                return ResourceManager.GetString("Unit_Meters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to mm.
+        /// </summary>
+        internal static string Unit_Millimeters {
+            get {
+                return ResourceManager.GetString("Unit_Millimeters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to min.
+        /// </summary>
+        internal static string Unit_Minutes {
+            get {
+                return ResourceManager.GetString("Unit_Minutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %.
+        /// </summary>
+        internal static string Unit_Percent {
+            get {
+                return ResourceManager.GetString("Unit_Percent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to s.
+        /// </summary>
+        internal static string Unit_Seconds {
+            get {
+                return ResourceManager.GetString("Unit_Seconds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud Cover.
+        /// </summary>
+        internal static string Weather_CloudCover {
+            get {
+                return ResourceManager.GetString("Weather_CloudCover", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Humidity.
+        /// </summary>
+        internal static string Weather_Humidity {
+            get {
+                return ResourceManager.GetString("Weather_Humidity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fair.
+        /// </summary>
+        internal static string Weather_Suitability_Fair {
+            get {
+                return ResourceManager.GetString("Weather_Suitability_Fair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good.
+        /// </summary>
+        internal static string Weather_Suitability_Good {
+            get {
+                return ResourceManager.GetString("Weather_Suitability_Good", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poor.
+        /// </summary>
+        internal static string Weather_Suitability_Poor {
+            get {
+                return ResourceManager.GetString("Weather_Suitability_Poor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Visibility.
+        /// </summary>
+        internal static string Weather_Visibility {
+            get {
+                return ResourceManager.GetString("Weather_Visibility", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wind Speed.
+        /// </summary>
+        internal static string Weather_WindSpeed {
+            get {
+                return ResourceManager.GetString("Weather_WindSpeed", resourceCulture);
+            }
+        }
     }
 }

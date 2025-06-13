@@ -1,4 +1,5 @@
-﻿// Location.Photography.Application/Errors/ExposureErrors.cs
+﻿using Location.Photography.Application.Resources;
+
 namespace Location.Photography.Application.Errors
 {
     /// <summary>
@@ -23,7 +24,7 @@ namespace Location.Photography.Application.Errors
         public double StopsOverexposed { get; }
 
         public OverexposedError(double stopsOverexposed)
-            : base($"Image will be overexposed by approximately {stopsOverexposed:F1} stops")
+            : base(string.Format(AppResources.Exposure_Error_Overexposed, stopsOverexposed))
         {
             StopsOverexposed = stopsOverexposed;
         }
@@ -37,7 +38,7 @@ namespace Location.Photography.Application.Errors
         public double StopsUnderexposed { get; }
 
         public UnderexposedError(double stopsUnderexposed)
-            : base($"Image will be underexposed by approximately {stopsUnderexposed:F1} stops")
+            : base(string.Format(AppResources.Exposure_Error_Underexposed, stopsUnderexposed))
         {
             StopsUnderexposed = stopsUnderexposed;
         }
@@ -53,7 +54,7 @@ namespace Location.Photography.Application.Errors
         public string AvailableLimit { get; }
 
         public ExposureParameterLimitError(string parameterName, string requestedValue, string availableLimit)
-            : base($"The requested {parameterName} ({requestedValue}) exceeds available limits. The closest available value is {availableLimit}.")
+            : base(string.Format(AppResources.Exposure_Error_ParameterLimit, parameterName, requestedValue, availableLimit))
         {
             ParameterName = parameterName;
             RequestedValue = requestedValue;
