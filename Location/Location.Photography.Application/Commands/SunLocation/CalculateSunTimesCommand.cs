@@ -42,7 +42,7 @@ namespace Location.Photography.Application.Commands.SunLocation
                 catch (Exception ex)
                 {
                     // Handle unexpected exceptions by returning a failure result
-                    return Result<SunTimesDto>.Failure(string.Format(AppResources.SunLocation_Error_CalculatingSunTimes + ": {0}", ex.Message));
+                    return Result<SunTimesDto>.Failure(AppResources.SunLocation_Error_CalculatingSunTimes);
                 }
             }
         }

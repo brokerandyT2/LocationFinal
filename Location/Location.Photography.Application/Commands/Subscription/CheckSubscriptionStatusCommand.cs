@@ -33,7 +33,8 @@ namespace Location.Photography.Application.Commands.Subscription
             }
             catch (Exception ex)
             {
-                return Result<SubscriptionStatusResult>.Failure(string.Format(AppResources.Subscription_Error_StatusCheckFailed + ": {0}", ex.Message));
+
+                return Result<SubscriptionStatusResult>.Failure("Error checking subscription status");
             }
         }
     }

@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Services;
+using Location.Photography.Application.Resources;
 using Location.Photography.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -38,7 +39,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading camera sensor profiles from JSON contents");
-                return Result<List<CameraBodyDto>>.Failure($"Error loading camera profiles: {ex.Message}");
+                return Result<List<CameraBodyDto>>.Failure(AppResources.CameraEvaluation_Error_RetrievingCameras);
             }
         }
 
@@ -91,7 +92,12 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error parsing camera JSON content");
-                return Result<List<CameraBodyDto>>.Failure($"Error parsing JSON: {ex.Message}");
+                // TODO: Add new string entry to AppResources.resx:
+                // <data name="CameraEvaluation_Error_ParsingCameraData">
+                //   <value>Unable to load camera data</value>
+                //   <comment>Error message when camera data parsing fails</comment>
+                // </data>
+                return Result<List<CameraBodyDto>>.Failure(AppResources.CameraEvaluation_Error_ParsingCameraData);
             }
         }
 

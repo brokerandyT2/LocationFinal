@@ -1,10 +1,10 @@
 ﻿// Location.Photography.Application/Queries/SunLocation/GetEnhancedSunTimesQueryHandler.cs
 using Location.Core.Application.Common.Models;
+using Location.Photography.Application.Resources;
 using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
-
 
 namespace Location.Photography.Application.Queries.SunLocation
 {
@@ -76,7 +76,7 @@ namespace Location.Photography.Application.Queries.SunLocation
             {
                 _logger.LogError(ex, "Error calculating enhanced sun times for coordinates {Latitude}, {Longitude} on {Date}",
                     request.Latitude, request.Longitude, request.Date);
-                return Result<EnhancedSunTimes>.Failure($"Error calculating sun times: {ex.Message}");
+                return Result<EnhancedSunTimes>.Failure(AppResources.SunLocation_Error_CalculatingSunTimes);
             }
         }
     }

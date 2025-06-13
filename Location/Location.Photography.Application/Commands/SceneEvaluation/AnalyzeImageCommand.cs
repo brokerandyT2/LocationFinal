@@ -33,7 +33,7 @@ namespace Location.Photography.Application.Commands.SceneEvaluation
             }
             catch (Exception ex)
             {
-                return Result<SceneEvaluationResultDto>.Failure(string.Format(AppResources.SceneEvaluation_Error_AnalyzingImage + ": {0}", ex.Message));
+                return Result<SceneEvaluationResultDto>.Failure(AppResources.SceneEvaluation_Error_AnalyzingImage);
             }
         }
     }

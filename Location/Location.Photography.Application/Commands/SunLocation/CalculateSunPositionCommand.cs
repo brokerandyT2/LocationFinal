@@ -33,7 +33,7 @@ namespace Location.Photography.Application.Commands.SunLocation
                 }
                 catch (Exception ex)
                 {
-                    return Result<SunPositionDto>.Failure(string.Format(AppResources.SunLocation_Error_CalculatingSunPosition + ": {0}", ex.Message));
+                    return Result<SunPositionDto>.Failure(AppResources.SunLocation_Error_CalculatingSunPosition);
                 }
             }
         }

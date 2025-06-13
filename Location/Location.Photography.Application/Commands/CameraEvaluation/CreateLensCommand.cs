@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Notifications;
+using Location.Photography.Application.Resources;
 using Location.Photography.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -45,6 +46,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
         private readonly ILensCameraCompatibilityRepository _compatibilityRepository;
         private readonly ILogger<CreateLensCommandHandler> _logger;
         private readonly IMediator _mediator;
+
         public CreateLensCommandHandler(
             ILensRepository lensRepository,
             ILensCameraCompatibilityRepository compatibilityRepository,
@@ -66,7 +68,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                 // Validate that at least one camera is selected
                 if (!request.CompatibleCameraIds.Any())
                 {
-                    return Result<CreateLensResultDto>.Failure("At least one compatible camera must be selected");
+                    return Result<CreateLensResultDto>.Failure(AppResources.CameraEvaluation_ValidationError_CompatibleCameraRequired);
                 }
 
                 // Check for similar lens (fuzzy search by focal length)
@@ -75,7 +77,6 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                 if (existingResult.IsSuccess && existingResult.Data.Count > 0)
                 {
                     var similarLens = existingResult.Data.FirstOrDefault();
-
                 }
 
                 // Create the lens
@@ -91,7 +92,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
 
                 if (!createResult.IsSuccess)
                 {
-                    return Result<CreateLensResultDto>.Failure(createResult.ErrorMessage ?? "Failed to create lens");
+                    return Result<CreateLensResultDto>.Failure(createResult.ErrorMessage ?? AppResources.CameraEvaluation_Error_CreatingLens);
                 }
 
                 // Create compatibility relationships
@@ -144,7 +145,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating lens");
-                return Result<CreateLensResultDto>.Failure($"Error creating lens: {ex.Message}");
+                return Result<CreateLensResultDto>.Failure(AppResources.CameraEvaluation_Error_CreatingLens);
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Notifications;
+using Location.Photography.Application.Resources;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Enums;
 using MediatR;
@@ -39,7 +40,8 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
 
         public CreateCameraBodyCommandHandler(
             ICameraBodyRepository cameraBodyRepository,
-            ILogger<CreateCameraBodyCommandHandler> logger, IMediator mediator)
+            ILogger<CreateCameraBodyCommandHandler> logger,
+            IMediator mediator)
         {
             _cameraBodyRepository = cameraBodyRepository ?? throw new ArgumentNullException(nameof(cameraBodyRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -56,7 +58,12 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                 var existingResult = await _cameraBodyRepository.SearchByNameAsync(request.Name, cancellationToken);
                 if (existingResult.IsSuccess && existingResult.Data.Count > 0)
                 {
-                    return Result<CameraBodyDto>.Failure($"A similar camera '{existingResult.Data[0].Name}' already exists. Continue anyway?");
+                    // TODO: Add new string entry to AppResources.resx:
+                    // <data name="CameraEvaluation_Error_CameraDuplicateConfirmation">
+                    //   <value>A similar camera already exists. Continue anyway?</value>
+                    //   <comment>Confirmation message when creating similar camera</comment>
+                    // </data>
+                    return Result<CameraBodyDto>.Failure("A similar camera already exists. Continue anyway?");
                 }
 
                 // Create the camera body
@@ -72,7 +79,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
 
                 if (!createResult.IsSuccess)
                 {
-                    return Result<CameraBodyDto>.Failure(createResult.ErrorMessage ?? "Failed to create camera body");
+                    return Result<CameraBodyDto>.Failure(createResult.ErrorMessage ?? AppResources.CameraEvaluation_Error_CreatingCamera);
                 }
 
                 var dto = new CameraBodyDto
@@ -102,7 +109,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating camera body: {Name}", request.Name);
-                return Result<CameraBodyDto>.Failure($"Error creating camera body: {ex.Message}");
+                return Result<CameraBodyDto>.Failure(AppResources.CameraEvaluation_Error_CreatingCamera);
             }
         }
     }

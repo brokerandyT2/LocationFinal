@@ -3,6 +3,7 @@ using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
+using Location.Photography.Application.Resources;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -52,7 +53,7 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
                     var userCamerasResult = await _cameraBodyRepository.GetUserCamerasAsync(cancellationToken);
                     if (!userCamerasResult.IsSuccess)
                     {
-                        return Result<GetCameraBodiesResultDto>.Failure(userCamerasResult.ErrorMessage ?? "Failed to retrieve user cameras");
+                        return Result<GetCameraBodiesResultDto>.Failure(userCamerasResult.ErrorMessage ?? AppResources.CameraEvaluation_Error_GettingUserCameras);
                     }
 
                     var userCameraDtos = userCamerasResult.Data.Select(c => new CameraBodyDto
@@ -114,7 +115,6 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
                 var totalCount = sortedCameras.Count;
                 var pagedCameras = sortedCameras;
 
-
                 var result = new GetCameraBodiesResultDto
                 {
                     CameraBodies = pagedCameras,
@@ -131,7 +131,7 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving camera bodies");
-                return Result<GetCameraBodiesResultDto>.Failure($"Error retrieving cameras: {ex.Message}");
+                return Result<GetCameraBodiesResultDto>.Failure(AppResources.CameraEvaluation_Error_RetrievingCameras);
             }
         }
     }

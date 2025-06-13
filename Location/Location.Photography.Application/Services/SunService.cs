@@ -1,5 +1,6 @@
 ﻿// Location.Photography.Infrastructure/Services/SunService.cs
 using Location.Core.Application.Common.Models;
+using Location.Photography.Application.Resources;
 using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
 using System.Collections.Concurrent;
@@ -61,7 +62,7 @@ namespace Location.Photography.Application.Services
             }
             catch (Exception ex)
             {
-                return Result<SunPositionDto>.Failure($"Error calculating sun position: {ex.Message}");
+                return Result<SunPositionDto>.Failure(AppResources.SunLocation_Error_CalculatingSunPosition);
             }
         }
 
@@ -122,7 +123,7 @@ namespace Location.Photography.Application.Services
             }
             catch (Exception ex)
             {
-                return Result<SunTimesDto>.Failure($"Error calculating sun times: {ex.Message}");
+                return Result<SunTimesDto>.Failure(AppResources.SunLocation_Error_CalculatingSunTimes);
             }
         }
 
@@ -160,7 +161,7 @@ namespace Location.Photography.Application.Services
             }
             catch (Exception ex)
             {
-                return Result<List<SunPositionDto>>.Failure($"Error calculating batch sun positions: {ex.Message}");
+                return Result<List<SunPositionDto>>.Failure(AppResources.SunLocation_Error_CalculatingSunPosition);
             }
         }
 
@@ -187,10 +188,10 @@ namespace Location.Photography.Application.Services
                     return result.IsSuccess ? result.Data : null;
                 });
 
-                var sunTimes = await Task.WhenAll(timeTasks).ConfigureAwait(false);
-                var validSunTimes = sunTimes.Where(s => s != null).ToList();
+                var times = await Task.WhenAll(timeTasks).ConfigureAwait(false);
+                var validTimes = times.Where(t => t != null).ToList();
 
-                return Result<List<SunTimesDto>>.Success(validSunTimes);
+                return Result<List<SunTimesDto>>.Success(validTimes);
             }
             catch (OperationCanceledException)
             {
@@ -198,200 +199,8 @@ namespace Location.Photography.Application.Services
             }
             catch (Exception ex)
             {
-                return Result<List<SunTimesDto>>.Failure($"Error calculating batch sun times: {ex.Message}");
+                return Result<List<SunTimesDto>>.Failure(AppResources.SunLocation_Error_CalculatingSunTimes);
             }
         }
-
-        /// <summary>
-        /// Get sun data for a date range to support calendar/planning features
-        /// </summary>
-        public async Task<Result<Dictionary<DateTime, SunTimesDto>>> GetSunTimesRangeAsync(
-            double latitude,
-            double longitude,
-            DateTime startDate,
-            DateTime endDate,
-            CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var result = new Dictionary<DateTime, SunTimesDto>();
-                var dateRequests = new List<(double latitude, double longitude, DateTime date)>();
-
-                // Generate date range requests
-                var currentDate = startDate.Date;
-                while (currentDate <= endDate.Date)
-                {
-                    dateRequests.Add((latitude, longitude, currentDate));
-                    currentDate = currentDate.AddDays(1);
-                }
-
-                // Use batch processing for efficiency
-                var batchResult = await GetBatchSunTimesAsync(dateRequests, cancellationToken).ConfigureAwait(false);
-
-                if (!batchResult.IsSuccess)
-                {
-                    return Result<Dictionary<DateTime, SunTimesDto>>.Failure(batchResult.ErrorMessage);
-                }
-
-                // Organize results by date
-                foreach (var sunTimes in batchResult.Data)
-                {
-                    result[sunTimes.Date.Date] = sunTimes;
-                }
-
-                return Result<Dictionary<DateTime, SunTimesDto>>.Success(result);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                return Result<Dictionary<DateTime, SunTimesDto>>.Failure($"Error calculating sun times range: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Calculate optimal photography times based on sun position and lighting conditions
-        /// </summary>
-        public async Task<Result<List<OptimalPhotoTime>>> GetOptimalPhotoTimesAsync(
-            double latitude,
-            double longitude,
-            DateTime date,
-            CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var sunTimesResult = await GetSunTimesAsync(latitude, longitude, date, cancellationToken).ConfigureAwait(false);
-                if (!sunTimesResult.IsSuccess)
-                {
-                    return Result<List<OptimalPhotoTime>>.Failure(sunTimesResult.ErrorMessage);
-                }
-
-                var sunTimes = sunTimesResult.Data;
-                var optimalTimes = new List<OptimalPhotoTime>();
-
-                // Calculate optimal photography windows based on sun data
-                await Task.Run(() =>
-                {
-                    // Blue hour morning
-                    optimalTimes.Add(new OptimalPhotoTime
-                    {
-                        StartTime = sunTimes.CivilDawn,
-                        EndTime = sunTimes.Sunrise,
-                        Type = "Blue Hour",
-                        Quality = "Excellent",
-                        Description = "Soft, even blue light ideal for cityscapes and landscapes",
-                        SunElevation = -6.0 // Civil twilight
-                    });
-
-                    // Golden hour morning
-                    optimalTimes.Add(new OptimalPhotoTime
-                    {
-                        StartTime = sunTimes.Sunrise,
-                        EndTime = sunTimes.Sunrise.AddHours(1),
-                        Type = "Golden Hour",
-                        Quality = "Excellent",
-                        Description = "Warm, soft light with long shadows perfect for portraits",
-                        SunElevation = 10.0 // Low sun angle
-                    });
-
-                    // Golden hour evening
-                    optimalTimes.Add(new OptimalPhotoTime
-                    {
-                        StartTime = sunTimes.Sunset.AddHours(-1),
-                        EndTime = sunTimes.Sunset,
-                        Type = "Golden Hour",
-                        Quality = "Excellent",
-                        Description = "Warm, dramatic lighting ideal for portraits and landscapes",
-                        SunElevation = 10.0 // Low sun angle
-                    });
-
-                    // Blue hour evening
-                    optimalTimes.Add(new OptimalPhotoTime
-                    {
-                        StartTime = sunTimes.Sunset,
-                        EndTime = sunTimes.CivilDusk,
-                        Type = "Blue Hour",
-                        Quality = "Excellent",
-                        Description = "Deep blue sky with city lights beginning to show",
-                        SunElevation = -6.0 // Civil twilight
-                    });
-
-                }, cancellationToken).ConfigureAwait(false);
-
-                return Result<List<OptimalPhotoTime>>.Success(optimalTimes.OrderBy(t => t.StartTime).ToList());
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                return Result<List<OptimalPhotoTime>>.Failure($"Error calculating optimal photo times: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Cleanup expired cache entries to prevent memory leaks
-        /// </summary>
-        public void CleanupExpiredCache()
-        {
-            var expiredKeys = _sunDataCache
-                .Where(kvp => DateTime.UtcNow >= kvp.Value.expiry)
-                .Select(kvp => kvp.Key)
-                .ToList();
-
-            foreach (var key in expiredKeys)
-            {
-                _sunDataCache.TryRemove(key, out _);
-            }
-        }
-
-        /// <summary>
-        /// Preload sun calculations for upcoming days to improve performance
-        /// </summary>
-        public async Task PreloadUpcomingSunDataAsync(
-            double latitude,
-            double longitude,
-            int daysAhead = 7,
-            CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var today = DateTime.Today;
-                var preloadRequests = new List<(double latitude, double longitude, DateTime date)>();
-
-                for (int i = 0; i <= daysAhead; i++)
-                {
-                    preloadRequests.Add((latitude, longitude, today.AddDays(i)));
-                }
-
-                // Preload sun times for the next week
-                await GetBatchSunTimesAsync(preloadRequests, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-                // Preloading is optional, don't fail if it doesn't work
-            }
-        }
-    }
-
-    /// <summary>
-    /// Represents an optimal time window for photography based on sun position
-    /// </summary>
-    public class OptimalPhotoTime
-    {
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public string Type { get; set; } = string.Empty;
-        public string Quality { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public double SunElevation { get; set; }
-        public TimeSpan Duration => EndTime - StartTime;
     }
 }

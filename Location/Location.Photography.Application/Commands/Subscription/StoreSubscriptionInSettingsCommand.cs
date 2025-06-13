@@ -63,7 +63,12 @@ namespace Location.Photography.Application.Commands.Subscription
             }
             catch (Exception ex)
             {
-                return Result<bool>.Failure(string.Format(AppResources.Subscription_Error_StoringFailed + ": {0}", ex.Message));
+                // TODO: Add new string entry to AppResources.resx:
+                // <data name="Subscription_Error_StoringFailed">
+                //   <value>Failed to store subscription settings</value>
+                //   <comment>Error message when storing subscription settings fails</comment>
+                // </data>
+                return Result<bool>.Failure("Failed to store subscription settings");
             }
         }
 

@@ -29,8 +29,6 @@ namespace Location.Photography.Application.Commands.Subscription
         public SubscriptionPeriod Period { get; set; }
     }
 
-
-
     public class InitializeSubscriptionCommandHandler : IRequestHandler<InitializeSubscriptionCommand, Result<InitializeSubscriptionResultDto>>
     {
         private readonly ISubscriptionService _subscriptionService;
@@ -73,7 +71,7 @@ namespace Location.Photography.Application.Commands.Subscription
             }
             catch (Exception ex)
             {
-                return Result<InitializeSubscriptionResultDto>.Failure(string.Format(AppResources.Subscription_Error_InitializationFailed + ": {0}", ex.Message));
+                return Result<InitializeSubscriptionResultDto>.Failure(AppResources.Subscription_Error_InitializationFailed);
             }
         }
     }

@@ -81,7 +81,7 @@ namespace Location.Photography.Application.Commands.Subscription
             }
             catch (Exception ex)
             {
-                return Result<ProcessSubscriptionResultDto>.Failure(string.Format(AppResources.Subscription_Error_ProcessingFailed + ": {0}", ex.Message));
+                return Result<ProcessSubscriptionResultDto>.Failure(AppResources.Subscription_Error_ProcessingFailed);
             }
         }
     }

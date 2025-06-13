@@ -51,7 +51,7 @@ namespace Location.Photography.Application.Queries.ExposureCalculator
             }
             catch (Exception ex)
             {
-                return Result<ExposureValuesDto>.Failure(string.Format(AppResources.ExposureCalculator_Error_RetrievingValues + ": {0}", ex.Message));
+                return Result<ExposureValuesDto>.Failure(AppResources.ExposureCalculator_Error_RetrievingValues);
             }
         }
     }

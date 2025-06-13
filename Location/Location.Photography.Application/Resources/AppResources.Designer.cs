@@ -448,6 +448,15 @@ namespace Location.Photography.Application.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A similar camera already exists. Continue anyway?.
+        /// </summary>
+        internal static string CameraEvaluation_Error_CameraDuplicateConfirmation {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_CameraDuplicateConfirmation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to create camera profile.
         /// </summary>
         internal static string CameraEvaluation_Error_CameraProfileFailed {
@@ -493,6 +502,24 @@ namespace Location.Photography.Application.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error getting camera bodies.
+        /// </summary>
+        internal static string CameraEvaluation_Error_GettingCameraBodies {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_GettingCameraBodies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error getting camera lenses.
+        /// </summary>
+        internal static string CameraEvaluation_Error_GettingCameraLenses {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_GettingCameraLenses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error getting mount types.
         /// </summary>
         internal static string CameraEvaluation_Error_GettingMountTypes {
@@ -534,6 +561,15 @@ namespace Location.Photography.Application.Resources {
         internal static string CameraEvaluation_Error_NoActiveProfile {
             get {
                 return ResourceManager.GetString("CameraEvaluation_Error_NoActiveProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load camera data.
+        /// </summary>
+        internal static string CameraEvaluation_Error_ParsingCameraData {
+            get {
+                return ResourceManager.GetString("CameraEvaluation_Error_ParsingCameraData", resourceCulture);
             }
         }
         

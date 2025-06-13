@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Common.Interfaces;
+using Location.Photography.Application.Resources;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -48,7 +49,7 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
                     var compatibleResult = await _lensRepository.GetCompatibleLensesAsync(request.CompatibleWithCameraId.Value, cancellationToken);
                     if (!compatibleResult.IsSuccess)
                     {
-                        return Result<GetLensesResultDto>.Failure(compatibleResult.ErrorMessage ?? "Failed to retrieve compatible lenses");
+                        return Result<GetLensesResultDto>.Failure(compatibleResult.ErrorMessage ?? AppResources.CameraEvaluation_Error_RetrievingLenses);
                     }
 
                     lenses = compatibleResult.Data.Skip(request.Skip).Take(request.Take).ToList();
@@ -59,7 +60,7 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
                     var userLensesResult = await _lensRepository.GetUserLensesAsync(cancellationToken);
                     if (!userLensesResult.IsSuccess)
                     {
-                        return Result<GetLensesResultDto>.Failure(userLensesResult.ErrorMessage ?? "Failed to retrieve user lenses");
+                        return Result<GetLensesResultDto>.Failure(userLensesResult.ErrorMessage ?? AppResources.CameraEvaluation_Error_RetrievingLenses);
                     }
 
                     lenses = userLensesResult.Data.Skip(request.Skip).Take(request.Take).ToList();
@@ -70,13 +71,13 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
                     var pagedResult = await _lensRepository.GetPagedAsync(request.Skip, request.Take, cancellationToken);
                     if (!pagedResult.IsSuccess)
                     {
-                        return Result<GetLensesResultDto>.Failure(pagedResult.ErrorMessage ?? "Failed to retrieve lenses");
+                        return Result<GetLensesResultDto>.Failure(pagedResult.ErrorMessage ?? AppResources.CameraEvaluation_Error_RetrievingLenses);
                     }
 
                     var countResult = await _lensRepository.GetTotalCountAsync(cancellationToken);
                     if (!countResult.IsSuccess)
                     {
-                        return Result<GetLensesResultDto>.Failure(countResult.ErrorMessage ?? "Failed to get total count");
+                        return Result<GetLensesResultDto>.Failure(countResult.ErrorMessage ?? AppResources.CameraEvaluation_Error_RetrievingLenses);
                     }
 
                     lenses = pagedResult.Data;
@@ -112,7 +113,7 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving lenses");
-                return Result<GetLensesResultDto>.Failure($"Error retrieving lenses: {ex.Message}");
+                return Result<GetLensesResultDto>.Failure(AppResources.CameraEvaluation_Error_RetrievingLenses);
             }
         }
     }
