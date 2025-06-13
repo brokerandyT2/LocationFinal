@@ -1,7 +1,7 @@
-﻿// Location.Photography.Application/Commands/CameraEvaluation/CreatePhoneCameraProfileCommand.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
+using Location.Photography.Application.Resources;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -54,12 +54,12 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
 
                 if (string.IsNullOrWhiteSpace(request.ImagePath))
                 {
-                    return Result<PhoneCameraProfileDto>.Failure("Image path is required");
+                    return Result<PhoneCameraProfileDto>.Failure(AppResources.CameraEvaluation_ValidationError_ImagePathRequired);
                 }
 
                 if (!File.Exists(request.ImagePath))
                 {
-                    return Result<PhoneCameraProfileDto>.Failure("Image file does not exist");
+                    return Result<PhoneCameraProfileDto>.Failure(AppResources.CameraEvaluation_ValidationError_ImageNotExists);
                 }
 
                 _logger.LogInformation("Starting phone camera profile creation from image: {ImagePath}", request.ImagePath);
@@ -68,7 +68,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                 var exifResult = await _exifService.ExtractExifDataAsync(request.ImagePath, cancellationToken);
                 if (!exifResult.IsSuccess)
                 {
-                    return CreateFailureDto($"Failed to extract EXIF data: {exifResult.ErrorMessage}");
+                    return CreateFailureDto($"{AppResources.CameraEvaluation_Error_ExtractingEXIF}: {exifResult.ErrorMessage}");
                 }
 
                 var exifData = exifResult.Data;
@@ -76,12 +76,12 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                 // Step 2: Validate required EXIF data
                 if (!exifData.HasValidFocalLength)
                 {
-                    return CreateFailureDto("Image does not contain valid focal length data. Please ensure camera settings allow EXIF data to be saved.");
+                    return CreateFailureDto(AppResources.CameraEvaluation_Error_InvalidFocalLength);
                 }
 
                 if (string.IsNullOrEmpty(exifData.FullCameraModel))
                 {
-                    return CreateFailureDto("Image does not contain camera model information");
+                    return CreateFailureDto(AppResources.CameraEvaluation_Error_MissingCameraModel);
                 }
 
                 // Step 3: Create phone camera profile
@@ -92,7 +92,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
 
                 if (!profileResult.IsSuccess)
                 {
-                    return CreateFailureDto($"Failed to create camera profile: {profileResult.ErrorMessage}");
+                    return CreateFailureDto($"{AppResources.CameraEvaluation_Error_CameraProfileFailed}: {profileResult.ErrorMessage}");
                 }
 
                 var profile = profileResult.Data;
@@ -103,7 +103,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                 var saveResult = await _repository.CreateAsync(profile, cancellationToken);
                 if (!saveResult.IsSuccess)
                 {
-                    return CreateFailureDto($"Failed to save camera profile: {saveResult.ErrorMessage}");
+                    return CreateFailureDto($"{AppResources.CameraEvaluation_Error_SavingProfile}: {saveResult.ErrorMessage}");
                 }
 
                 // Step 5: Cleanup temporary image file if requested
@@ -134,7 +134,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                     IsCalibrationSuccessful = true
                 };
 
-                _logger.LogInformation("Successfully created phone camera profile for {PhoneModel} with {FocalLength}mm focal length and {FOV}° FOV",
+                _logger.LogInformation(AppResources.Camera_Calibration_Successful,
                     dto.PhoneModel, dto.MainLensFocalLength, dto.MainLensFOV);
 
                 return Result<PhoneCameraProfileDto>.Success(dto);
@@ -146,7 +146,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating phone camera profile from image: {ImagePath}", request.ImagePath);
-                return CreateFailureDto($"Unexpected error during camera calibration: {ex.Message}");
+                return CreateFailureDto($"{AppResources.CameraEvaluation_Error_CalibrationFailed}: {ex.Message}");
             }
         }
 

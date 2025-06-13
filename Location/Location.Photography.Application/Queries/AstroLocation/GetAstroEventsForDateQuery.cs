@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.Services;
+using Location.Photography.Application.Resources;
 using Location.Photography.Domain.Models;
 using MediatR;
 
@@ -116,7 +117,7 @@ namespace Location.Photography.Application.Queries.AstroLocation
                 }
                 catch (Exception ex)
                 {
-                    return Result<List<AstroEventDto>>.Failure($"Error retrieving astro events: {ex.Message}");
+                    return Result<List<AstroEventDto>>.Failure($"{AppResources.AstroLocation_Error_RetrievingEvents}: {ex.Message}");
                 }
             }
 
@@ -124,7 +125,7 @@ namespace Location.Photography.Application.Queries.AstroLocation
             {
                 return new AstroEventDto
                 {
-                    Name = $"Moon ({moonData.PhaseName})",
+                    Name = $"{AppResources.AstroTarget_Moon} ({moonData.PhaseName})",
                     Target = AstroTarget.Moon,
                     StartTime = moonData.Rise ?? moonData.DateTime,
                     EndTime = moonData.Set ?? moonData.DateTime.AddHours(12),
@@ -132,7 +133,7 @@ namespace Location.Photography.Application.Queries.AstroLocation
                     Azimuth = moonData.Azimuth,
                     Altitude = moonData.Altitude,
                     IsVisible = moonData.Altitude > 0,
-                    Description = $"Phase: {moonData.Illumination:F0}%, Distance: {moonData.Distance:F0}km",
+                    Description = string.Format(AppResources.AstroEvent_Description_MoonPhase, moonData.Illumination, moonData.Distance),
                     EventType = moonData.PhaseName,
                     AngularSize = moonData.AngularDiameter,
                     Magnitude = -12.7, // Approximate moon magnitude
@@ -155,9 +156,9 @@ namespace Location.Photography.Application.Queries.AstroLocation
                     Magnitude = planetData.ApparentMagnitude,
                     AngularSize = planetData.AngularDiameter,
                     IsVisible = planetData.IsVisible,
-                    Description = $"Magnitude {planetData.ApparentMagnitude:F1}, {planetData.AngularDiameter:F1}″",
+                    Description = string.Format(AppResources.AstroEvent_Description_PlanetMagnitude, planetData.ApparentMagnitude, planetData.AngularDiameter),
                     RecommendedEquipment = planetData.RecommendedEquipment,
-                    EventType = "Planet",
+                    EventType = AppResources.AstroEvent_Planet,
                     Constellation = ""
                 };
             }
@@ -166,7 +167,7 @@ namespace Location.Photography.Application.Queries.AstroLocation
             {
                 return new AstroEventDto
                 {
-                    Name = "Milky Way Core",
+                    Name = AppResources.AstroTarget_MilkyWayCore,
                     Target = AstroTarget.MilkyWayCore,
                     StartTime = milkyWayData.Rise ?? eventDate,
                     EndTime = milkyWayData.Set ?? eventDate.AddHours(8),
@@ -174,8 +175,8 @@ namespace Location.Photography.Application.Queries.AstroLocation
                     Azimuth = milkyWayData.GalacticCenterAzimuth,
                     Altitude = milkyWayData.GalacticCenterAltitude,
                     IsVisible = true,
-                    Description = $"Dark sky quality: {milkyWayData.DarkSkyQuality:P0}",
-                    EventType = "Galactic Core",
+                    Description = string.Format(AppResources.AstroEvent_Description_DarkSkyQuality, milkyWayData.DarkSkyQuality),
+                    EventType = AppResources.AstroEvent_GalacticCore,
                     RecommendedEquipment = "Wide-angle lens, tracker recommended",
                     Magnitude = 0, // N/A for extended object
                     AngularSize = 0,
@@ -197,7 +198,7 @@ namespace Location.Photography.Application.Queries.AstroLocation
                     Magnitude = dsoData.Magnitude,
                     AngularSize = dsoData.AngularSize,
                     IsVisible = dsoData.IsVisible,
-                    Description = $"{dsoData.ObjectType}, Mag {dsoData.Magnitude:F1}, {dsoData.AngularSize:F1}'",
+                    Description = string.Format(AppResources.AstroEvent_Description_DSOMagnitude, dsoData.ObjectType, dsoData.Magnitude, dsoData.AngularSize),
                     Constellation = dsoData.ParentConstellation.ToString(),
                     RecommendedEquipment = dsoData.RecommendedEquipment,
                     EventType = dsoData.ObjectType
@@ -216,8 +217,8 @@ namespace Location.Photography.Application.Queries.AstroLocation
                     Azimuth = radiantPos.Azimuth,
                     Altitude = radiantPos.Altitude,
                     IsVisible = radiantPos.IsVisible,
-                    Description = $"ZHR: {shower.Activity.ZHR}, Radiant: {radiantPos.DirectionDescription}",
-                    EventType = "Meteor Shower",
+                    Description = string.Format(AppResources.AstroEvent_Description_MeteorZHR, shower.Activity.ZHR, radiantPos.DirectionDescription),
+                    EventType = AppResources.AstroEvent_MeteorShower,
                     RecommendedEquipment = "Wide-angle lens, no tracking",
                     Magnitude = 0, // Variable
                     AngularSize = 0,
@@ -238,8 +239,8 @@ namespace Location.Photography.Application.Queries.AstroLocation
                     Altitude = pass.MaxAltitude,
                     Magnitude = pass.Magnitude,
                     IsVisible = true,
-                    Description = $"Max altitude: {pass.MaxAltitude:F0}°, Duration: {pass.Duration.TotalMinutes:F0}m",
-                    EventType = "Satellite Pass",
+                    Description = string.Format(AppResources.AstroEvent_Description_ISSPass, pass.MaxAltitude, pass.Duration.TotalMinutes),
+                    EventType = AppResources.AstroEvent_SatellitePass,
                     RecommendedEquipment = "Binoculars or naked eye",
                     AngularSize = 0,
                     Constellation = ""
@@ -278,14 +279,14 @@ namespace Location.Photography.Application.Queries.AstroLocation
             {
                 return planet switch
                 {
-                    PlanetType.Mercury => "Mercury",
-                    PlanetType.Venus => "Venus",
-                    PlanetType.Mars => "Mars",
-                    PlanetType.Jupiter => "Jupiter",
-                    PlanetType.Saturn => "Saturn",
-                    PlanetType.Uranus => "Uranus",
-                    PlanetType.Neptune => "Neptune",
-                    PlanetType.Pluto => "Pluto",
+                    PlanetType.Mercury => AppResources.Planet_Mercury,
+                    PlanetType.Venus => AppResources.Planet_Venus,
+                    PlanetType.Mars => AppResources.Planet_Mars,
+                    PlanetType.Jupiter => AppResources.Planet_Jupiter,
+                    PlanetType.Saturn => AppResources.Planet_Saturn,
+                    PlanetType.Uranus => AppResources.Planet_Uranus,
+                    PlanetType.Neptune => AppResources.Planet_Neptune,
+                    PlanetType.Pluto => AppResources.Planet_Pluto,
                     _ => planet.ToString()
                 };
             }

@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using Location.Photography.Application.Resources;
+using SkiaSharp;
 
 namespace Location.Photography.Application.Services
 {
@@ -333,18 +334,18 @@ namespace Location.Photography.Application.Services
             var recommendations = new List<string>();
 
             if (mean < 0.1)
-                recommendations.Add("Increase exposure (+1 to +2 stops)");
+                recommendations.Add(AppResources.Exposure_Recommendation_IncreaseExposure);
             else if (mean > 0.8)
-                recommendations.Add("Decrease exposure (-1 to -2 stops)");
+                recommendations.Add(AppResources.Exposure_Recommendation_DecreaseExposure);
 
             if (stats.ShadowClipping)
-                recommendations.Add("Shadow clipping detected - lift shadows");
+                recommendations.Add(AppResources.Exposure_Recommendation_ShadowClipping);
 
             if (stats.HighlightClipping)
-                recommendations.Add("Highlight clipping detected - reduce highlights");
+                recommendations.Add(AppResources.Exposure_Recommendation_HighlightClipping);
 
             if (stats.DynamicRange > 10)
-                recommendations.Add("High dynamic range - consider HDR or graduated filters");
+                recommendations.Add(AppResources.Exposure_Recommendation_HighDynamicRange);
 
             return string.Join("; ", recommendations);
         }

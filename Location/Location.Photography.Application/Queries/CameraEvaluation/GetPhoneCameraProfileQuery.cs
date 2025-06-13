@@ -1,7 +1,7 @@
-﻿// Location.Photography.Application/Queries/CameraEvaluation/GetPhoneCameraProfileQuery.cs
-using Location.Core.Application.Common.Models;
+﻿using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Commands.CameraEvaluation;
 using Location.Photography.Application.Common.Interfaces;
+using Location.Photography.Application.Resources;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -35,12 +35,12 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
 
                 if (!result.IsSuccess)
                 {
-                    return Result<PhoneCameraProfileDto>.Failure(result.ErrorMessage ?? "Failed to retrieve active phone camera profile");
+                    return Result<PhoneCameraProfileDto>.Failure(result.ErrorMessage ?? AppResources.CameraEvaluation_Error_RetrievingProfile);
                 }
 
                 if (result.Data == null)
                 {
-                    return Result<PhoneCameraProfileDto>.Failure("No active phone camera profile found");
+                    return Result<PhoneCameraProfileDto>.Failure(AppResources.CameraEvaluation_Error_NoActiveProfile);
                 }
 
                 var dto = new PhoneCameraProfileDto
@@ -65,7 +65,7 @@ namespace Location.Photography.Application.Queries.CameraEvaluation
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving phone camera profile");
-                return Result<PhoneCameraProfileDto>.Failure($"Error retrieving phone camera profile: {ex.Message}");
+                return Result<PhoneCameraProfileDto>.Failure($"{AppResources.CameraEvaluation_Error_RetrievingProfile}: {ex.Message}");
             }
         }
     }

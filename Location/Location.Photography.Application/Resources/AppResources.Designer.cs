@@ -178,6 +178,15 @@ namespace Location.Photography.Application.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duration: {0} min, Max altitude: {1}°.
+        /// </summary>
+        internal static string AstroEvent_Description_SatellitePass {
+            get {
+                return ResourceManager.GetString("AstroEvent_Description_SatellitePass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Galactic Core.
         /// </summary>
         internal static string AstroEvent_GalacticCore {
@@ -691,6 +700,15 @@ namespace Location.Photography.Application.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown.
+        /// </summary>
+        internal static string Common_Unknown {
+            get {
+                return ResourceManager.GetString("Common_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sagittarius.
         /// </summary>
         internal static string Constellation_Sagittarius {
@@ -799,11 +817,29 @@ namespace Location.Photography.Application.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Telephoto lens or telescope.
+        /// </summary>
+        internal static string Equipment_TelephotLens {
+            get {
+                return ResourceManager.GetString("Equipment_TelephotLens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 300-600mm telephoto lens.
         /// </summary>
         internal static string Equipment_TelephotoLens {
             get {
                 return ResourceManager.GetString("Equipment_TelephotoLens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide-angle fast lens.
+        /// </summary>
+        internal static string Equipment_WideAngleFast {
+            get {
+                return ResourceManager.GetString("Equipment_WideAngleFast", resourceCulture);
             }
         }
         
@@ -2091,6 +2127,15 @@ namespace Location.Photography.Application.Resources {
         internal static string Quality_Poor {
             get {
                 return ResourceManager.GetString("Quality_Poor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISS Pass.
+        /// </summary>
+        internal static string Satellite_ISS {
+            get {
+                return ResourceManager.GetString("Satellite_ISS", resourceCulture);
             }
         }
         

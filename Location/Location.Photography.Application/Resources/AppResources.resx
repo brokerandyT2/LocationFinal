@@ -84,6 +84,71 @@
     <value>Error checking subscription status</value>
     <comment>Error message when subscription status check fails</comment>
   </data>
+  <data name="Equipment_TelephotLens">
+    <value>Telephoto lens or telescope</value>
+    <comment>Equipment recommendation for telephoto lens or telescope</comment>
+  </data>
+  <data name="Equipment_WideAngleTracker">
+    <value>Wide-angle lens, tracker recommended</value>
+    <comment>Equipment recommendation for wide-angle lens with tracker</comment>
+  </data>
+  <data name="Equipment_WideAngleNoTracking">
+    <value>Wide-angle lens, no tracking</value>
+    <comment>Equipment recommendation for wide-angle lens without tracking</comment>
+  </data>
+  <data name="Equipment_WideAngleFast">
+    <value>Wide-angle fast lens</value>
+    <comment>Equipment recommendation for wide-angle fast lens</comment>
+  </data>
+  <data name="Constellation_Sagittarius">
+    <value>Sagittarius</value>
+    <comment>Sagittarius constellation name</comment>
+  </data>
+  <data name="Satellite_ISS">
+    <value>ISS Pass</value>
+    <comment>International Space Station pass event name</comment>
+  </data>
+  <data name="AstroEvent_Description_SatellitePass">
+    <value>Duration: {0} min, Max altitude: {1}°</value>
+    <comment>Satellite pass description with duration and max altitude</comment>
+  </data>
+  <data name="AstroLocation_Error_RetrievingEvents">
+    <value>Error retrieving astro events</value>
+    <comment>Error message when astro events retrieval fails</comment>
+  </data>
+  <data name="AstroEvent_Description_ISSPass">
+    <value>Duration: {0:F0} min, Max altitude: {1:F0}°</value>
+    <comment>ISS pass description with duration and max altitude</comment>
+  </data>
+  <data name="AstroEvent_Description_ISSPass">
+    <value>Max altitude: {0:F0}°, Duration: {1:F0}m</value>
+    <comment>ISS pass description with max altitude and duration</comment>
+  </data>
+  <data name="AstroLocation_Error_RetrievingEvents">
+    <value>Error retrieving astro events</value>
+    <comment>Error message when astro events retrieval fails</comment>
+  </data>
+  <data name="Common_Unknown">
+    <value>Unknown</value>
+    <comment>Common text for unknown values</comment>
+  </data>
+  <data name="CameraEvaluation_Error_ParsingCameraData">
+    <value>Unable to load camera data</value>
+    <comment>Error message when camera data parsing fails</comment>
+  </data>
+  <data name="Exposure_Recommendation_DecreaseExposure">
+    <value>Decrease exposure (-1 to -2 stops)</value>
+    <comment>Exposure recommendation to decrease exposure</comment>
+  </data>
+  <data name="Exposure_Recommendation_HighDynamicRange">
+    <value>High dynamic range - consider HDR or graduated filters</value>
+    <comment>Exposure recommendation for high dynamic range scenes</comment>
+  </data>
+  
+  
+  
+  
+  
   
 
   <!-- ===== SUBSCRIPTION VALIDATION ERRORS ===== -->
@@ -1988,7 +2053,3 @@
     <comment>Contact support message</comment>
   </data>
 </root>
-
-
-
-

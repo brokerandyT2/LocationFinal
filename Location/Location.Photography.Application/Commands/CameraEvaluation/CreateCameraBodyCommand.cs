@@ -58,12 +58,7 @@ namespace Location.Photography.Application.Commands.CameraEvaluation
                 var existingResult = await _cameraBodyRepository.SearchByNameAsync(request.Name, cancellationToken);
                 if (existingResult.IsSuccess && existingResult.Data.Count > 0)
                 {
-                    // TODO: Add new string entry to AppResources.resx:
-                    // <data name="CameraEvaluation_Error_CameraDuplicateConfirmation">
-                    //   <value>A similar camera already exists. Continue anyway?</value>
-                    //   <comment>Confirmation message when creating similar camera</comment>
-                    // </data>
-                    return Result<CameraBodyDto>.Failure("A similar camera already exists. Continue anyway?");
+                    return Result<CameraBodyDto>.Failure(AppResources.CameraEvaluation_Error_CameraDuplicateConfirmation);
                 }
 
                 // Create the camera body

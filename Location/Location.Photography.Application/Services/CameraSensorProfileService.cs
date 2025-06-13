@@ -72,7 +72,7 @@ namespace Location.Photography.Infrastructure.Services
                                 {
                                     Id = 0, // JSON cameras don't have database IDs
                                     Name = cameraName,
-                                    SensorType = sensorTypeElement.GetString() ?? "Unknown",
+                                    SensorType = sensorTypeElement.GetString() ?? AppResources.Common_Unknown,
                                     SensorWidth = widthElement.GetDouble(),
                                     SensorHeight = heightElement.GetDouble(),
                                     MountType = mountType,
@@ -92,11 +92,6 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error parsing camera JSON content");
-                // TODO: Add new string entry to AppResources.resx:
-                // <data name="CameraEvaluation_Error_ParsingCameraData">
-                //   <value>Unable to load camera data</value>
-                //   <comment>Error message when camera data parsing fails</comment>
-                // </data>
                 return Result<List<CameraBodyDto>>.Failure(AppResources.CameraEvaluation_Error_ParsingCameraData);
             }
         }
