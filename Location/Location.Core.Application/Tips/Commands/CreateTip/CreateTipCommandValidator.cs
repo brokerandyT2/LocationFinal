@@ -25,28 +25,28 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
         public CreateTipCommandValidator()
         {
             RuleFor(x => x.TipTypeId)
-                .GreaterThan(0).WithMessage(string.Format("{0} {1} {2} 0", AppResources.Field_TipTypeId, AppResources.Range_MustBe, AppResources.Range_GreaterThan));
+                .GreaterThan(0).WithMessage(AppResources.TipType_ValidationError_IdRequired);
 
             RuleFor(x => x.Title)
-                .NotEmpty().WithMessage(string.Format("{0} {1}", AppResources.Field_Title, AppResources.Status_Required))
-                .MaximumLength(100).WithMessage(string.Format("{0} {1} 100 {2}", AppResources.Field_Title, AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
+                .NotEmpty().WithMessage(AppResources.Tip_ValidationError_TitleRequired)
+                .MaximumLength(100).WithMessage(AppResources.Tip_ValidationError_TitleMaxLength);
 
             RuleFor(x => x.Content)
-                .NotEmpty().WithMessage(string.Format("{0} {1}", AppResources.Field_Content, AppResources.Status_Required))
-                .MaximumLength(1000).WithMessage(string.Format("{0} {1} 1000 {2}", AppResources.Field_Content, AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
+                .NotEmpty().WithMessage(AppResources.Tip_ValidationError_ContentRequired)
+                .MaximumLength(1000).WithMessage(AppResources.Tip_ValidationError_ContentMaxLength);
 
             RuleFor(x => x.Fstop)
-                .MaximumLength(20).WithMessage(string.Format("F-stop {0} 20 {1}", AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
+                .MaximumLength(20).WithMessage(AppResources.Tip_ValidationError_FStopMaxLength);
 
             RuleFor(x => x.ShutterSpeed)
-                .MaximumLength(20).WithMessage(string.Format("Shutter speed {0} 20 {1}", AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
+                .MaximumLength(20).WithMessage(AppResources.Tip_ValidationError_ShutterSpeedMaxLength);
 
             RuleFor(x => x.Iso)
-                .MaximumLength(20).WithMessage(string.Format("ISO {0} 20 {1}", AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
+                .MaximumLength(20).WithMessage(AppResources.Tip_ValidationError_IsoMaxLength);
 
             RuleFor(x => x.I8n)
-                .NotEmpty().WithMessage(string.Format("{0} {1}", AppResources.Field_Localization, AppResources.Status_Required))
-                .MaximumLength(10).WithMessage(string.Format("{0} {1} 10 {2}", AppResources.Field_Localization, AppResources.Range_MustNotExceed, AppResources.Unit_Characters));
+                .NotEmpty().WithMessage(AppResources.Tip_ValidationError_LocalizationRequired)
+                .MaximumLength(10).WithMessage(AppResources.Tip_ValidationError_LocalizationMaxLength);
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿// Location.Core.Application/Events/ErrorOccurredEvent.cs
+using Location.Core.Application.Resources;
+
 namespace Location.Core.Application.Events
 {
     /// <summary>
@@ -12,6 +14,7 @@ namespace Location.Core.Application.Events
         public string Message { get; }
         public string Source { get; }
         public DateTime Timestamp { get; }
+
         /// <summary>
         /// Represents an event that occurs when an error is encountered, providing details about the error.
         /// </summary>
@@ -20,8 +23,8 @@ namespace Location.Core.Application.Events
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="message"/> or <paramref name="source"/> is <see langword="null"/>.</exception>
         public ErrorOccurredEvent(string message, string source)
         {
-            Message = message ?? throw new ArgumentNullException(nameof(message));
-            Source = source ?? throw new ArgumentNullException(nameof(source));
+            Message = message ?? throw new ArgumentNullException(nameof(message), AppResources.Validation_CannotBeNull);
+            Source = source ?? throw new ArgumentNullException(nameof(source), AppResources.Validation_CannotBeNull);
             Timestamp = DateTime.UtcNow;
         }
     }

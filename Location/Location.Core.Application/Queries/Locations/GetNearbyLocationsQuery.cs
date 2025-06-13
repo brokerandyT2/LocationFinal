@@ -19,6 +19,7 @@ namespace Location.Core.Application.Queries.Locations
         public double Longitude { get; set; }
         public double DistanceKm { get; set; } = 10.0;
     }
+
     /// <summary>
     /// Handles queries to retrieve a list of nearby locations based on geographic coordinates and a specified distance.
     /// </summary>
@@ -29,6 +30,7 @@ namespace Location.Core.Application.Queries.Locations
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GetNearbyLocationsQueryHandler"/> class.
         /// </summary>
@@ -38,9 +40,10 @@ namespace Location.Core.Application.Queries.Locations
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="unitOfWork"/> or <paramref name="mapper"/> is <see langword="null"/>.</exception>
         public GetNearbyLocationsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork), AppResources.Validation_CannotBeNull);
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper), AppResources.Validation_CannotBeNull);
         }
+
         /// <summary>
         /// Handles the query to retrieve a list of nearby locations based on the specified geographic coordinates and
         /// distance.

@@ -628,11 +628,29 @@ namespace Location.Core.Application.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to F-stop.
+        /// </summary>
+        internal static string Field_Fstop {
+            get {
+                return ResourceManager.GetString("Field_Fstop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Id.
         /// </summary>
         internal static string Field_Id {
             get {
                 return ResourceManager.GetString("Field_Id", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO.
+        /// </summary>
+        internal static string Field_Iso {
+            get {
+                return ResourceManager.GetString("Field_Iso", resourceCulture);
             }
         }
         
@@ -696,6 +714,15 @@ namespace Location.Core.Application.Resources {
         internal static string Field_PhotoPath {
             get {
                 return ResourceManager.GetString("Field_PhotoPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shutter speed.
+        /// </summary>
+        internal static string Field_ShutterSpeed {
+            get {
+                return ResourceManager.GetString("Field_ShutterSpeed", resourceCulture);
             }
         }
         
@@ -1866,15 +1893,6 @@ namespace Location.Core.Application.Resources {
         internal static string Tip_ValidationError_ContentRequired {
             get {
                 return ResourceManager.GetString("Tip_ValidationError_ContentRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to F-stop must not exceed 20 characters.
-        /// </summary>
-        internal static string Tip_ValidationError_FStopMaxLength {
-            get {
-                return ResourceManager.GetString("Tip_ValidationError_FStopMaxLength", resourceCulture);
             }
         }
         

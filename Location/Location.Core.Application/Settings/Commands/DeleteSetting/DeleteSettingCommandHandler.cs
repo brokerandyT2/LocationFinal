@@ -25,7 +25,7 @@ namespace Location.Core.Application.Settings.Commands.DeleteSetting
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="unitOfWork"/> is <see langword="null"/>.</exception>
         public DeleteSettingCommandHandler(IUnitOfWork unitOfWork, IMediator mediator)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork), AppResources.Validation_CannotBeNull);
             _mediator = mediator;
         }
 

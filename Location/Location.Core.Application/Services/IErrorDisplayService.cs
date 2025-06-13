@@ -1,4 +1,5 @@
 ﻿using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 
 namespace Location.Core.Application.Services
 {
@@ -40,8 +41,8 @@ namespace Location.Core.Application.Services
 
         public ErrorDisplayEventArgs(List<DomainErrorEvent> errors, string displayMessage)
         {
-            Errors = errors ?? throw new ArgumentNullException(nameof(errors));
-            DisplayMessage = displayMessage ?? throw new ArgumentNullException(nameof(displayMessage));
+            Errors = errors ?? throw new ArgumentNullException(nameof(errors), AppResources.Validation_CannotBeNull);
+            DisplayMessage = displayMessage ?? throw new ArgumentNullException(nameof(displayMessage), AppResources.Validation_CannotBeNull);
         }
     }
 }

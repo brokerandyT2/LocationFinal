@@ -18,7 +18,7 @@ namespace Location.Core.Application.Tips.Commands.DeleteTip
         public DeleteTipCommandValidator()
         {
             RuleFor(x => x.Id)
-                .GreaterThan(0).WithMessage(string.Format("{0} {1} {2} 0", AppResources.Field_Id, AppResources.Range_MustBe, AppResources.Range_GreaterThan));
+                .GreaterThan(0).WithMessage(AppResources.Tip_ValidationError_IdRequired);
         }
     }
 }

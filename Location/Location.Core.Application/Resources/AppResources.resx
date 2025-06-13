@@ -98,7 +98,104 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
+<!-- ===== CAMERA/PHOTOGRAPHY FIELD NAMES ===== -->
+  <data name="Field_Fstop">
+    <value>F-stop</value>
+    <comment>F-stop camera setting field name</comment>
+  </data>
+  <data name="Field_ShutterSpeed">
+    <value>Shutter speed</value>
+    <comment>Shutter speed camera setting field name</comment>
+  </data>
+  <data name="Field_Iso">
+    <value>ISO</value>
+    <comment>ISO camera setting field name</comment>
+  </data>
+  <data name="Setting_Error_InvalidValueProvided">
+    <value>Invalid value provided</value>
+    <comment>Error message for invalid setting value</comment>
+  </data>
+  <data name="Setting_Error_CannotUpdateReadOnly">
+    <value>Cannot update read-only setting</value>
+    <comment>Error message for read-only setting update attempt</comment>
+  </data>
+  <data name="Setting_Error_DuplicateKey">
+    <value>Setting with this key already exists</value>
+    <comment>Error message for duplicate setting key</comment>
+  </data>
+  <data name="Setting_Error_KeyNotFound">
+    <value>Setting key not found</value>
+    <comment>Error message when setting key is not found</comment>
+  </data>
+  <data name="Setting_Error_InvalidValue">
+    <value>Invalid setting value</value>
+    <comment>Error message for invalid setting value</comment>
+  </data>
+  <data name="Setting_Error_ReadOnlySetting">
+    <value>Setting is read-only</value>
+    <comment>Error message for read-only setting</comment>
+  </data>
+  <data name="Setting_Error_DatabaseError">
+    <value>Database error occurred</value>
+    <comment>Error message for setting database errors</comment>
+  </data>
+  <data name="Field_Fstop">
+    <value>F-stop</value>
+    <comment>F-stop camera setting field name</comment>
+  </data>
+  <data name="Field_ShutterSpeed">
+    <value>Shutter speed</value>
+    <comment>Shutter speed camera setting field name</comment>
+  </data>
+  <data name="Field_Iso">
+    <value>ISO</value>
+    <comment>ISO camera setting field name</comment>
+  </data>
+  <data name="Tip_ValidationError_ShutterSpeedMaxLength">
+    <value>Shutter speed must not exceed 20 characters</value>
+    <comment>Validation error for shutter speed too long</comment>
+  </data>
+  <data name="Tip_ValidationError_IsoMaxLength">
+    <value>ISO must not exceed 20 characters</value>
+    <comment>Validation error for ISO too long</comment>
+  </data>
+  <data name="Setting_Error_Unknown">
+    <value>An unknown setting error occurred</value>
+    <comment>Error message for unknown setting errors</comment>
+  </data>
+  <!-- ===== MISSING SETTING ERROR MESSAGES ===== -->
+  <data name="Setting_Error_InvalidValueProvided">
+    <value>Invalid value provided</value>
+    <comment>Error message for invalid setting value</comment>
+  </data>
+  <data name="Setting_Error_CannotUpdateReadOnly">
+    <value>Cannot update read-only setting</value>
+    <comment>Error message for read-only setting update attempt</comment>
+  </data>
+  <data name="Setting_Error_DuplicateKey">
+    <value>Setting with this key already exists</value>
+    <comment>Error message for duplicate setting key</comment>
+  </data>
+  <data name="Setting_Error_KeyNotFound">
+    <value>Setting key not found</value>
+    <comment>Error message when setting key is not found</comment>
+  </data>
+  <data name="Setting_Error_InvalidValue">
+    <value>Invalid setting value</value>
+    <comment>Error message for invalid setting value</comment>
+  </data>
+  <data name="Setting_Error_ReadOnlySetting">
+    <value>Setting is read-only</value>
+    <comment>Error message for read-only setting</comment>
+  </data>
+  <data name="Setting_Error_DatabaseError">
+    <value>Database error occurred</value>
+    <comment>Error message for setting database errors</comment>
+  </data>
+  <data name="Setting_Error_Unknown">
+    <value>An unknown setting error occurred</value>
+    <comment>Error message for unknown setting errors</comment>
+  </data>
   <!-- ===== ALERT DEFAULTS ===== -->
   <data name="Alert_DefaultTitle">
     <value>Alert</value>
@@ -353,10 +450,10 @@
     <value>Content must not exceed 1000 characters</value>
     <comment>Validation error for tip content too long</comment>
   </data>
-  <data name="Tip_ValidationError_FStopMaxLength">
+<!--  <data name="Tip_ValidationError_FStopMaxLength">
     <value>F-stop must not exceed 20 characters</value>
     <comment>Validation error for F-stop too long</comment>
-  </data>
+  </data> -->
   <data name="Tip_ValidationError_ShutterSpeedMaxLength">
     <value>Shutter speed must not exceed 20 characters</value>
     <comment>Validation error for shutter speed too long</comment>

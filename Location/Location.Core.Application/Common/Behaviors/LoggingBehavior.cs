@@ -1,6 +1,7 @@
 ﻿using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Events.Errors;
+using Location.Core.Application.Resources;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
@@ -45,84 +46,65 @@ namespace Location.Core.Application.Common.Behaviors
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger"/> is <see langword="null"/>.</exception>
         public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger, IMediator mediator)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger), AppResources.Validation_CannotBeNull);
             _mediator = mediator;
         }
 
         /// <summary>
         /// Handles a request by invoking the next handler in the pipeline and logging relevant information with optimized performance.
         /// </summary>
-        /// <remarks>This method uses async serialization, size limits, and conditional formatting to minimize
-        /// performance impact while providing useful logging information.</remarks>
-        /// <param name="request">The request object to be processed. Cannot be <see langword="null"/>.</param>
-        /// <param name="next">The delegate representing the next handler in the pipeline.</param>
+        /// <param name="request">The request object being processed.</param>
+        /// <param name="next">The next handler in the pipeline.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the response of type
-        /// <typeparamref name="TResponse"/>.</returns>
-        public async Task<TResponse> Handle(
-            TRequest request,
-            RequestHandlerDelegate<TResponse> next,
-            CancellationToken cancellationToken)
+        /// <returns>A task representing the asynchronous operation that returns the response from the next handler.</returns>
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var requestName = typeof(TRequest).Name;
             var requestGuid = Guid.NewGuid();
+            var stopwatch = Stopwatch.StartNew();
 
-            // Pre-serialize request for logging (async and size-limited)
-            var requestJson = await SerializeRequestAsync(request);
-
+            // Log request start with compact info
             _logger.LogInformation(
-                "Starting request {RequestGuid} {RequestName}",
+                "Request started {RequestGuid} {RequestName}",
                 requestGuid,
                 requestName);
 
-            // Only log request details if debug level is enabled (performance optimization)
+            // Only serialize and log request details if debug logging is enabled
             if (_logger.IsEnabled(LogLevel.Debug))
             {
+                var serializedRequest = await SerializeRequestAsync(request);
                 _logger.LogDebug(
-                    "Request details {RequestGuid} {RequestName}: {RequestJson}",
+                    "Request details {RequestGuid} {RequestName}: {RequestData}",
                     requestGuid,
                     requestName,
-                    requestJson);
+                    serializedRequest);
             }
 
             TResponse response;
-            var stopwatch = Stopwatch.StartNew();
 
             try
             {
                 response = await next();
                 stopwatch.Stop();
 
-                var elapsedMs = stopwatch.ElapsedMilliseconds;
+                // Log successful completion
+                _logger.LogInformation(
+                    "Request completed successfully {RequestGuid} {RequestName} in {ElapsedMilliseconds}ms",
+                    requestGuid,
+                    requestName,
+                    stopwatch.ElapsedMilliseconds);
 
-                // Log based on performance threshold
-                if (elapsedMs > SlowRequestThresholdMs)
+                // Check for slow operations
+                if (stopwatch.ElapsedMilliseconds > SlowRequestThresholdMs)
                 {
                     _logger.LogWarning(
-                        "Slow request {RequestGuid} {RequestName} completed in {ElapsedMilliseconds}ms",
+                        "Slow operation detected {RequestGuid} {RequestName} took {ElapsedMilliseconds}ms",
                         requestGuid,
                         requestName,
-                        elapsedMs);
-
-                    // Only include request details for slow requests if debug enabled
-                    if (_logger.IsEnabled(LogLevel.Debug))
-                    {
-                        _logger.LogDebug(
-                            "Slow request details {RequestGuid}: {RequestJson}",
-                            requestGuid,
-                            requestJson);
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation(
-                        "Completed request {RequestGuid} {RequestName} in {ElapsedMilliseconds}ms",
-                        requestGuid,
-                        requestName,
-                        elapsedMs);
+                        stopwatch.ElapsedMilliseconds);
                 }
 
-                // Check for failure results efficiently
+                // Check if response indicates failure
                 if (response is IResult result && !result.IsSuccess)
                 {
                     var errorCount = result.Errors?.Count() ?? 0;
@@ -167,7 +149,7 @@ namespace Location.Core.Application.Common.Behaviors
                     }
                     catch (Exception publishEx)
                     {
-                        _logger.LogError(publishEx, "Failed to publish error event for request {RequestGuid}", requestGuid);
+                        _logger.LogError(publishEx, AppResources.Log_OperationFailed + " for request {RequestGuid}", requestGuid);
                     }
                 }, CancellationToken.None);
 

@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Interfaces;
 using Location.Core.Application.Common.Models;
 using Location.Core.Application.Locations.DTOs;
+using Location.Core.Application.Resources;
 using MediatR;
 
 namespace Location.Core.Application.Locations.Queries.GetLocations
@@ -19,6 +20,7 @@ namespace Location.Core.Application.Locations.Queries.GetLocations
         public string? SearchTerm { get; set; }
         public bool IncludeDeleted { get; set; } = false;
     }
+
     /// <summary>
     /// Handles the query to retrieve a paginated list of locations based on the specified criteria.
     /// </summary>
@@ -29,6 +31,7 @@ namespace Location.Core.Application.Locations.Queries.GetLocations
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+
         public GetLocationsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
@@ -50,7 +53,7 @@ namespace Location.Core.Application.Locations.Queries.GetLocations
                 if (!pagedLocationsResult.IsSuccess || pagedLocationsResult.Data == null)
                 {
                     return Result<PagedList<LocationListDto>>.Failure(
-                        pagedLocationsResult.ErrorMessage ?? "Failed to retrieve locations");
+                        pagedLocationsResult.ErrorMessage ?? AppResources.Location_Error_ListRetrieveFailed);
                 }
 
                 // Use AutoMapper for efficient bulk mapping
@@ -60,7 +63,7 @@ namespace Location.Core.Application.Locations.Queries.GetLocations
             }
             catch (Exception ex)
             {
-                return Result<PagedList<LocationListDto>>.Failure($"Failed to retrieve locations: {ex.Message}");
+                return Result<PagedList<LocationListDto>>.Failure(string.Format(AppResources.Location_Error_ListRetrieveFailedWithException, ex.Message));
             }
         }
     }

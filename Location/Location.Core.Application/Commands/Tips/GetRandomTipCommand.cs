@@ -16,6 +16,7 @@ namespace Location.Core.Application.Commands.Tips
     {
         public int TipTypeId { get; set; }
     }
+
     /// <summary>
     /// Handles the execution of the <see cref="GetRandomTipCommand"/> to retrieve a random tip of a specified type.
     /// </summary>
@@ -25,6 +26,7 @@ namespace Location.Core.Application.Commands.Tips
     public class GetRandomTipCommandHandler : IRequestHandler<GetRandomTipCommand, Result<TipDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GetRandomTipCommandHandler"/> class.
         /// </summary>
@@ -33,8 +35,9 @@ namespace Location.Core.Application.Commands.Tips
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="unitOfWork"/> is <see langword="null"/>.</exception>
         public GetRandomTipCommandHandler(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork), AppResources.Validation_CannotBeNull);
         }
+
         /// <summary>
         /// Handles the retrieval of a random tip based on the specified tip type.
         /// </summary>

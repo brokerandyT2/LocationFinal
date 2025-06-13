@@ -25,7 +25,7 @@ namespace Location.Core.Application.Settings.Commands.UpdateSetting
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="unitOfWork"/> is <see langword="null"/>.</exception>
         public UpdateSettingCommandHandler(IUnitOfWork unitOfWork, IMediator mediator)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork), AppResources.Validation_CannotBeNull);
             _mediator = mediator;
         }
 

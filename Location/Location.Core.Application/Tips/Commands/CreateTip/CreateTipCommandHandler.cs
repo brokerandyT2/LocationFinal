@@ -29,8 +29,8 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
         /// <exception cref="ArgumentNullException">Thrown if any of the required parameters are <see langword="null"/>.</exception>
         public CreateTipCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IMediator mediator)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork), AppResources.Validation_CannotBeNull);
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper), AppResources.Validation_CannotBeNull);
             _mediator = mediator;
         }
 

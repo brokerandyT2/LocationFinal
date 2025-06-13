@@ -18,6 +18,7 @@ namespace Location.Core.Application.Commands.TipTypes
         public string Name { get; set; } = string.Empty;
         public string I8n { get; set; } = "en-US";
     }
+
     /// <summary>
     /// Handles the creation of a new tip type by processing the <see cref="CreateTipTypeCommand"/> request.
     /// </summary>
@@ -28,6 +29,7 @@ namespace Location.Core.Application.Commands.TipTypes
     {
         private readonly ITipTypeRepository _tipTypeRepository;
         private readonly IMediator _mediator;
+
         /// <summary>
         /// Handles the creation of new tip types by processing the associated command.
         /// </summary>
@@ -36,19 +38,20 @@ namespace Location.Core.Application.Commands.TipTypes
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="tipTypeRepository"/> is <see langword="null"/>.</exception>
         public CreateTipTypeCommandHandler(ITipTypeRepository tipTypeRepository, IMediator mediator)
         {
-            _tipTypeRepository = tipTypeRepository ?? throw new ArgumentNullException(nameof(tipTypeRepository));
+            _tipTypeRepository = tipTypeRepository ?? throw new ArgumentNullException(nameof(tipTypeRepository), AppResources.Validation_CannotBeNull);
             _mediator = mediator;
         }
+
         /// <summary>
         /// Handles the creation of a new tip type and returns the result.
         /// </summary>
         /// <remarks>This method creates a new tip type entity, persists it to the repository, and maps it
         /// to a data transfer object (DTO). If an error occurs during the process, the method returns a failure result
         /// with the error message.</remarks>
-        /// <param name="request">The command containing the details of the tip type to create, including its name and localization data.</param>
+        /// <param name="request">The command containing the details of the tip type to create, including name and localization.</param>
         /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-        /// <returns>A <see cref="Result{T}"/> containing a <see cref="TipTypeDto"/> if the operation succeeds,  or an error
-        /// message if the operation fails.</returns>
+        /// <returns>A <see cref="Result{T}"/> containing the created <see cref="TipTypeDto"/> if the operation succeeds,
+        /// or an error message if the operation fails.</returns>
         public async Task<Result<TipTypeDto>> Handle(CreateTipTypeCommand request, CancellationToken cancellationToken)
         {
             try
@@ -56,7 +59,15 @@ namespace Location.Core.Application.Commands.TipTypes
                 var tipType = new Domain.Entities.TipType(request.Name);
                 tipType.SetLocalization(request.I8n);
 
-                var createdTipType = await _tipTypeRepository.AddAsync(tipType, cancellationToken);
+                var result = await _tipTypeRepository.AddAsync(tipType, cancellationToken);
+
+                if (result == null)
+                {
+                    await _mediator.Publish(new TipTypeErrorEvent(request.Name, null, TipTypeErrorType.DatabaseError, result.Name), cancellationToken);
+                    return Result<TipTypeDto>.Failure(AppResources.TipType_Error_CreateFailed);
+                }
+
+                var createdTipType = result;
 
                 var tipTypeDto = new TipTypeDto
                 {
