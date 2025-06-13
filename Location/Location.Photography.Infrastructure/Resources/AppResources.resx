@@ -102,72 +102,58 @@
     <value>Failed to initialize database: {0}</value>
     <comment>Error message shown when database initialization fails, {0} is the specific error</comment>
   </data>
-
   <data name="DatabaseInitializer_Error_Title">
     <value>Error</value>
     <comment>Title for database initialization error dialog</comment>
   </data>
-
   <data name="TipType_Landscape">
     <value>Landscape</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_Silhouette">
     <value>Silhouette</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_Building">
     <value>Building</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_Person">
     <value>Person</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_Baby">
     <value>Baby</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_Animals">
     <value>Animals</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_BlurryWater">
     <value>Blurry Water</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_Night">
     <value>Night</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_BlueHour">
     <value>Blue Hour</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_GoldenHour">
     <value>Golden Hour</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="TipType_Sunset">
     <value>Sunset</value>
     <comment>Photography tip type name</comment>
   </data>
-
   <data name="Tip_Title_HowToTakeGreatPhotos">
     <value>How to Take Great {0} Photos</value>
     <comment>Template for tip titles, {0} is the photography type</comment>
   </data>
-
   <data name="Tip_Content_Placeholder">
     <value>Text of the tip would appear here. Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit​​, morbo vel maleficia? De apocalypsi gorger omero undead survivor dictum mauris.</value>
     <comment>Placeholder content for tips during database initialization</comment>
@@ -176,107 +162,86 @@
     <value>Failed to load user equipment</value>
     <comment>Error message when user equipment cannot be loaded</comment>
   </data>
-
   <data name="Equipment_Error_GeneratingRecommendation">
     <value>Error generating recommendation: {0}</value>
     <comment>Error message when recommendation generation fails, {0} is the specific error</comment>
   </data>
-
   <data name="Equipment_Error_GeneratingHourlyRecommendations">
     <value>Error generating hourly recommendations: {0}</value>
     <comment>Error message when hourly recommendations generation fails, {0} is the specific error</comment>
   </data>
-
   <data name="Equipment_Error_GeneratingGenericRecommendation">
     <value>Error generating generic recommendation: {0}</value>
     <comment>Error message when generic recommendation generation fails, {0} is the specific error</comment>
   </data>
-
   <data name="Equipment_NoRecommendationsAvailable">
     <value>No equipment recommendations available</value>
     <comment>Message when no equipment recommendations can be provided</comment>
   </data>
-
   <data name="Equipment_Recommended">
     <value>Recommended: {0}</value>
     <comment>Prefix for equipment recommendations, {0} is the recommendation</comment>
   </data>
-
   <data name="Equipment_NoCompatibleEquipmentFound">
     <value>No compatible user equipment found for {0}. Consider: {1}</value>
     <comment>Message when no compatible equipment found, {0} is target, {1} is suggestion</comment>
   </data>
-
   <data name="Equipment_ExcellentMatch">
     <value>✓ Excellent: {0} is ideal for {1}</value>
     <comment>Message for excellent equipment match, {0} is equipment, {1} is target</comment>
   </data>
-
   <data name="Equipment_VeryGoodMatch">
     <value>✓ Very Good: {0} works very well for {1}</value>
     <comment>Message for very good equipment match, {0} is equipment, {1} is target</comment>
   </data>
-
   <data name="Equipment_WorkableMatch">
     <value>⚠ Workable: {0} can work for {1} with compromises</value>
     <comment>Message for workable equipment match, {0} is equipment, {1} is target</comment>
   </data>
-
   <data name="Equipment_CombinationWorksWith">
     <value>This combination can work for {0} with some compromises. </value>
     <comment>Message about equipment combination working with compromises, {0} is target description</comment>
   </data>
-
   <data name="Equipment_ApertureDescription_Fast">
     <value>fast</value>
     <comment>Description for fast aperture lenses</comment>
   </data>
-
   <data name="Equipment_ApertureDescription_Moderate">
     <value>moderate</value>
     <comment>Description for moderate aperture lenses</comment>
   </data>
-
   <data name="Equipment_ApertureDescription_Standard">
     <value>standard</value>
     <comment>Description for standard aperture lenses</comment>
   </data>
-
   <data name="Equipment_LensRecommendationFormat">
     <value>{0} f/{1} {2} lens</value>
     <comment>Format for lens recommendations, {0} is focal length, {1} is aperture, {2} is aperture description</comment>
   </data>
-
   <data name="Equipment_CameraRecommendationFormat">
     <value>Camera with good high ISO performance (ISO {0}-{1})</value>
     <comment>Format for camera recommendations, {0} is min ISO, {1} is max ISO</comment>
   </data>
-
   <data name="Equipment_ShoppingList_Lens">
     <value>Lens: {0}</value>
     <comment>Shopping list item for lens, {0} is lens recommendation</comment>
   </data>
-
   <data name="Equipment_ShoppingList_Camera">
     <value>Camera: {0}</value>
     <comment>Shopping list item for camera, {0} is camera recommendation</comment>
   </data>
-
   <data name="Equipment_ShoppingList_Tripod">
     <value>Sturdy tripod for stability</value>
     <comment>Shopping list item for tripod</comment>
   </data>
-
   <data name="Equipment_ShoppingList_RemoteShutter">
     <value>Remote shutter release or intervalometer</value>
     <comment>Shopping list item for remote shutter</comment>
   </data>
-
   <data name="Equipment_ShoppingList_StarTracker">
     <value>Star tracking mount for long exposures</value>
     <comment>Shopping list item for star tracking mount</comment>
   </data>
-
   <data name="Equipment_DefaultTargetDescription">
     <value>astrophotography</value>
     <comment>Default description when specific target description cannot be determined</comment>
@@ -285,22 +250,18 @@
     <value>Failed to capture image: {0}</value>
     <comment>Error message when image capture fails, {0} is the specific error</comment>
   </data>
-
   <data name="SceneEvaluation_Error_EvaluatingScene">
     <value>Error evaluating scene: {0}</value>
     <comment>Error message when scene evaluation fails, {0} is the specific error</comment>
   </data>
-
   <data name="SceneEvaluation_Error_FileNotFound">
     <value>File not found</value>
     <comment>Error message when the image file cannot be found</comment>
   </data>
-
   <data name="SceneEvaluation_Error_FailedToDecodeImage">
     <value>Failed to decode image</value>
     <comment>Error message when image decoding fails</comment>
   </data>
-
   <data name="SceneEvaluation_Error_FailedToProcessImage">
     <value>Failed to process image: {0}</value>
     <comment>Error message when image processing fails, {0} is the specific error</comment>
@@ -309,27 +270,22 @@
     <value>Image path cannot be null or empty</value>
     <comment>Error message when image path is null or empty</comment>
   </data>
-
   <data name="Exif_Error_ImageFileDoesNotExist">
     <value>Image file does not exist</value>
     <comment>Error message when image file cannot be found</comment>
   </data>
-
   <data name="Exif_Error_FailedToExtractAfterRetries">
     <value>Failed to extract EXIF data after {0} attempts: {1}</value>
     <comment>Error message when EXIF extraction fails after retries, {0} is attempt count, {1} is error</comment>
   </data>
-
   <data name="Exif_Error_FailedToExtractAfterRetriesGeneric">
     <value>Failed to extract EXIF data after {0} attempts</value>
     <comment>Generic error message when EXIF extraction fails after retries, {0} is attempt count</comment>
   </data>
-
   <data name="Exif_Error_ExtractingExifData">
     <value>Error extracting EXIF data: {0}</value>
     <comment>Error message when EXIF data extraction fails, {0} is the specific error</comment>
   </data>
-
   <data name="Exif_Error_CheckingExifData">
     <value>Error checking EXIF data: {0}</value>
     <comment>Error message when EXIF data checking fails, {0} is the specific error</comment>
@@ -338,62 +294,50 @@
     <value>Network connectivity issue. Please check your connection and try again.</value>
     <comment>Error message for network connectivity issues</comment>
   </data>
-
   <data name="Subscription_Error_BillingServiceNotAvailable">
     <value>Billing service not available</value>
     <comment>Error message when billing service is not available</comment>
   </data>
-
   <data name="Subscription_Error_BillingServiceNotAvailableForValidation">
     <value>Billing service not available for validation</value>
     <comment>Error message when billing service is not available for validation</comment>
   </data>
-
   <data name="Subscription_Error_ProcessingRequest">
     <value>There was an error processing your request, please try again</value>
     <comment>Generic error message for purchase processing failures</comment>
   </data>
-
   <data name="Subscription_Error_FailedToStoreSubscriptionData">
     <value>Failed to store subscription data</value>
     <comment>Error message when subscription data cannot be stored</comment>
   </data>
-
   <data name="Subscription_Error_FailedToStoreSubscriptionInSettings">
     <value>Failed to store subscription in settings</value>
     <comment>Error message when subscription cannot be stored in settings</comment>
   </data>
-
   <data name="Subscription_Error_FailedToRetrieveSubscriptionStatus">
     <value>Failed to retrieve subscription status</value>
     <comment>Error message when subscription status cannot be retrieved</comment>
   </data>
-
   <data name="Subscription_Error_NoSubscriptionProductsAvailable">
     <value>No subscription products available</value>
     <comment>Error message when no subscription products are found</comment>
   </data>
-
   <data name="SubscriptionStatus_Error_FailedToRetrieveLocalInfo">
     <value>Failed to retrieve local subscription info</value>
     <comment>Error message when local subscription info cannot be retrieved</comment>
   </data>
-
   <data name="SubscriptionStatus_Error_CheckingSubscriptionStatus">
     <value>Error checking subscription status: {0}</value>
     <comment>Error message when checking subscription status fails, {0} is the specific error</comment>
   </data>
-
   <data name="SubscriptionStatus_Error_RetrievingLocalSubscriptionInfo">
     <value>Error retrieving local subscription info: {0}</value>
     <comment>Error message when retrieving local subscription info fails, {0} is the specific error</comment>
   </data>
-
   <data name="SubscriptionStatus_Error_NetworkValidationFailed">
     <value>Network validation failed after multiple retries</value>
     <comment>Error message when network validation fails after retries</comment>
   </data>
-
   <data name="SubscriptionStatus_Error_UnableToValidateAfterMultipleAttempts">
     <value>Unable to validate subscription after multiple attempts</value>
     <comment>Error message when subscription validation fails after multiple attempts</comment>
@@ -402,72 +346,66 @@
     <value>Error calculating shutter speed: {0}</value>
     <comment>Error message when shutter speed calculation fails, {0} is the specific error</comment>
   </data>
-
   <data name="ExposureCalculator_Error_CalculatingAperture">
     <value>Error calculating aperture: {0}</value>
     <comment>Error message when aperture calculation fails, {0} is the specific error</comment>
   </data>
-
   <data name="ExposureCalculator_Error_CalculatingISO">
     <value>Error calculating ISO: {0}</value>
     <comment>Error message when ISO calculation fails, {0} is the specific error</comment>
   </data>
-
   <data name="ExposureCalculator_Error_RetrievingShutterSpeeds">
     <value>Error retrieving shutter speeds: {0}</value>
     <comment>Error message when retrieving shutter speeds fails, {0} is the specific error</comment>
   </data>
-
   <data name="ExposureCalculator_Error_RetrievingApertures">
     <value>Error retrieving apertures: {0}</value>
     <comment>Error message when retrieving apertures fails, {0} is the specific error</comment>
   </data>
-
   <data name="ExposureCalculator_Error_RetrievingISOs">
     <value>Error retrieving ISOs: {0}</value>
     <comment>Error message when retrieving ISOs fails, {0} is the specific error</comment>
   </data>
-
   <data name="UserCameraBody_Error_CannotBeNull">
     <value>UserCameraBody cannot be null</value>
     <comment>Error message when UserCameraBody parameter is null</comment>
   </data>
-
   <data name="UserCameraBody_Error_CameraAlreadySaved">
     <value>Camera body is already saved by this user</value>
     <comment>Error message when trying to save a camera that's already saved</comment>
   </data>
-
   <data name="UserCameraBody_Error_SavingCameraBody">
     <value>Error saving camera body: {0}</value>
     <comment>Error message when saving camera body fails, {0} is the specific error</comment>
   </data>
-
   <data name="UserCameraBody_Error_RetrievingSavedCameras">
     <value>Error retrieving saved cameras: {0}</value>
     <comment>Error message when retrieving saved cameras fails, {0} is the specific error</comment>
   </data>
-
   <data name="UserCameraBody_Error_UserIdCannotBeNullOrEmpty">
     <value>UserId cannot be null or empty</value>
     <comment>Error message when UserId parameter is null or empty</comment>
   </data>
-
+  <data name="AstroCalculation_Error_CoordinateConversion">
+    <value>Error converting coordinates from {0} to {1}: {2}</value>
+    <comment>Error message when coordinate conversion fails, {0} is from type, {1} is to type, {2} is specific error</comment>
+  </data>
+  <data name="AstroCalculation_Error_UnsupportedCoordinateType">
+    <value>Unsupported coordinate type: {0}</value>
+    <comment>Error message when an unsupported coordinate type is used, {0} is the coordinate type</comment>
+  </data>
   <data name="UserCameraBody_Error_UserCameraBodyNotFound">
     <value>User camera body not found</value>
     <comment>Error message when user camera body cannot be found</comment>
   </data>
-
   <data name="UserCameraBody_Error_RetrievingSavedCamera">
     <value>Error retrieving saved camera: {0}</value>
     <comment>Error message when retrieving saved camera fails, {0} is the specific error</comment>
   </data>
-
   <data name="UserCameraBody_Error_CheckingSavedCamera">
     <value>Error checking saved camera: {0}</value>
     <comment>Error message when checking saved camera fails, {0} is the specific error</comment>
   </data>
-
   <data name="UserCameraBody_Error_UpdatingSavedCamera">
     <value>Error updating saved camera: {0}</value>
     <comment>Error message when updating saved camera fails, {0} is the specific error</comment>

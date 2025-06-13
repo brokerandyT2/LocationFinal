@@ -61,6 +61,24 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error converting coordinates from {0} to {1}: {2}.
+        /// </summary>
+        internal static string AstroCalculation_Error_CoordinateConversion {
+            get {
+                return ResourceManager.GetString("AstroCalculation_Error_CoordinateConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported coordinate type: {0}.
+        /// </summary>
+        internal static string AstroCalculation_Error_UnsupportedCoordinateType {
+            get {
+                return ResourceManager.GetString("AstroCalculation_Error_UnsupportedCoordinateType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Camera body not found.
         /// </summary>
         internal static string CameraBody_Error_CameraBodyNotFound {
