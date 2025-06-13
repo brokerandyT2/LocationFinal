@@ -286,6 +286,33 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to f/{0} aperture is slower than ideal f/{1}.
+        /// </summary>
+        internal static string Equipment_Limitation_SlowerAperture {
+            get {
+                return ResourceManager.GetString("Equipment_Limitation_SlowerAperture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}mm may be too telephoto, consider {1}mm or shorter.
+        /// </summary>
+        internal static string Equipment_Limitation_TooTelephoto {
+            get {
+                return ResourceManager.GetString("Equipment_Limitation_TooTelephoto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}mm may be too wide, consider {1}mm or longer.
+        /// </summary>
+        internal static string Equipment_Limitation_TooWide {
+            get {
+                return ResourceManager.GetString("Equipment_Limitation_TooWide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No compatible user equipment found for {0}. Consider: {1}.
         /// </summary>
         internal static string Equipment_NoCompatibleEquipmentFound {
@@ -304,11 +331,137 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Medium telephoto with tracking mount. Requires dark skies and precise tracking..
+        /// </summary>
+        internal static string Equipment_Notes_DeepSky {
+            get {
+                return ResourceManager.GetString("Equipment_Notes_DeepSky", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to General astrophotography setup. Versatile for various targets..
+        /// </summary>
+        internal static string Equipment_Notes_General {
+            get {
+                return ResourceManager.GetString("Equipment_Notes_General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering..
+        /// </summary>
+        internal static string Equipment_Notes_MilkyWay {
+            get {
+                return ResourceManager.GetString("Equipment_Notes_MilkyWay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure..
+        /// </summary>
+        internal static string Equipment_Notes_Moon {
+            get {
+                return ResourceManager.GetString("Equipment_Notes_Moon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Long telephoto essential. Planets are small - maximum focal length recommended..
+        /// </summary>
+        internal static string Equipment_Notes_Planets {
+            get {
+                return ResourceManager.GetString("Equipment_Notes_Planets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures..
+        /// </summary>
+        internal static string Equipment_Notes_StarTrails {
+            get {
+                return ResourceManager.GetString("Equipment_Notes_StarTrails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is an excellent combination for this target. .
+        /// </summary>
+        internal static string Equipment_RecommendationText_Excellent {
+            get {
+                return ResourceManager.GetString("Equipment_RecommendationText_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is a very good combination with minor limitations. .
+        /// </summary>
+        internal static string Equipment_RecommendationText_VeryGood {
+            get {
+                return ResourceManager.GetString("Equipment_RecommendationText_VeryGood", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Recommended: {0}.
         /// </summary>
         internal static string Equipment_Recommended {
             get {
                 return ResourceManager.GetString("Equipment_Recommended", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 1600, f/4, 2-5 minutes (with tracking).
+        /// </summary>
+        internal static string Equipment_Settings_DeepSky {
+            get {
+                return ResourceManager.GetString("Equipment_Settings_DeepSky", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 1600, f/2.8, 15-30 seconds.
+        /// </summary>
+        internal static string Equipment_Settings_General {
+            get {
+                return ResourceManager.GetString("Equipment_Settings_General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 3200, f/2.8, 20-25 seconds.
+        /// </summary>
+        internal static string Equipment_Settings_MilkyWay {
+            get {
+                return ResourceManager.GetString("Equipment_Settings_MilkyWay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 200, f/8, 1/125s.
+        /// </summary>
+        internal static string Equipment_Settings_Moon {
+            get {
+                return ResourceManager.GetString("Equipment_Settings_Moon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 1600, f/5.6, 1/60s.
+        /// </summary>
+        internal static string Equipment_Settings_Planets {
+            get {
+                return ResourceManager.GetString("Equipment_Settings_Planets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 400, f/5.6, 30 minutes - 4 hours.
+        /// </summary>
+        internal static string Equipment_Settings_StarTrails {
+            get {
+                return ResourceManager.GetString("Equipment_Settings_StarTrails", resourceCulture);
             }
         }
         
@@ -340,7 +493,7 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Star tracking mount for long exposures.
+        ///   Looks up a localized string similar to Star tracker mount for long exposures.
         /// </summary>
         internal static string Equipment_ShoppingList_StarTracker {
             get {
@@ -354,6 +507,33 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string Equipment_ShoppingList_Tripod {
             get {
                 return ResourceManager.GetString("Equipment_ShoppingList_Tripod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fast f/{0} aperture ideal for {1}.
+        /// </summary>
+        internal static string Equipment_Strength_FastAperture {
+            get {
+                return ResourceManager.GetString("Equipment_Strength_FastAperture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Large sensor provides excellent light gathering.
+        /// </summary>
+        internal static string Equipment_Strength_LargeSensor {
+            get {
+                return ResourceManager.GetString("Equipment_Strength_LargeSensor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}mm focal length is optimal for this target.
+        /// </summary>
+        internal static string Equipment_Strength_OptimalFocalLength {
+            get {
+                return ResourceManager.GetString("Equipment_Strength_OptimalFocalLength", resourceCulture);
             }
         }
         
@@ -561,6 +741,96 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string Lens_Error_UpdatingLens {
             get {
                 return ResourceManager.GetString("Lens_Error_UpdatingLens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error creating profile: {0}.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_CreatingProfile {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_CreatingProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error deleting profile: {0}.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_DeletingProfile {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_DeletingProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No active profile found.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_NoActiveProfileFound {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_NoActiveProfileFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile cannot be null.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_ProfileCannotBeNull {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_ProfileCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile not found.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_ProfileNotFound {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_ProfileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error retrieving active profile: {0}.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_RetrievingActiveProfile {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_RetrievingActiveProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error retrieving profile: {0}.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_RetrievingProfile {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_RetrievingProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error retrieving profiles: {0}.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_RetrievingProfiles {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_RetrievingProfiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error setting active profile: {0}.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_SettingActiveProfile {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_SettingActiveProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating profile: {0}.
+        /// </summary>
+        internal static string PhoneCameraProfile_Error_UpdatingProfile {
+            get {
+                return ResourceManager.GetString("PhoneCameraProfile_Error_UpdatingProfile", resourceCulture);
             }
         }
         

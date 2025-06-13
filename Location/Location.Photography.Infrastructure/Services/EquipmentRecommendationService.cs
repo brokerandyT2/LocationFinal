@@ -250,10 +250,10 @@ namespace Location.Photography.Infrastructure.Services
                 Lens = lens,
                 MatchScore = matchScore,
                 IsOptimal = matchScore >= 85,
-                RecommendationReason = GenerateRecommendationReason(camera, lens, specs, matchScore),
+                RecommendationReason =  GenerateRecommendationText(camera, lens, specs, matchScore),
                 Strengths = strengths,
                 Limitations = limitations,
-                DetailedRecommendation = GenerateDetailedRecommendation(camera, lens, specs, matchScore)
+                DetailedRecommendation = GenerateRecommendationText(camera, lens, specs, matchScore)
             };
         }
 
@@ -321,14 +321,14 @@ namespace Location.Photography.Infrastructure.Services
             var strengths = new List<string>();
 
             if (lens.MaxFStop <= specs.MaxAperture)
-                strengths.Add($"Fast f/{lens.MaxFStop} aperture ideal for {specs.RecommendedSettings}");
+                strengths.Add(string.Format(AppResources.Equipment_Strength_FastAperture, lens.MaxFStop, specs.RecommendedSettings));
 
             var userFocalLength = lens.IsPrime ? lens.MinMM : (lens.MinMM + (lens.MaxMM ?? lens.MinMM)) / 2;
             if (userFocalLength >= specs.MinFocalLength && userFocalLength <= specs.MaxFocalLength)
-                strengths.Add($"{userFocalLength}mm focal length perfect for target");
+                strengths.Add(string.Format(AppResources.Equipment_Strength_OptimalFocalLength, userFocalLength));
 
-            if (camera.SensorWidth >= 35.0) // Full frame or larger
-                strengths.Add("Full frame sensor excellent for low light performance");
+            if (camera.SensorWidth * camera.SensorHeight >= 800) // Rough full-frame equivalent
+                strengths.Add(AppResources.Equipment_Strength_LargeSensor);
 
             return strengths;
         }
@@ -338,51 +338,28 @@ namespace Location.Photography.Infrastructure.Services
             var limitations = new List<string>();
 
             if (lens.MaxFStop > specs.MaxAperture)
-                limitations.Add($"f/{lens.MaxFStop} slower than ideal f/{specs.MaxAperture} - may need higher ISO");
+                limitations.Add(string.Format(AppResources.Equipment_Limitation_SlowerAperture, lens.MaxFStop, specs.MaxAperture));
 
             var userFocalLength = lens.IsPrime ? lens.MinMM : (lens.MinMM + (lens.MaxMM ?? lens.MinMM)) / 2;
             if (userFocalLength < specs.MinFocalLength)
-                limitations.Add($"{userFocalLength}mm may be too wide for optimal framing");
+                limitations.Add(string.Format(AppResources.Equipment_Limitation_TooWide, userFocalLength, specs.MinFocalLength));
             else if (userFocalLength > specs.MaxFocalLength)
-                limitations.Add($"{userFocalLength}mm may be too narrow - consider cropping or backing up");
-
-            if (camera.SensorWidth < 35.0) // Crop sensor
-                limitations.Add("Crop sensor reduces effective field of view");
+                limitations.Add(string.Format(AppResources.Equipment_Limitation_TooTelephoto, userFocalLength, specs.MaxFocalLength));
 
             return limitations;
         }
 
-        private string GenerateRecommendationReason(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs, double matchScore)
+        private string GenerateRecommendationText(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs, double matchScore)
         {
-            if (matchScore >= 85)
-            {
-                return $"Excellent match for {specs.RecommendedSettings}";
-            }
-            else if (matchScore >= 70)
-            {
-                return $"Very good for {specs.RecommendedSettings} with minor compromises";
-            }
-            else if (matchScore >= 40)
-            {
-                return $"Workable option with some limitations for {specs.RecommendedSettings}";
-            }
-            else
-            {
-                return $"Not recommended - significant limitations for {specs.RecommendedSettings}";
-            }
-        }
-
-        private string GenerateDetailedRecommendation(CameraBody camera, Lens lens, ViewModels.OptimalEquipmentSpecs specs, double matchScore)
-        {
-            var recommendation = "";
+            string recommendation;
 
             if (matchScore >= 85)
             {
-                recommendation = "This is an excellent combination for your target. ";
+                recommendation = AppResources.Equipment_RecommendationText_Excellent;
             }
             else if (matchScore >= 70)
             {
-                recommendation = "This is a very good combination with minor limitations. ";
+                recommendation = AppResources.Equipment_RecommendationText_VeryGood;
             }
             else
             {
@@ -467,8 +444,8 @@ namespace Location.Photography.Infrastructure.Services
                     MaxAperture = 2.8,
                     MinISO = 1600,
                     MaxISO = 6400,
-                    RecommendedSettings = "ISO 3200, f/2.8, 20-25 seconds",
-                    Notes = "Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering."
+                    RecommendedSettings = AppResources.Equipment_Settings_MilkyWay,
+                    Notes = AppResources.Equipment_Notes_MilkyWay
                 },
                 AstroTarget.Moon => new ViewModels.OptimalEquipmentSpecs
                 {
@@ -478,8 +455,8 @@ namespace Location.Photography.Infrastructure.Services
                     MaxAperture = 8.0,
                     MinISO = 100,
                     MaxISO = 800,
-                    RecommendedSettings = "ISO 200, f/8, 1/125s",
-                    Notes = "Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure."
+                    RecommendedSettings = AppResources.Equipment_Settings_Moon,
+                    Notes = AppResources.Equipment_Notes_Moon
                 },
                 AstroTarget.Planets => new ViewModels.OptimalEquipmentSpecs
                 {
@@ -489,8 +466,8 @@ namespace Location.Photography.Infrastructure.Services
                     MaxAperture = 6.3,
                     MinISO = 800,
                     MaxISO = 3200,
-                    RecommendedSettings = "ISO 1600, f/5.6, 1/60s",
-                    Notes = "Long telephoto essential. Planets are small - maximum focal length recommended."
+                    RecommendedSettings = AppResources.Equipment_Settings_Planets,
+                    Notes = AppResources.Equipment_Notes_Planets
                 },
                 AstroTarget.DeepSkyObjects => new ViewModels.OptimalEquipmentSpecs
                 {
@@ -500,8 +477,8 @@ namespace Location.Photography.Infrastructure.Services
                     MaxAperture = 4.0,
                     MinISO = 800,
                     MaxISO = 6400,
-                    RecommendedSettings = "ISO 1600, f/4, 2-5 minutes (with tracking)",
-                    Notes = "Medium telephoto with tracking mount. Requires dark skies and precise tracking."
+                    RecommendedSettings = AppResources.Equipment_Settings_DeepSky,
+                    Notes = AppResources.Equipment_Notes_DeepSky
                 },
                 AstroTarget.StarTrails => new ViewModels.OptimalEquipmentSpecs
                 {
@@ -511,8 +488,8 @@ namespace Location.Photography.Infrastructure.Services
                     MaxAperture = 4.0,
                     MinISO = 100,
                     MaxISO = 800,
-                    RecommendedSettings = "ISO 400, f/5.6, 30 minutes - 4 hours",
-                    Notes = "Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures."
+                    RecommendedSettings = AppResources.Equipment_Settings_StarTrails,
+                    Notes = AppResources.Equipment_Notes_StarTrails
                 },
                 _ => new ViewModels.OptimalEquipmentSpecs
                 {
@@ -522,8 +499,8 @@ namespace Location.Photography.Infrastructure.Services
                     MaxAperture = 2.8,
                     MinISO = 800,
                     MaxISO = 3200,
-                    RecommendedSettings = "ISO 1600, f/2.8, 15-30 seconds",
-                    Notes = "General astrophotography setup. Versatile for various targets."
+                    RecommendedSettings = AppResources.Equipment_Settings_General,
+                    Notes = AppResources.Equipment_Notes_General
                 }
             };
         }

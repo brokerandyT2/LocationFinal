@@ -4,6 +4,7 @@ using Location.Core.Infrastructure.Data;
 using Location.Core.Infrastructure.Data.Entities;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Domain.Entities;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (profile == null)
                 {
-                    return Result<PhoneCameraProfile>.Failure("Profile cannot be null");
+                    return Result<PhoneCameraProfile>.Failure(AppResources.PhoneCameraProfile_Error_ProfileCannotBeNull);
                 }
 
                 var entity = MapToEntity(profile);
@@ -54,7 +55,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating phone camera profile");
-                return Result<PhoneCameraProfile>.Failure($"Error creating profile: {ex.Message}");
+                return Result<PhoneCameraProfile>.Failure(string.Format(AppResources.PhoneCameraProfile_Error_CreatingProfile, ex.Message));
             }
         }
 
@@ -76,7 +77,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (entity == null)
                 {
-                    return Result<PhoneCameraProfile>.Failure("No active profile found");
+                    return Result<PhoneCameraProfile>.Failure(AppResources.PhoneCameraProfile_Error_NoActiveProfileFound);
                 }
 
                 var profile = MapToDomain(entity);
@@ -89,7 +90,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting active phone camera profile");
-                return Result<PhoneCameraProfile>.Failure($"Error retrieving active profile: {ex.Message}");
+                return Result<PhoneCameraProfile>.Failure(string.Format(AppResources.PhoneCameraProfile_Error_RetrievingActiveProfile, ex.Message));
             }
         }
 
@@ -106,7 +107,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (entity == null)
                 {
-                    return Result<PhoneCameraProfile>.Failure("Profile not found");
+                    return Result<PhoneCameraProfile>.Failure(AppResources.PhoneCameraProfile_Error_ProfileNotFound);
                 }
 
                 var profile = MapToDomain(entity);
@@ -119,7 +120,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting phone camera profile by ID: {ProfileId}", id);
-                return Result<PhoneCameraProfile>.Failure($"Error retrieving profile: {ex.Message}");
+                return Result<PhoneCameraProfile>.Failure(string.Format(AppResources.PhoneCameraProfile_Error_RetrievingProfile, ex.Message));
             }
         }
 
@@ -146,7 +147,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all phone camera profiles");
-                return Result<List<PhoneCameraProfile>>.Failure($"Error retrieving profiles: {ex.Message}");
+                return Result<List<PhoneCameraProfile>>.Failure(string.Format(AppResources.PhoneCameraProfile_Error_RetrievingProfiles, ex.Message));
             }
         }
 
@@ -158,7 +159,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (profile == null)
                 {
-                    return Result<PhoneCameraProfile>.Failure("Profile cannot be null");
+                    return Result<PhoneCameraProfile>.Failure(AppResources.PhoneCameraProfile_Error_ProfileCannotBeNull);
                 }
 
                 var entity = MapToEntity(profile);
@@ -178,7 +179,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating phone camera profile");
-                return Result<PhoneCameraProfile>.Failure($"Error updating profile: {ex.Message}");
+                return Result<PhoneCameraProfile>.Failure(string.Format(AppResources.PhoneCameraProfile_Error_UpdatingProfile, ex.Message));
             }
         }
 
@@ -200,7 +201,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (!deleteResult)
                 {
-                    return Result<bool>.Failure("Profile not found");
+                    return Result<bool>.Failure(AppResources.PhoneCameraProfile_Error_ProfileNotFound);
                 }
 
                 _logger.LogInformation("Deleted phone camera profile with ID: {ProfileId}", id);
@@ -213,7 +214,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting phone camera profile with ID: {ProfileId}", id);
-                return Result<bool>.Failure($"Error deleting profile: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.PhoneCameraProfile_Error_DeletingProfile, ex.Message));
             }
         }
 
@@ -242,7 +243,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error setting active phone camera profile: {ProfileId}", profileId);
-                return Result<bool>.Failure($"Error setting active profile: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.PhoneCameraProfile_Error_SettingActiveProfile, ex.Message));
             }
         }
 
@@ -275,7 +276,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting phone camera profiles by model: {PhoneModel}", phoneModel);
-                return Result<List<PhoneCameraProfile>>.Failure($"Error retrieving profiles: {ex.Message}");
+                return Result<List<PhoneCameraProfile>>.Failure(string.Format(AppResources.PhoneCameraProfile_Error_RetrievingProfiles, ex.Message));
             }
         }
 

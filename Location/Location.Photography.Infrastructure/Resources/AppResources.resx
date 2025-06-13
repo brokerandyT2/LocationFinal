@@ -586,8 +586,282 @@
     <value>Error deleting lens: {0}</value>
     <comment>Error message when deleting lens fails, {0} is the specific error</comment>
   </data>
-  
-  
+  <data name="PhoneCameraProfile_Error_ProfileCannotBeNull">
+    <value>Profile cannot be null</value>
+    <comment>Error message when phone camera profile is null</comment>
+  </data>
+
+  <data name="PhoneCameraProfile_Error_CreatingProfile">
+    <value>Error creating profile: {0}</value>
+    <comment>Error message when creating phone camera profile fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="PhoneCameraProfile_Error_NoActiveProfileFound">
+    <value>No active profile found</value>
+    <comment>Error message when no active phone camera profile is found</comment>
+  </data>
+
+  <data name="PhoneCameraProfile_Error_RetrievingActiveProfile">
+    <value>Error retrieving active profile: {0}</value>
+    <comment>Error message when retrieving active phone camera profile fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="PhoneCameraProfile_Error_ProfileNotFound">
+    <value>Profile not found</value>
+    <comment>Error message when phone camera profile is not found</comment>
+  </data>
+
+  <data name="PhoneCameraProfile_Error_RetrievingProfile">
+    <value>Error retrieving profile: {0}</value>
+    <comment>Error message when retrieving phone camera profile fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="PhoneCameraProfile_Error_RetrievingProfiles">
+    <value>Error retrieving profiles: {0}</value>
+    <comment>Error message when retrieving phone camera profiles fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="PhoneCameraProfile_Error_UpdatingProfile">
+    <value>Error updating profile: {0}</value>
+    <comment>Error message when updating phone camera profile fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="PhoneCameraProfile_Error_DeletingProfile">
+    <value>Error deleting profile: {0}</value>
+    <comment>Error message when deleting phone camera profile fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="PhoneCameraProfile_Error_SettingActiveProfile">
+    <value>Error setting active profile: {0}</value>
+    <comment>Error message when setting active phone camera profile fails, {0} is the specific error</comment>
+  </data>
+  <data name="Equipment_Strength_FastAperture">
+    <value>Fast f/{0} aperture ideal for {1}</value>
+    <comment>Equipment strength message for fast aperture, {0} is f-stop, {1} is recommended settings</comment>
+  </data>
+
+  <data name="Equipment_Strength_OptimalFocalLength">
+    <value>{0}mm focal length is optimal for this target</value>
+    <comment>Equipment strength message for optimal focal length, {0} is focal length</comment>
+  </data>
+
+  <data name="Equipment_Strength_LargeSensor">
+    <value>Large sensor provides excellent light gathering</value>
+    <comment>Equipment strength message for large sensor</comment>
+  </data>
+
+  <data name="Equipment_Limitation_SlowerAperture">
+    <value>f/{0} aperture is slower than ideal f/{1}</value>
+    <comment>Equipment limitation message for slower aperture, {0} is actual f-stop, {1} is ideal f-stop</comment>
+  </data>
+
+  <data name="Equipment_Limitation_TooWide">
+    <value>{0}mm may be too wide, consider {1}mm or longer</value>
+    <comment>Equipment limitation message for too wide focal length, {0} is actual focal length, {1} is minimum recommended</comment>
+  </data>
+
+  <data name="Equipment_Limitation_TooTelephoto">
+    <value>{0}mm may be too telephoto, consider {1}mm or shorter</value>
+    <comment>Equipment limitation message for too telephoto focal length, {0} is actual focal length, {1} is maximum recommended</comment>
+  </data>
+
+  <data name="Equipment_RecommendationText_Excellent">
+    <value>This is an excellent combination for this target. </value>
+    <comment>Recommendation text for excellent equipment match</comment>
+  </data>
+
+  <data name="Equipment_RecommendationText_VeryGood">
+    <value>This is a very good combination with minor limitations. </value>
+    <comment>Recommendation text for very good equipment match</comment>
+  </data>
+
+  <data name="Equipment_Settings_MilkyWay">
+    <value>ISO 3200, f/2.8, 20-25 seconds</value>
+    <comment>Recommended camera settings for Milky Way photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_MilkyWay">
+    <value>Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering.</value>
+    <comment>Equipment notes for Milky Way photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_Moon">
+    <value>ISO 200, f/8, 1/125s</value>
+    <comment>Recommended camera settings for Moon photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_Moon">
+    <value>Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure.</value>
+    <comment>Equipment notes for Moon photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_Planets">
+    <value>ISO 1600, f/5.6, 1/60s</value>
+    <comment>Recommended camera settings for planet photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_Planets">
+    <value>Long telephoto essential. Planets are small - maximum focal length recommended.</value>
+    <comment>Equipment notes for planet photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_DeepSky">
+    <value>ISO 1600, f/4, 2-5 minutes (with tracking)</value>
+    <comment>Recommended camera settings for deep sky photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_DeepSky">
+    <value>Medium telephoto with tracking mount. Requires dark skies and precise tracking.</value>
+    <comment>Equipment notes for deep sky photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_StarTrails">
+    <value>ISO 400, f/5.6, 30 minutes - 4 hours</value>
+    <comment>Recommended camera settings for star trail photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_StarTrails">
+    <value>Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures.</value>
+    <comment>Equipment notes for star trail photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_General">
+    <value>ISO 1600, f/2.8, 15-30 seconds</value>
+    <comment>Recommended camera settings for general astrophotography</comment>
+  </data>
+
+  <data name="Equipment_Notes_General">
+    <value>General astrophotography setup. Versatile for various targets.</value>
+    <comment>Equipment notes for general astrophotography</comment>
+  </data>
+
+  <data name="Equipment_ShoppingList_RemoteShutter">
+    <value>Remote shutter release or intervalometer</value>
+    <comment>Shopping list item for remote shutter release</comment>
+  </data>
+
+  <data name="Equipment_ShoppingList_StarTracker">
+    <value>Star tracker mount for long exposures</value>
+    <comment>Shopping list item for star tracker mount</comment>
+  </data>
+  <data name="Equipment_Settings_MilkyWay">
+    <value>ISO 3200, f/2.8, 20-25 seconds</value>
+    <comment>Recommended camera settings for Milky Way photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_MilkyWay">
+    <value>Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering.</value>
+    <comment>Equipment notes for Milky Way photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_Moon">
+    <value>ISO 200, f/8, 1/125s</value>
+    <comment>Recommended camera settings for Moon photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_Moon">
+    <value>Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure.</value>
+    <comment>Equipment notes for Moon photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_Planets">
+    <value>ISO 1600, f/5.6, 1/60s</value>
+    <comment>Recommended camera settings for planet photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_Planets">
+    <value>Long telephoto essential. Planets are small - maximum focal length recommended.</value>
+    <comment>Equipment notes for planet photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_DeepSky">
+    <value>ISO 1600, f/4, 2-5 minutes (with tracking)</value>
+    <comment>Recommended camera settings for deep sky photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_DeepSky">
+    <value>Medium telephoto with tracking mount. Requires dark skies and precise tracking.</value>
+    <comment>Equipment notes for deep sky photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_StarTrails">
+    <value>ISO 400, f/5.6, 30 minutes - 4 hours</value>
+    <comment>Recommended camera settings for star trail photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_StarTrails">
+    <value>Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures.</value>
+    <comment>Equipment notes for star trail photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_General">
+    <value>ISO 1600, f/2.8, 15-30 seconds</value>
+    <comment>Recommended camera settings for general astrophotography</comment>
+  </data>
+
+  <data name="Equipment_Notes_General">
+    <value>General astrophotography setup. Versatile for various targets.</value>
+    <comment>Equipment notes for general astrophotography</comment>
+  </data>
+  <data name="Equipment_Settings_MilkyWay">
+    <value>ISO 3200, f/2.8, 20-25 seconds</value>
+    <comment>Recommended camera settings for Milky Way photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_MilkyWay">
+    <value>Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering.</value>
+    <comment>Equipment notes for Milky Way photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_Moon">
+    <value>ISO 200, f/8, 1/125s</value>
+    <comment>Recommended camera settings for Moon photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_Moon">
+    <value>Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure.</value>
+    <comment>Equipment notes for Moon photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_Planets">
+    <value>ISO 1600, f/5.6, 1/60s</value>
+    <comment>Recommended camera settings for planet photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_Planets">
+    <value>Long telephoto essential. Planets are small - maximum focal length recommended.</value>
+    <comment>Equipment notes for planet photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_DeepSky">
+    <value>ISO 1600, f/4, 2-5 minutes (with tracking)</value>
+    <comment>Recommended camera settings for deep sky photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_DeepSky">
+    <value>Medium telephoto with tracking mount. Requires dark skies and precise tracking.</value>
+    <comment>Equipment notes for deep sky photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_StarTrails">
+    <value>ISO 400, f/5.6, 30 minutes - 4 hours</value>
+    <comment>Recommended camera settings for star trail photography</comment>
+  </data>
+
+  <data name="Equipment_Notes_StarTrails">
+    <value>Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures.</value>
+    <comment>Equipment notes for star trail photography</comment>
+  </data>
+
+  <data name="Equipment_Settings_General">
+    <value>ISO 1600, f/2.8, 15-30 seconds</value>
+    <comment>Recommended camera settings for general astrophotography</comment>
+  </data>
+
+  <data name="Equipment_Notes_General">
+    <value>General astrophotography setup. Versatile for various targets.</value>
+    <comment>Equipment notes for general astrophotography</comment>
+  </data>
   
   
   

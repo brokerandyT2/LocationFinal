@@ -3,6 +3,7 @@ using Location.Core.Infrastructure.Data;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Enums;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (cameraBody == null)
                 {
-                    return Result<CameraBody>.Failure("Camera body cannot be null");
+                    return Result<CameraBody>.Failure(AppResources.CameraBody_Error_CannotBeNull);
                 }
 
                 await Task.Run(async () =>
@@ -49,7 +50,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating camera body: {Name}", cameraBody?.Name);
-                return Result<CameraBody>.Failure($"Error creating camera body: {ex.Message}");
+                return Result<CameraBody>.Failure(string.Format(AppResources.CameraBody_Error_CreatingCameraBody, ex.Message));
             }
         }
 
@@ -69,7 +70,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 return cameraBody != null
                     ? Result<CameraBody>.Success(cameraBody)
-                    : Result<CameraBody>.Failure("Camera body not found");
+                    : Result<CameraBody>.Failure(AppResources.CameraBody_Error_CameraBodyNotFound);
             }
             catch (OperationCanceledException)
             {
@@ -78,7 +79,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting camera body by ID: {Id}", id);
-                return Result<CameraBody>.Failure($"Error getting camera body: {ex.Message}");
+                return Result<CameraBody>.Failure(string.Format(AppResources.CameraBody_Error_GettingCameraBody, ex.Message));
             }
         }
 
@@ -112,7 +113,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting paged camera bodies");
-                return Result<List<CameraBody>>.Failure($"Error getting camera bodies: {ex.Message}");
+                return Result<List<CameraBody>>.Failure(string.Format(AppResources.CameraBody_Error_GettingCameraBodies, ex.Message));
             }
         }
 
@@ -139,7 +140,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting user cameras");
-                return Result<List<CameraBody>>.Failure($"Error getting user cameras: {ex.Message}");
+                return Result<List<CameraBody>>.Failure(string.Format(AppResources.CameraBody_Error_GettingUserCameras, ex.Message));
             }
         }
 
@@ -151,7 +152,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (cameraBody == null)
                 {
-                    return Result<CameraBody>.Failure("Camera body cannot be null");
+                    return Result<CameraBody>.Failure(AppResources.CameraBody_Error_CannotBeNull);
                 }
 
                 await Task.Run(async () =>
@@ -169,7 +170,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating camera body: {Id}", cameraBody?.Id);
-                return Result<CameraBody>.Failure($"Error updating camera body: {ex.Message}");
+                return Result<CameraBody>.Failure(string.Format(AppResources.CameraBody_Error_UpdatingCameraBody, ex.Message));
             }
         }
 
@@ -201,7 +202,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting camera body: {Id}", id);
-                return Result<bool>.Failure($"Error deleting camera body: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.CameraBody_Error_DeletingCameraBody, ex.Message));
             }
         }
 
@@ -237,7 +238,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error searching camera bodies by name: {Name}", name);
-                return Result<List<CameraBody>>.Failure($"Error searching camera bodies: {ex.Message}");
+                return Result<List<CameraBody>>.Failure(string.Format(AppResources.CameraBody_Error_SearchingCameraBodies, ex.Message));
             }
         }
 
@@ -265,7 +266,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting camera bodies by mount type: {MountType}", mountType);
-                return Result<List<CameraBody>>.Failure($"Error getting camera bodies: {ex.Message}");
+                return Result<List<CameraBody>>.Failure(string.Format(AppResources.CameraBody_Error_GettingCameraBodies, ex.Message));
             }
         }
 
@@ -289,7 +290,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting total camera body count");
-                return Result<int>.Failure($"Error getting count: {ex.Message}");
+                return Result<int>.Failure(string.Format(AppResources.CameraBody_Error_GettingCount, ex.Message));
             }
         }
 

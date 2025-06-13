@@ -2,6 +2,7 @@
 using Location.Core.Infrastructure.Data;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Domain.Entities;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (lens == null)
                 {
-                    return Result<Lens>.Failure("Lens cannot be null");
+                    return Result<Lens>.Failure(AppResources.Lens_Error_CannotBeNull);
                 }
 
                 await Task.Run(async () =>
@@ -48,7 +49,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating lens");
-                return Result<Lens>.Failure($"Error creating lens: {ex.Message}");
+                return Result<Lens>.Failure(string.Format(AppResources.Lens_Error_CreatingLens, ex.Message));
             }
         }
 
@@ -68,7 +69,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 return lens != null
                     ? Result<Lens>.Success(lens)
-                    : Result<Lens>.Failure("Lens not found");
+                    : Result<Lens>.Failure(AppResources.Lens_Error_LensNotFound);
             }
             catch (OperationCanceledException)
             {
@@ -77,7 +78,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting lens by ID: {Id}", id);
-                return Result<Lens>.Failure($"Error getting lens: {ex.Message}");
+                return Result<Lens>.Failure(string.Format(AppResources.Lens_Error_GettingLens, ex.Message));
             }
         }
 
@@ -106,7 +107,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting paged lenses");
-                return Result<List<Lens>>.Failure($"Error getting lenses: {ex.Message}");
+                return Result<List<Lens>>.Failure(string.Format(AppResources.Lens_Error_GettingAllLenses, ex.Message));
             }
         }
 
@@ -133,7 +134,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting user lenses");
-                return Result<List<Lens>>.Failure($"Error getting user lenses: {ex.Message}");
+                return Result<List<Lens>>.Failure(string.Format(AppResources.Lens_Error_GettingUserLenses, ex.Message));
             }
         }
 
@@ -145,7 +146,7 @@ namespace Location.Photography.Infrastructure.Repositories
 
                 if (lens == null)
                 {
-                    return Result<Lens>.Failure("Lens cannot be null");
+                    return Result<Lens>.Failure(AppResources.Lens_Error_CannotBeNull);
                 }
 
                 await Task.Run(async () =>
@@ -163,7 +164,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating lens: {Id}", lens?.Id);
-                return Result<Lens>.Failure($"Error updating lens: {ex.Message}");
+                return Result<Lens>.Failure(string.Format(AppResources.Lens_Error_UpdatingLens, ex.Message));
             }
         }
 
@@ -195,7 +196,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting lens: {Id}", id);
-                return Result<bool>.Failure($"Error deleting lens: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.Lens_Error_DeletingLens, ex.Message));
             }
         }
 
@@ -226,7 +227,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error searching lenses by focal length: {FocalLength}", focalLength);
-                return Result<List<Lens>>.Failure($"Error searching lenses: {ex.Message}");
+                return Result<List<Lens>>.Failure(string.Format(AppResources.Lens_Error_SearchingLenses, ex.Message));
             }
         }
 
@@ -262,7 +263,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting compatible lenses for camera: {CameraBodyId}", cameraBodyId);
-                return Result<List<Lens>>.Failure($"Error getting compatible lenses: {ex.Message}");
+                return Result<List<Lens>>.Failure(string.Format(AppResources.Lens_Error_GettingAllLenses, ex.Message));
             }
         }
 
@@ -286,7 +287,7 @@ namespace Location.Photography.Infrastructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting total lens count");
-                return Result<int>.Failure($"Error getting count: {ex.Message}");
+                return Result<int>.Failure(string.Format(AppResources.Lens_Error_GettingAllLenses, ex.Message));
             }
         }
     }

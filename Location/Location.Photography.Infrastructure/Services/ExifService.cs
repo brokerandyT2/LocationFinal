@@ -1,6 +1,7 @@
 ﻿// Location.Photography.Infrastructure/Services/ExifService.cs
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
+using Location.Photography.Infrastructure.Resources;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using Microsoft.Extensions.Logging;
@@ -29,12 +30,12 @@ namespace Location.Photography.Infrastructure.Services
 
                 if (string.IsNullOrWhiteSpace(imagePath))
                 {
-                    return Result<ExifData>.Failure("Image path cannot be null or empty");
+                    return Result<ExifData>.Failure(AppResources.Exif_Error_ImagePathNullOrEmpty);
                 }
 
                 if (!File.Exists(imagePath))
                 {
-                    return Result<ExifData>.Failure("Image file does not exist");
+                    return Result<ExifData>.Failure(AppResources.Exif_Error_ImageFileDoesNotExist);
                 }
 
                 return await Task.Run(async () =>
@@ -67,11 +68,11 @@ namespace Location.Photography.Infrastructure.Services
                                 imagePath, attempt + 1);
 
                             if (attempt == maxRetries - 1)
-                                return Result<ExifData>.Failure($"Failed to extract EXIF data after {maxRetries} attempts: {ex.Message}");
+                                return Result<ExifData>.Failure(string.Format(AppResources.Exif_Error_FailedToExtractAfterRetries, maxRetries, ex.Message));
                         }
                     }
 
-                    return Result<ExifData>.Failure($"Failed to extract EXIF data after {maxRetries} attempts");
+                    return Result<ExifData>.Failure(string.Format(AppResources.Exif_Error_FailedToExtractAfterRetriesGeneric, maxRetries));
                 }, cancellationToken);
             }
             catch (OperationCanceledException)
@@ -81,11 +82,9 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error extracting EXIF data from {ImagePath}", imagePath);
-                return Result<ExifData>.Failure($"Error extracting EXIF data: {ex.Message}");
+                return Result<ExifData>.Failure(string.Format(AppResources.Exif_Error_ExtractingExifData, ex.Message));
             }
         }
-
-
 
         public async Task<Result<bool>> HasRequiredExifDataAsync(string imagePath, CancellationToken cancellationToken = default)
         {
@@ -106,7 +105,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error checking EXIF data requirements for {ImagePath}", imagePath);
-                return Result<bool>.Failure($"Error checking EXIF data: {ex.Message}");
+                return Result<bool>.Failure(string.Format(AppResources.Exif_Error_CheckingExifData, ex.Message));
             }
         }
 
