@@ -2,6 +2,7 @@
 using AutoMapper;
 using Location.Core.Application.Weather.DTOs;
 using Location.Core.Infrastructure.Data.Entities;
+using Location.Photography.Infrastructure.Resources;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -167,7 +168,7 @@ namespace Location.Photography.Infrastructure.Mappers
                 return new WeatherValidationResult
                 {
                     IsValid = false,
-                    Errors = { "Weather entity is null" }
+                    Errors = { AppResources.Weather_Error_WeatherEntityIsNull }
                 };
             }
 
@@ -186,7 +187,7 @@ namespace Location.Photography.Infrastructure.Mappers
                 if (forecasts == null || !forecasts.Any())
                 {
                     validationResult.IsValid = false;
-                    validationResult.Errors.Add("No forecast data available");
+                    validationResult.Errors.Add(AppResources.Weather_Error_NoForecastDataAvailable);
                     return validationResult;
                 }
 
@@ -195,7 +196,7 @@ namespace Location.Photography.Infrastructure.Mappers
                 if (dataAge > TimeSpan.FromHours(1))
                 {
                     validationResult.IsValid = false;
-                    validationResult.Errors.Add($"Weather data is {dataAge.TotalHours:F1} hours old (max 1 hour for predictions)");
+                    validationResult.Errors.Add(string.Format(AppResources.Weather_Error_WeatherDataTooOld, dataAge.TotalHours.ToString("F1")));
                 }
 
                 // Check forecast completeness
@@ -209,13 +210,13 @@ namespace Location.Photography.Infrastructure.Mappers
                 if (availableDays < 5)
                 {
                     validationResult.IsValid = false;
-                    validationResult.Errors.Add($"Incomplete forecast data: {availableDays} days available, 5 required");
+                    validationResult.Errors.Add(string.Format(AppResources.Weather_Error_IncompleteForecastData, availableDays));
                 }
 
                 // Check timezone validity
                 if (!weatherEntity.HasValidTimezone())
                 {
-                    validationResult.Warnings.Add("No valid timezone data - using local timezone");
+                    validationResult.Warnings.Add(AppResources.Weather_Warning_NoValidTimezoneData);
                 }
 
                 validationResult.IsValid = !validationResult.Errors.Any();
@@ -246,6 +247,75 @@ namespace Location.Photography.Infrastructure.Mappers
                 _validationCache.TryRemove(key, out _);
             }
         }
+
+        /// <summary>
+        /// Check if weather data has sufficient quality for making predictions
+        /// </summary>
+        public static bool IsValidForPredictions(WeatherEntity weatherEntity, List<WeatherForecastEntity> forecasts)
+        {
+            if (weatherEntity == null)
+                return false;
+
+            if (forecasts == null || !forecasts.Any())
+                return false;
+
+            // Check if weather data is not too old (1 hour max age for predictions)
+            if (weatherEntity.NeedsUpdate(TimeSpan.FromHours(1)))
+                return false;
+
+            // Check if we have minimum required forecast data
+            var today = DateTime.Today;
+            var requiredDays = 5; // 5-day forecast business rule
+
+            var availableDays = forecasts
+                .Where(f => f.Date.Date >= today)
+                .Select(f => f.Date.Date)
+                .Distinct()
+                .Count();
+
+            return availableDays >= requiredDays;
+        }
+
+        /// <summary>
+        /// Optimized batch validation for multiple weather entities
+        /// </summary>
+        public static async Task<Dictionary<int, WeatherValidationResult>> ValidateBatchForPredictionsAsync(
+            List<WeatherEntity> weatherEntities,
+            Dictionary<int, List<WeatherForecastEntity>> forecastsByLocationId)
+        {
+            var results = new Dictionary<int, WeatherValidationResult>();
+
+            if (weatherEntities == null || !weatherEntities.Any())
+                return results;
+
+            // Process validations in parallel for better performance
+            var validationTasks = weatherEntities.Select(async entity =>
+            {
+                var forecasts = forecastsByLocationId.GetValueOrDefault(entity.LocationId, new List<WeatherForecastEntity>());
+                var mapper = new WeatherEntityToDtoMapper(null); // Mapper not needed for validation
+                var validationResult = await mapper.ValidateForPredictionsAsync(entity, forecasts).ConfigureAwait(false);
+
+                return (entity.LocationId, validationResult);
+            });
+
+            var validationResults = await Task.WhenAll(validationTasks).ConfigureAwait(false);
+
+            foreach (var (locationId, result) in validationResults)
+            {
+                results[locationId] = result;
+            }
+
+            return results;
+        }
+    }
+
+    public class WeatherValidationResult
+    {
+        public bool IsValid { get; set; }
+        public List<string> Errors { get; set; } = new();
+        public List<string> Warnings { get; set; } = new();
+        public DateTime? LastUpdate { get; set; }
+        public TimeSpan? DataAge { get; set; }
     }
 
     // Extension methods for enhanced weather integration
@@ -324,70 +394,6 @@ namespace Location.Photography.Infrastructure.Mappers
                 .Count();
 
             return availableDays >= requiredDays;
-        }
-
-        /// <summary>
-        /// Optimized batch validation for multiple weather entities
-        /// </summary>
-        public static async Task<Dictionary<int, WeatherValidationResult>> ValidateBatchForPredictionsAsync(
-            List<WeatherEntity> weatherEntities,
-            Dictionary<int, List<WeatherForecastEntity>> forecastsByLocationId)
-        {
-            var results = new Dictionary<int, WeatherValidationResult>();
-
-            if (weatherEntities == null || !weatherEntities.Any())
-                return results;
-
-            // Process validations in parallel for better performance
-            var validationTasks = weatherEntities.Select(async entity =>
-            {
-                var forecasts = forecastsByLocationId.GetValueOrDefault(entity.LocationId, new List<WeatherForecastEntity>());
-                var mapper = new WeatherEntityToDtoMapper(null); // Mapper not needed for validation
-                var validationResult = await mapper.ValidateForPredictionsAsync(entity, forecasts).ConfigureAwait(false);
-
-                return (entity.LocationId, validationResult);
-            });
-
-            var validationResults = await Task.WhenAll(validationTasks).ConfigureAwait(false);
-
-            foreach (var (locationId, result) in validationResults)
-            {
-                results[locationId] = result;
-            }
-
-            return results;
-        }
-    }
-
-    public class WeatherValidationResult
-    {
-        public bool IsValid { get; set; }
-        public List<string> Errors { get; set; } = new();
-        public List<string> Warnings { get; set; } = new();
-        public DateTime? LastUpdate { get; set; }
-        public TimeSpan? DataAge { get; set; }
-        public double QualityScore => CalculateQualityScore();
-
-        private double CalculateQualityScore()
-        {
-            if (!IsValid) return 0.0;
-
-            double score = 1.0;
-
-            // Reduce score based on data age
-            if (DataAge.HasValue)
-            {
-                var ageHours = DataAge.Value.TotalHours;
-                if (ageHours > 0.5) // Prefer data less than 30 minutes old
-                {
-                    score *= Math.Max(0.5, 1.0 - (ageHours - 0.5) * 0.1); // 10% reduction per hour after 30 min
-                }
-            }
-
-            // Reduce score for warnings
-            score *= Math.Max(0.7, 1.0 - (Warnings.Count * 0.1)); // 10% reduction per warning
-
-            return Math.Max(0.0, Math.Min(1.0, score));
         }
     }
 }

@@ -837,30 +837,191 @@
     <value>ISO 1600, f/4, 2-5 minutes (with tracking)</value>
     <comment>Recommended camera settings for deep sky photography</comment>
   </data>
-
   <data name="Equipment_Notes_DeepSky">
     <value>Medium telephoto with tracking mount. Requires dark skies and precise tracking.</value>
     <comment>Equipment notes for deep sky photography</comment>
   </data>
-
   <data name="Equipment_Settings_StarTrails">
     <value>ISO 400, f/5.6, 30 minutes - 4 hours</value>
     <comment>Recommended camera settings for star trail photography</comment>
   </data>
-
   <data name="Equipment_Notes_StarTrails">
     <value>Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures.</value>
     <comment>Equipment notes for star trail photography</comment>
   </data>
-
   <data name="Equipment_Settings_General">
     <value>ISO 1600, f/2.8, 15-30 seconds</value>
     <comment>Recommended camera settings for general astrophotography</comment>
   </data>
-
   <data name="Equipment_Notes_General">
     <value>General astrophotography setup. Versatile for various targets.</value>
     <comment>Equipment notes for general astrophotography</comment>
+  </data>
+  <data name="Weather_Error_WeatherEntityIsNull">
+    <value>Weather entity is null</value>
+    <comment>Error message when weather entity parameter is null</comment>
+  </data>
+  <data name="Weather_Error_NoForecastDataAvailable">
+    <value>No forecast data available</value>
+    <comment>Error message when no forecast data is available for weather validation</comment>
+  </data>
+  <data name="Weather_Error_WeatherDataTooOld">
+    <value>Weather data is {0} hours old (max 1 hour for predictions)</value>
+    <comment>Error message when weather data is too old for predictions, {0} is the age in hours</comment>
+  </data>
+  <data name="Weather_Error_IncompleteForecastData">
+    <value>Incomplete forecast data: {0} days available, 5 required</value>
+    <comment>Error message when insufficient forecast data is available, {0} is the number of available days</comment>
+  </data>
+  <data name="Weather_Warning_NoValidTimezoneData">
+    <value>No valid timezone data - using local timezone</value>
+    <comment>Warning message when timezone data is not valid and local timezone is used instead</comment>
+  </data>
+  <data name="PredictiveLight_Error_ServiceTemporarilyUnavailable">
+    <value>Prediction service temporarily unavailable</value>
+    <comment>Error message when prediction service is temporarily unavailable</comment>
+  </data>
+
+  <data name="PredictiveLight_Error_WeatherAnalysisUnavailable">
+    <value>Weather analysis unavailable</value>
+    <comment>Error message when weather analysis is unavailable</comment>
+  </data>
+
+  <data name="PredictiveLight_ConfidenceReason_WithCalibration">
+    <value>based on recent light meter calibration and environmental data ({0}h forecast)</value>
+    <comment>Confidence reason when calibration is available, {0} is hours from now</comment>
+  </data>
+
+  <data name="PredictiveLight_ConfidenceReason_WithoutCalibration">
+    <value>based on lux calculations from sun position and weather conditions ({0}h forecast)</value>
+    <comment>Confidence reason when no calibration is available, {0} is hours from now</comment>
+  </data>
+
+  <data name="PredictiveLight_ConfidenceModifier_LongRangeForecast">
+    <value> - long-range forecast has increased uncertainty</value>
+    <comment>Additional confidence reason for long-range forecasts</comment>
+  </data>
+
+  <data name="PredictiveLight_ConfidenceModifier_MediumRangeForecast">
+    <value> - medium-range forecast</value>
+    <comment>Additional confidence reason for medium-range forecasts</comment>
+  </data>
+
+  <data name="PredictiveLight_Recommendation_ExcellentConditions">
+    <value>Excellent shooting conditions expected at {0:HH:mm}. {1}</value>
+    <comment>Recommendation for excellent shooting conditions, {0} is time, {1} is description</comment>
+  </data>
+
+  <data name="PredictiveLight_Recommendation_GoodConditionsWithAlternative">
+    <value>Good conditions at {0:HH:mm}. {1}. Alternative: {2}</value>
+    <comment>Recommendation for good conditions with alternative, {0} is time, {1} is description, {2} is alternative</comment>
+  </data>
+
+  <data name="PredictiveLight_Recommendation_GoodConditions">
+    <value>Good conditions at {0:HH:mm}. {1}.</value>
+    <comment>Recommendation for good conditions, {0} is time, {1} is description</comment>
+  </data>
+
+  <data name="PredictiveLight_Recommendation_Alternative">
+    <value>Alternative: {0}</value>
+    <comment>Alternative recommendation text, {0} is the alternative description</comment>
+  </data>
+
+  <data name="PredictiveLight_Recommendation_ChallengingConditions">
+    <value>Challenging conditions predicted. Consider indoor photography or wait for better weather.</value>
+    <comment>Recommendation when challenging conditions are predicted</comment>
+  </data>
+
+  <data name="PredictiveLight_Insight_OptimalHours">
+    <value>{0} hours of optimal shooting conditions available</value>
+    <comment>Insight about optimal shooting hours, {0} is the number of hours</comment>
+  </data>
+
+  <data name="PredictiveLight_Insight_LightRange">
+    <value>Light range: EV {0:F1} to EV {1:F1}</value>
+    <comment>Insight about light range, {0} is minimum EV, {1} is maximum EV</comment>
+  </data>
+
+  <data name="PredictiveLight_Insight_WeatherImpact">
+    <value>Significant weather impact on light quality</value>
+    <comment>Insight about significant weather impact on light quality</comment>
+  </data>
+
+  <data name="PredictiveLight_Insight_GoldenHourAvailable">
+    <value>{0} hours of golden hour light available</value>
+    <comment>Insight about golden hour availability, {0} is the number of hours</comment>
+  </data>
+
+  <data name="PredictiveLight_Description_BlueHour">
+    <value>Blue hour: EV {0:F1}</value>
+    <comment>Description for blue hour conditions, {0} is the EV value</comment>
+  </data>
+
+  <data name="PredictiveLight_Description_SoftOvercastLight">
+    <value>Soft overcast light: EV {0:F1}</value>
+    <comment>Description for soft overcast light conditions, {0} is the EV value</comment>
+  </data>
+  <data name="SubscriptionStatus_Error_FailedToRetrieveLocalInfo">
+    <value>Failed to retrieve local subscription info</value>
+    <comment>Error message when local subscription info cannot be retrieved</comment>
+  </data>
+
+  <data name="SubscriptionStatus_Error_CheckingSubscriptionStatus">
+    <value>Error checking subscription status: {0}</value>
+    <comment>Error message when checking subscription status fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="SubscriptionStatus_Error_UnableToValidateAfterMultipleAttempts">
+    <value>Unable to validate subscription after multiple attempts</value>
+    <comment>Error message when subscription validation fails after multiple attempts</comment>
+  </data>
+  <data name="FOVCalculation_Error_FocalLengthAndSensorWidthMustBePositive">
+    <value>Focal length and sensor width must be positive values</value>
+    <comment>Error message when focal length or sensor width values are not positive</comment>
+  </data>
+
+  <data name="FOVCalculation_Error_FocalLengthAndSensorHeightMustBePositive">
+    <value>Focal length and sensor height must be positive values</value>
+    <comment>Error message when focal length or sensor height values are not positive</comment>
+  </data>
+
+  <data name="FOVCalculation_Error_PhoneModelCannotBeNullOrEmpty">
+    <value>Phone model cannot be null or empty</value>
+    <comment>Error message when phone model parameter is null or empty</comment>
+  </data>
+
+  <data name="FOVCalculation_Error_FocalLengthMustBePositive">
+    <value>Focal length must be positive</value>
+    <comment>Error message when focal length value is not positive</comment>
+  </data>
+
+  <data name="FOVCalculation_Error_FailedToGetSensorDimensions">
+    <value>Failed to get sensor dimensions: {0}</value>
+    <comment>Error message when getting sensor dimensions fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="FOVCalculation_Error_EstimatingSensorDimensions">
+    <value>Error estimating sensor dimensions: {0}</value>
+    <comment>Error message when estimating sensor dimensions fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="FOVCalculation_Error_CreatingPhoneCameraProfile">
+    <value>Error creating phone camera profile: {0}</value>
+    <comment>Error message when creating phone camera profile fails, {0} is the specific error</comment>
+  </data>
+  <data name="FOVCalculation_Error_CreatingCameraProfile">
+    <value>Error creating camera profile: {0}</value>
+    <comment>Error message when creating camera profile fails, {0} is the specific error</comment>
+  </data>
+
+  <data name="FOVCalculation_Error_FOVValuesMustBePositive">
+    <value>FOV values must be positive</value>
+    <comment>Error message when FOV values are not positive</comment>
+  </data>
+
+  <data name="FOVCalculation_Error_ScreenSizeMustBePositive">
+    <value>Screen size must be positive</value>
+    <comment>Error message when screen size values are not positive</comment>
   </data>
   
   

@@ -3,6 +3,7 @@ using Location.Core.Application.Weather.DTOs;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -67,7 +68,7 @@ namespace Location.Photography.Infrastructure.Services
                 _logger.LogError(ex, "Error analyzing weather impact");
                 return new WeatherImpactAnalysis
                 {
-                    Summary = "Weather analysis unavailable",
+                    Summary = AppResources.PredictiveLight_Error_WeatherAnalysisUnavailable,
                     OverallLightReductionFactor = 0.8
                 };
             }
@@ -142,7 +143,7 @@ namespace Location.Photography.Infrastructure.Services
                 return new PredictiveLightRecommendation
                 {
                     GeneratedAt = DateTime.Now,
-                    OverallRecommendation = "Prediction service temporarily unavailable"
+                    OverallRecommendation = AppResources.PredictiveLight_Error_ServiceTemporarilyUnavailable
                 };
             }
         }
@@ -479,11 +480,11 @@ namespace Location.Photography.Infrastructure.Services
                 if (hasCalibration)
                 {
                     calculatedEV += calibration.CurrentOffset;
-                    prediction.ConfidenceReason = $"based on recent light meter calibration and environmental data ({hoursFromNow:F1}h forecast)";
+                    prediction.ConfidenceReason = string.Format(AppResources.PredictiveLight_Insight_OptimalHours, hoursFromNow);
                 }
                 else
                 {
-                    prediction.ConfidenceReason = $"based on lux calculations from sun position and weather conditions ({hoursFromNow:F1}h forecast)";
+                    prediction.ConfidenceReason = string.Format(AppResources.PredictiveLight_Insight_OptimalHours, hoursFromNow);
                 }
 
                 // Final confidence calculation
@@ -493,11 +494,11 @@ namespace Location.Photography.Infrastructure.Services
                 // Add time decay information to confidence reason
                 if (hoursFromNow > 48)
                 {
-                    prediction.ConfidenceReason += " - long-range forecast has increased uncertainty";
+                    prediction.ConfidenceReason += AppResources.PredictiveLight_ConfidenceModifier_LongRangeForecast;
                 }
                 else if (hoursFromNow > 24)
                 {
-                    prediction.ConfidenceReason += " - medium-range forecast";
+                    prediction.ConfidenceReason += AppResources.PredictiveLight_ConfidenceModifier_MediumRangeForecast;
                 }
 
                 prediction.PredictedEV = Math.Round(calculatedEV, 1);
@@ -677,7 +678,7 @@ namespace Location.Photography.Infrastructure.Services
                 alerts.Add(new WeatherAlert
                 {
                     Type = AlertType.Weather,
-                    Message = "Severe weather impact expected - consider rescheduling outdoor shoots",
+                    Message = AppResources.PredictiveLight_Recommendation_ChallengingConditions,
                     Severity = AlertSeverity.Critical,
                     ValidFrom = DateTime.Now,
                     ValidTo = DateTime.Now.AddHours(24)
@@ -725,7 +726,7 @@ namespace Location.Photography.Infrastructure.Services
 
         private string GenerateHourlyReasoning(DailyForecastDto forecast, DateTime hour, Location.Photography.Domain.Models.EnhancedSunTimes sunTimes, double reduction)
         {
-            return $"Light reduced by {(1 - reduction) * 100:F0}% due to weather conditions";
+            return  $"Light reduced by {(1 - reduction) * 100:F0}% due to weather conditions";
         }
 
         private LightCharacteristics CalculateLightCharacteristics(SunPositionDto sunPosition, double lux, DateTime time, Location.Photography.Domain.Models.EnhancedSunTimes sunTimes, WeatherConditions? weather)
@@ -985,25 +986,24 @@ namespace Location.Photography.Infrastructure.Services
             var optimalCount = predictions.Count(p => p.IsOptimalForPhotography);
             if (optimalCount > 0)
             {
-                insights.Add($"{optimalCount} hours of optimal shooting conditions available");
+                insights.Add(string.Format(AppResources.PredictiveLight_Insight_OptimalHours, optimalCount));
             }
 
             var maxEV = predictions.Max(p => p.PredictedEV);
             var minEV = predictions.Min(p => p.PredictedEV);
-            insights.Add($"Light range: EV {minEV:F1} to EV {maxEV:F1}");
+            insights.Add(string.Format(AppResources.PredictiveLight_Insight_LightRange, minEV, maxEV));
 
             if (weather.OverallLightReductionFactor < 0.5)
             {
-                insights.Add("Significant weather impact on light quality");
+                insights.Add(AppResources.PredictiveLight_Insight_WeatherImpact);
             }
 
             var goldenHourPredictions = predictions.Count(p =>
                 p.SunPosition.Elevation < 15 && p.SunPosition.Elevation > 0);
             if (goldenHourPredictions > 0)
             {
-                insights.Add($"{goldenHourPredictions} hours of golden hour light available");
+                insights.Add(string.Format(AppResources.PredictiveLight_Insight_GoldenHourAvailable, goldenHourPredictions));
             }
-
             return insights;
         }
 

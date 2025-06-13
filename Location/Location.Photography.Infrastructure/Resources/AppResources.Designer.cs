@@ -664,6 +664,96 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error creating camera profile: {0}.
+        /// </summary>
+        internal static string FOVCalculation_Error_CreatingCameraProfile {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_CreatingCameraProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error creating phone camera profile: {0}.
+        /// </summary>
+        internal static string FOVCalculation_Error_CreatingPhoneCameraProfile {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_CreatingPhoneCameraProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error estimating sensor dimensions: {0}.
+        /// </summary>
+        internal static string FOVCalculation_Error_EstimatingSensorDimensions {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_EstimatingSensorDimensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to get sensor dimensions: {0}.
+        /// </summary>
+        internal static string FOVCalculation_Error_FailedToGetSensorDimensions {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_FailedToGetSensorDimensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focal length and sensor height must be positive values.
+        /// </summary>
+        internal static string FOVCalculation_Error_FocalLengthAndSensorHeightMustBePositive {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_FocalLengthAndSensorHeightMustBePositive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focal length and sensor width must be positive values.
+        /// </summary>
+        internal static string FOVCalculation_Error_FocalLengthAndSensorWidthMustBePositive {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_FocalLengthAndSensorWidthMustBePositive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focal length must be positive.
+        /// </summary>
+        internal static string FOVCalculation_Error_FocalLengthMustBePositive {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_FocalLengthMustBePositive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FOV values must be positive.
+        /// </summary>
+        internal static string FOVCalculation_Error_FOVValuesMustBePositive {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_FOVValuesMustBePositive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Phone model cannot be null or empty.
+        /// </summary>
+        internal static string FOVCalculation_Error_PhoneModelCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_PhoneModelCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Screen size must be positive.
+        /// </summary>
+        internal static string FOVCalculation_Error_ScreenSizeMustBePositive {
+            get {
+                return ResourceManager.GetString("FOVCalculation_Error_ScreenSizeMustBePositive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Lens cannot be null.
         /// </summary>
         internal static string Lens_Error_CannotBeNull {
@@ -831,6 +921,159 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string PhoneCameraProfile_Error_UpdatingProfile {
             get {
                 return ResourceManager.GetString("PhoneCameraProfile_Error_UpdatingProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  - long-range forecast has increased uncertainty.
+        /// </summary>
+        internal static string PredictiveLight_ConfidenceModifier_LongRangeForecast {
+            get {
+                return ResourceManager.GetString("PredictiveLight_ConfidenceModifier_LongRangeForecast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  - medium-range forecast.
+        /// </summary>
+        internal static string PredictiveLight_ConfidenceModifier_MediumRangeForecast {
+            get {
+                return ResourceManager.GetString("PredictiveLight_ConfidenceModifier_MediumRangeForecast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to based on recent light meter calibration and environmental data ({0}h forecast).
+        /// </summary>
+        internal static string PredictiveLight_ConfidenceReason_WithCalibration {
+            get {
+                return ResourceManager.GetString("PredictiveLight_ConfidenceReason_WithCalibration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to based on lux calculations from sun position and weather conditions ({0}h forecast).
+        /// </summary>
+        internal static string PredictiveLight_ConfidenceReason_WithoutCalibration {
+            get {
+                return ResourceManager.GetString("PredictiveLight_ConfidenceReason_WithoutCalibration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blue hour: EV {0:F1}.
+        /// </summary>
+        internal static string PredictiveLight_Description_BlueHour {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Description_BlueHour", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Soft overcast light: EV {0:F1}.
+        /// </summary>
+        internal static string PredictiveLight_Description_SoftOvercastLight {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Description_SoftOvercastLight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prediction service temporarily unavailable.
+        /// </summary>
+        internal static string PredictiveLight_Error_ServiceTemporarilyUnavailable {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Error_ServiceTemporarilyUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather analysis unavailable.
+        /// </summary>
+        internal static string PredictiveLight_Error_WeatherAnalysisUnavailable {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Error_WeatherAnalysisUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} hours of golden hour light available.
+        /// </summary>
+        internal static string PredictiveLight_Insight_GoldenHourAvailable {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Insight_GoldenHourAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Light range: EV {0:F1} to EV {1:F1}.
+        /// </summary>
+        internal static string PredictiveLight_Insight_LightRange {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Insight_LightRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} hours of optimal shooting conditions available.
+        /// </summary>
+        internal static string PredictiveLight_Insight_OptimalHours {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Insight_OptimalHours", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Significant weather impact on light quality.
+        /// </summary>
+        internal static string PredictiveLight_Insight_WeatherImpact {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Insight_WeatherImpact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternative: {0}.
+        /// </summary>
+        internal static string PredictiveLight_Recommendation_Alternative {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Recommendation_Alternative", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Challenging conditions predicted. Consider indoor photography or wait for better weather..
+        /// </summary>
+        internal static string PredictiveLight_Recommendation_ChallengingConditions {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Recommendation_ChallengingConditions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent shooting conditions expected at {0:HH:mm}. {1}.
+        /// </summary>
+        internal static string PredictiveLight_Recommendation_ExcellentConditions {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Recommendation_ExcellentConditions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good conditions at {0:HH:mm}. {1}..
+        /// </summary>
+        internal static string PredictiveLight_Recommendation_GoodConditions {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Recommendation_GoodConditions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good conditions at {0:HH:mm}. {1}. Alternative: {2}.
+        /// </summary>
+        internal static string PredictiveLight_Recommendation_GoodConditionsWithAlternative {
+            get {
+                return ResourceManager.GetString("PredictiveLight_Recommendation_GoodConditionsWithAlternative", resourceCulture);
             }
         }
         
@@ -1218,6 +1461,51 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string UserCameraBody_Error_UserIdCannotBeNullOrEmpty {
             get {
                 return ResourceManager.GetString("UserCameraBody_Error_UserIdCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incomplete forecast data: {0} days available, 5 required.
+        /// </summary>
+        internal static string Weather_Error_IncompleteForecastData {
+            get {
+                return ResourceManager.GetString("Weather_Error_IncompleteForecastData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No forecast data available.
+        /// </summary>
+        internal static string Weather_Error_NoForecastDataAvailable {
+            get {
+                return ResourceManager.GetString("Weather_Error_NoForecastDataAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather data is {0} hours old (max 1 hour for predictions).
+        /// </summary>
+        internal static string Weather_Error_WeatherDataTooOld {
+            get {
+                return ResourceManager.GetString("Weather_Error_WeatherDataTooOld", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather entity is null.
+        /// </summary>
+        internal static string Weather_Error_WeatherEntityIsNull {
+            get {
+                return ResourceManager.GetString("Weather_Error_WeatherEntityIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No valid timezone data - using local timezone.
+        /// </summary>
+        internal static string Weather_Warning_NoValidTimezoneData {
+            get {
+                return ResourceManager.GetString("Weather_Warning_NoValidTimezoneData", resourceCulture);
             }
         }
     }

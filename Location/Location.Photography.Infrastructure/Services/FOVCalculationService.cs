@@ -2,6 +2,7 @@
 using Location.Core.Application.Common.Models;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ namespace Location.Photography.Infrastructure.Services
         {
             if (focalLength <= 0 || sensorWidth <= 0)
             {
-                throw new ArgumentException("Focal length and sensor width must be positive values");
+                throw new ArgumentException(AppResources.FOVCalculation_Error_FocalLengthAndSensorWidthMustBePositive);
             }
 
             // FOV = 2 * arctan(sensor_dimension / (2 * focal_length))
@@ -49,7 +50,7 @@ namespace Location.Photography.Infrastructure.Services
         {
             if (focalLength <= 0 || sensorHeight <= 0)
             {
-                throw new ArgumentException("Focal length and sensor height must be positive values");
+                throw new ArgumentException(AppResources.FOVCalculation_Error_FocalLengthAndSensorHeightMustBePositive);
             }
 
             var fovRadians = 2 * Math.Atan(sensorHeight / (2 * focalLength));
@@ -97,7 +98,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error estimating sensor dimensions for {PhoneModel}", phoneModel);
-                return Result<SensorDimensions>.Failure($"Error estimating sensor dimensions: {ex.Message}");
+                return Result<SensorDimensions>.Failure(string.Format(AppResources.FOVCalculation_Error_EstimatingSensorDimensions, ex.Message));
             }
         }
 
@@ -112,19 +113,19 @@ namespace Location.Photography.Infrastructure.Services
 
                 if (string.IsNullOrWhiteSpace(phoneModel))
                 {
-                    return Result<PhoneCameraProfile>.Failure("Phone model cannot be null or empty");
+                    return Result<PhoneCameraProfile>.Failure(AppResources.FOVCalculation_Error_PhoneModelCannotBeNullOrEmpty);
                 }
 
                 if (focalLength <= 0)
                 {
-                    return Result<PhoneCameraProfile>.Failure("Focal length must be positive");
+                    return Result<PhoneCameraProfile>.Failure(AppResources.FOVCalculation_Error_FocalLengthMustBePositive);
                 }
 
                 // Get sensor dimensions for this phone model
                 var sensorResult = await EstimateSensorDimensionsAsync(phoneModel, cancellationToken);
                 if (!sensorResult.IsSuccess)
                 {
-                    return Result<PhoneCameraProfile>.Failure($"Failed to get sensor dimensions: {sensorResult.ErrorMessage}");
+                    return Result<PhoneCameraProfile>.Failure(string.Format(AppResources.FOVCalculation_Error_FailedToGetSensorDimensions, sensorResult.ErrorMessage));
                 }
 
                 var sensor = sensorResult.Data;
@@ -150,7 +151,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating phone camera profile for {PhoneModel}", phoneModel);
-                return Result<PhoneCameraProfile>.Failure($"Error creating camera profile: {ex.Message}");
+                return Result<PhoneCameraProfile>.Failure(string.Format(AppResources.FOVCalculation_Error_CreatingCameraProfile, ex.Message));
             }
         }
 
@@ -158,12 +159,12 @@ namespace Location.Photography.Infrastructure.Services
         {
             if (phoneFOV <= 0 || cameraFOV <= 0)
             {
-                throw new ArgumentException("FOV values must be positive");
+                throw new ArgumentException(AppResources.FOVCalculation_Error_FOVValuesMustBePositive);
             }
 
             if (screenSize.Width <= 0 || screenSize.Height <= 0)
             {
-                throw new ArgumentException("Screen size must be positive");
+                throw new ArgumentException(AppResources.FOVCalculation_Error_ScreenSizeMustBePositive);
             }
 
             // Calculate scale factor based on FOV ratio
