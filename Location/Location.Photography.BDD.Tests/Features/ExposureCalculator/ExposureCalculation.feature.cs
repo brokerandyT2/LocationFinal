@@ -122,25 +122,25 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table1 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table60 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table1.AddRow(new string[] {
+                table60.AddRow(new string[] {
                             "1/125",
                             "f/5.6",
                             "100"});
 #line 10
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table1, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table60, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table2 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table61 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetAperture",
                             "TargetIso"});
-                table2.AddRow(new string[] {
+                table61.AddRow(new string[] {
                             "f/2.8",
                             "100"});
 #line 13
-    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table2, "And ");
+    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table61, "And ");
 #line hidden
 #line 16
     testRunner.When("I calculate the shutter speed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -176,25 +176,25 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table3 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table62 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table3.AddRow(new string[] {
+                table62.AddRow(new string[] {
                             "1/60",
                             "f/8",
                             "200"});
 #line 21
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table3, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table62, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table4 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table63 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetShutterSpeed",
                             "TargetIso"});
-                table4.AddRow(new string[] {
+                table63.AddRow(new string[] {
                             "1/250",
                             "200"});
 #line 24
-    testRunner.And("I want to calculate the aperture with the following target settings:", ((string)(null)), table4, "And ");
+    testRunner.And("I want to calculate the aperture with the following target settings:", ((string)(null)), table63, "And ");
 #line hidden
 #line 27
     testRunner.When("I calculate the aperture", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -230,25 +230,25 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table5 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table64 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table5.AddRow(new string[] {
+                table64.AddRow(new string[] {
                             "1/30",
                             "f/11",
                             "100"});
 #line 32
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table5, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table64, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table6 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table65 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetShutterSpeed",
                             "TargetAperture"});
-                table6.AddRow(new string[] {
+                table65.AddRow(new string[] {
                             "1/125",
                             "f/8"});
 #line 35
-    testRunner.And("I want to calculate the ISO with the following target settings:", ((string)(null)), table6, "And ");
+    testRunner.And("I want to calculate the ISO with the following target settings:", ((string)(null)), table65, "And ");
 #line hidden
 #line 38
     testRunner.When("I calculate the ISO", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -284,27 +284,27 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table7 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table66 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table7.AddRow(new string[] {
+                table66.AddRow(new string[] {
                             "1/125",
                             "f/5.6",
                             "100"});
 #line 43
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table7, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table66, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table8 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table67 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetAperture",
                             "TargetIso",
                             "EvCompensation"});
-                table8.AddRow(new string[] {
+                table67.AddRow(new string[] {
                             "f/5.6",
                             "100",
                             "1.0"});
 #line 46
-    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table8, "And ");
+    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table67, "And ");
 #line hidden
 #line 49
     testRunner.When("I calculate the shutter speed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -340,28 +340,28 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table9 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table68 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table9.AddRow(new string[] {
+                table68.AddRow(new string[] {
                             "1/125",
                             "f/4",
                             "100"});
 #line 54
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table9, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table68, "Given ");
 #line hidden
 #line 57
     testRunner.And("I am using half stops increments", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table10 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table69 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetAperture",
                             "TargetIso"});
-                table10.AddRow(new string[] {
+                table69.AddRow(new string[] {
                             "f/2.8",
                             "100"});
 #line 58
-    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table10, "And ");
+    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table69, "And ");
 #line hidden
 #line 61
     testRunner.When("I calculate the shutter speed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -397,28 +397,28 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table11 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table70 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table11.AddRow(new string[] {
+                table70.AddRow(new string[] {
                             "1/60",
                             "f/2.8",
                             "200"});
 #line 66
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table11, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table70, "Given ");
 #line hidden
 #line 69
     testRunner.And("I am using third stops increments", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table12 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table71 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetShutterSpeed",
                             "TargetIso"});
-                table12.AddRow(new string[] {
+                table71.AddRow(new string[] {
                             "1/200",
                             "200"});
 #line 70
-    testRunner.And("I want to calculate the aperture with the following target settings:", ((string)(null)), table12, "And ");
+    testRunner.And("I want to calculate the aperture with the following target settings:", ((string)(null)), table71, "And ");
 #line hidden
 #line 73
     testRunner.When("I calculate the aperture", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -454,27 +454,27 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table13 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table72 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "ErrorMessage"});
-                table13.AddRow(new string[] {
+                table72.AddRow(new string[] {
                             "1/8000",
                             "f/1.4",
                             "50",
                             "Image will be overexposed by 2.0 stops"});
 #line 78
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table13, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table72, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table14 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table73 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetAperture",
                             "TargetIso"});
-                table14.AddRow(new string[] {
+                table73.AddRow(new string[] {
                             "f/1",
                             "25"});
 #line 81
-    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table14, "And ");
+    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table73, "And ");
 #line hidden
 #line 84
     testRunner.When("I calculate the shutter speed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -510,27 +510,27 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table15 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table74 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "ErrorMessage"});
-                table15.AddRow(new string[] {
+                table74.AddRow(new string[] {
                             "30",
                             "f/22",
                             "25600",
                             "Image will be underexposed by 1.5 stops"});
 #line 89
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table15, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table74, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table16 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table75 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetShutterSpeed",
                             "TargetIso"});
-                table16.AddRow(new string[] {
+                table75.AddRow(new string[] {
                             "60",
                             "51200"});
 #line 92
-    testRunner.And("I want to calculate the aperture with the following target settings:", ((string)(null)), table16, "And ");
+    testRunner.And("I want to calculate the aperture with the following target settings:", ((string)(null)), table75, "And ");
 #line hidden
 #line 95
     testRunner.When("I calculate the aperture", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -566,7 +566,7 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table17 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table76 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",
                             "BaseShutterSpeed",
                             "BaseAperture",
@@ -575,7 +575,7 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
                             "TargetIso",
                             "ResultShutterSpeed",
                             "FixedValue"});
-                table17.AddRow(new string[] {
+                table76.AddRow(new string[] {
                             "1",
                             "1/125",
                             "f/5.6",
@@ -584,7 +584,7 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
                             "100",
                             "1/500",
                             "ShutterSpeeds"});
-                table17.AddRow(new string[] {
+                table76.AddRow(new string[] {
                             "2",
                             "1/60",
                             "f/8",
@@ -593,7 +593,7 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
                             "200",
                             "1/250",
                             "ShutterSpeeds"});
-                table17.AddRow(new string[] {
+                table76.AddRow(new string[] {
                             "3",
                             "1/30",
                             "f/11",
@@ -603,7 +603,7 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
                             "1/125",
                             "ShutterSpeeds"});
 #line 100
-    testRunner.Given("I have multiple exposure scenarios:", ((string)(null)), table17, "Given ");
+    testRunner.Given("I have multiple exposure scenarios:", ((string)(null)), table76, "Given ");
 #line hidden
 #line 105
     testRunner.When("I calculate the equivalent exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -642,30 +642,30 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table18 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table77 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table18.AddRow(new string[] {
+                table77.AddRow(new string[] {
                             string.Format("{0}", baseShutter),
                             string.Format("{0}", baseAperture),
                             string.Format("{0}", baseIso)});
 #line 109
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table18, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table77, "Given ");
 #line hidden
 #line 112
     testRunner.And(string.Format("I am using {0} stops increments", increments), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table19 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table78 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetShutterSpeed",
                             "TargetAperture",
                             "TargetIso"});
-                table19.AddRow(new string[] {
+                table78.AddRow(new string[] {
                             string.Format("{0}", targetShutter),
                             string.Format("{0}", targetAperture),
                             string.Format("{0}", targetIso)});
 #line 113
-    testRunner.And(string.Format("I want to calculate the {0} with the following target settings:", calculationType), ((string)(null)), table19, "And ");
+    testRunner.And(string.Format("I want to calculate the {0} with the following target settings:", calculationType), ((string)(null)), table78, "And ");
 #line hidden
 #line 116
     testRunner.When("I calculate the equivalent exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -761,28 +761,28 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table20 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table79 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table20.AddRow(new string[] {
+                table79.AddRow(new string[] {
                             "1/125",
                             "f/5.6",
                             "100"});
 #line 127
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table20, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table79, "Given ");
 #line hidden
 #line 130
     testRunner.And("I apply an EV compensation of -1.0", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table21 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table80 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetAperture",
                             "TargetIso"});
-                table21.AddRow(new string[] {
+                table80.AddRow(new string[] {
                             "f/5.6",
                             "100"});
 #line 131
-    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table21, "And ");
+    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table80, "And ");
 #line hidden
 #line 134
     testRunner.When("I calculate the shutter speed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -818,25 +818,25 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table22 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table81 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table22.AddRow(new string[] {
+                table81.AddRow(new string[] {
                             "1/250",
                             "f/4",
                             "200"});
 #line 139
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table22, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table81, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table23 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table82 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetAperture",
                             "TargetIso"});
-                table23.AddRow(new string[] {
+                table82.AddRow(new string[] {
                             "f/8",
                             "800"});
 #line 142
-    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table23, "And ");
+    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table82, "And ");
 #line hidden
 #line 145
     testRunner.When("I calculate the equivalent exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -844,16 +844,16 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 146
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-                TechTalk.SpecFlow.Table table24 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table83 = new TechTalk.SpecFlow.Table(new string[] {
                             "ResultShutterSpeed",
                             "ResultAperture",
                             "ResultIso"});
-                table24.AddRow(new string[] {
+                table83.AddRow(new string[] {
                             "1/250",
                             "f/8",
                             "800"});
 #line 147
-    testRunner.And("the calculated exposure should have the following settings:", ((string)(null)), table24, "And ");
+    testRunner.And("the calculated exposure should have the following settings:", ((string)(null)), table83, "And ");
 #line hidden
             }
             this.ScenarioCleanup();

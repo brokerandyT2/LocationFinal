@@ -126,18 +126,18 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 10
     testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table48 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table126 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature"});
-                table48.AddRow(new string[] {
+                table126.AddRow(new string[] {
                             "128",
                             "128",
                             "128",
                             "5500"});
 #line 11
-    testRunner.And("the image has color characteristics:", ((string)(null)), table48, "And ");
+    testRunner.And("the image has color characteristics:", ((string)(null)), table126, "And ");
 #line hidden
 #line 14
     testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -146,26 +146,26 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 16
-    testRunner.And("I should receive color temperature analysis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 17
     testRunner.And("the color temperature should be approximately 5500 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
+#line 17
+    testRunner.And("the lighting should be identified as daylight", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
 #line 18
-    testRunner.And("the color temperature should indicate neutral lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the white balance should be neutral", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze tungsten lighting color temperature")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect tungsten lighting color cast")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void AnalyzeTungstenLightingColorTemperature()
+        public void DetectTungstenLightingColorCast()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze tungsten lighting color temperature", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect tungsten lighting color cast", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 20
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -185,18 +185,18 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 22
     testRunner.And("the lighting condition is tungsten", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table49 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table127 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature"});
-                table49.AddRow(new string[] {
+                table127.AddRow(new string[] {
                             "180",
                             "140",
-                            "90",
-                            "3200"});
+                            "100",
+                            "2800"});
 #line 23
-    testRunner.And("the image has color characteristics:", ((string)(null)), table49, "And ");
+    testRunner.And("the image has color characteristics:", ((string)(null)), table127, "And ");
 #line hidden
 #line 26
     testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -205,24 +205,30 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 28
-    testRunner.And("the color temperature should be approximately 3200 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the color temperature should be approximately 2800 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 29
-    testRunner.And("the color temperature should indicate warm lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the lighting should be identified as tungsten", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 30
+    testRunner.And("the image should have a warm color cast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 31
+    testRunner.And("I should receive color correction recommendations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze overcast lighting color temperature")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect blue hour color temperature")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void AnalyzeOvercastLightingColorTemperature()
+        public void DetectBlueHourColorTemperature()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze overcast lighting color temperature", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 31
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect blue hour color temperature", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 33
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -235,108 +241,53 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 32
+#line 34
     testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 33
-    testRunner.And("the lighting condition is overcast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 35
+    testRunner.And("the lighting condition is blue hour", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table50 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table128 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature"});
-                table50.AddRow(new string[] {
-                            "110",
+                table128.AddRow(new string[] {
+                            "100",
                             "120",
-                            "140",
-                            "7000"});
-#line 34
-    testRunner.And("the image has color characteristics:", ((string)(null)), table50, "And ");
-#line hidden
-#line 37
-    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 38
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                            "160",
+                            "8000"});
+#line 36
+    testRunner.And("the image has color characteristics:", ((string)(null)), table128, "And ");
 #line hidden
 #line 39
-    testRunner.And("the color temperature should be approximately 7000 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 40
-    testRunner.And("the color temperature should indicate cool lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Measure white balance accuracy")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void MeasureWhiteBalanceAccuracy()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Measure white balance accuracy", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 41
+    testRunner.And("the color temperature should be approximately 8000 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
 #line 42
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
+    testRunner.And("the lighting should be identified as blue hour", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 43
-    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-#line 44
-    testRunner.And("I have a reference white point", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table51 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "ColorTemperature",
-                            "TintValue"});
-                table51.AddRow(new string[] {
-                            "140",
-                            "120",
-                            "110",
-                            "4500",
-                            "0.2"});
-#line 45
-    testRunner.And("the image has color characteristics:", ((string)(null)), table51, "And ");
-#line hidden
-#line 48
-    testRunner.When("I measure the white balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 49
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 50
-    testRunner.And("I should receive white balance measurements", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 51
-    testRunner.And("the white balance should be too warm", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the image should have a cool color cast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Calculate color correction values")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Calculate white balance correction values")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void CalculateColorCorrectionValues()
+        public void CalculateWhiteBalanceCorrectionValues()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Calculate color correction values", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 53
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Calculate white balance correction values", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 45
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -349,40 +300,40 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 54
-    testRunner.Given("I want to correct white balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 46
+    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 55
-    testRunner.And("I have a reference white point", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 47
+    testRunner.And("the target color temperature is 5500 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table52 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table129 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature",
                             "TintValue"});
-                table52.AddRow(new string[] {
-                            "160",
-                            "130",
-                            "100",
-                            "3800",
-                            "0.3"});
-#line 56
-    testRunner.And("the image has color characteristics:", ((string)(null)), table52, "And ");
+                table129.AddRow(new string[] {
+                            "200",
+                            "140",
+                            "110",
+                            "2800",
+                            "-0.3"});
+#line 48
+    testRunner.And("the image has color characteristics:", ((string)(null)), table129, "And ");
 #line hidden
-#line 59
-    testRunner.When("I calculate color correction values", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 51
+    testRunner.When("I calculate white balance correction", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 60
+#line 52
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 61
+#line 53
     testRunner.And("I should receive color correction values", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 62
+#line 54
     testRunner.And("the temperature correction should be approximately 2700 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 63
+#line 55
     testRunner.And("the tint correction should be approximately -0.3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -397,7 +348,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze fluorescent lighting tint", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 65
+#line 57
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -410,52 +361,58 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 66
+#line 58
     testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 67
+#line 59
     testRunner.And("the lighting condition is fluorescent", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table53 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table130 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature",
                             "TintValue"});
-                table53.AddRow(new string[] {
+                table130.AddRow(new string[] {
                             "120",
                             "140",
                             "130",
                             "4000",
                             "0.4"});
-#line 68
-    testRunner.And("the image has color characteristics:", ((string)(null)), table53, "And ");
+#line 60
+    testRunner.And("the image has color characteristics:", ((string)(null)), table130, "And ");
 #line hidden
-#line 71
+#line 63
     testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 72
+#line 64
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 73
+#line 65
     testRunner.And("the color temperature should be approximately 4000 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 74
-    testRunner.And("the tint should be approximately 0.4", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 66
+    testRunner.And("the lighting should be identified as fluorescent", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 67
+    testRunner.And("the image should have a green tint", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 68
+    testRunner.And("the tint value should be approximately 0.4", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Compare color temperatures between multiple images")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect mixed lighting conditions")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void CompareColorTemperaturesBetweenMultipleImages()
+        public void DetectMixedLightingConditions()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Compare color temperatures between multiple images", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 76
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect mixed lighting conditions", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 70
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -468,109 +425,119 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table54 = new TechTalk.SpecFlow.Table(new string[] {
-                            "Id",
-                            "ImagePath",
+#line 71
+    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 72
+    testRunner.And("the image has mixed lighting sources", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table131 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MeanRed",
+                            "MeanGreen",
+                            "MeanBlue",
+                            "ColorTemperature",
+                            "TintValue"});
+                table131.AddRow(new string[] {
+                            "150",
+                            "135",
+                            "125",
+                            "4200",
+                            "0.1"});
+#line 73
+    testRunner.And("the image has color characteristics:", ((string)(null)), table131, "And ");
+#line hidden
+#line 76
+    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 77
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 78
+    testRunner.And("the lighting should be identified as mixed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 79
+    testRunner.And("the color temperature should be approximately 4200 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 80
+    testRunner.And("the analysis should detect multiple light sources", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 81
+    testRunner.And("color correction should be more complex", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze sunset golden hour colors")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
+        public void AnalyzeSunsetGoldenHourColors()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze sunset golden hour colors", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 83
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 84
+    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 85
+    testRunner.And("the lighting condition is golden hour", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table132 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature"});
-                table54.AddRow(new string[] {
-                            "1",
-                            "/test/images/daylight.jpg",
-                            "128",
-                            "128",
-                            "128",
-                            "5500"});
-                table54.AddRow(new string[] {
-                            "2",
-                            "/test/images/tungsten.jpg",
+                table132.AddRow(new string[] {
+                            "220",
                             "180",
-                            "140",
-                            "90",
+                            "120",
                             "3200"});
-                table54.AddRow(new string[] {
-                            "3",
-                            "/test/images/overcast.jpg",
-                            "110",
-                            "120",
-                            "140",
-                            "7000"});
-#line 77
-    testRunner.Given("I have multiple images with different color temperatures:", ((string)(null)), table54, "Given ");
-#line hidden
-#line 82
-    testRunner.When("I compare color temperatures between images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 83
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 84
-    testRunner.And("the color temperature comparison should show different temperatures", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect red color cast")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void DetectRedColorCast()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect red color cast", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 86
-  this.ScenarioInitialize(scenarioInfo);
+    testRunner.And("the image has color characteristics:", ((string)(null)), table132, "And ");
 #line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
+#line 89
+    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 87
-    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-                TechTalk.SpecFlow.Table table55 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue"});
-                table55.AddRow(new string[] {
-                            "170",
-                            "120",
-                            "110"});
-#line 88
-    testRunner.And("the image has color characteristics:", ((string)(null)), table55, "And ");
+#line 90
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 91
-    testRunner.When("I detect the dominant color cast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.And("the color temperature should be approximately 3200 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 92
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the lighting should be identified as golden hour", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 93
-    testRunner.And("I should receive color cast detection", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the image should have warm, pleasing colors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 94
-    testRunner.And("the dominant color cast should be Red", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("minimal correction should be recommended", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect blue color cast")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect overcast daylight conditions")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void DetectBlueColorCast()
+        public void DetectOvercastDaylightConditions()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect blue color cast", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect overcast daylight conditions", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 96
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -587,87 +554,53 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 97
     testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table56 = new TechTalk.SpecFlow.Table(new string[] {
+#line 98
+    testRunner.And("the lighting condition is overcast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table133 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
-                            "MeanBlue"});
-                table56.AddRow(new string[] {
-                            "100",
-                            "115",
-                            "160"});
-#line 98
-    testRunner.And("the image has color characteristics:", ((string)(null)), table56, "And ");
-#line hidden
-#line 101
-    testRunner.When("I detect the dominant color cast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                            "MeanBlue",
+                            "ColorTemperature"});
+                table133.AddRow(new string[] {
+                            "110",
+                            "125",
+                            "145",
+                            "6500"});
+#line 99
+    testRunner.And("the image has color characteristics:", ((string)(null)), table133, "And ");
 #line hidden
 #line 102
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 103
-    testRunner.And("the dominant color cast should be Blue", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect green color cast")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void DetectGreenColorCast()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect green color cast", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 105
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 106
-    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-                TechTalk.SpecFlow.Table table57 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue"});
-                table57.AddRow(new string[] {
-                            "110",
-                            "150",
-                            "120"});
-#line 107
-    testRunner.And("the image has color characteristics:", ((string)(null)), table57, "And ");
-#line hidden
-#line 110
-    testRunner.When("I detect the dominant color cast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 111
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 112
-    testRunner.And("the dominant color cast should be Green", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 104
+    testRunner.And("the color temperature should be approximately 6500 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 105
+    testRunner.And("the lighting should be identified as overcast daylight", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 106
+    testRunner.And("the image should have a slight cool cast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 107
+    testRunner.And("warming correction should be suggested", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze neutral white balance")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze artificial LED lighting")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void AnalyzeNeutralWhiteBalance()
+        public void AnalyzeArtificialLEDLighting()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze neutral white balance", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 114
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze artificial LED lighting", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 109
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -680,49 +613,58 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 115
+#line 110
     testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table58 = new TechTalk.SpecFlow.Table(new string[] {
+#line 111
+    testRunner.And("the lighting condition is LED", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table134 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature",
                             "TintValue"});
-                table58.AddRow(new string[] {
-                            "130",
-                            "128",
-                            "125",
-                            "6000",
-                            "0.1"});
+                table134.AddRow(new string[] {
+                            "135",
+                            "138",
+                            "132",
+                            "5000",
+                            "0.2"});
+#line 112
+    testRunner.And("the image has color characteristics:", ((string)(null)), table134, "And ");
+#line hidden
+#line 115
+    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
 #line 116
-    testRunner.And("the image has color characteristics:", ((string)(null)), table58, "And ");
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 117
+    testRunner.And("the color temperature should be approximately 5000 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 118
+    testRunner.And("the lighting should be identified as LED", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 119
-    testRunner.When("I measure the white balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.And("the white balance should be nearly neutral", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 120
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 121
-    testRunner.And("the white balance should be accurate", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 122
-    testRunner.And("the tint should be approximately 0.1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the tint should be minimal", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze color temperature for portrait photography")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Calculate color temperature from RGB ratios")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void AnalyzeColorTemperatureForPortraitPhotography()
+        public void CalculateColorTemperatureFromRGBRatios()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze color temperature for portrait photography", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 124
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Calculate color temperature from RGB ratios", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 122
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -735,50 +677,48 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 125
-    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 123
+    testRunner.Given("I want to calculate color temperature from RGB values", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 126
-    testRunner.And("the image was taken under tungsten lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                TechTalk.SpecFlow.Table table135 = new TechTalk.SpecFlow.Table(new string[] {
+                            "RedRatio",
+                            "GreenRatio",
+                            "BlueRatio"});
+                table135.AddRow(new string[] {
+                            "1.4",
+                            "1.0",
+                            "0.7"});
+#line 124
+    testRunner.And("the image has RGB ratios:", ((string)(null)), table135, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table59 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "ColorTemperature"});
-                table59.AddRow(new string[] {
-                            "170",
-                            "135",
-                            "100",
-                            "3400"});
 #line 127
-    testRunner.And("the image has color characteristics:", ((string)(null)), table59, "And ");
+    testRunner.When("I calculate color temperature from ratios", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 128
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 129
+    testRunner.And("the calculated color temperature should be approximately 2900 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 130
-    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.And("the calculation should be based on RGB relationships", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 131
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 132
-    testRunner.And("the color temperature should indicate warm lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 133
-    testRunner.And("the color temperature should be approximately 3400 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the accuracy should be within acceptable range", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze color temperature for landscape photography")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect color temperature variations across image")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void AnalyzeColorTemperatureForLandscapePhotography()
+        public void DetectColorTemperatureVariationsAcrossImage()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze color temperature for landscape photography", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 135
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect color temperature variations across image", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 133
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -791,50 +731,70 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 136
-    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 134
+    testRunner.Given("I want to analyze color temperature variations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 137
-    testRunner.And("the image was taken under daylight lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table60 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table136 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Region",
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature"});
-                table60.AddRow(new string[] {
-                            "125",
-                            "130",
+                table136.AddRow(new string[] {
+                            "TopLeft",
+                            "180",
+                            "140",
+                            "100",
+                            "2800"});
+                table136.AddRow(new string[] {
+                            "TopRight",
+                            "140",
                             "135",
-                            "5800"});
-#line 138
-    testRunner.And("the image has color characteristics:", ((string)(null)), table60, "And ");
+                            "130",
+                            "4800"});
+                table136.AddRow(new string[] {
+                            "BottomLeft",
+                            "200",
+                            "160",
+                            "110",
+                            "3000"});
+                table136.AddRow(new string[] {
+                            "BottomRight",
+                            "120",
+                            "125",
+                            "140",
+                            "6200"});
+#line 135
+    testRunner.And("the image has regional color temperatures:", ((string)(null)), table136, "And ");
 #line hidden
 #line 141
-    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I analyze regional color temperature variations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 142
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 143
-    testRunner.And("the color temperature should indicate neutral lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("multiple color temperatures should be detected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 144
-    testRunner.And("the color temperature should be approximately 5800 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the variation should be significant", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 145
+    testRunner.And("selective correction recommendations should be provided", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        public virtual void AnalyzeDifferentLightingConditions(string lightingCondition, string expectedTemp, string expectedDescription, string[] exampleTags)
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate color temperature histogram")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
+        public void GenerateColorTemperatureHistogram()
         {
-            string[] tagsOfScenario = exampleTags;
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            argumentsOfScenario.Add("LightingCondition", lightingCondition);
-            argumentsOfScenario.Add("ExpectedTemp", expectedTemp);
-            argumentsOfScenario.Add("ExpectedDescription", expectedDescription);
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze different lighting conditions", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 146
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate color temperature histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 147
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -846,296 +806,125 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
                 this.ScenarioStart();
 #line 6
   this.FeatureBackground();
-#line hidden
-#line 147
-    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 148
-    testRunner.And(string.Format("the lighting condition is {0}", lightingCondition), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.Given("I want to generate a color temperature histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
+                TechTalk.SpecFlow.Table table137 = new TechTalk.SpecFlow.Table(new string[] {
+                            "TemperatureRange",
+                            "PixelCount",
+                            "Percentage"});
+                table137.AddRow(new string[] {
+                            "2500-3000K",
+                            "150000",
+                            "25%"});
+                table137.AddRow(new string[] {
+                            "3000-4000K",
+                            "200000",
+                            "35%"});
+                table137.AddRow(new string[] {
+                            "4000-5500K",
+                            "180000",
+                            "30%"});
+                table137.AddRow(new string[] {
+                            "5500-7000K",
+                            "70000",
+                            "10%"});
 #line 149
-    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.And("the image has distributed color temperatures:", ((string)(null)), table137, "And ");
 #line hidden
-#line 150
+#line 155
+    testRunner.When("I generate the color temperature histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 156
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 151
-    testRunner.And(string.Format("the color temperature should be approximately {0} Kelvin", expectedTemp), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 157
+    testRunner.And("the histogram should show temperature distribution", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 152
-    testRunner.And(string.Format("the color temperature should indicate {0} lighting", expectedDescription), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 158
+    testRunner.And("the dominant temperature range should be identified", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 159
+    testRunner.And("the histogram should aid in correction decisions", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: daylight")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze skin tone color accuracy")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "daylight")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingCondition", "daylight")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedTemp", "5500")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedDescription", "neutral")]
-        public void AnalyzeDifferentLightingConditions_Daylight()
-        {
-#line 146
-  this.AnalyzeDifferentLightingConditions("daylight", "5500", "neutral", ((string[])(null)));
-#line hidden
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: tungsten")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "tungsten")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingCondition", "tungsten")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedTemp", "3200")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedDescription", "warm")]
-        public void AnalyzeDifferentLightingConditions_Tungsten()
-        {
-#line 146
-  this.AnalyzeDifferentLightingConditions("tungsten", "3200", "warm", ((string[])(null)));
-#line hidden
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: fluorescent")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "fluorescent")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingCondition", "fluorescent")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedTemp", "4000")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedDescription", "neutral")]
-        public void AnalyzeDifferentLightingConditions_Fluorescent()
-        {
-#line 146
-  this.AnalyzeDifferentLightingConditions("fluorescent", "4000", "neutral", ((string[])(null)));
-#line hidden
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: overcast")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "overcast")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingCondition", "overcast")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedTemp", "7000")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedDescription", "cool")]
-        public void AnalyzeDifferentLightingConditions_Overcast()
-        {
-#line 146
-  this.AnalyzeDifferentLightingConditions("overcast", "7000", "cool", ((string[])(null)));
-#line hidden
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: shade")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "shade")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingCondition", "shade")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedTemp", "8000")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedDescription", "cool")]
-        public void AnalyzeDifferentLightingConditions_Shade()
-        {
-#line 146
-  this.AnalyzeDifferentLightingConditions("shade", "8000", "cool", ((string[])(null)));
-#line hidden
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Batch color temperature analysis")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void BatchColorTemperatureAnalysis()
+        public void AnalyzeSkinToneColorAccuracy()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Batch color temperature analysis", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze skin tone color accuracy", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 161
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
 #line 162
-  this.ScenarioInitialize(scenarioInfo);
+    testRunner.Given("I want to analyze skin tone color accuracy", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-                TechTalk.SpecFlow.Table table61 = new TechTalk.SpecFlow.Table(new string[] {
-                            "Id",
-                            "ImagePath",
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "ColorTemperature"});
-                table61.AddRow(new string[] {
-                            "1",
-                            "/test/batch/morning.jpg",
-                            "160",
-                            "140",
-                            "120",
-                            "4200"});
-                table61.AddRow(new string[] {
-                            "2",
-                            "/test/batch/noon.jpg",
-                            "128",
-                            "128",
-                            "128",
-                            "5500"});
-                table61.AddRow(new string[] {
-                            "3",
-                            "/test/batch/evening.jpg",
-                            "180",
-                            "130",
-                            "90",
-                            "3500"});
-                table61.AddRow(new string[] {
-                            "4",
-                            "/test/batch/night.jpg",
-                            "170",
-                            "135",
-                            "100",
-                            "3200"});
 #line 163
-    testRunner.Given("I have multiple images with different color temperatures:", ((string)(null)), table61, "Given ");
+    testRunner.And("the image contains skin tones", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 169
-    testRunner.When("I analyze color temperature for all images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 170
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 171
-    testRunner.And("all images should have color temperature analysis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Compare similar color temperatures")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void CompareSimilarColorTemperatures()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Compare similar color temperatures", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 173
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-                TechTalk.SpecFlow.Table table62 = new TechTalk.SpecFlow.Table(new string[] {
-                            "Id",
-                            "ImagePath",
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "ColorTemperature"});
-                table62.AddRow(new string[] {
-                            "1",
-                            "/test/images/daylight1.jpg",
-                            "125",
-                            "130",
-                            "135",
-                            "5600"});
-                table62.AddRow(new string[] {
-                            "2",
-                            "/test/images/daylight2.jpg",
-                            "130",
-                            "128",
-                            "132",
-                            "5400"});
-#line 174
-    testRunner.Given("I have multiple images with different color temperatures:", ((string)(null)), table62, "Given ");
-#line hidden
-#line 178
-    testRunner.When("I compare color temperatures between images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 179
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 180
-    testRunner.And("the color temperature comparison should show similar temperatures", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("White balance correction for mixed lighting")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void WhiteBalanceCorrectionForMixedLighting()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("White balance correction for mixed lighting", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 182
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 183
-    testRunner.Given("I want to correct white balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-                TechTalk.SpecFlow.Table table63 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table138 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature",
-                            "TintValue"});
-                table63.AddRow(new string[] {
-                            "150",
-                            "135",
-                            "110",
+                            "SkinToneAccuracy"});
+                table138.AddRow(new string[] {
+                            "190",
+                            "160",
+                            "130",
                             "4200",
-                            "0.25"});
-#line 184
-    testRunner.And("the image has color characteristics:", ((string)(null)), table63, "And ");
+                            "Good"});
+#line 164
+    testRunner.And("the image has color characteristics:", ((string)(null)), table138, "And ");
 #line hidden
-#line 187
-    testRunner.And("I have a reference white point", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 167
+    testRunner.When("I analyze skin tone color reproduction", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 188
-    testRunner.When("I calculate color correction values", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 189
+#line 168
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 190
-    testRunner.And("the temperature correction should be approximately 2300 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 169
+    testRunner.And("the skin tone accuracy should be evaluated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 191
-    testRunner.And("the tint correction should be approximately -0.25", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 170
+    testRunner.And("the color temperature should be suitable for skin tones", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 171
+    testRunner.And("any skin tone color cast should be identified", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 172
+    testRunner.And("correction suggestions should preserve skin tone quality", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect magenta color cast")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Compare white balance presets effectiveness")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void DetectMagentaColorCast()
+        public void CompareWhiteBalancePresetsEffectiveness()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect magenta color cast", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 193
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Compare white balance presets effectiveness", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 174
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -1148,42 +937,58 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 194
-    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 175
+    testRunner.Given("I want to compare white balance preset effectiveness", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table64 = new TechTalk.SpecFlow.Table(new string[] {
+#line 176
+    testRunner.And("the image was shot with auto white balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table139 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
-                            "MeanBlue"});
-                table64.AddRow(new string[] {
-                            "140",
-                            "110",
-                            "130"});
-#line 195
-    testRunner.And("the image has color characteristics:", ((string)(null)), table64, "And ");
+                            "MeanBlue",
+                            "ColorTemperature",
+                            "ActualLighting"});
+                table139.AddRow(new string[] {
+                            "160",
+                            "145",
+                            "120",
+                            "3800",
+                            "Tungsten"});
+#line 177
+    testRunner.And("the image has color characteristics:", ((string)(null)), table139, "And ");
 #line hidden
-#line 198
-    testRunner.When("I detect the dominant color cast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 180
+    testRunner.When("I compare white balance preset effectiveness", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 199
+#line 181
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 200
-    testRunner.And("the dominant color cast should be Magenta", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 182
+    testRunner.And("the auto white balance accuracy should be evaluated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 183
+    testRunner.And("the optimal preset should be identified", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 184
+    testRunner.And("the improvement potential should be calculated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 185
+    testRunner.And("manual correction values should be provided", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze extreme color temperature conditions")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Handle extreme color temperature conditions")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void AnalyzeExtremeColorTemperatureConditions()
+        public void HandleExtremeColorTemperatureConditions()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze extreme color temperature conditions", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 202
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Handle extreme color temperature conditions", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 187
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -1196,33 +1001,108 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 203
-    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 188
+    testRunner.Given("I want to analyze extreme color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table65 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table140 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature"});
-                table65.AddRow(new string[] {
-                            "200",
-                            "120",
-                            "60",
-                            "2800"});
-#line 204
-    testRunner.And("the image has color characteristics:", ((string)(null)), table65, "And ");
+                table140.AddRow(new string[] {
+                            "250",
+                            "150",
+                            "80",
+                            "2000"});
+#line 189
+    testRunner.And("the image has extreme lighting conditions:", ((string)(null)), table140, "And ");
+#line hidden
+#line 192
+    testRunner.When("I analyze the extreme color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 193
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 194
+    testRunner.And("the extreme color temperature should be detected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 195
+    testRunner.And("the analysis should handle the extreme values gracefully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 196
+    testRunner.And("appropriate correction recommendations should be provided", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 197
+    testRunner.And("the limitations of correction should be noted", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Batch analyze color temperature across multiple images")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
+        public void BatchAnalyzeColorTemperatureAcrossMultipleImages()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Batch analyze color temperature across multiple images", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 199
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 200
+    testRunner.Given("I want to batch analyze color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table141 = new TechTalk.SpecFlow.Table(new string[] {
+                            "ImagePath",
+                            "ColorTemperature",
+                            "LightingType"});
+                table141.AddRow(new string[] {
+                            "/test/daylight.jpg",
+                            "5500",
+                            "Daylight"});
+                table141.AddRow(new string[] {
+                            "/test/tungsten.jpg",
+                            "2800",
+                            "Tungsten"});
+                table141.AddRow(new string[] {
+                            "/test/fluorescent.jpg",
+                            "4000",
+                            "Fluorescent"});
+                table141.AddRow(new string[] {
+                            "/test/led.jpg",
+                            "5000",
+                            "LED"});
+#line 201
+    testRunner.And("I have multiple images with different lighting:", ((string)(null)), table141, "And ");
 #line hidden
 #line 207
-    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I batch analyze color temperatures", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 208
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 209
-    testRunner.And("the color temperature should be approximately 2800 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("all images should be analyzed successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 210
-    testRunner.And("the color temperature should indicate very warm lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("each image should have color temperature identified", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 211
+    testRunner.And("lighting types should be correctly classified", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 212
+    testRunner.And("batch correction recommendations should be provided", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -1236,7 +1116,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Comprehensive color analysis", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 212
+#line 214
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -1249,64 +1129,61 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 213
+#line 215
     testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table66 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table142 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature",
                             "TintValue"});
-                table66.AddRow(new string[] {
+                table142.AddRow(new string[] {
                             "145",
                             "130",
                             "115",
                             "4800",
                             "0.15"});
-#line 214
-    testRunner.And("the image has color characteristics:", ((string)(null)), table66, "And ");
-#line hidden
-#line 217
-    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 218
-    testRunner.And("I measure the white balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 216
+    testRunner.And("the image has color characteristics:", ((string)(null)), table142, "And ");
 #line hidden
 #line 219
-    testRunner.And("I detect the dominant color cast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 220
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("I measure the white balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 221
-    testRunner.And("I should receive color temperature analysis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("I detect the dominant color cast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 222
-    testRunner.And("I should receive white balance measurements", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 223
-    testRunner.And("I should receive color cast detection", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("I should receive color temperature analysis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 224
-    testRunner.And("the color temperature should be approximately 4800 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("I should receive white balance measurements", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 225
-    testRunner.And("the tint should be approximately 0.15", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("I should receive color cast detection", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 226
+    testRunner.And("the comprehensive analysis should be complete", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Color temperature analysis for macro photography")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void ColorTemperatureAnalysisForMacroPhotography()
+        public virtual void AnalyzeDifferentLightingConditions(string lightingType, string colorTemperature, string expectedCast, string[] exampleTags)
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = exampleTags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Color temperature analysis for macro photography", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 227
+            argumentsOfScenario.Add("LightingType", lightingType);
+            argumentsOfScenario.Add("ColorTemperature", colorTemperature);
+            argumentsOfScenario.Add("ExpectedCast", expectedCast);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze different lighting conditions", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 228
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -1319,21 +1196,14 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 228
+#line 229
     testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table67 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "ColorTemperature"});
-                table67.AddRow(new string[] {
-                            "135",
-                            "145",
-                            "125",
-                            "5200"});
-#line 229
-    testRunner.And("the image has color characteristics:", ((string)(null)), table67, "And ");
+#line 230
+    testRunner.And(string.Format("the lighting condition is {0}", lightingType), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 231
+    testRunner.And(string.Format("the image has color temperature {0} Kelvin", colorTemperature), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 232
     testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -1342,127 +1212,100 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 234
-    testRunner.And("the color temperature should be approximately 5200 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And(string.Format("the lighting should be identified as {0}", lightingType), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 235
-    testRunner.And("the color temperature should indicate neutral lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And(string.Format("the color temperature should be approximately {0} Kelvin", colorTemperature), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 236
+    testRunner.And(string.Format("the color cast should be {0}", expectedCast), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze shade lighting color temperature")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: Candle")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void AnalyzeShadeLightingColorTemperature()
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "Candle")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingType", "Candle")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ColorTemperature", "1900")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedCast", "Very Warm")]
+        public void AnalyzeDifferentLightingConditions_Candle()
         {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze shade lighting color temperature", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 237
-  this.ScenarioInitialize(scenarioInfo);
+#line 228
+  this.AnalyzeDifferentLightingConditions("Candle", "1900", "Very Warm", ((string[])(null)));
 #line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 238
-    testRunner.Given("I want to analyze color temperature in an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-#line 239
-    testRunner.And("the lighting condition is shade", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table68 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "ColorTemperature"});
-                table68.AddRow(new string[] {
-                            "100",
-                            "115",
-                            "150",
-                            "8000"});
-#line 240
-    testRunner.And("the image has color characteristics:", ((string)(null)), table68, "And ");
-#line hidden
-#line 243
-    testRunner.When("I analyze the color temperature", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 244
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 245
-    testRunner.And("the color temperature should be approximately 8000 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 246
-    testRunner.And("the color temperature should indicate very cool lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("White balance validation")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: Tungsten")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
-        public void WhiteBalanceValidation()
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "Tungsten")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingType", "Tungsten")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ColorTemperature", "2800")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedCast", "Warm")]
+        public void AnalyzeDifferentLightingConditions_Tungsten()
         {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("White balance validation", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 248
-  this.ScenarioInitialize(scenarioInfo);
+#line 228
+  this.AnalyzeDifferentLightingConditions("Tungsten", "2800", "Warm", ((string[])(null)));
 #line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: Fluorescent")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "Fluorescent")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingType", "Fluorescent")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ColorTemperature", "4000")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedCast", "Cool")]
+        public void AnalyzeDifferentLightingConditions_Fluorescent()
+        {
+#line 228
+  this.AnalyzeDifferentLightingConditions("Fluorescent", "4000", "Cool", ((string[])(null)));
 #line hidden
-#line 249
-    testRunner.Given("I want to correct white balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: Daylight")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "Daylight")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingType", "Daylight")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ColorTemperature", "5500")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedCast", "Neutral")]
+        public void AnalyzeDifferentLightingConditions_Daylight()
+        {
+#line 228
+  this.AnalyzeDifferentLightingConditions("Daylight", "5500", "Neutral", ((string[])(null)));
 #line hidden
-                TechTalk.SpecFlow.Table table69 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "ColorTemperature",
-                            "TintValue"});
-                table69.AddRow(new string[] {
-                            "128",
-                            "128",
-                            "128",
-                            "6500",
-                            "0.0"});
-#line 250
-    testRunner.And("the image has color characteristics:", ((string)(null)), table69, "And ");
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: Overcast")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "Overcast")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingType", "Overcast")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ColorTemperature", "6500")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedCast", "Cool")]
+        public void AnalyzeDifferentLightingConditions_Overcast()
+        {
+#line 228
+  this.AnalyzeDifferentLightingConditions("Overcast", "6500", "Cool", ((string[])(null)));
 #line hidden
-#line 253
-    testRunner.When("I measure the white balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze different lighting conditions: Blue Hour")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Color Temperature Analysis")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "Blue Hour")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:LightingType", "Blue Hour")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ColorTemperature", "8000")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExpectedCast", "Very Cool")]
+        public void AnalyzeDifferentLightingConditions_BlueHour()
+        {
+#line 228
+  this.AnalyzeDifferentLightingConditions("Blue Hour", "8000", "Very Cool", ((string[])(null)));
 #line hidden
-#line 254
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 255
-    testRunner.And("the white balance should be accurate", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 256
-    testRunner.And("the color temperature should be approximately 6500 Kelvin", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 257
-    testRunner.And("the tint should be approximately 0.0", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
         }
     }
 }

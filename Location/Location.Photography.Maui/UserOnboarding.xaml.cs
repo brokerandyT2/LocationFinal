@@ -18,7 +18,6 @@ namespace Location.Photography.Maui.Views
         private readonly IServiceProvider _serviceProvider;
         private string _guid;
         private bool _saveAttempted = false;
-        private bool _isDatabaseInitialized = false;
 
         public UserOnboarding(
             IAlertService alertService,
@@ -31,29 +30,12 @@ namespace Location.Photography.Maui.Views
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceProvider = serviceProvider;
 
-
-            try
-            {
-
-                
-                var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "locations.db");
-                if(!System.IO.File.Exists(path))
-                {
-                    var x = SecureStorage.Remove(MagicStrings.Email);
-                }
-
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, "Error initializing UserOnboarding constructor parameters");
-                throw;
-            }
-
-
             try
             {
                 _logger.LogInformation("UserOnboarding constructor starting");
+
+                // Clean up database if it doesn't exist (reset state)
+                CleanupIfDatabaseMissing();
 
                 // Initialize the page first
                 InitializeComponent();
@@ -62,17 +44,28 @@ namespace Location.Photography.Maui.Views
                 // Initialize page UI
                 GetSetting();
 
-                // Initialize database with static data in background - non-blocking
+                // Check for existing email and navigate if found (before any DB operations)
+                CheckExistingEmailAndNavigate();
+
+                // Initialize database with static data in background - non-blocking, thread-safe
                 _ = Task.Run(async () =>
                 {
                     try
                     {
-                        _logger.LogInformation("Starting background database initialization with static data");
+                        _logger.LogInformation("Starting background database initialization check");
 
-                        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+                        // Check if already initialized first (fast path)
+                        if (await _databaseInitializer.IsDatabaseInitializedAsync())
+                        {
+                            _logger.LogInformation("Database already initialized - skipping initialization");
+                            return;
+                        }
+
+                        _logger.LogInformation("Database not initialized - starting initialization");
+
+                        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5)); // Increased timeout
                         await _databaseInitializer.InitializeDatabaseWithStaticDataAsync(cts.Token);
 
-                        _isDatabaseInitialized = true;
                         _logger.LogInformation("Background database initialization completed successfully");
                     }
                     catch (OperationCanceledException)
@@ -93,15 +86,38 @@ namespace Location.Photography.Maui.Views
                     }
                 });
 
-                // Check for existing email and navigate if found
-                CheckExistingEmailAndNavigate();
-
                 _logger.LogInformation("UserOnboarding constructor completed");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in UserOnboarding constructor");
                 throw;
+            }
+        }
+
+        private void CleanupIfDatabaseMissing()
+        {
+            try
+            {
+                var path = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "locations.db");
+
+                if (!File.Exists(path))
+                {
+                    _logger.LogInformation("Database file does not exist, clearing SecureStorage");
+                    SecureStorage.Remove(MagicStrings.Email);
+
+                    // Reset the database initialization state
+                    DatabaseInitializer.ResetInitializationState();
+                }
+                else
+                {
+                    _logger.LogDebug("Database file exists at: {Path}", path);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during database cleanup check");
             }
         }
 
@@ -115,6 +131,10 @@ namespace Location.Photography.Maui.Views
                 if (!string.IsNullOrEmpty(email))
                 {
                     _logger.LogInformation("Existing email found in SecureStorage, navigating to CameraEvaluation: {Email}", email);
+
+                    // Ensure database is initialized before navigation
+                    await EnsureDatabaseInitializedAsync();
+
                     await Navigation.PushAsync((ContentPage)_serviceProvider.GetRequiredService<CameraEvaluation>());
                 }
                 else
@@ -125,6 +145,30 @@ namespace Location.Photography.Maui.Views
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error checking existing email, continuing with onboarding");
+            }
+        }
+
+        private async Task EnsureDatabaseInitializedAsync()
+        {
+            try
+            {
+                // Quick check if already initialized
+                if (await _databaseInitializer.IsDatabaseInitializedAsync())
+                {
+                    return;
+                }
+
+                _logger.LogInformation("Database not initialized, initializing now...");
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+                await _databaseInitializer.InitializeDatabaseWithStaticDataAsync(cts.Token);
+
+                _logger.LogInformation("Database initialization completed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to ensure database initialization");
+                throw;
             }
         }
 
@@ -168,14 +212,6 @@ namespace Location.Photography.Maui.Views
                 WindDirection.Text = AppResources.WithWind.FirstCharToUpper();
             }
         }
-
-      /*  private void EmailAddress_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (emailAddress.Text.Contains('.') && emailAddress.Text.Split('.')[1].Length >= 2)
-            {
-                UpdateValidationMessageVisibility();
-            }
-        } */
 
         private void UpdateValidationMessageVisibility()
         {
@@ -225,35 +261,25 @@ namespace Location.Photography.Maui.Views
                         loadingIndicator.IsRunning = true;
                     });
 
-                    // Wait for database initialization to complete if still running
-                    var timeout = TimeSpan.FromSeconds(30);
-                    var startTime = DateTime.Now;
+                    // Ensure database is initialized with static data first
+                    await EnsureDatabaseInitializedAsync();
 
-                    while (!_isDatabaseInitialized && DateTime.Now - startTime < timeout)
-                    {
-                        await Task.Delay(100);
-                    }
-
-                    if (!_isDatabaseInitialized)
-                    {
-                        throw new TimeoutException("Database initialization did not complete within expected time");
-                    }
+                    _logger.LogInformation("Creating user-specific settings");
 
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
                     // Only save user-specific settings captured from the form
-                    await Task.Run(async () =>
-                    {
-                        await _databaseInitializer.CreateUserSettingsAsync(
-                            hemisphere, temperatureFormat, dateFormat,
-                            timeFormat, windDirection, email, _guid, cts.Token);
-                    });
+                    await _databaseInitializer.CreateUserSettingsAsync(
+                        hemisphere, temperatureFormat, dateFormat,
+                        timeFormat, windDirection, email, _guid, cts.Token);
 
                     _logger.LogInformation("User settings saved successfully, navigating to CameraEvaluation");
                     await Navigation.PushAsync(_serviceProvider.GetRequiredService<CameraEvaluation>());
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Error during save process");
+
                     string errorMessage = "Error processing data";
                     if (AppResources.ResourceManager.GetString("ErrorProcessingData") != null)
                     {
@@ -291,10 +317,12 @@ namespace Location.Photography.Maui.Views
                 _guid = Guid.NewGuid().ToString();
                 await SecureStorage.Default.SetAsync(MagicStrings.Email, email);
                 await SecureStorage.Default.SetAsync(MagicStrings.UniqueID, _guid);
+                _logger.LogDebug("Saved email and GUID to SecureStorage");
             }
             catch (Exception ex)
             {
-                _logger?.LogWarning("Failed to save to SecureStorage, falling back to Preferences: {Message}", ex.Message);
+                _logger.LogWarning(ex, "Failed to save to SecureStorage");
+                throw;
             }
         }
 
@@ -304,8 +332,7 @@ namespace Location.Photography.Maui.Views
             {
                 return;
             }
-                ((SettingsViewModel)BindingContext).Hemisphere.Value = e.Value ? MagicStrings.North : MagicStrings.South;
-
+            ((SettingsViewModel)BindingContext).Hemisphere.Value = e.Value ? MagicStrings.North : MagicStrings.South;
         }
 
         private void TimeSwitch_Toggled(object sender, ToggledEventArgs e)
@@ -314,8 +341,7 @@ namespace Location.Photography.Maui.Views
             {
                 return;
             }
-                ((SettingsViewModel)BindingContext).TimeFormat.Value = e.Value ? MagicStrings.USTimeformat : MagicStrings.InternationalTimeFormat;
-
+            ((SettingsViewModel)BindingContext).TimeFormat.Value = e.Value ? MagicStrings.USTimeformat : MagicStrings.InternationalTimeFormat;
         }
 
         private void DateFormat_Toggled(object sender, ToggledEventArgs e)

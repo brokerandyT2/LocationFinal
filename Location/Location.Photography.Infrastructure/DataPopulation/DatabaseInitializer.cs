@@ -8,6 +8,7 @@ using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,12 @@ namespace Location.Photography.Infrastructure
         private readonly ILogger<DatabaseInitializer> _logger;
         private readonly IAlertService _alertService;
 
+        // Static fields to ensure single initialization across all instances
+        private static readonly SemaphoreSlim _initializationLock = new(1, 1);
+        private static bool _isInitialized = false;
+        private static bool _isInitializing = false;
+        private static DateTime? _initializationTimestamp = null;
+
         public DatabaseInitializer(
             IUnitOfWork unitOfWork,
             ILogger<DatabaseInitializer> logger,
@@ -31,14 +38,122 @@ namespace Location.Photography.Infrastructure
         }
 
         /// <summary>
-        /// Initializes database and populates with static data (tip types, sample locations, base settings)
-        /// This is called during app startup and does not include user-specific settings
+        /// Checks if the database has been initialized by looking for a specific marker
         /// </summary>
-        public async Task InitializeDatabaseWithStaticDataAsync(CancellationToken cancellationToken = default)
+        public async Task<bool> IsDatabaseInitializedAsync()
         {
             try
             {
+                // Check static flag first (fastest)
+                if (_isInitialized)
+                {
+                    _logger.LogDebug("Database already initialized (static flag)");
+                    return true;
+                }
+
+                // Check if database file exists
+                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "locations.db");
+                if (!File.Exists(path))
+                {
+                    _logger.LogDebug("Database file does not exist: {Path}", path);
+                    return false;
+                }
+
+                // Check for initialization marker in settings
+                var markerResult = await _unitOfWork.Settings.GetByKeyAsync("DatabaseInitialized");
+                if (markerResult.IsSuccess && markerResult.Data != null)
+                {
+                    _isInitialized = true;
+                    _logger.LogDebug("Database initialization marker found");
+                    return true;
+                }
+
+                // Fallback: Check if we have sample locations (legacy check)
+                var locationsResult = await _unitOfWork.Locations.GetPagedAsync(0, 1);
+                bool hasData = locationsResult.IsSuccess && locationsResult.Data?.TotalCount >0;
+
+                if (hasData)
+                {
+                    // Database exists but missing marker - add it
+                    await CreateInitializationMarkerAsync();
+                    _isInitialized = true;
+                    _logger.LogInformation("Database has data but missing marker - marker added");
+                    return true;
+                }
+
+                _logger.LogDebug("Database exists but is not initialized");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking database initialization status");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Initializes database with static data only if not already initialized
+        /// Thread-safe and ensures single execution
+        /// </summary>
+        public async Task InitializeDatabaseWithStaticDataAsync(CancellationToken cancellationToken = default)
+        {
+            // Fast path: if already initialized, return immediately
+            if (_isInitialized)
+            {
+                _logger.LogDebug("Database already initialized - skipping");
+                return;
+            }
+
+            // Wait for lock with timeout to prevent deadlocks
+            bool lockAcquired = await _initializationLock.WaitAsync(TimeSpan.FromMinutes(5), cancellationToken);
+            if (!lockAcquired)
+            {
+                throw new TimeoutException("Failed to acquire database initialization lock within timeout period");
+            }
+
+            try
+            {
+                // Double-check after acquiring lock (another thread might have initialized)
+                if (_isInitialized)
+                {
+                    _logger.LogDebug("Database was initialized by another thread - skipping");
+                    return;
+                }
+
+                // Check if we're already in the process of initializing
+                if (_isInitializing)
+                {
+                    _logger.LogWarning("Database initialization already in progress - waiting for completion");
+
+                    // Wait for the other initialization to complete
+                    var startTime = DateTime.UtcNow;
+                    while (_isInitializing && DateTime.UtcNow - startTime < TimeSpan.FromMinutes(3))
+                    {
+                        await Task.Delay(1000, cancellationToken);
+                    }
+
+                    if (_isInitialized)
+                    {
+                        _logger.LogDebug("Database initialization completed by another process");
+                        return;
+                    }
+
+                    if (_isInitializing)
+                    {
+                        throw new TimeoutException("Database initialization by another process did not complete within expected time");
+                    }
+                }
+
+                // Final check using database query
+                if (await IsDatabaseInitializedAsync())
+                {
+                    _logger.LogDebug("Database already initialized (database check) - skipping");
+                    return;
+                }
+
                 _logger.LogInformation("Starting database initialization with static data");
+                _isInitializing = true;
+                _initializationTimestamp = DateTime.UtcNow;
 
                 // Initialize database structure
                 var databaseContext = (_unitOfWork as Location.Core.Infrastructure.UnitOfWork.UnitOfWork)?.GetDatabaseContext();
@@ -62,17 +177,59 @@ namespace Location.Photography.Infrastructure
 
                 await Task.WhenAll(initializationTasks).ConfigureAwait(false);
 
-                _logger.LogInformation("Database initialization with static data completed successfully");
+                // Create initialization marker
+                await CreateInitializationMarkerAsync();
+
+                // Mark as completed
+                _isInitialized = true;
+                _isInitializing = false;
+
+                _logger.LogInformation("Database initialization with static data completed successfully in {Duration}ms",
+                    (DateTime.UtcNow - _initializationTimestamp.Value).TotalMilliseconds);
             }
             catch (OperationCanceledException)
             {
+                _isInitializing = false;
                 _logger.LogWarning("Database initialization was cancelled");
                 throw;
             }
             catch (Exception ex)
             {
+                _isInitializing = false;
                 _logger.LogError(ex, "Error during database initialization with static data");
                 throw;
+            }
+            finally
+            {
+                _initializationLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Creates a marker in the database to indicate initialization is complete
+        /// </summary>
+        private async Task CreateInitializationMarkerAsync()
+        {
+            try
+            {
+                var marker = new Setting(
+                    "DatabaseInitialized",
+                    DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                    "Timestamp when database initialization was completed");
+
+                var result = await _unitOfWork.Settings.CreateAsync(marker);
+                if (!result.IsSuccess)
+                {
+                    _logger.LogWarning("Failed to create database initialization marker: {Error}", result.ErrorMessage);
+                }
+                else
+                {
+                    _logger.LogDebug("Database initialization marker created successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating database initialization marker");
             }
         }
 
@@ -136,6 +293,7 @@ namespace Location.Photography.Infrastructure
 
         /// <summary>
         /// Legacy method for backward compatibility - now calls both static and user data initialization
+        /// Ensures database is only initialized once
         /// </summary>
         public async Task InitializeDatabaseAsync(
             CancellationToken ctx,
@@ -150,7 +308,7 @@ namespace Location.Photography.Infrastructure
         {
             try
             {
-                // Initialize with static data first
+                // Initialize with static data first (will skip if already done)
                 await InitializeDatabaseWithStaticDataAsync(ctx).ConfigureAwait(false);
 
                 // Then create user settings
@@ -165,6 +323,19 @@ namespace Location.Photography.Infrastructure
                 throw;
             }
         }
+
+        /// <summary>
+        /// Resets the initialization state (for testing purposes only)
+        /// </summary>
+        public static void ResetInitializationState()
+        {
+            _isInitialized = false;
+            _isInitializing = false;
+            _initializationTimestamp = null;
+        }
+
+        // ... rest of your existing methods (CreateTipTypesAsync, CreateSampleLocationsAsync, etc.)
+        // These remain unchanged
 
         private async Task CreateTipTypesAsync(CancellationToken cancellationToken = default)
         {
@@ -309,20 +480,7 @@ namespace Location.Photography.Infrastructure
         {
             try
             {
-                var baseSettings = new List<(string Key, string Value, string Description)>
-                {
-                    // Application settings (not user-specific)
-                    /*  (MagicStrings.FirstName, "", "User's first name"),
-                      (MagicStrings.LastName, "", "User's last name"),
-                      (MagicStrings.LastBulkWeatherUpdate, DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
-                      (MagicStrings.DefaultLanguage, "en-US", "Default language setting"),
-                      (MagicStrings.CameraRefresh, "500", "Camera refresh rate in milliseconds"),
-                      (MagicStrings.AppOpenCounter, "1", "Number of times the app has been opened"),
-                      (MagicStrings.WeatherURL, "https://api.openweathermap.org/data/3.0/onecall", "Weather API URL"),
-                      (MagicStrings.Weather_API_Key, "aa24f449cced50c0491032b2f955d610", "Weather API key"),
-                      (MagicStrings.FreePremiumAdSupported, "false", "Whether the app is running in ad-supported mode"),
-                      (MagicStrings.DeviceInfo, "", "Device information") */
-                };
+                var baseSettings = new List<(string Key, string Value, string Description)>();
 
                 // Add build-specific settings
 #if DEBUG
@@ -421,6 +579,7 @@ namespace Location.Photography.Infrastructure
                 throw;
             }
         }
+
         private async Task CreateCameraSensorProfilesAsync(CancellationToken cancellationToken = default)
         {
             try
@@ -721,6 +880,7 @@ namespace Location.Photography.Infrastructure
 
         private MountType DetermineMountType(string brand, string cameraName)
         {
+            // Your existing implementation...
             var brandLower = brand?.ToLowerInvariant() ?? "";
             var cameraNameLower = cameraName.ToLowerInvariant();
 

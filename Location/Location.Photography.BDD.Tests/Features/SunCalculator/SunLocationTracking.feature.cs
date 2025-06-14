@@ -398,28 +398,28 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table107 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table180 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",
                             "Latitude",
                             "Longitude",
                             "DateTime",
                             "SolarAzimuth",
                             "SolarElevation"});
-                table107.AddRow(new string[] {
+                table180.AddRow(new string[] {
                             "1",
                             "40.7128",
                             "-74.0060",
                             "2024-06-21 08:00:00",
                             "120",
                             "30"});
-                table107.AddRow(new string[] {
+                table180.AddRow(new string[] {
                             "2",
                             "40.7128",
                             "-74.0060",
                             "2024-06-21 12:00:00",
                             "180",
                             "60"});
-                table107.AddRow(new string[] {
+                table180.AddRow(new string[] {
                             "3",
                             "40.7128",
                             "-74.0060",
@@ -427,7 +427,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
                             "240",
                             "30"});
 #line 64
-    testRunner.Given("I have multiple sun tracking sessions:", ((string)(null)), table107, "Given ");
+    testRunner.Given("I have multiple sun tracking sessions:", ((string)(null)), table180, "Given ");
 #line hidden
 #line 69
     testRunner.When("I calculate sun location for all tracking sessions", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");

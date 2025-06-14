@@ -218,7 +218,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table122 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table195 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",
                             "Latitude",
                             "Longitude",
@@ -226,7 +226,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
                             "Sunrise",
                             "Sunset",
                             "SolarNoon"});
-                table122.AddRow(new string[] {
+                table195.AddRow(new string[] {
                             "1",
                             "40.7128",
                             "-74.0060",
@@ -234,7 +234,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
                             "05:25",
                             "20:31",
                             "12:58"});
-                table122.AddRow(new string[] {
+                table195.AddRow(new string[] {
                             "2",
                             "51.5074",
                             "-0.1278",
@@ -242,7 +242,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
                             "04:43",
                             "21:21",
                             "13:02"});
-                table122.AddRow(new string[] {
+                table195.AddRow(new string[] {
                             "3",
                             "35.6762",
                             "139.6503",
@@ -251,7 +251,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
                             "19:00",
                             "11:42"});
 #line 29
-    testRunner.Given("I have multiple locations for sun times calculation:", ((string)(null)), table122, "Given ");
+    testRunner.Given("I have multiple locations for sun times calculation:", ((string)(null)), table195, "Given ");
 #line hidden
 #line 34
     testRunner.When("I calculate sun times for all locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");

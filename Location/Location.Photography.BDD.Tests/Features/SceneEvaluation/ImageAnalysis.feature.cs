@@ -126,18 +126,18 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 10
     testRunner.Given("I have an image file at path \"/test/images/landscape.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table90 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table163 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "TotalPixels"});
-                table90.AddRow(new string[] {
+                table163.AddRow(new string[] {
                             "120",
                             "140",
                             "100",
                             "2073600"});
 #line 11
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table90, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table163, "And ");
 #line hidden
 #line 14
     testRunner.When("I analyze the image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -182,16 +182,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 21
     testRunner.Given("I have an image file at path \"/test/images/sunset.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table91 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table164 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table91.AddRow(new string[] {
+                table164.AddRow(new string[] {
                             "200",
                             "120",
                             "80"});
 #line 22
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table91, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table164, "And ");
 #line hidden
 #line 25
     testRunner.When("I analyze the image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -233,16 +233,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 31
     testRunner.Given("I have an image file at path \"/test/images/dark_scene.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table92 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table165 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table92.AddRow(new string[] {
+                table165.AddRow(new string[] {
                             "40",
                             "45",
                             "35"});
 #line 32
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table92, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table165, "And ");
 #line hidden
 #line 35
     testRunner.When("I analyze the image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -284,16 +284,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 41
     testRunner.Given("I have an image file at path \"/test/images/high_contrast.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table93 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table166 = new TechTalk.SpecFlow.Table(new string[] {
                             "StdDevRed",
                             "StdDevGreen",
                             "StdDevBlue"});
-                table93.AddRow(new string[] {
+                table166.AddRow(new string[] {
                             "95",
                             "100",
                             "90"});
 #line 42
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table93, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table166, "And ");
 #line hidden
 #line 45
     testRunner.And("the image analysis should detect high contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -338,18 +338,18 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 52
     testRunner.Given("I have an image file at path \"/test/images/daylight.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table94 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table167 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature"});
-                table94.AddRow(new string[] {
+                table167.AddRow(new string[] {
                             "128",
                             "128",
                             "128",
                             "5500"});
 #line 53
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table94, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table167, "And ");
 #line hidden
 #line 56
     testRunner.When("I analyze the image for color balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -388,32 +388,32 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table95 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table168 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",
                             "ImagePath",
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table95.AddRow(new string[] {
+                table168.AddRow(new string[] {
                             "1",
                             "/test/images/portrait1.jpg",
                             "150",
                             "140",
                             "130"});
-                table95.AddRow(new string[] {
+                table168.AddRow(new string[] {
                             "2",
                             "/test/images/landscape1.jpg",
                             "100",
                             "120",
                             "140"});
-                table95.AddRow(new string[] {
+                table168.AddRow(new string[] {
                             "3",
                             "/test/images/macro1.jpg",
                             "180",
                             "160",
                             "120"});
 #line 62
-    testRunner.Given("I have multiple images for analysis:", ((string)(null)), table95, "Given ");
+    testRunner.Given("I have multiple images for analysis:", ((string)(null)), table168, "Given ");
 #line hidden
 #line 67
     testRunner.When("I analyze multiple images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -492,16 +492,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 79
     testRunner.Given("I have an image file at path \"/test/images/rule_of_thirds.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table96 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table169 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table96.AddRow(new string[] {
+                table169.AddRow(new string[] {
                             "128",
                             "128",
                             "128"});
 #line 80
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table96, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table169, "And ");
 #line hidden
 #line 83
     testRunner.When("I analyze the image for composition", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -540,16 +540,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 88
     testRunner.Given("I have an image file at path \"/test/images/properly_exposed.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table97 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table170 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table97.AddRow(new string[] {
+                table170.AddRow(new string[] {
                             "160",
                             "170",
                             "150"});
 #line 89
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table97, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table170, "And ");
 #line hidden
 #line 92
     testRunner.When("I analyze the image for exposure quality", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -588,18 +588,18 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table98 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table171 = new TechTalk.SpecFlow.Table(new string[] {
                             "ImagePath"});
-                table98.AddRow(new string[] {
+                table171.AddRow(new string[] {
                             "/test/batch/image1.jpg"});
-                table98.AddRow(new string[] {
+                table171.AddRow(new string[] {
                             "/test/batch/image2.jpg"});
-                table98.AddRow(new string[] {
+                table171.AddRow(new string[] {
                             "/test/batch/image3.jpg"});
-                table98.AddRow(new string[] {
+                table171.AddRow(new string[] {
                             "/test/batch/image4.jpg"});
 #line 98
-    testRunner.Given("I have a batch of images to process:", ((string)(null)), table98, "Given ");
+    testRunner.Given("I have a batch of images to process:", ((string)(null)), table171, "Given ");
 #line hidden
 #line 104
     testRunner.When("I process all images in the batch", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -675,16 +675,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 115
     testRunner.Given("I have an image file at path \"/test/images/foggy_scene.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table99 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table172 = new TechTalk.SpecFlow.Table(new string[] {
                             "StdDevRed",
                             "StdDevGreen",
                             "StdDevBlue"});
-                table99.AddRow(new string[] {
+                table172.AddRow(new string[] {
                             "15",
                             "18",
                             "12"});
 #line 116
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table99, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table172, "And ");
 #line hidden
 #line 119
     testRunner.And("the image analysis should detect low contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -729,18 +729,18 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 126
     testRunner.Given("I have an image file at path \"/test/images/winter_scene.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table100 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table173 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature"});
-                table100.AddRow(new string[] {
+                table173.AddRow(new string[] {
                             "90",
                             "120",
                             "180",
                             "7000"});
 #line 127
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table100, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table173, "And ");
 #line hidden
 #line 130
     testRunner.When("I analyze the image for color balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -782,16 +782,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 136
     testRunner.Given("I have an image file at path \"/test/images/bright_scene.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table101 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table174 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table101.AddRow(new string[] {
+                table174.AddRow(new string[] {
                             "220",
                             "230",
                             "210"});
 #line 137
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table101, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table174, "And ");
 #line hidden
 #line 140
     testRunner.When("I analyze the image for exposure quality", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -836,16 +836,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 146
     testRunner.Given(string.Format("I have an image file at path \"{0}\"", imagePath), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table102 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table175 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table102.AddRow(new string[] {
+                table175.AddRow(new string[] {
                             string.Format("{0}", meanRed),
                             string.Format("{0}", meanGreen),
                             string.Format("{0}", meanBlue)});
 #line 147
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table102, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table175, "And ");
 #line hidden
 #line 150
     testRunner.When("I analyze the image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -958,14 +958,14 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 164
     testRunner.And("I have an image file at path \"/test/images/needs_improvement.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table103 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table176 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "StdDevRed",
                             "StdDevGreen",
                             "StdDevBlue"});
-                table103.AddRow(new string[] {
+                table176.AddRow(new string[] {
                             "80",
                             "85",
                             "75",
@@ -973,7 +973,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
                             "30",
                             "20"});
 #line 165
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table103, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table176, "And ");
 #line hidden
 #line 168
     testRunner.When("I analyze the image for exposure quality", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -1015,7 +1015,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 174
     testRunner.Given("I have an image file at path \"/test/images/comprehensive_test.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table104 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table177 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
@@ -1025,7 +1025,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
                             "StdDevBlue",
                             "TotalPixels",
                             "ColorTemperature"});
-                table104.AddRow(new string[] {
+                table177.AddRow(new string[] {
                             "145",
                             "135",
                             "125",
@@ -1036,7 +1036,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
                             "3840000",
                             "4500"});
 #line 175
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table104, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table177, "And ");
 #line hidden
 #line 178
     testRunner.When("I analyze the image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -1096,18 +1096,18 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 190
     testRunner.Given("I have an image file at path \"/test/images/portrait.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table105 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table178 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "ColorTemperature"});
-                table105.AddRow(new string[] {
+                table178.AddRow(new string[] {
                             "170",
                             "155",
                             "140",
                             "3200"});
 #line 191
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table105, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table178, "And ");
 #line hidden
 #line 194
     testRunner.When("I analyze the image for color balance", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -1155,14 +1155,14 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 202
     testRunner.Given("I have an image file at path \"/test/images/macro_flower.jpg\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table106 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table179 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "StdDevRed",
                             "StdDevGreen",
                             "StdDevBlue"});
-                table106.AddRow(new string[] {
+                table179.AddRow(new string[] {
                             "180",
                             "200",
                             "120",
@@ -1170,7 +1170,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
                             "85",
                             "75"});
 #line 203
-    testRunner.And("the image has the following characteristics:", ((string)(null)), table106, "And ");
+    testRunner.And("the image has the following characteristics:", ((string)(null)), table179, "And ");
 #line hidden
 #line 206
     testRunner.When("I analyze the image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");

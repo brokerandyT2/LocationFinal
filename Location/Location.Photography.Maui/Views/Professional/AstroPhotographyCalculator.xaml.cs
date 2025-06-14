@@ -31,84 +31,130 @@ namespace Location.Photography.Maui.Views.Professional
             _viewModel.ErrorOccurred -= OnSystemError;
             _viewModel.ErrorOccurred += OnSystemError;
 
+            // REMOVED: Don't load data here anymore - let LoadInitialDataAsync handle it
+            // This was causing the double-loading issue
 
-
-            // Load locations and equipment in parallel
-            var locationTask = _viewModel.LoadLocationsAsync();
-            var equipmentTask = _viewModel.LoadEquipmentAsync();
-
-            Task.WhenAll(locationTask, equipmentTask);
-
-            // Small delay to ensure UI is ready
-            Task.Delay(100);
             // Use Dispatcher to ensure this runs after the page is fully loaded
             Dispatcher.Dispatch(async () =>
-                {
-                    _viewModel.IsBusy = true;
-                    await LoadInitialDataAsync(); // Make this async
-                    _viewModel.IsBusy = false;
-                });
+            {
+                await LoadInitialDataAsync();
+            });
         }
 
         private async Task LoadInitialDataAsync()
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("=== LoadInitialDataAsync START ===");
+                System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync START ===");
 
-                // Start loading in parallel
-                var locationTask = _viewModel.LoadLocationsAsync();
-                var equipmentTask = _viewModel.LoadEquipmentAsync();
+                // Check what we actually need to do
+                bool hasLocations = (_viewModel.Locations?.Count ?? 0) > 0;
+                bool hasEquipment = (_viewModel.AvailableCameras?.Count ?? 0) > 0;
+                bool hasSelectedLocation = _viewModel.SelectedLocation != null;
+                bool hasValidDate = _viewModel.SelectedDate != default;
+                bool hasPredictions = (_viewModel.HourlyAstroPredictions?.Count ?? 0) > 0;
 
-                await Task.WhenAll(locationTask, equipmentTask);
+                System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Current state:");
+                System.Diagnostics.Debug.WriteLine($"    IsInitialized: {_viewModel.IsInitialized}");
+                System.Diagnostics.Debug.WriteLine($"    HasLocations: {hasLocations} ({_viewModel.Locations?.Count ?? 0})");
+                System.Diagnostics.Debug.WriteLine($"    HasEquipment: {hasEquipment} ({_viewModel.AvailableCameras?.Count ?? 0})");
+                System.Diagnostics.Debug.WriteLine($"    HasSelectedLocation: {hasSelectedLocation} ({_viewModel.SelectedLocation?.Title ?? "null"})");
+                System.Diagnostics.Debug.WriteLine($"    HasValidDate: {hasValidDate} ({_viewModel.SelectedDate:yyyy-MM-dd})");
+                System.Diagnostics.Debug.WriteLine($"    HasPredictions: {hasPredictions} ({_viewModel.HourlyAstroPredictions?.Count ?? 0})");
 
-                // Wait for properties to actually be populated (race condition fix)
-                var timeout = DateTime.Now.AddSeconds(5);
-                while (DateTime.Now < timeout)
+                _viewModel.IsBusy = true;
+
+                // Load data only if needed
+                List<Task> loadingTasks = new List<Task>();
+
+                if (!hasLocations)
                 {
-                    if (_viewModel.Locations?.Any() == true && _viewModel.AvailableCameras?.Any() == true)
-                    {
-                        break;
-                    }
-                    await Task.Delay(100);
+                    System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Loading locations");
+                    loadingTasks.Add(_viewModel.LoadLocationsAsync());
                 }
 
-                System.Diagnostics.Debug.WriteLine($"After waiting - Locations: {_viewModel.Locations?.Count ?? 0}, Cameras: {_viewModel.AvailableCameras?.Count ?? 0}");
+                if (!hasEquipment)
+                {
+                    System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Loading equipment");
+                    loadingTasks.Add(_viewModel.LoadEquipmentAsync());
+                }
 
-                // Force location selection if none selected
-                if (_viewModel.SelectedLocation == null && _viewModel.Locations?.Any() == true)
+                if (loadingTasks.Any())
+                {
+                    await Task.WhenAll(loadingTasks);
+                    System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Loading tasks completed");
+
+                    // Wait for data to populate (only if we just loaded it)
+                    var timeout = DateTime.Now.AddSeconds(5);
+                    while (DateTime.Now < timeout)
+                    {
+                        if ((_viewModel.Locations?.Any() == true || hasLocations) &&
+                            (_viewModel.AvailableCameras?.Any() == true || hasEquipment))
+                        {
+                            break;
+                        }
+                        await Task.Delay(100);
+                    }
+                }
+
+                // Set default date if not already set
+                if (!hasValidDate)
+                {
+                    _viewModel.SelectedDate = DateTime.Today;
+                    System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Set default date: {_viewModel.SelectedDate:yyyy-MM-dd}");
+                }
+
+                // Auto-select first location if none selected
+                if (!hasSelectedLocation && _viewModel.Locations?.Any() == true)
                 {
                     _viewModel.SelectedLocation = _viewModel.Locations.First();
-                    System.Diagnostics.Debug.WriteLine($"Selected location: {_viewModel.SelectedLocation?.Title}");
+                    System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Auto-selected location: {_viewModel.SelectedLocation?.Title}");
                 }
 
-                // Wait for equipment auto-selection to complete
-                var equipmentTimeout = DateTime.Now.AddSeconds(3);
-                while (DateTime.Now < equipmentTimeout)
-                {
-                    if (_viewModel.SelectedCamera != null && _viewModel.SelectedLens != null)
-                    {
-                        break;
-                    }
-                    await Task.Delay(100);
-                }
+                // Mark as initialized
+                _viewModel.IsInitialized = true;
+                System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Marked as initialized");
 
-                System.Diagnostics.Debug.WriteLine($"Equipment selected - Camera: {_viewModel.SelectedCamera?.Name}, Lens: {_viewModel.SelectedLens?.NameForLens}");
+                // Debug calculation decision
+                bool shouldCalculate = !hasPredictions ||
+                                      (_viewModel.SelectedLocation != null && _viewModel.CanCalculate);
 
-                // Now trigger calculation with full equipment
-                if (_viewModel.SelectedLocation != null)
+                System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Calculation Decision:");
+                System.Diagnostics.Debug.WriteLine($"    !hasPredictions: {!hasPredictions}");
+                System.Diagnostics.Debug.WriteLine($"    SelectedLocation != null: {_viewModel.SelectedLocation != null}");
+                System.Diagnostics.Debug.WriteLine($"    CanCalculate: {_viewModel.CanCalculate}");
+                System.Diagnostics.Debug.WriteLine($"    shouldCalculate: {shouldCalculate}");
+
+                if (shouldCalculate && _viewModel.SelectedLocation != null && _viewModel.CanCalculate)
                 {
-                    System.Diagnostics.Debug.WriteLine("=== TRIGGERING CALCULATION ===");
+                    System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - CONDITIONS MET, TRIGGERING CALCULATION");
                     await _viewModel.CalculateAstroDataAsync();
-                    System.Diagnostics.Debug.WriteLine($"Calculation completed. Predictions count: {_viewModel.HourlyAstroPredictions?.Count ?? 0}");
+                    System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Calculation completed. Predictions count: {_viewModel.HourlyAstroPredictions?.Count ?? 0}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - CONDITIONS NOT MET, SKIPPING CALCULATION");
+                    if (_viewModel.SelectedLocation == null)
+                        System.Diagnostics.Debug.WriteLine($"    Reason: No selected location");
+                    if (!_viewModel.CanCalculate)
+                        System.Diagnostics.Debug.WriteLine($"    Reason: CanCalculate is false");
+                    if (!shouldCalculate)
+                        System.Diagnostics.Debug.WriteLine($"    Reason: shouldCalculate is false");
                 }
 
-                System.Diagnostics.Debug.WriteLine("=== LoadInitialDataAsync END ===");
+                
+                System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync END ===");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"LoadInitialDataAsync ERROR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync ERROR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync STACK: {ex.StackTrace}");
                 await HandleErrorAsync(ex, "Error initializing astrophotography calculator");
+            }
+            finally
+            {
+                System.Diagnostics.Debug.WriteLine($"=== LoadInitialDataAsync - Setting IsBusy = false");
+                _viewModel.IsBusy = false;
             }
         }
 
@@ -307,22 +353,39 @@ namespace Location.Photography.Maui.Views.Professional
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("Location picker selection changed");
+
                 if (sender is Picker picker && picker.SelectedItem is LocationListItemViewModel selectedLocation)
                 {
+                    System.Diagnostics.Debug.WriteLine($"Selected location: {selectedLocation.Title}");
+
                     if (_viewModel != null && _viewModel.SelectedLocation != selectedLocation)
                     {
+                        // Cancel any ongoing operations first
+                        _viewModel.CancelAllOperations();
+
+                        // Update the location
                         _viewModel.SelectedLocation = selectedLocation;
+
+                        // Small delay to ensure UI updates
+                        await Task.Delay(100);
 
                         // Auto-recalculate if we have valid selections
                         if (_viewModel.CanCalculate)
                         {
+                            System.Diagnostics.Debug.WriteLine("Triggering calculation due to location change");
                             await _viewModel.CalculateAstroDataAsync();
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Cannot calculate - CanCalculate: {_viewModel.CanCalculate}");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error in location selection: {ex.Message}");
                 await HandleErrorAsync(ex, "Error updating location selection");
             }
         }

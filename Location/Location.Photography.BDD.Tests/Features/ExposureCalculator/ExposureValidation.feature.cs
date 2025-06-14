@@ -122,16 +122,16 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table32 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table91 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table32.AddRow(new string[] {
+                table91.AddRow(new string[] {
                             "",
                             "f/5.6",
                             "100"});
 #line 10
-    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table32, "Given ");
+    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table91, "Given ");
 #line hidden
 #line 13
     testRunner.When("I attempt to calculate with missing shutter speed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -167,16 +167,16 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table33 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table92 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table33.AddRow(new string[] {
+                table92.AddRow(new string[] {
                             "1/125",
                             "",
                             "100"});
 #line 18
-    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table33, "Given ");
+    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table92, "Given ");
 #line hidden
 #line 21
     testRunner.When("I attempt to calculate with missing aperture", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -212,16 +212,16 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table34 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table93 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table34.AddRow(new string[] {
+                table93.AddRow(new string[] {
                             "1/125",
                             "f/5.6",
                             ""});
 #line 26
-    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table34, "Given ");
+    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table93, "Given ");
 #line hidden
 #line 29
     testRunner.When("I attempt to calculate with missing ISO", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -257,20 +257,20 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table35 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table94 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "TargetAperture",
                             "TargetIso"});
-                table35.AddRow(new string[] {
+                table94.AddRow(new string[] {
                             "1/8000",
                             "f/1.4",
                             "50",
                             "f/1",
                             "25"});
 #line 34
-    testRunner.Given("I have exposure settings that will cause overexposure:", ((string)(null)), table35, "Given ");
+    testRunner.Given("I have exposure settings that will cause overexposure:", ((string)(null)), table94, "Given ");
 #line hidden
 #line 37
     testRunner.When("I attempt to calculate the exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -309,20 +309,20 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table36 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table95 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "TargetShutterSpeed",
                             "TargetAperture"});
-                table36.AddRow(new string[] {
+                table95.AddRow(new string[] {
                             "30",
                             "f/22",
                             "25600",
                             "60",
                             "f/32"});
 #line 43
-    testRunner.Given("I have exposure settings that will cause underexposure:", ((string)(null)), table36, "Given ");
+    testRunner.Given("I have exposure settings that will cause underexposure:", ((string)(null)), table95, "Given ");
 #line hidden
 #line 46
     testRunner.When("I attempt to calculate the exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -361,20 +361,20 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table37 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table96 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "TargetShutterSpeed",
                             "ErrorMessage"});
-                table37.AddRow(new string[] {
+                table96.AddRow(new string[] {
                             "1/125",
                             "f/5.6",
                             "100",
                             "1/16000",
                             "The requested shutter speed exceeds available limits"});
 #line 52
-    testRunner.Given("I have exposure settings that will cause parameter limits:", ((string)(null)), table37, "Given ");
+    testRunner.Given("I have exposure settings that will cause parameter limits:", ((string)(null)), table96, "Given ");
 #line hidden
 #line 55
     testRunner.When("I attempt to calculate the exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -410,18 +410,18 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table38 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table97 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "ErrorMessage"});
-                table38.AddRow(new string[] {
+                table97.AddRow(new string[] {
                             "1/16000",
                             "f/0.5",
                             "204800",
                             "Extreme exposure values may result in calculation errors"});
 #line 60
-    testRunner.Given("I have extreme exposure values:", ((string)(null)), table38, "Given ");
+    testRunner.Given("I have extreme exposure values:", ((string)(null)), table97, "Given ");
 #line hidden
 #line 63
     testRunner.When("I validate the exposure settings", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -460,44 +460,44 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table39 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table98 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "ErrorMessage"});
-                table39.AddRow(new string[] {
+                table98.AddRow(new string[] {
                             "1",
                             "",
                             "f/5.6",
                             "100",
                             "Missing shutter speed"});
-                table39.AddRow(new string[] {
+                table98.AddRow(new string[] {
                             "2",
                             "1/125",
                             "",
                             "100",
                             "Missing aperture"});
-                table39.AddRow(new string[] {
+                table98.AddRow(new string[] {
                             "3",
                             "1/125",
                             "f/5.6",
                             "",
                             "Missing ISO"});
-                table39.AddRow(new string[] {
+                table98.AddRow(new string[] {
                             "4",
                             "invalid",
                             "f/5.6",
                             "100",
                             "Invalid shutter speed format"});
-                table39.AddRow(new string[] {
+                table98.AddRow(new string[] {
                             "5",
                             "1/125",
                             "invalid",
                             "100",
                             "Invalid aperture format"});
 #line 69
-    testRunner.Given("I have multiple invalid exposure scenarios:", ((string)(null)), table39, "Given ");
+    testRunner.Given("I have multiple invalid exposure scenarios:", ((string)(null)), table98, "Given ");
 #line hidden
 #line 76
     testRunner.When("I validate the exposure settings", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -536,16 +536,16 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table40 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table99 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table40.AddRow(new string[] {
+                table99.AddRow(new string[] {
                             "1/125",
                             "f/5.6",
                             "100"});
 #line 82
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table40, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table99, "Given ");
 #line hidden
 #line 85
     testRunner.When("I try to use an unsupported increment type", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -581,25 +581,25 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table41 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table100 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table41.AddRow(new string[] {
+                table100.AddRow(new string[] {
                             "1/125",
                             "f/5.6",
                             "100"});
 #line 90
-    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table41, "Given ");
+    testRunner.Given("I have a base exposure with the following settings:", ((string)(null)), table100, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table42 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table101 = new TechTalk.SpecFlow.Table(new string[] {
                             "TargetAperture",
                             "TargetIso"});
-                table42.AddRow(new string[] {
+                table101.AddRow(new string[] {
                             "f/8",
                             "200"});
 #line 93
-    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table42, "And ");
+    testRunner.And("I want to calculate the shutter speed with the following target settings:", ((string)(null)), table101, "And ");
 #line hidden
 #line 96
     testRunner.When("I calculate the shutter speed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -636,16 +636,16 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table43 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table102 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table43.AddRow(new string[] {
+                table102.AddRow(new string[] {
                             string.Format("{0}", invalidShutter),
                             string.Format("{0}", invalidAperture),
                             string.Format("{0}", invalidIso)});
 #line 101
-    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table43, "Given ");
+    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table102, "Given ");
 #line hidden
 #line 104
     testRunner.When("I validate the exposure settings", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -771,14 +771,14 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table44 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table103 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "TargetAperture",
                             "TargetIso",
                             "ErrorMessage"});
-                table44.AddRow(new string[] {
+                table103.AddRow(new string[] {
                             "1/8000",
                             "f/64",
                             "50",
@@ -786,7 +786,7 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
                             "25",
                             "The requested aperture exceeds available limits"});
 #line 118
-    testRunner.Given("I have exposure settings that will cause parameter limits:", ((string)(null)), table44, "Given ");
+    testRunner.Given("I have exposure settings that will cause parameter limits:", ((string)(null)), table103, "Given ");
 #line hidden
 #line 121
     testRunner.When("I attempt to calculate the exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -825,14 +825,14 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table45 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table104 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "TargetShutterSpeed",
                             "TargetAperture",
                             "TargetIso"});
-                table45.AddRow(new string[] {
+                table104.AddRow(new string[] {
                             "1/8000",
                             "f/1",
                             "25",
@@ -840,7 +840,7 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
                             "f/0.5",
                             "12"});
 #line 127
-    testRunner.Given("I have exposure settings that will cause overexposure:", ((string)(null)), table45, "Given ");
+    testRunner.Given("I have exposure settings that will cause overexposure:", ((string)(null)), table104, "Given ");
 #line hidden
 #line 130
     testRunner.When("I attempt to calculate the exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -879,16 +879,16 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table46 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table105 = new TechTalk.SpecFlow.Table(new string[] {
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso"});
-                table46.AddRow(new string[] {
+                table105.AddRow(new string[] {
                             "1/125sec",
                             "f-5.6",
                             "ISO100"});
 #line 136
-    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table46, "Given ");
+    testRunner.Given("I have an invalid exposure with the following settings:", ((string)(null)), table105, "Given ");
 #line hidden
 #line 139
     testRunner.When("I validate the exposure settings", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -927,32 +927,32 @@ namespace Location.Photography.BDD.Tests.Features.ExposureCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table47 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table106 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",
                             "BaseShutterSpeed",
                             "BaseAperture",
                             "BaseIso",
                             "ErrorMessage"});
-                table47.AddRow(new string[] {
+                table106.AddRow(new string[] {
                             "1",
                             "",
                             "f/5.6",
                             "100",
                             "Base exposure requires a valid shutter speed value"});
-                table47.AddRow(new string[] {
+                table106.AddRow(new string[] {
                             "2",
                             "1/125",
                             "f/999",
                             "100",
                             "Aperture value f/999 is outside the valid range"});
-                table47.AddRow(new string[] {
+                table106.AddRow(new string[] {
                             "3",
                             "1/125",
                             "f/5.6",
                             "999999",
                             "ISO value 999999 exceeds maximum supported range"});
 #line 145
-    testRunner.Given("I have multiple invalid exposure scenarios:", ((string)(null)), table47, "Given ");
+    testRunner.Given("I have multiple invalid exposure scenarios:", ((string)(null)), table106, "Given ");
 #line hidden
 #line 150
     testRunner.When("I validate the exposure settings", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");

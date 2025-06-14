@@ -47,7 +47,7 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Label Grid.Row="0" Text="Choose your location" FontSize="14"/>
-                            <Picker Grid.Row="1" ItemsSource="{Binding Locations, Mode=TwoWay}" 
+                            <Picker Grid.Row="1" ItemsSource="{Binding Locations}" 
                                    SelectedItem="{Binding SelectedLocation}"
                                    ItemDisplayBinding="{Binding Title}" x:Name="LocationPicker"
                                    FontSize="14" Margin="0,5,0,0"/>
@@ -176,7 +176,7 @@
 
                 <!-- Calculation Results with Loading Overlay -->
                 <Frame HasShadow="True" CornerRadius="10" Padding="15"
-     IsVisible="{Binding HourlyAstroPredictions, Converter={StaticResource CollectionToBoolConverter}}">
+     IsVisible="{Binding HourlyAstroPredictions}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>

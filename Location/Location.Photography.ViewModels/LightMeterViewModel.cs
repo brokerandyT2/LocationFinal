@@ -200,7 +200,7 @@ namespace Location.Photography.ViewModels
                 if (SetProperty(ref _selectedShutterSpeedIndex, value))
                 {
                     OnPropertyChanged(nameof(SelectedShutterSpeed));
-                    _ = CalculateEVOptimizedAsync();
+                    _ = CalculateFromEVOptimizedAsync(); // This should trigger user settings EV calculation
                 }
             }
         }
@@ -210,7 +210,79 @@ namespace Location.Photography.ViewModels
         public string SelectedShutterSpeed => ShutterSpeedArray?[Math.Min(SelectedShutterSpeedIndex, MaxShutterSpeedIndex)] ?? "1/60";
         public string MinShutterSpeed => ShutterSpeedArray?[0] ?? "30\"";
         public string MaxShutterSpeed => ShutterSpeedArray?[MaxShutterSpeedIndex] ?? "1/8000";
+        // Add EV Compensation property
+        // Remove the existing EVCompensation property and add these:
 
+        // EV Compensation array and index (following same pattern as other sliders)
+        private string[] _evCompensationArray;
+        private int _selectedEVCompensationIndex = 0;
+
+        public string[] EVCompensationArray
+        {
+            get => _evCompensationArray;
+            set => SetProperty(ref _evCompensationArray, value);
+        }
+
+        public int SelectedEVCompensationIndex
+        {
+            get => _selectedEVCompensationIndex;
+            set
+            {
+                if (SetProperty(ref _selectedEVCompensationIndex, value))
+                {
+                    OnPropertyChanged(nameof(SelectedEVCompensation));
+                    OnPropertyChanged(nameof(EVCompensation));
+                    _ = CalculateFromEVOptimizedAsync();
+                }
+            }
+        }
+        private string[] GenerateEVCompensationArray(ExposureIncrements step)
+        {
+            var values = new List<string>();
+
+            double stepSize = step switch
+            {
+                ExposureIncrements.Full => 1.0,
+                ExposureIncrements.Half => 0.5,
+                ExposureIncrements.Third => 1.0 / 3.0,
+                _ => 1.0 / 3.0
+            };
+
+            // Generate from -5 to +5 in appropriate increments
+            for (double ev = -5.0; ev <= 5.0; ev += stepSize)
+            {
+                if (Math.Abs(ev) < 0.01) // Handle zero specially
+                {
+                    values.Add("0");
+                }
+                else if (ev > 0)
+                {
+                    values.Add($"+{ev:F1}".Replace(".0", ""));
+                }
+                else
+                {
+                    values.Add($"{ev:F1}".Replace(".0", ""));
+                }
+            }
+
+            return values.ToArray();
+        }
+        public int MaxEVCompensationIndex => EVCompensationArray?.Length - 1 ?? 0;
+
+        public string SelectedEVCompensation => EVCompensationArray?[Math.Min(SelectedEVCompensationIndex, MaxEVCompensationIndex)] ?? "0";
+        public string MinEVCompensation => EVCompensationArray?[0] ?? "-5";
+        public string MaxEVCompensation => EVCompensationArray?[MaxEVCompensationIndex] ?? "+5";
+
+        // For backward compatibility and easier calculation access
+        public double EVCompensation
+        {
+            get
+            {
+                if (double.TryParse(SelectedEVCompensation.Replace("+", ""), out double value))
+                    return value;
+                return 0;
+            }
+        }
         #endregion
 
         #region Commands
@@ -330,9 +402,17 @@ namespace Location.Photography.ViewModels
         {
             try
             {
-                // This would adjust other settings based on EV change
-                double roundedEV = RoundToStepOptimized(SelectedEV);
-                CalculatedEV = roundedEV;
+                if (!await _calculationLock.WaitAsync(50))
+                    return;
+
+                try
+                {
+                    await Task.Run(() => CalculateUserSettingsEV());
+                }
+                finally
+                {
+                    _calculationLock.Release();
+                }
             }
             catch (Exception ex)
             {
@@ -342,7 +422,96 @@ namespace Location.Photography.ViewModels
                 });
             }
         }
+        private async Task CalculateUserSettingsEV()
+        {
+            try
+            {
+                // Parse user's camera settings
+                double aperture = ParseApertureOptimized(SelectedAperture);
+                double shutterSpeed = ParseShutterSpeedOptimized(SelectedShutterSpeed);
+                int iso = ParseIsoOptimized(SelectedIso);
 
+                if (aperture <= 0 || shutterSpeed <= 0 || iso <= 0)
+                {
+                    return;
+                }
+
+                // Calculate EV for user's settings using standard formula
+                // EV = log2(N²/t) where N=aperture, t=shutter time in seconds
+                double userEV = Math.Log2((aperture * aperture) / shutterSpeed);
+
+                // Adjust for ISO (ISO 100 is baseline)
+                userEV += Math.Log2(iso / 100.0);
+
+                // Apply EV compensation from the slider
+                userEV += EVCompensation; // Changed from SelectedEV to EVCompensation
+
+                // Round to step precision
+                double roundedUserEV = RoundToStepOptimized(userEV);
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    UserSettingsEV = roundedUserEV;
+                    OnPropertyChanged(nameof(ExposureDifference));
+                    OnPropertyChanged(nameof(IsOverExposed));
+                    OnPropertyChanged(nameof(IsUnderExposed));
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    OnSystemError($"Error calculating user settings EV: {ex.Message}");
+                });
+            }
+        }
+        private double _userSettingsEV;
+        private double ParseShutterSpeedOptimized(string shutterSpeed)
+        {
+            if (string.IsNullOrWhiteSpace(shutterSpeed))
+                return 1.0 / 60.0; // Default 1/60
+
+            try
+            {
+                // Handle fractional format like "1/125"
+                if (shutterSpeed.Contains('/'))
+                {
+                    var parts = shutterSpeed.Split('/');
+                    if (parts.Length == 2 &&
+                        double.TryParse(parts[0], out double numerator) &&
+                        double.TryParse(parts[1], out double denominator))
+                    {
+                        return numerator / denominator;
+                    }
+                }
+
+                // Handle seconds format like "2\"" or "0.5"
+                string cleanValue = shutterSpeed.Replace("\"", "").Replace("s", "");
+                if (double.TryParse(cleanValue, out double seconds))
+                {
+                    return seconds;
+                }
+            }
+            catch
+            {
+                // Fall through to default
+            }
+
+            return 1.0 / 60.0; // Default fallback
+        }
+        public double UserSettingsEV
+        {
+            get => _userSettingsEV;
+            set => SetProperty(ref _userSettingsEV, value);
+        }
+
+        // Shows the difference between actual light conditions and user settings
+        public double ExposureDifference => CalculatedEV - UserSettingsEV;
+
+        // Helper properties for UI feedback
+        public bool IsOverExposed => ExposureDifference < -0.3; // User settings will overexpose
+        public bool IsUnderExposed => ExposureDifference > 0.3; // User settings will underexpose
+        public bool IsWellExposed => Math.Abs(ExposureDifference) <= 0.3;
         /// <summary>
         /// PERFORMANCE OPTIMIZATION: Optimized array loading with caching
         /// </summary>
@@ -379,11 +548,13 @@ namespace Location.Photography.ViewModels
 
                             var results = await Task.WhenAll(apertureTask, isoTask, shutterTask);
 
+                            // In the LoadExposureArraysOptimizedAsync method, update the arrays assignment:
                             result = new ExposureArrays
                             {
                                 Apertures = results[0].IsSuccess ? results[0].Data : GetFallbackApertures(),
                                 ISOs = results[1].IsSuccess ? results[1].Data : GetFallbackISOs(),
-                                ShutterSpeeds = results[2].IsSuccess ? results[2].Data : GetFallbackShutterSpeeds()
+                                ShutterSpeeds = results[2].IsSuccess ? results[2].Data : GetFallbackShutterSpeeds(),
+                                EVCompensation = GenerateEVCompensationArray(CurrentStep) // Add this line
                             };
                         }
                         else
@@ -443,7 +614,7 @@ namespace Location.Photography.ViewModels
             ApertureArray = arrays.Apertures;
             IsoArray = arrays.ISOs;
             ShutterSpeedArray = arrays.ShutterSpeeds;
-
+            EVCompensationArray = arrays.EVCompensation;
             _ = EndPropertyChangeBatchAsync();
         }
 
@@ -508,7 +679,8 @@ namespace Location.Photography.ViewModels
             {
                 Apertures = Apetures.Thirds,
                 ISOs = ISOs.Thirds,
-                ShutterSpeeds = ShutterSpeeds.Thirds
+                ShutterSpeeds = ShutterSpeeds.Thirds,
+                EVCompensation = GenerateEVCompensationArray(ExposureIncrements.Third) // Add this line
             };
 
             _arrayCache[ExposureIncrements.Third] = defaultArrays;
@@ -518,6 +690,7 @@ namespace Location.Photography.ViewModels
             SelectedApertureIndex = ApertureArray?.Length / 2 ?? 0;
             SelectedIsoIndex = IsoArray?.Length / 2 ?? 0;
             SelectedShutterSpeedIndex = ShutterSpeedArray?.Length / 2 ?? 0;
+            SelectedEVCompensationIndex = EVCompensationArray?.Length / 2 ?? 0; // Add this line
         }
 
         private string GetStepStringOptimized()
@@ -542,6 +715,9 @@ namespace Location.Photography.ViewModels
 
             if (ShutterSpeedArray != null && SelectedShutterSpeedIndex >= ShutterSpeedArray.Length)
                 SelectedShutterSpeedIndex = ShutterSpeedArray.Length / 2;
+
+            if (EVCompensationArray != null && SelectedEVCompensationIndex >= EVCompensationArray.Length)
+                SelectedEVCompensationIndex = EVCompensationArray.Length / 2; // Add this line
         }
 
         private void UpdateStepFlagsOptimized()
@@ -680,6 +856,7 @@ namespace Location.Photography.ViewModels
             public string[] Apertures { get; set; } = Array.Empty<string>();
             public string[] ISOs { get; set; } = Array.Empty<string>();
             public string[] ShutterSpeeds { get; set; } = Array.Empty<string>();
+            public string[] EVCompensation { get; set; } = Array.Empty<string>();
         }
 
         #endregion

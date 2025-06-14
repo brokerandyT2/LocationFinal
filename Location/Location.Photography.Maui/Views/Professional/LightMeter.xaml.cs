@@ -478,8 +478,7 @@ namespace Location.Photography.Maui.Views.Professional
         {
             if (_viewModel != null)
             {
-                _viewModel.SelectedEV = e.NewValue;
-                // EV changes might affect other calculations
+                _viewModel.SelectedEVCompensationIndex = (int)Math.Round(e.NewValue);
                 _viewModel.CalculateFromEV();
             }
         }

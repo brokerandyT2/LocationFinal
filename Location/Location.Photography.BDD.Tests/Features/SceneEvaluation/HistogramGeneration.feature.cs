@@ -125,20 +125,20 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 10
     testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table70 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table143 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "MeanContrast",
                             "TotalPixels"});
-                table70.AddRow(new string[] {
+                table143.AddRow(new string[] {
                             "128",
                             "128",
                             "128",
                             "128",
                             "1920000"});
 #line 11
-    testRunner.And("the image has histogram data:", ((string)(null)), table70, "And ");
+    testRunner.And("the image has histogram data:", ((string)(null)), table143, "And ");
 #line hidden
 #line 14
     testRunner.When("I generate RGB histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -186,16 +186,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 22
     testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table71 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table144 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanContrast",
                             "StdDevContrast",
                             "TotalPixels"});
-                table71.AddRow(new string[] {
+                table144.AddRow(new string[] {
                             "135",
                             "65",
                             "2073600"});
 #line 23
-    testRunner.And("the image has histogram data:", ((string)(null)), table71, "And ");
+    testRunner.And("the image has histogram data:", ((string)(null)), table144, "And ");
 #line hidden
 #line 26
     testRunner.When("I generate the contrast histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -283,16 +283,16 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 41
     testRunner.And("the scene has red dominant colors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table72 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table145 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table72.AddRow(new string[] {
+                table145.AddRow(new string[] {
                             "180",
                             "100",
                             "90"});
 #line 42
-    testRunner.And("the image has histogram data:", ((string)(null)), table72, "And ");
+    testRunner.And("the image has histogram data:", ((string)(null)), table145, "And ");
 #line hidden
 #line 45
     testRunner.When("I analyze the red histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -306,63 +306,6 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 48
     testRunner.And("the red channel should be dominant", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 49
-    testRunner.And("the histogram should show bright tones", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze green-dominant image histogram")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void AnalyzeGreen_DominantImageHistogram()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze green-dominant image histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 51
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 52
-    testRunner.Given("I want to analyze the green histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-#line 53
-    testRunner.And("the scene has green dominant colors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table73 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue"});
-                table73.AddRow(new string[] {
-                            "90",
-                            "180",
-                            "100"});
-#line 54
-    testRunner.And("the image has histogram data:", ((string)(null)), table73, "And ");
-#line hidden
-#line 57
-    testRunner.When("I analyze the green histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 58
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 59
-    testRunner.And("the green histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 60
-    testRunner.And("the green channel should be dominant", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
             }
             this.ScenarioCleanup();
         }
@@ -375,7 +318,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze blue-dominant image histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 62
+#line 50
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -388,33 +331,33 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 63
+#line 51
     testRunner.Given("I want to analyze the blue histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 64
+#line 52
     testRunner.And("the scene has blue dominant colors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table74 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table146 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table74.AddRow(new string[] {
+                table146.AddRow(new string[] {
+                            "80",
                             "90",
-                            "100",
-                            "180"});
-#line 65
-    testRunner.And("the image has histogram data:", ((string)(null)), table74, "And ");
+                            "170"});
+#line 53
+    testRunner.And("the image has histogram data:", ((string)(null)), table146, "And ");
 #line hidden
-#line 68
+#line 56
     testRunner.When("I analyze the blue histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 69
+#line 57
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 70
+#line 58
     testRunner.And("the blue histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 71
+#line 59
     testRunner.And("the blue channel should be dominant", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -422,14 +365,14 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for high contrast scene")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze high contrast histogram")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void GenerateHistogramsForHighContrastScene()
+        public void AnalyzeHighContrastHistogram()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms for high contrast scene", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 73
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze high contrast histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 61
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -442,53 +385,102 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 74
+#line 62
     testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 75
-    testRunner.And("the scene has high contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table75 = new TechTalk.SpecFlow.Table(new string[] {
-                            "StdDevRed",
-                            "StdDevGreen",
-                            "StdDevBlue",
-                            "StdDevContrast"});
-                table75.AddRow(new string[] {
+                TechTalk.SpecFlow.Table table147 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MeanContrast",
+                            "StdDevContrast",
+                            "Range"});
+                table147.AddRow(new string[] {
+                            "150",
                             "95",
-                            "100",
-                            "90",
-                            "95"});
-#line 76
-    testRunner.And("the image has histogram data:", ((string)(null)), table75, "And ");
+                            "255"});
+#line 63
+    testRunner.And("the image has high contrast characteristics:", ((string)(null)), table147, "And ");
+#line hidden
+#line 66
+    testRunner.When("I generate the contrast histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 67
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 68
+    testRunner.And("the contrast histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 69
+    testRunner.And("the histogram should show high contrast distribution", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 70
+    testRunner.And("the dynamic range should be wide", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze low contrast histogram")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
+        public void AnalyzeLowContrastHistogram()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze low contrast histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 72
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 73
+    testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table148 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MeanContrast",
+                            "StdDevContrast",
+                            "Range"});
+                table148.AddRow(new string[] {
+                            "120",
+                            "25",
+                            "100"});
+#line 74
+    testRunner.And("the image has low contrast characteristics:", ((string)(null)), table148, "And ");
+#line hidden
+#line 77
+    testRunner.When("I generate the contrast histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 78
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 79
-    testRunner.When("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.And("the contrast histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 80
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the histogram should show low contrast distribution", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 81
-    testRunner.And("I should receive histogram images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 82
-    testRunner.And("the contrast histogram should show High Contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 83
-    testRunner.And("the histogram should show good contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("the dynamic range should be narrow", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for low contrast scene")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for underexposed image")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void GenerateHistogramsForLowContrastScene()
+        public void GenerateHistogramsForUnderexposedImage()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms for low contrast scene", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 85
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms for underexposed image", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 83
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -501,221 +493,221 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 86
+#line 84
     testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 87
-    testRunner.And("the scene has low contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                TechTalk.SpecFlow.Table table149 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MeanRed",
+                            "MeanGreen",
+                            "MeanBlue",
+                            "MeanContrast"});
+                table149.AddRow(new string[] {
+                            "45",
+                            "50",
+                            "40",
+                            "45"});
+#line 85
+    testRunner.And("the image is underexposed:", ((string)(null)), table149, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table76 = new TechTalk.SpecFlow.Table(new string[] {
-                            "StdDevRed",
-                            "StdDevGreen",
-                            "StdDevBlue",
-                            "StdDevContrast"});
-                table76.AddRow(new string[] {
-                            "20",
-                            "18",
-                            "22",
-                            "20"});
 #line 88
-    testRunner.And("the image has histogram data:", ((string)(null)), table76, "And ");
+    testRunner.When("I generate RGB histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 89
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 90
+    testRunner.And("the histograms should show left-skewed distribution", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 91
-    testRunner.When("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.And("the exposure should be identified as underexposed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 92
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("highlight recovery potential should be assessed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 93
-    testRunner.And("I should receive histogram images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for overexposed image")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
+        public void GenerateHistogramsForOverexposedImage()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms for overexposed image", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 94
-    testRunner.And("the contrast histogram should show Low Contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
 #line hidden
 #line 95
-    testRunner.And("the histogram should show poor contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze underexposed image histogram")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void AnalyzeUnderexposedImageHistogram()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze underexposed image histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 97
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 98
     testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table150 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MeanRed",
+                            "MeanGreen",
+                            "MeanBlue",
+                            "MeanContrast"});
+                table150.AddRow(new string[] {
+                            "220",
+                            "225",
+                            "215",
+                            "220"});
+#line 96
+    testRunner.And("the image is overexposed:", ((string)(null)), table150, "And ");
 #line hidden
 #line 99
-    testRunner.And("the scene has dark lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.When("I generate RGB histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table77 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "MeanContrast"});
-                table77.AddRow(new string[] {
-                            "50",
-                            "45",
-                            "55",
-                            "50"});
 #line 100
-    testRunner.And("the image has histogram data:", ((string)(null)), table77, "And ");
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 101
+    testRunner.And("the histograms should show right-skewed distribution", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 102
+    testRunner.And("the exposure should be identified as overexposed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 103
-    testRunner.When("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.And("clipping should be detected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 104
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for properly exposed image")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
+        public void GenerateHistogramsForProperlyExposedImage()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms for properly exposed image", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 105
-    testRunner.And("the histogram should indicate under exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
 #line hidden
 #line 106
-    testRunner.And("the histogram should show dark tones", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze overexposed image histogram")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void AnalyzeOverexposedImageHistogram()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze overexposed image histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 108
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 109
     testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 110
-    testRunner.And("the scene has bright lighting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table78 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table151 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "MeanContrast"});
-                table78.AddRow(new string[] {
-                            "200",
-                            "210",
-                            "190",
-                            "200"});
-#line 111
-    testRunner.And("the image has histogram data:", ((string)(null)), table78, "And ");
-#line hidden
-#line 114
-    testRunner.When("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 115
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 116
-    testRunner.And("the histogram should indicate over exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 117
-    testRunner.And("the histogram should show bright tones", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for balanced exposure")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void GenerateHistogramsForBalancedExposure()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms for balanced exposure", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 119
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 120
-    testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-                TechTalk.SpecFlow.Table table79 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "MeanContrast"});
-                table79.AddRow(new string[] {
+                table151.AddRow(new string[] {
                             "128",
                             "135",
                             "125",
                             "130"});
+#line 107
+    testRunner.And("the image is properly exposed:", ((string)(null)), table151, "And ");
+#line hidden
+#line 110
+    testRunner.When("I generate RGB histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 111
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 112
+    testRunner.And("the histograms should show balanced distribution", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 113
+    testRunner.And("the exposure should be identified as proper", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 114
+    testRunner.And("the tonal range should be well distributed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze color balance through histograms")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
+        public void AnalyzeColorBalanceThroughHistograms()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze color balance through histograms", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 116
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 117
+    testRunner.Given("I want to analyze color balance through histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table152 = new TechTalk.SpecFlow.Table(new string[] {
+                            "RedBalance",
+                            "GreenBalance",
+                            "BlueBalance",
+                            "ColorCast"});
+                table152.AddRow(new string[] {
+                            "High",
+                            "Medium",
+                            "Low",
+                            "Warm"});
+#line 118
+    testRunner.And("the image has color balance data:", ((string)(null)), table152, "And ");
+#line hidden
 #line 121
-    testRunner.And("the image has histogram data:", ((string)(null)), table79, "And ");
+    testRunner.When("I generate RGB histograms for color analysis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 122
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 123
+    testRunner.And("the red channel should show higher values", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 124
-    testRunner.When("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.And("the blue channel should show lower values", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 125
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("the color cast should be detected as warm", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 126
-    testRunner.And("the RGB histograms should be balanced", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 127
-    testRunner.And("the histogram should indicate proper exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 128
-    testRunner.And("the histogram should show balanced exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("color correction suggestions should be provided", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for multiple images")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate luminance histogram")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void GenerateHistogramsForMultipleImages()
+        public void GenerateLuminanceHistogram()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms for multiple images", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 130
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate luminance histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 128
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -728,55 +720,48 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table80 = new TechTalk.SpecFlow.Table(new string[] {
-                            "Id",
-                            "ImagePath",
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue"});
-                table80.AddRow(new string[] {
-                            "1",
-                            "/test/images/sunset.jpg",
-                            "180",
-                            "120",
-                            "80"});
-                table80.AddRow(new string[] {
-                            "2",
-                            "/test/images/forest.jpg",
-                            "90",
-                            "160",
-                            "100"});
-                table80.AddRow(new string[] {
-                            "3",
-                            "/test/images/ocean.jpg",
-                            "100",
-                            "120",
-                            "180"});
-#line 131
-    testRunner.Given("I have multiple images for histogram generation:", ((string)(null)), table80, "Given ");
+#line 129
+    testRunner.Given("I want to generate a luminance histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 136
-    testRunner.When("I generate histograms for all images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                TechTalk.SpecFlow.Table table153 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MeanLuminance",
+                            "StdDevLuminance",
+                            "Range"});
+                table153.AddRow(new string[] {
+                            "118",
+                            "60",
+                            "200"});
+#line 130
+    testRunner.And("the image has luminance characteristics:", ((string)(null)), table153, "And ");
 #line hidden
-#line 137
+#line 133
+    testRunner.When("I generate the luminance histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 134
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 138
-    testRunner.And("all histogram images should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 135
+    testRunner.And("the luminance histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 136
+    testRunner.And("the brightness distribution should be analyzed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 137
+    testRunner.And("the tonal curve should be evaluated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Compare histograms between similar images")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Compare histograms across multiple exposures")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void CompareHistogramsBetweenSimilarImages()
+        public void CompareHistogramsAcrossMultipleExposures()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Compare histograms between similar images", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 140
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Compare histograms across multiple exposures", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 139
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -789,49 +774,57 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table81 = new TechTalk.SpecFlow.Table(new string[] {
-                            "Id",
-                            "ImagePath",
+                TechTalk.SpecFlow.Table table154 = new TechTalk.SpecFlow.Table(new string[] {
+                            "ExposureValue",
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue"});
-                table81.AddRow(new string[] {
-                            "1",
-                            "/test/images/portrait1.jpg",
-                            "150",
-                            "140",
-                            "130"});
-                table81.AddRow(new string[] {
-                            "2",
-                            "/test/images/portrait2.jpg",
-                            "155",
-                            "145",
-                            "135"});
-#line 141
-    testRunner.Given("I have multiple images for histogram generation:", ((string)(null)), table81, "Given ");
+                table154.AddRow(new string[] {
+                            "-2 EV",
+                            "60",
+                            "65",
+                            "55"});
+                table154.AddRow(new string[] {
+                            "0 EV",
+                            "128",
+                            "135",
+                            "125"});
+                table154.AddRow(new string[] {
+                            "+2 EV",
+                            "200",
+                            "210",
+                            "195"});
+#line 140
+    testRunner.Given("I have multiple exposures for histogram comparison:", ((string)(null)), table154, "Given ");
 #line hidden
 #line 145
-    testRunner.When("I compare histograms between images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I generate histograms for all exposures", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 146
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 147
-    testRunner.And("the histogram comparison should show similar images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("each exposure should have distinct histogram shapes", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 148
+    testRunner.And("the tonal distribution should shift with exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 149
+    testRunner.And("optimal exposure should be identified", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Compare histograms between different images")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Detect histogram clipping")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void CompareHistogramsBetweenDifferentImages()
+        public void DetectHistogramClipping()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Compare histograms between different images", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 149
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Detect histogram clipping", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 151
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -844,155 +837,109 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table82 = new TechTalk.SpecFlow.Table(new string[] {
-                            "Id",
-                            "ImagePath",
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue"});
-                table82.AddRow(new string[] {
-                            "1",
-                            "/test/images/sunset.jpg",
-                            "200",
-                            "100",
-                            "50"});
-                table82.AddRow(new string[] {
-                            "2",
-                            "/test/images/nightsky.jpg",
-                            "30",
-                            "40",
-                            "80"});
-#line 150
-    testRunner.Given("I have multiple images for histogram generation:", ((string)(null)), table82, "Given ");
+#line 152
+    testRunner.Given("I want to detect histogram clipping", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 154
-    testRunner.When("I compare histograms between images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 155
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+                TechTalk.SpecFlow.Table table155 = new TechTalk.SpecFlow.Table(new string[] {
+                            "ShadowClipping",
+                            "HighlightClipping",
+                            "ClippedPixels"});
+                table155.AddRow(new string[] {
+                            "5%",
+                            "8%",
+                            "130000"});
+#line 153
+    testRunner.And("the image has clipping characteristics:", ((string)(null)), table155, "And ");
 #line hidden
 #line 156
-    testRunner.And("the histogram comparison should show different images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.When("I analyze histogram clipping", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 157
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 158
+    testRunner.And("shadow clipping should be detected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 159
+    testRunner.And("highlight clipping should be detected", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 160
+    testRunner.And("the percentage of clipped pixels should be calculated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 161
+    testRunner.And("recovery recommendations should be provided", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
-        public virtual void GenerateHistogramsForDifferentLightingConditions(string meanRed, string meanGreen, string meanBlue, string meanContrast, string exposureType, string toneType, string[] exampleTags)
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate channel separation histograms")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
+        public void GenerateChannelSeparationHistograms()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate channel separation histograms", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 163
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 164
+    testRunner.Given("I want to generate channel separation histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table156 = new TechTalk.SpecFlow.Table(new string[] {
+                            "RedPeak",
+                            "GreenPeak",
+                            "BluePeak",
+                            "Separation"});
+                table156.AddRow(new string[] {
+                            "180",
+                            "140",
+                            "100",
+                            "High"});
+#line 165
+    testRunner.And("the image has distinct channel characteristics:", ((string)(null)), table156, "And ");
+#line hidden
+#line 168
+    testRunner.When("I generate channel separation analysis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 169
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 170
+    testRunner.And("each channel should have distinct peaks", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 171
+    testRunner.And("the channel separation should be high", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 172
+    testRunner.And("color purity should be assessed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        public virtual void GenerateHistogramsForDifferentLightingConditions(string red, string green, string blue, string contrast, string exposureType, string toneType, string[] exampleTags)
         {
             string[] tagsOfScenario = exampleTags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            argumentsOfScenario.Add("MeanRed", meanRed);
-            argumentsOfScenario.Add("MeanGreen", meanGreen);
-            argumentsOfScenario.Add("MeanBlue", meanBlue);
-            argumentsOfScenario.Add("MeanContrast", meanContrast);
+            argumentsOfScenario.Add("Red", red);
+            argumentsOfScenario.Add("Green", green);
+            argumentsOfScenario.Add("Blue", blue);
+            argumentsOfScenario.Add("Contrast", contrast);
             argumentsOfScenario.Add("ExposureType", exposureType);
             argumentsOfScenario.Add("ToneType", toneType);
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms for different lighting conditions", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 158
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 159
-    testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-                TechTalk.SpecFlow.Table table83 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "MeanContrast"});
-                table83.AddRow(new string[] {
-                            string.Format("{0}", meanRed),
-                            string.Format("{0}", meanGreen),
-                            string.Format("{0}", meanBlue),
-                            string.Format("{0}", meanContrast)});
-#line 160
-    testRunner.And("the image has histogram data:", ((string)(null)), table83, "And ");
-#line hidden
-#line 163
-    testRunner.When("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 164
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 165
-    testRunner.And(string.Format("the histogram should indicate {0} exposure", exposureType), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 166
-    testRunner.And(string.Format("the histogram should show {0} tones", toneType), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for different lighting conditions: 40")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "40")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanRed", "40")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanGreen", "35")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanBlue", "45")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanContrast", "40")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExposureType", "under")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ToneType", "dark")]
-        public void GenerateHistogramsForDifferentLightingConditions_40()
-        {
-#line 158
-  this.GenerateHistogramsForDifferentLightingConditions("40", "35", "45", "40", "under", "dark", ((string[])(null)));
-#line hidden
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for different lighting conditions: 128")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "128")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanRed", "128")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanGreen", "135")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanBlue", "125")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanContrast", "130")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExposureType", "proper")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ToneType", "balanced")]
-        public void GenerateHistogramsForDifferentLightingConditions_128()
-        {
-#line 158
-  this.GenerateHistogramsForDifferentLightingConditions("128", "135", "125", "130", "proper", "balanced", ((string[])(null)));
-#line hidden
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for different lighting conditions: 220")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "220")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanRed", "220")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanGreen", "210")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanBlue", "225")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:MeanContrast", "218")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExposureType", "over")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ToneType", "bright")]
-        public void GenerateHistogramsForDifferentLightingConditions_220()
-        {
-#line 158
-  this.GenerateHistogramsForDifferentLightingConditions("220", "210", "225", "218", "over", "bright", ((string[])(null)));
-#line hidden
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms with detailed statistics")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void GenerateHistogramsWithDetailedStatistics()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms with detailed statistics", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 174
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -1009,53 +956,95 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 175
     testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table84 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table157 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
-                            "StdDevRed",
-                            "StdDevGreen",
-                            "StdDevBlue",
-                            "TotalPixels"});
-                table84.AddRow(new string[] {
-                            "145",
-                            "135",
-                            "125",
-                            "65",
-                            "70",
-                            "60",
-                            "3840000"});
+                            "MeanContrast"});
+                table157.AddRow(new string[] {
+                            string.Format("{0}", red),
+                            string.Format("{0}", green),
+                            string.Format("{0}", blue),
+                            string.Format("{0}", contrast)});
 #line 176
-    testRunner.And("the image has histogram data:", ((string)(null)), table84, "And ");
+    testRunner.And("the image has lighting characteristics:", ((string)(null)), table157, "And ");
 #line hidden
 #line 179
-    testRunner.When("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I generate RGB histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 180
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 181
-    testRunner.And("I should receive histogram images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And(string.Format("the exposure should be {0}", exposureType), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 182
-    testRunner.And("the histogram data should be accurate", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 183
-    testRunner.And("the RGB histograms should be balanced", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And(string.Format("the tonal distribution should be {0}", toneType), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze histogram for portrait photography")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for different lighting conditions: 45")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void AnalyzeHistogramForPortraitPhotography()
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "45")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Red", "45")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Green", "50")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Blue", "40")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Contrast", "45")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExposureType", "under")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ToneType", "dark")]
+        public void GenerateHistogramsForDifferentLightingConditions_45()
+        {
+#line 174
+  this.GenerateHistogramsForDifferentLightingConditions("45", "50", "40", "45", "under", "dark", ((string[])(null)));
+#line hidden
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for different lighting conditions: 128")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "128")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Red", "128")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Green", "135")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Blue", "125")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Contrast", "130")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExposureType", "proper")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ToneType", "balanced")]
+        public void GenerateHistogramsForDifferentLightingConditions_128()
+        {
+#line 174
+  this.GenerateHistogramsForDifferentLightingConditions("128", "135", "125", "130", "proper", "balanced", ((string[])(null)));
+#line hidden
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for different lighting conditions: 220")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "220")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Red", "220")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Green", "210")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Blue", "225")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:Contrast", "218")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ExposureType", "over")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ToneType", "bright")]
+        public void GenerateHistogramsForDifferentLightingConditions_220()
+        {
+#line 174
+  this.GenerateHistogramsForDifferentLightingConditions("220", "210", "225", "218", "over", "bright", ((string[])(null)));
+#line hidden
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms with detailed statistics")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
+        public void GenerateHistogramsWithDetailedStatistics()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze histogram for portrait photography", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 185
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms with detailed statistics", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 190
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -1067,110 +1056,77 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
                 this.ScenarioStart();
 #line 6
   this.FeatureBackground();
-#line hidden
-#line 186
-    testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-                TechTalk.SpecFlow.Table table85 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "MeanContrast",
-                            "StdDevContrast"});
-                table85.AddRow(new string[] {
-                            "170",
-                            "155",
-                            "140",
-                            "155",
-                            "45"});
-#line 187
-    testRunner.And("the image has histogram data:", ((string)(null)), table85, "And ");
-#line hidden
-#line 190
-    testRunner.When("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 191
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Given("I want to generate histograms with detailed statistics", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 192
-    testRunner.And("the red channel should be dominant", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 193
-    testRunner.And("the histogram should show balanced exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 194
-    testRunner.And("the contrast histogram should show Medium Contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-            }
-            this.ScenarioCleanup();
-        }
-        
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze histogram for landscape photography")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void AnalyzeHistogramForLandscapePhotography()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze histogram for landscape photography", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 196
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                this.ScenarioStart();
-#line 6
-  this.FeatureBackground();
-#line hidden
-#line 197
-    testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
-#line hidden
-                TechTalk.SpecFlow.Table table86 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "StdDevRed",
-                            "StdDevGreen",
-                            "StdDevBlue"});
-                table86.AddRow(new string[] {
-                            "110",
+                TechTalk.SpecFlow.Table table158 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Metric",
+                            "Red",
+                            "Green",
+                            "Blue",
+                            "Contrast"});
+                table158.AddRow(new string[] {
+                            "Mean",
+                            "142",
+                            "138",
+                            "132",
+                            "137"});
+                table158.AddRow(new string[] {
+                            "StandardDev",
+                            "68",
+                            "72",
+                            "65",
+                            "68"});
+                table158.AddRow(new string[] {
+                            "Minimum",
+                            "12",
+                            "15",
+                            "8",
+                            "10"});
+                table158.AddRow(new string[] {
+                            "Maximum",
+                            "248",
+                            "251",
+                            "245",
+                            "250"});
+                table158.AddRow(new string[] {
+                            "Median",
+                            "145",
                             "140",
-                            "120",
-                            "80",
-                            "85",
-                            "75"});
-#line 198
-    testRunner.And("the image has histogram data:", ((string)(null)), table86, "And ");
+                            "135",
+                            "140"});
+#line 192
+    testRunner.And("the image has comprehensive data:", ((string)(null)), table158, "And ");
+#line hidden
+#line 199
+    testRunner.When("I generate detailed histogram statistics", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 200
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 201
-    testRunner.When("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.And("comprehensive statistics should be calculated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 202
-    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.And("distribution metrics should be provided", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 203
-    testRunner.And("the green channel should be dominant", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
-#line 204
-    testRunner.And("the contrast histogram should show High Contrast", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("histogram shape analysis should be complete", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate histograms for macro photography")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Generate saturation histogram")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void GenerateHistogramsForMacroPhotography()
+        public void GenerateSaturationHistogram()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate histograms for macro photography", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 206
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Generate saturation histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 205
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -1183,50 +1139,47 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 207
-    testRunner.Given("I want to generate histograms for an image", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 206
+    testRunner.Given("I want to generate a saturation histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table87 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MeanRed",
-                            "MeanGreen",
-                            "MeanBlue",
-                            "StdDevRed",
-                            "StdDevGreen",
-                            "StdDevBlue"});
-                table87.AddRow(new string[] {
-                            "160",
-                            "180",
-                            "120",
-                            "70",
-                            "75",
-                            "65"});
-#line 208
-    testRunner.And("the image has histogram data:", ((string)(null)), table87, "And ");
+                TechTalk.SpecFlow.Table table159 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MeanSaturation",
+                            "MaxSaturation",
+                            "Colorfulness"});
+                table159.AddRow(new string[] {
+                            "65",
+                            "95",
+                            "High"});
+#line 207
+    testRunner.And("the image has saturation characteristics:", ((string)(null)), table159, "And ");
+#line hidden
+#line 210
+    testRunner.When("I generate the saturation histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 211
-    testRunner.When("I analyze the green histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 212
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
+#line 212
+    testRunner.And("the saturation histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
 #line 213
-    testRunner.And("the green channel should be dominant", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("color vibrancy should be analyzed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 214
-    testRunner.And("the green histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+    testRunner.And("saturation distribution should be evaluated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
         }
         
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Comprehensive histogram analysis")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Analyze green-dominant landscape histogram")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
-        public void ComprehensiveHistogramAnalysis()
+        public void AnalyzeGreen_DominantLandscapeHistogram()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Comprehensive histogram analysis", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Analyze green-dominant landscape histogram", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 216
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -1241,9 +1194,69 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
   this.FeatureBackground();
 #line hidden
 #line 217
+    testRunner.Given("I want to analyze the green histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 218
+    testRunner.And("the scene has green dominant colors", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table160 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MeanRed",
+                            "MeanGreen",
+                            "MeanBlue",
+                            "StdDevRed",
+                            "StdDevGreen",
+                            "StdDevBlue"});
+                table160.AddRow(new string[] {
+                            "160",
+                            "180",
+                            "120",
+                            "70",
+                            "75",
+                            "65"});
+#line 219
+    testRunner.And("the image has histogram data:", ((string)(null)), table160, "And ");
+#line hidden
+#line 222
+    testRunner.When("I analyze the green histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 223
+    testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 224
+    testRunner.And("the green channel should be dominant", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 225
+    testRunner.And("the green histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute()]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute("Comprehensive histogram analysis")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("FeatureTitle", "Histogram Generation")]
+        public void ComprehensiveHistogramAnalysis()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Comprehensive histogram analysis", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 227
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 6
+  this.FeatureBackground();
+#line hidden
+#line 228
     testRunner.Given("I have captured a scene for histogram analysis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table88 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table161 = new TechTalk.SpecFlow.Table(new string[] {
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
@@ -1253,7 +1266,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
                             "StdDevBlue",
                             "StdDevContrast",
                             "TotalPixels"});
-                table88.AddRow(new string[] {
+                table161.AddRow(new string[] {
                             "142",
                             "138",
                             "132",
@@ -1263,34 +1276,34 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
                             "65",
                             "68",
                             "2073600"});
-#line 218
-    testRunner.And("the image has histogram data:", ((string)(null)), table88, "And ");
+#line 229
+    testRunner.And("the image has histogram data:", ((string)(null)), table161, "And ");
 #line hidden
-#line 221
+#line 232
     testRunner.When("I evaluate the scene", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 222
+#line 233
     testRunner.And("I generate RGB histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 223
+#line 234
     testRunner.And("I generate the contrast histogram", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 224
+#line 235
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 225
+#line 236
     testRunner.And("the scene evaluation should be complete", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 226
+#line 237
     testRunner.And("I should receive histogram images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 227
+#line 238
     testRunner.And("the histogram data should be accurate", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 228
+#line 239
     testRunner.And("the RGB histograms should be balanced", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 229
+#line 240
     testRunner.And("the histogram should indicate proper exposure", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -1305,7 +1318,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Batch histogram generation", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 231
+#line 242
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -1318,54 +1331,54 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table89 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table162 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",
                             "ImagePath",
                             "MeanRed",
                             "MeanGreen",
                             "MeanBlue",
                             "MeanContrast"});
-                table89.AddRow(new string[] {
+                table162.AddRow(new string[] {
                             "1",
                             "/test/batch/morning.jpg",
                             "180",
                             "160",
                             "120",
                             "153"});
-                table89.AddRow(new string[] {
+                table162.AddRow(new string[] {
                             "2",
                             "/test/batch/noon.jpg",
                             "200",
                             "190",
                             "180",
                             "190"});
-                table89.AddRow(new string[] {
+                table162.AddRow(new string[] {
                             "3",
                             "/test/batch/evening.jpg",
                             "160",
                             "120",
                             "80",
                             "120"});
-                table89.AddRow(new string[] {
+                table162.AddRow(new string[] {
                             "4",
                             "/test/batch/night.jpg",
                             "60",
                             "50",
                             "70",
                             "60"});
-#line 232
-    testRunner.Given("I have multiple images for histogram generation:", ((string)(null)), table89, "Given ");
+#line 243
+    testRunner.Given("I have multiple images for histogram generation:", ((string)(null)), table162, "Given ");
 #line hidden
-#line 238
+#line 249
     testRunner.When("I generate histograms for all images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 239
+#line 250
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 240
+#line 251
     testRunner.And("all histogram images should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 241
+#line 252
     testRunner.And("the histogram data should be accurate", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -1380,7 +1393,7 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Real-time histogram generation", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 243
+#line 254
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -1393,34 +1406,34 @@ namespace Location.Photography.BDD.Tests.Features.SceneEvaluation
 #line 6
   this.FeatureBackground();
 #line hidden
-#line 244
+#line 255
     testRunner.Given("I have captured a scene for histogram analysis", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 245
+#line 256
     testRunner.When("I evaluate the scene", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 246
+#line 257
     testRunner.And("I generate the histograms", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 247
+#line 258
     testRunner.Then("I should receive a successful photography result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 248
+#line 259
     testRunner.And("the scene evaluation should be complete", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 249
+#line 260
     testRunner.And("I should receive histogram images", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 250
+#line 261
     testRunner.And("the red histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 251
+#line 262
     testRunner.And("the green histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 252
+#line 263
     testRunner.And("the blue histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 253
+#line 264
     testRunner.And("the contrast histogram should be generated", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }

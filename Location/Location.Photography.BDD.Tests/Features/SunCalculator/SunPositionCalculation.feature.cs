@@ -125,14 +125,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 10
     testRunner.Given("I have a location with coordinates 40.7128, -74.0060", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table108 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table181 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table108.AddRow(new string[] {
+                table181.AddRow(new string[] {
                             "2024-06-21",
                             "12:00"});
 #line 11
-    testRunner.And("I have a specific date and time:", ((string)(null)), table108, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table181, "And ");
 #line hidden
 #line 14
     testRunner.When("I calculate the sun position", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -177,14 +177,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 21
     testRunner.Given("I have a location with coordinates 40.7128, -74.0060", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table109 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table182 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table109.AddRow(new string[] {
+                table182.AddRow(new string[] {
                             "2024-06-21",
                             "06:00"});
 #line 22
-    testRunner.And("I have a specific date and time:", ((string)(null)), table109, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table182, "And ");
 #line hidden
 #line 25
     testRunner.When("I request the sun azimuth", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -226,14 +226,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 31
     testRunner.Given("I have a location with coordinates 40.7128, -74.0060", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table110 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table183 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table110.AddRow(new string[] {
+                table183.AddRow(new string[] {
                             "2024-06-21",
                             "18:00"});
 #line 32
-    testRunner.And("I have a specific date and time:", ((string)(null)), table110, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table183, "And ");
 #line hidden
 #line 35
     testRunner.When("I request the sun elevation", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -275,14 +275,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 41
     testRunner.Given("I have a location with coordinates 40.7128, -74.0060", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table111 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table184 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table111.AddRow(new string[] {
+                table184.AddRow(new string[] {
                             "2024-06-21",
                             "00:00"});
 #line 42
-    testRunner.And("I have a specific date and time:", ((string)(null)), table111, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table184, "And ");
 #line hidden
 #line 45
     testRunner.When("I calculate the sun position", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -321,7 +321,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 6
   this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table112 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table185 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",
                             "Latitude",
                             "Longitude",
@@ -329,7 +329,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
                             "Time",
                             "SolarAzimuth",
                             "SolarElevation"});
-                table112.AddRow(new string[] {
+                table185.AddRow(new string[] {
                             "1",
                             "40.7128",
                             "-74.0060",
@@ -337,7 +337,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
                             "12:00",
                             "180",
                             "45"});
-                table112.AddRow(new string[] {
+                table185.AddRow(new string[] {
                             "2",
                             "51.5074",
                             "-0.1278",
@@ -345,7 +345,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
                             "12:00",
                             "180",
                             "40"});
-                table112.AddRow(new string[] {
+                table185.AddRow(new string[] {
                             "3",
                             "35.6762",
                             "139.6503",
@@ -354,7 +354,7 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
                             "180",
                             "50"});
 #line 51
-    testRunner.Given("I have multiple locations for sun position calculation:", ((string)(null)), table112, "Given ");
+    testRunner.Given("I have multiple locations for sun position calculation:", ((string)(null)), table185, "Given ");
 #line hidden
 #line 56
     testRunner.When("I calculate sun positions for all locations", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -393,12 +393,12 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 61
     testRunner.Given("I have a location with coordinates 40.7128, -74.0060", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table113 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table186 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date"});
-                table113.AddRow(new string[] {
+                table186.AddRow(new string[] {
                             "2024-06-21"});
 #line 62
-    testRunner.And("I have a specific date and time:", ((string)(null)), table113, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table186, "And ");
 #line hidden
 #line 65
     testRunner.When("I track the sun position over time", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -437,14 +437,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 70
     testRunner.Given("I have a location with coordinates 48.8566, 2.3522", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table114 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table187 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table114.AddRow(new string[] {
+                table187.AddRow(new string[] {
                             "2024-12-21",
                             "14:00"});
 #line 71
-    testRunner.And("I have a specific date and time:", ((string)(null)), table114, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table187, "And ");
 #line hidden
 #line 74
     testRunner.When("I calculate the sun position", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -485,12 +485,12 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 80
     testRunner.Given("I have a location with coordinates 40.7128, -74.0060", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table115 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table188 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date"});
-                table115.AddRow(new string[] {
+                table188.AddRow(new string[] {
                             "2024-06-21"});
 #line 81
-    testRunner.And("I have a specific date and time:", ((string)(null)), table115, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table188, "And ");
 #line hidden
 #line 84
     testRunner.When(string.Format("I calculate the sun position at {0}", time), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -640,14 +640,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 106
     testRunner.Given("I have a location with coordinates 0, 0", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table116 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table189 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table116.AddRow(new string[] {
+                table189.AddRow(new string[] {
                             "2024-03-20",
                             "12:00"});
 #line 107
-    testRunner.And("I have a specific date and time:", ((string)(null)), table116, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table189, "And ");
 #line hidden
 #line 110
     testRunner.When("I calculate the sun position", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -689,14 +689,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 116
     testRunner.Given("I have a location with coordinates 70, 20", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table117 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table190 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table117.AddRow(new string[] {
+                table190.AddRow(new string[] {
                             "2024-06-21",
                             "12:00"});
 #line 117
-    testRunner.And("I have a specific date and time:", ((string)(null)), table117, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table190, "And ");
 #line hidden
 #line 120
     testRunner.When("I calculate the sun position", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -738,14 +738,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 126
     testRunner.Given("I have a location with coordinates -33.8688, 151.2093", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table118 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table191 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table118.AddRow(new string[] {
+                table191.AddRow(new string[] {
                             "2024-12-21",
                             "12:00"});
 #line 127
-    testRunner.And("I have a specific date and time:", ((string)(null)), table118, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table191, "And ");
 #line hidden
 #line 130
     testRunner.When("I calculate the sun position", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -790,14 +790,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 137
     testRunner.Given("I want to track the sun position for New York", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table119 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table192 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table119.AddRow(new string[] {
+                table192.AddRow(new string[] {
                             "2024-06-21",
                             "15:30"});
 #line 138
-    testRunner.And("I have a specific date and time:", ((string)(null)), table119, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table192, "And ");
 #line hidden
 #line 141
     testRunner.When("I calculate the sun position", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -842,12 +842,12 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 148
     testRunner.Given("I have a location with coordinates 40.7128, -74.0060", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table120 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table193 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date"});
-                table120.AddRow(new string[] {
+                table193.AddRow(new string[] {
                             "2024-06-21"});
 #line 149
-    testRunner.And("I have a specific date and time:", ((string)(null)), table120, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table193, "And ");
 #line hidden
 #line 152
     testRunner.When("I track the sun position over time", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -889,14 +889,14 @@ namespace Location.Photography.BDD.Tests.Features.SunCalculator
 #line 158
     testRunner.Given("I have a location with coordinates 37.7749, -122.4194", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table121 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table194 = new TechTalk.SpecFlow.Table(new string[] {
                             "Date",
                             "Time"});
-                table121.AddRow(new string[] {
+                table194.AddRow(new string[] {
                             "2024-09-22",
                             "07:30"});
 #line 159
-    testRunner.And("I have a specific date and time:", ((string)(null)), table121, "And ");
+    testRunner.And("I have a specific date and time:", ((string)(null)), table194, "And ");
 #line hidden
 #line 162
     testRunner.When("I calculate the sun position", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
