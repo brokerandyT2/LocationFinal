@@ -61,6 +61,96 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Telescope territory for high-resolution planetary work.
+        /// </summary>
+        internal static string AlternativeFocalLength_1000mm {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_1000mm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telephoto for smaller deep sky objects.
+        /// </summary>
+        internal static string AlternativeFocalLength_135mm {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_135mm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ultra-wide for full sky surveys and Milky Way arch.
+        /// </summary>
+        internal static string AlternativeFocalLength_14mm {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_14mm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Long telephoto for detailed nebulae and small galaxies.
+        /// </summary>
+        internal static string AlternativeFocalLength_200mm {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_200mm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide-angle for constellation photography and landscape astro.
+        /// </summary>
+        internal static string AlternativeFocalLength_24mm {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_24mm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very long for planetary and small planetary nebulae.
+        /// </summary>
+        internal static string AlternativeFocalLength_300mm {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_300mm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard for large nebulae and galaxy clusters.
+        /// </summary>
+        internal static string AlternativeFocalLength_50mm {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_50mm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extreme telephoto for lunar detail and planets.
+        /// </summary>
+        internal static string AlternativeFocalLength_600mm {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_600mm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Short telephoto for medium nebulae and galaxy groups.
+        /// </summary>
+        internal static string AlternativeFocalLength_85mm {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_85mm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0:F0}mm - optimal for target size.
+        /// </summary>
+        internal static string AlternativeFocalLength_Optimal {
+            get {
+                return ResourceManager.GetString("AlternativeFocalLength_Optimal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error converting coordinates from {0} to {1}: {2}.
         /// </summary>
         internal static string AstroCalculation_Error_CoordinateConversion {
@@ -129,6 +219,114 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string AstroTarget_StarTrails {
             get {
                 return ResourceManager.GetString("AstroTarget_StarTrails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to High altitude - minimal atmospheric effects, excellent observing conditions.
+        /// </summary>
+        internal static string AtmosphericCorrection_HighAltitude {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_HighAltitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Low altitude - significant atmospheric effects, consider observation timing.
+        /// </summary>
+        internal static string AtmosphericCorrection_LowAltitude {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_LowAltitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimal atmospheric extinction - object near full brightness.
+        /// </summary>
+        internal static string AtmosphericCorrection_MinimalExtinction {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_MinimalExtinction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimal refraction correction - object near true position.
+        /// </summary>
+        internal static string AtmosphericCorrection_MinimalRefraction {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_MinimalRefraction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderate atmospheric extinction - some brightness reduction.
+        /// </summary>
+        internal static string AtmosphericCorrection_ModerateExtinction {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_ModerateExtinction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderate refraction correction - noticeable effect on object position.
+        /// </summary>
+        internal static string AtmosphericCorrection_ModerateRefraction {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_ModerateRefraction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Severe atmospheric extinction - object much dimmer than extraterrestrial brightness.
+        /// </summary>
+        internal static string AtmosphericCorrection_SevereExtinction {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_SevereExtinction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Significant atmospheric extinction - object noticeably dimmer.
+        /// </summary>
+        internal static string AtmosphericCorrection_SignificantExtinction {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_SignificantExtinction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Atmospheric effects significant for precision astrophotography - consider correction.
+        /// </summary>
+        internal static string AtmosphericCorrection_SignificantForPhotography {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_SignificantForPhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Substantial refraction correction - important for precise positioning.
+        /// </summary>
+        internal static string AtmosphericCorrection_SubstantialRefraction {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_SubstantialRefraction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very large refraction correction - object appears significantly higher than true position.
+        /// </summary>
+        internal static string AtmosphericCorrection_VeryLargeRefraction {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_VeryLargeRefraction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very low altitude - atmospheric effects are extreme and unpredictable.
+        /// </summary>
+        internal static string AtmosphericCorrection_VeryLowAltitude {
+            get {
+                return ResourceManager.GetString("AtmosphericCorrection_VeryLowAltitude", resourceCulture);
             }
         }
         
@@ -232,11 +430,515 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to East.
+        /// </summary>
+        internal static string CardinalDirection_East {
+            get {
+                return ResourceManager.GetString("CardinalDirection_East", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to North.
+        /// </summary>
+        internal static string CardinalDirection_North {
+            get {
+                return ResourceManager.GetString("CardinalDirection_North", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Northeast.
+        /// </summary>
+        internal static string CardinalDirection_Northeast {
+            get {
+                return ResourceManager.GetString("CardinalDirection_Northeast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Northwest.
+        /// </summary>
+        internal static string CardinalDirection_Northwest {
+            get {
+                return ResourceManager.GetString("CardinalDirection_Northwest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to South.
+        /// </summary>
+        internal static string CardinalDirection_South {
+            get {
+                return ResourceManager.GetString("CardinalDirection_South", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Southeast.
+        /// </summary>
+        internal static string CardinalDirection_Southeast {
+            get {
+                return ResourceManager.GetString("CardinalDirection_Southeast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Southwest.
+        /// </summary>
+        internal static string CardinalDirection_Southwest {
+            get {
+                return ResourceManager.GetString("CardinalDirection_Southwest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to West.
+        /// </summary>
+        internal static string CardinalDirection_West {
+            get {
+                return ResourceManager.GetString("CardinalDirection_West", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 10 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_10OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_10OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 11 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_11OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_11OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 12 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_12OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_12OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_1OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_1OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 2 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_2OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_2OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 3 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_3OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_3OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 4 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_4OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_4OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 5 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_5OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_5OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 6 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_6OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_6OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 7 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_7OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_7OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 8 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_8OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_8OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 9 o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_9OClock {
+            get {
+                return ResourceManager.GetString("ClockPosition_9OClock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0:F0} o&apos;clock.
+        /// </summary>
+        internal static string ClockPosition_Generic {
+            get {
+                return ResourceManager.GetString("ClockPosition_Generic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generous framing - allows for composition flexibility and guiding errors.
+        /// </summary>
+        internal static string CompositionRecommendations_DeepSky_Generous {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_DeepSky_Generous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good framing - object well-sized in frame.
+        /// </summary>
+        internal static string CompositionRecommendations_DeepSky_Good {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_DeepSky_Good", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tight framing - may cut off object extensions, consider wider field.
+        /// </summary>
+        internal static string CompositionRecommendations_DeepSky_Tight {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_DeepSky_Tight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Medium field - focus on galactic center detail.
+        /// </summary>
+        internal static string CompositionRecommendations_MilkyWay_Medium {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_MilkyWay_Medium", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ultra-wide field - capture full galactic arch.
+        /// </summary>
+        internal static string CompositionRecommendations_MilkyWay_UltraWide {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_MilkyWay_UltraWide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide field - excellent for galactic center with landscape.
+        /// </summary>
+        internal static string CompositionRecommendations_MilkyWay_Wide {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_MilkyWay_Wide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Medium field - good for lunar detail with some sky context.
+        /// </summary>
+        internal static string CompositionRecommendations_Moon_Medium {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_Moon_Medium", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Narrow field - ideal for detailed lunar surface photography.
+        /// </summary>
+        internal static string CompositionRecommendations_Moon_Narrow {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_Moon_Narrow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide field - excellent for lunar landscape compositions with foreground.
+        /// </summary>
+        internal static string CompositionRecommendations_Moon_Wide {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_Moon_Wide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent for full circular star trails around celestial pole.
+        /// </summary>
+        internal static string CompositionRecommendations_StarTrails_Excellent {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_StarTrails_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good for partial circular trails or linear trails.
+        /// </summary>
+        internal static string CompositionRecommendations_StarTrails_Good {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_StarTrails_Good", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Narrow field - creates linear star trail segments.
+        /// </summary>
+        internal static string CompositionRecommendations_StarTrails_Narrow {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_StarTrails_Narrow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tall aspect ratio - good for vertical compositions.
+        /// </summary>
+        internal static string CompositionRecommendations_TallAspect {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_TallAspect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very wide aspect ratio - consider panoramic compositions.
+        /// </summary>
+        internal static string CompositionRecommendations_VeryWideAspect {
+            get {
+                return ResourceManager.GetString("CompositionRecommendations_VeryWideAspect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use telephoto lens and tripod for best results..
+        /// </summary>
+        internal static string ConjunctionPhotography_DefaultAdvice {
+            get {
+                return ResourceManager.GetString("ConjunctionPhotography_DefaultAdvice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to High altitude - excellent for detailed planetary photography.
+        /// </summary>
+        internal static string ConjunctionPhotography_HighAltitude_DetailedPhotography {
+            get {
+                return ResourceManager.GetString("ConjunctionPhotography_HighAltitude_DetailedPhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Low altitude - find elevated location with clear horizon.
+        /// </summary>
+        internal static string ConjunctionPhotography_LowAltitude_ElevatedLocation {
+            get {
+                return ResourceManager.GetString("ConjunctionPhotography_LowAltitude_ElevatedLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderate altitude - good for foreground composition.
+        /// </summary>
+        internal static string ConjunctionPhotography_ModerateAltitude_ForegroundComposition {
+            get {
+                return ResourceManager.GetString("ConjunctionPhotography_ModerateAltitude_ForegroundComposition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderate separation - 85-200mm lens ideal for composition.
+        /// </summary>
+        internal static string ConjunctionPhotography_ModerateSeparation_Lens {
+            get {
+                return ResourceManager.GetString("ConjunctionPhotography_ModerateSeparation_Lens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shoot in RAW for maximum post-processing flexibility.
+        /// </summary>
+        internal static string ConjunctionPhotography_ShootInRAW {
+            get {
+                return ResourceManager.GetString("ConjunctionPhotography_ShootInRAW", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use tripod and timer/remote to avoid camera shake.
+        /// </summary>
+        internal static string ConjunctionPhotography_UseTripodAndTimer {
+            get {
+                return ResourceManager.GetString("ConjunctionPhotography_UseTripodAndTimer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very close conjunction - use telephoto lens 200mm+ to capture both objects in frame.
+        /// </summary>
+        internal static string ConjunctionPhotography_VeryClosure_Telephoto {
+            get {
+                return ResourceManager.GetString("ConjunctionPhotography_VeryClosure_Telephoto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide separation - wide angle lens to capture both objects.
+        /// </summary>
+        internal static string ConjunctionPhotography_WideSeparation_WideAngle {
+            get {
+                return ResourceManager.GetString("ConjunctionPhotography_WideSeparation_WideAngle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on brightest star in constellation.
+        /// </summary>
+        internal static string ConstellationExposureSettings_FocusingTechnique {
+            get {
+                return ResourceManager.GetString("ConstellationExposureSettings_FocusingTechnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust curves to bring out constellation patterns.
+        /// </summary>
+        internal static string ConstellationExposureSettings_ProcessingNote_AdjustCurves {
+            get {
+                return ResourceManager.GetString("ConstellationExposureSettings_ProcessingNote_AdjustCurves", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Balance star brightness with any nebulosity present.
+        /// </summary>
+        internal static string ConstellationExposureSettings_ProcessingNote_BalanceBrightness {
+            get {
+                return ResourceManager.GetString("ConstellationExposureSettings_ProcessingNote_BalanceBrightness", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider star diffraction spikes for artistic effect.
+        /// </summary>
+        internal static string ConstellationExposureSettings_ProcessingNote_DiffractionSpikes {
+            get {
+                return ResourceManager.GetString("ConstellationExposureSettings_ProcessingNote_DiffractionSpikes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stack frames to enhance faint stars.
+        /// </summary>
+        internal static string ConstellationExposureSettings_ProcessingNote_StackFrames {
+            get {
+                return ResourceManager.GetString("ConstellationExposureSettings_ProcessingNote_StackFrames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 2-5 minutes (tracked).
+        /// </summary>
+        internal static string ConstellationExposureSettings_ShutterSpeed_Tracked {
+            get {
+                return ResourceManager.GetString("ConstellationExposureSettings_ShutterSpeed_Tracked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 15-30 seconds (untracked).
+        /// </summary>
+        internal static string ConstellationExposureSettings_ShutterSpeed_Untracked {
+            get {
+                return ResourceManager.GetString("ConstellationExposureSettings_ShutterSpeed_Untracked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Untracked suitable for bright constellation stars.
+        /// </summary>
+        internal static string ConstellationExposureSettings_TrackerRequirements_WithoutTracker {
+            get {
+                return ResourceManager.GetString("ConstellationExposureSettings_TrackerRequirements_WithoutTracker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tracking allows longer exposures for fainter stars.
+        /// </summary>
+        internal static string ConstellationExposureSettings_TrackerRequirements_WithTracker {
+            get {
+                return ResourceManager.GetString("ConstellationExposureSettings_TrackerRequirements_WithTracker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autumn constellation featuring M31 Andromeda Galaxy. Use 135-200mm lens. Galaxy spans 3+ degrees, plan wide compositions..
         /// </summary>
         internal static string ConstellationNotes_Andromeda {
             get {
                 return ResourceManager.GetString("ConstellationNotes_Andromeda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autumn constellation containing Helix Nebula and several globular clusters. Large constellation requires wide-field approach..
+        /// </summary>
+        internal static string ConstellationNotes_Aquarius {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Aquarius", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summer constellation along Milky Way with bright star Altair. Rich star fields excellent for wide-field photography..
+        /// </summary>
+        internal static string ConstellationNotes_Aquila {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Aquila", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Small autumn constellation with few deep sky objects. Good for constellation pattern and wide-field photography..
+        /// </summary>
+        internal static string ConstellationNotes_Aries {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Aries", resourceCulture);
             }
         }
         
@@ -250,11 +952,47 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Faint zodiacal constellation containing Beehive Cluster M44. Requires dark skies for optimal photography..
+        /// </summary>
+        internal static string ConstellationNotes_Cancer {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Cancer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autumn constellation in southern sky. Globular cluster M30 is the main deep sky target..
+        /// </summary>
+        internal static string ConstellationNotes_Capricornus {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Capricornus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Circumpolar constellation, visible year-round from northern latitudes. Heart and Soul nebulae excellent autumn targets..
         /// </summary>
         internal static string ConstellationNotes_Cassiopeia {
             get {
                 return ResourceManager.GetString("ConstellationNotes_Cassiopeia", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Southern constellation featuring Alpha Centauri and Omega Centauri globular cluster. Excellent southern hemisphere target..
+        /// </summary>
+        internal static string ConstellationNotes_Centaurus {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Centaurus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Southern Cross constellation with Coal Sack Nebula. Iconic southern hemisphere target for wide-field compositions..
+        /// </summary>
+        internal static string ConstellationNotes_Crux {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Crux", resourceCulture);
             }
         }
         
@@ -277,11 +1015,47 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Large circumpolar constellation curving around the north celestial pole. Excellent for star trail compositions..
+        /// </summary>
+        internal static string ConstellationNotes_Draco {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Draco", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Winter constellation with bright stars Castor and Pollux. Contains open cluster M35 and Eskimo Nebula..
+        /// </summary>
+        internal static string ConstellationNotes_Gemini {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Gemini", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Spring constellation with Leo Triplet galaxy group. M65, M66, and NGC 3628 form beautiful wide-field composition..
         /// </summary>
         internal static string ConstellationNotes_Leo {
             get {
                 return ResourceManager.GetString("ConstellationNotes_Leo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autumn constellation with modest deep sky targets. Good for constellation pattern photography..
+        /// </summary>
+        internal static string ConstellationNotes_Libra {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Libra", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summer constellation featuring Vega and Ring Nebula M57. Compact constellation perfect for wide-field imaging..
+        /// </summary>
+        internal static string ConstellationNotes_Lyra {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Lyra", resourceCulture);
             }
         }
         
@@ -304,6 +1078,15 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Large but faint autumn constellation. Challenging target requiring dark skies for constellation photography..
+        /// </summary>
+        internal static string ConstellationNotes_Pisces {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Pisces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Summer constellation in Milky Way core region. Rich nebula fields, excellent for wide-field astrophotography. Dark skies essential..
         /// </summary>
         internal static string ConstellationNotes_Sagittarius {
@@ -322,11 +1105,38 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Winter constellation featuring Pleiades M45 and Hyades clusters. Excellent wide-field targets with bright stars..
+        /// </summary>
+        internal static string ConstellationNotes_Taurus {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Taurus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Spring constellation featuring the Big Dipper asterism. M81 and M82 galaxy pair excellent telescopic targets..
         /// </summary>
         internal static string ConstellationNotes_UrsaMajor {
             get {
                 return ResourceManager.GetString("ConstellationNotes_UrsaMajor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Circumpolar constellation containing Polaris. Essential for polar alignment and star trail photography..
+        /// </summary>
+        internal static string ConstellationNotes_UrsaMinor {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_UrsaMinor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spring constellation containing Virgo Galaxy Cluster. Excellent for galaxy photography with longer focal lengths..
+        /// </summary>
+        internal static string ConstellationNotes_Virgo {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Virgo", resourceCulture);
             }
         }
         
@@ -453,6 +1263,87 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string DeepSkyExposure_PlanetaryNebula {
             get {
                 return ResourceManager.GetString("DeepSkyExposure_PlanetaryNebula", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use Bahtinov mask or live view focusing on bright star near target.
+        /// </summary>
+        internal static string DeepSkyExposureSettings_FocusingTechnique {
+            get {
+                return ResourceManager.GetString("DeepSkyExposureSettings_FocusingTechnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calibrate with dark, bias, and flat frames.
+        /// </summary>
+        internal static string DeepSkyExposureSettings_ProcessingNote_CalibrateFrames {
+            get {
+                return ResourceManager.GetString("DeepSkyExposureSettings_ProcessingNote_CalibrateFrames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider narrowband filters for emission nebulae.
+        /// </summary>
+        internal static string DeepSkyExposureSettings_ProcessingNote_NarrowbandFilters {
+            get {
+                return ResourceManager.GetString("DeepSkyExposureSettings_ProcessingNote_NarrowbandFilters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stack using sigma clipping to reject outliers.
+        /// </summary>
+        internal static string DeepSkyExposureSettings_ProcessingNote_SigmaClipping {
+            get {
+                return ResourceManager.GetString("DeepSkyExposureSettings_ProcessingNote_SigmaClipping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use star reduction techniques if stars are prominent.
+        /// </summary>
+        internal static string DeepSkyExposureSettings_ProcessingNote_StarReduction {
+            get {
+                return ResourceManager.GetString("DeepSkyExposureSettings_ProcessingNote_StarReduction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stretch histogram carefully to reveal faint detail.
+        /// </summary>
+        internal static string DeepSkyExposureSettings_ProcessingNote_StretchHistogram {
+            get {
+                return ResourceManager.GetString("DeepSkyExposureSettings_ProcessingNote_StretchHistogram", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0:F0} seconds.
+        /// </summary>
+        internal static string DeepSkyExposureSettings_ShutterSpeed {
+            get {
+                return ResourceManager.GetString("DeepSkyExposureSettings_ShutterSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tracking mount highly recommended for deep sky photography.
+        /// </summary>
+        internal static string DeepSkyExposureSettings_TrackerRequirements_WithoutTracker {
+            get {
+                return ResourceManager.GetString("DeepSkyExposureSettings_TrackerRequirements_WithoutTracker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Essential - requires accurate polar alignment and autoguiding for long exposures.
+        /// </summary>
+        internal static string DeepSkyExposureSettings_TrackerRequirements_WithTracker {
+            get {
+                return ResourceManager.GetString("DeepSkyExposureSettings_TrackerRequirements_WithTracker", resourceCulture);
             }
         }
         
@@ -1177,6 +2068,159 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Focus on bright star using live view magnification.
+        /// </summary>
+        internal static string GenericAstroExposureSettings_FocusingTechnique {
+            get {
+                return ResourceManager.GetString("GenericAstroExposureSettings_FocusingTechnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start with conservative settings and adjust based on results.
+        /// </summary>
+        internal static string GenericAstroExposureSettings_ProcessingNote_ConservativeSettings {
+            get {
+                return ResourceManager.GetString("GenericAstroExposureSettings_ProcessingNote_ConservativeSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monitor histogram to avoid overexposure.
+        /// </summary>
+        internal static string GenericAstroExposureSettings_ProcessingNote_MonitorHistogram {
+            get {
+                return ResourceManager.GetString("GenericAstroExposureSettings_ProcessingNote_MonitorHistogram", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stack multiple frames to improve signal-to-noise ratio.
+        /// </summary>
+        internal static string GenericAstroExposureSettings_ProcessingNote_StackFrames {
+            get {
+                return ResourceManager.GetString("GenericAstroExposureSettings_ProcessingNote_StackFrames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 20-30 seconds.
+        /// </summary>
+        internal static string GenericAstroExposureSettings_ShutterSpeed {
+            get {
+                return ResourceManager.GetString("GenericAstroExposureSettings_ShutterSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tracking mount recommended for exposures over 30 seconds.
+        /// </summary>
+        internal static string GenericAstroExposureSettings_TrackerRequirements {
+            get {
+                return ResourceManager.GetString("GenericAstroExposureSettings_TrackerRequirements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bright pass - good photographic target.
+        /// </summary>
+        internal static string ISSPhotography_Bright {
+            get {
+                return ResourceManager.GetString("ISSPhotography_Bright", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use 15-30 second exposures, ISO 800-3200, wide-angle lens.
+        /// </summary>
+        internal static string ISSPhotography_CameraSettings {
+            get {
+                return ResourceManager.GetString("ISSPhotography_CameraSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dimmer pass - may require longer exposures.
+        /// </summary>
+        internal static string ISSPhotography_Dimmer {
+            get {
+                return ResourceManager.GetString("ISSPhotography_Dimmer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent overhead pass - ideal for star trail composites.
+        /// </summary>
+        internal static string ISSPhotography_ExcellentOverhead {
+            get {
+                return ResourceManager.GetString("ISSPhotography_ExcellentOverhead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good high pass - suitable for single exposure captures.
+        /// </summary>
+        internal static string ISSPhotography_GoodHighPass {
+            get {
+                return ResourceManager.GetString("ISSPhotography_GoodHighPass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Long duration pass - excellent for time-lapse sequences.
+        /// </summary>
+        internal static string ISSPhotography_LongDuration {
+            get {
+                return ResourceManager.GetString("ISSPhotography_LongDuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Low pass - challenging due to atmosphere and obstacles.
+        /// </summary>
+        internal static string ISSPhotography_LowPass {
+            get {
+                return ResourceManager.GetString("ISSPhotography_LowPass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderate pass - visible but lower in sky.
+        /// </summary>
+        internal static string ISSPhotography_ModeratePass {
+            get {
+                return ResourceManager.GetString("ISSPhotography_ModeratePass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Short pass - plan timing carefully.
+        /// </summary>
+        internal static string ISSPhotography_ShortPass {
+            get {
+                return ResourceManager.GetString("ISSPhotography_ShortPass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard duration - good for multiple exposures.
+        /// </summary>
+        internal static string ISSPhotography_StandardDuration {
+            get {
+                return ResourceManager.GetString("ISSPhotography_StandardDuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very bright pass - easily visible and photographable.
+        /// </summary>
+        internal static string ISSPhotography_VeryBright {
+            get {
+                return ResourceManager.GetString("ISSPhotography_VeryBright", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Lens cannot be null.
         /// </summary>
         internal static string Lens_Error_CannotBeNull {
@@ -1254,6 +2298,393 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string Lens_Error_UpdatingLens {
             get {
                 return ResourceManager.GetString("Lens_Error_UpdatingLens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use bracketed exposures and shoot in RAW for optimal results..
+        /// </summary>
+        internal static string LunarEclipseExposure_Default {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider focus stacking during totality for sharp edge-to-edge detail.
+        /// </summary>
+        internal static string LunarEclipseExposure_FocusStacking {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_FocusStacking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HDR technique: Bracket for both bright and dark portions simultaneously.
+        /// </summary>
+        internal static string LunarEclipseExposure_Partial_HDRTechnique {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Partial_HDRTechnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum eclipse: ISO 800-3200, f/5.6, 1/60-1/250s depending on coverage.
+        /// </summary>
+        internal static string LunarEclipseExposure_Partial_MaximumEclipse {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Partial_MaximumEclipse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shadowed portion: ISO 400-1600, f/5.6-8, 1/30-1/125s.
+        /// </summary>
+        internal static string LunarEclipseExposure_Partial_ShadowedPortion {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Partial_ShadowedPortion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uneclipsed portion: ISO 100-200, f/8-11, 1/250-1/500s.
+        /// </summary>
+        internal static string LunarEclipseExposure_Partial_UneclipsedPortion {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Partial_UneclipsedPortion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consistent metering point essential for detecting brightness variations.
+        /// </summary>
+        internal static string LunarEclipseExposure_Penumbral_ConsistentMetering {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Penumbral_ConsistentMetering", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum penumbral: ISO 200-800, f/5.6-8, 1/60-1/250s.
+        /// </summary>
+        internal static string LunarEclipseExposure_Penumbral_Maximum {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Penumbral_Maximum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monitor histogram carefully - changes are gradual and subtle.
+        /// </summary>
+        internal static string LunarEclipseExposure_Penumbral_MonitorHistogram {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Penumbral_MonitorHistogram", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Throughout event: ISO 100-400, f/8, 1/125-1/500s with subtle adjustments.
+        /// </summary>
+        internal static string LunarEclipseExposure_Penumbral_ThroughoutEvent {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Penumbral_ThroughoutEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shoot RAW for maximum post-processing flexibility with color and exposure.
+        /// </summary>
+        internal static string LunarEclipseExposure_ShootRAW {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_ShootRAW", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use spot metering on moon to avoid foreground influence.
+        /// </summary>
+        internal static string LunarEclipseExposure_SpotMetering {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_SpotMetering", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bracket extensively during totality - color and brightness vary significantly.
+        /// </summary>
+        internal static string LunarEclipseExposure_Total_BracketExtensively {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Total_BracketExtensively", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deep totality: ISO 3200-12800, f/2.8-4, 2-15 seconds for faint details.
+        /// </summary>
+        internal static string LunarEclipseExposure_Total_DeepTotality {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Total_DeepTotality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partial phases: ISO 200-800, f/5.6-8, 1/60-1/250s as shadow progresses.
+        /// </summary>
+        internal static string LunarEclipseExposure_Total_PartialPhases {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Total_PartialPhases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Post-totality: Reverse exposure sequence as moon brightens.
+        /// </summary>
+        internal static string LunarEclipseExposure_Total_PostTotality {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Total_PostTotality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pre-eclipse: ISO 100, f/8, 1/250s for normal moon brightness.
+        /// </summary>
+        internal static string LunarEclipseExposure_Total_PreEclipse {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Total_PreEclipse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Totality: ISO 1600-6400, f/4-5.6, 1-8 seconds for blood moon color.
+        /// </summary>
+        internal static string LunarEclipseExposure_Total_Totality {
+            get {
+                return ResourceManager.GetString("LunarEclipseExposure_Total_Totality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Battery backup essential for extended shooting sessions.
+        /// </summary>
+        internal static string LunarEclipsePhotography_BatteryBackup {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_BatteryBackup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider live streaming or plan travel to visibility zone.
+        /// </summary>
+        internal static string LunarEclipsePhotography_ConsiderStreaming {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_ConsiderStreaming", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan for extended shooting session with backup equipment and multiple exposure settings..
+        /// </summary>
+        internal static string LunarEclipsePhotography_DefaultPlanning {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_DefaultPlanning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Eclipse not visible from your location.
+        /// </summary>
+        internal static string LunarEclipsePhotography_NotVisible {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_NotVisible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contrast between shadowed and illuminated portions creates dramatic images.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Partial_Contrast {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Partial_Contrast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Longer event duration allows for multiple composition attempts.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Partial_LongerDuration {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Partial_LongerDuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partial lunar eclipse - excellent for showing Earth&apos;s shadow progression.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Partial_ShadowProgression {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Partial_ShadowProgression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Time-lapse photography ideal for capturing shadow movement.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Partial_TimeLapseIdeal {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Partial_TimeLapseIdeal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Requires careful exposure monitoring as changes are gradual.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Penumbral_ExposureMonitoring {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Penumbral_ExposureMonitoring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use precise metering to detect subtle brightness variations.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Penumbral_PreciseMetering {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Penumbral_PreciseMetering", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Penumbral eclipse - subtle but photographically interesting.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Penumbral_Subtle {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Penumbral_Subtle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Best captured through time-lapse showing gradual dimming.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Penumbral_TimeLapseBest {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Penumbral_TimeLapseBest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pre-focus on moon before eclipse begins to avoid autofocus issues in darkness.
+        /// </summary>
+        internal static string LunarEclipsePhotography_PreFocus {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_PreFocus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remote shutter release prevents camera shake during long sequences.
+        /// </summary>
+        internal static string LunarEclipsePhotography_RemoteShutter {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_RemoteShutter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blood moon color varies - prepare for deep red to bright copper tones.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Total_BloodMoon {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Total_BloodMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prepare multiple exposure settings for dramatic brightness changes.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Total_MultipleExposures {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Total_MultipleExposures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total lunar eclipse - rare and spectacular photography opportunity.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Total_Rare {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Total_Rare", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scout location with clear eastern horizon for moonrise eclipses.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Total_ScoutLocation {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Total_ScoutLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan multi-hour time-lapse from first contact to totality end.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Total_TimeLapse {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Total_TimeLapse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Totality phase allows for creative compositions with foreground elements.
+        /// </summary>
+        internal static string LunarEclipsePhotography_Total_TotalityPhase {
+            get {
+                return ResourceManager.GetString("LunarEclipsePhotography_Total_TotalityPhase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lunar Eclipse.
+        /// </summary>
+        internal static string LunarEclipseType_Default {
+            get {
+                return ResourceManager.GetString("LunarEclipseType_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partial.
+        /// </summary>
+        internal static string LunarEclipseType_Partial {
+            get {
+                return ResourceManager.GetString("LunarEclipseType_Partial", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Penumbral.
+        /// </summary>
+        internal static string LunarEclipseType_Penumbral {
+            get {
+                return ResourceManager.GetString("LunarEclipseType_Penumbral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total.
+        /// </summary>
+        internal static string LunarEclipseType_Total {
+            get {
+                return ResourceManager.GetString("LunarEclipseType_Total", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown.
+        /// </summary>
+        internal static string LunarEclipseType_Unknown {
+            get {
+                return ResourceManager.GetString("LunarEclipseType_Unknown", resourceCulture);
             }
         }
         
@@ -1416,6 +2847,78 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string LunarExposure_WatchForOverexposure {
             get {
                 return ResourceManager.GetString("LunarExposure_WatchForOverexposure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to f/{0:F1}.
+        /// </summary>
+        internal static string LunarExposureSettings_Aperture {
+            get {
+                return ResourceManager.GetString("LunarExposureSettings_Aperture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use live view to focus on lunar crater edges for maximum sharpness.
+        /// </summary>
+        internal static string LunarExposureSettings_FocusingTechnique {
+            get {
+                return ResourceManager.GetString("LunarExposureSettings_FocusingTechnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO {0}.
+        /// </summary>
+        internal static string LunarExposureSettings_ISO {
+            get {
+                return ResourceManager.GetString("LunarExposureSettings_ISO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider HDR for earthshine and bright lunar surface.
+        /// </summary>
+        internal static string LunarExposureSettings_ProcessingNote_HDR {
+            get {
+                return ResourceManager.GetString("LunarExposureSettings_ProcessingNote_HDR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use histogram to avoid overexposure of lunar surface.
+        /// </summary>
+        internal static string LunarExposureSettings_ProcessingNote_Histogram {
+            get {
+                return ResourceManager.GetString("LunarExposureSettings_ProcessingNote_Histogram", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply unsharp mask to enhance crater detail.
+        /// </summary>
+        internal static string LunarExposureSettings_ProcessingNote_UnsharpMask {
+            get {
+                return ResourceManager.GetString("LunarExposureSettings_ProcessingNote_UnsharpMask", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1/125 - 1/500 second (varies by lunar phase).
+        /// </summary>
+        internal static string LunarExposureSettings_ShutterSpeed {
+            get {
+                return ResourceManager.GetString("LunarExposureSettings_ShutterSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tracking not required for short lunar exposures.
+        /// </summary>
+        internal static string LunarExposureSettings_TrackerRequirements {
+            get {
+                return ResourceManager.GetString("LunarExposureSettings_TrackerRequirements", resourceCulture);
             }
         }
         
@@ -1897,11 +3400,893 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Crater Shadow Photography.
+        /// </summary>
+        internal static string LunarPhotographyType_CraterShadowPhotography {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_CraterShadowPhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Earthshine Photography.
+        /// </summary>
+        internal static string LunarPhotographyType_EarthshinePhotography {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_EarthshinePhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Evening Terminator and Crater Detail.
+        /// </summary>
+        internal static string LunarPhotographyType_EveningTerminatorAndCraterDetail {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_EveningTerminatorAndCraterDetail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to General Lunar Photography.
+        /// </summary>
+        internal static string LunarPhotographyType_GeneralLunarPhotography {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_GeneralLunarPhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lunar Landscape and Ray Systems.
+        /// </summary>
+        internal static string LunarPhotographyType_LunarLandscapeAndRaySystems {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_LunarLandscapeAndRaySystems", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lunar Surface Photography.
+        /// </summary>
+        internal static string LunarPhotographyType_LunarSurfacePhotography {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_LunarSurfacePhotography", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare and Highland Detail.
+        /// </summary>
+        internal static string LunarPhotographyType_MareAndHighlandDetail {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_MareAndHighlandDetail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Morning Terminator and Earthshine.
+        /// </summary>
+        internal static string LunarPhotographyType_MorningTerminatorAndEarthshine {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_MorningTerminatorAndEarthshine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Terminator Detail and Crescent Composition.
+        /// </summary>
+        internal static string LunarPhotographyType_TerminatorDetailAndCrescent {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_TerminatorDetailAndCrescent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Western Limb Features.
+        /// </summary>
+        internal static string LunarPhotographyType_WesternLimbFeatures {
+            get {
+                return ResourceManager.GetString("LunarPhotographyType_WesternLimbFeatures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Point camera {0} or {1} (60° from radiant) for optimal meteor trails.
+        /// </summary>
+        internal static string MeteorCameraDirection_OptimalPointing {
+            get {
+                return ResourceManager.GetString("MeteorCameraDirection_OptimalPointing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent conditions - ideal for meteor photography.
+        /// </summary>
+        internal static string MeteorConditions_Excellent {
+            get {
+                return ResourceManager.GetString("MeteorConditions_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fair conditions - meteors visible but challenging.
+        /// </summary>
+        internal static string MeteorConditions_Fair {
+            get {
+                return ResourceManager.GetString("MeteorConditions_Fair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good conditions - favorable for meteor capture.
+        /// </summary>
+        internal static string MeteorConditions_Good {
+            get {
+                return ResourceManager.GetString("MeteorConditions_Good", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poor conditions - limited meteor visibility.
+        /// </summary>
+        internal static string MeteorConditions_Poor {
+            get {
+                return ResourceManager.GetString("MeteorConditions_Poor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very poor conditions - meteor photography not recommended.
+        /// </summary>
+        internal static string MeteorConditions_VeryPoor {
+            get {
+                return ResourceManager.GetString("MeteorConditions_VeryPoor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on bright star, then switch to manual to lock focus.
+        /// </summary>
+        internal static string MeteorExposureSettings_FocusingTechnique {
+            get {
+                return ResourceManager.GetString("MeteorExposureSettings_FocusingTechnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider automated meteor detection software.
+        /// </summary>
+        internal static string MeteorExposureSettings_ProcessingNote_AutomatedDetection {
+            get {
+                return ResourceManager.GetString("MeteorExposureSettings_ProcessingNote_AutomatedDetection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blend meteor frames as separate layers.
+        /// </summary>
+        internal static string MeteorExposureSettings_ProcessingNote_BlendMeteors {
+            get {
+                return ResourceManager.GetString("MeteorExposureSettings_ProcessingNote_BlendMeteors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review frames for meteors before stacking.
+        /// </summary>
+        internal static string MeteorExposureSettings_ProcessingNote_ReviewFrames {
+            get {
+                return ResourceManager.GetString("MeteorExposureSettings_ProcessingNote_ReviewFrames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stack meteor-free frames for background sky.
+        /// </summary>
+        internal static string MeteorExposureSettings_ProcessingNote_StackBackground {
+            get {
+                return ResourceManager.GetString("MeteorExposureSettings_ProcessingNote_StackBackground", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 15-30 seconds per frame.
+        /// </summary>
+        internal static string MeteorExposureSettings_ShutterSpeed {
+            get {
+                return ResourceManager.GetString("MeteorExposureSettings_ShutterSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No tracking - keep exposures under 30 seconds to prevent star trailing.
+        /// </summary>
+        internal static string MeteorExposureSettings_TrackerRequirements {
+            get {
+                return ResourceManager.GetString("MeteorExposureSettings_TrackerRequirements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} meteor shower active - up to {1} meteors per hour.
         /// </summary>
         internal static string MeteorShower_Description {
             get {
                 return ResourceManager.GetString("MeteorShower_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bright moon - focus on brightest meteors, consider HDR techniques.
+        /// </summary>
+        internal static string MeteorShowerStrategy_BrightMoon {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_BrightMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Point camera 45-60 degrees away from radiant for longer trails.
+        /// </summary>
+        internal static string MeteorShowerStrategy_CameraPointing {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_CameraPointing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use 14-35mm wide-angle lens, ISO 1600-6400, 15-30 second exposures.
+        /// </summary>
+        internal static string MeteorShowerStrategy_CameraSettings {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_CameraSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dark skies - optimal conditions for meteor photography.
+        /// </summary>
+        internal static string MeteorShowerStrategy_DarkSkies {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_DarkSkies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active all night, best after 10 PM.
+        /// </summary>
+        internal static string MeteorShowerStrategy_Geminids_ActiveAllNight {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_Geminids_ActiveAllNight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent winter shower - slower meteors good for photography.
+        /// </summary>
+        internal static string MeteorShowerStrategy_Geminids_Excellent {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_Geminids_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to High radiant - maximum meteor rates expected.
+        /// </summary>
+        internal static string MeteorShowerStrategy_HighRadiant {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_HighRadiant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fast meteors require shorter exposures.
+        /// </summary>
+        internal static string MeteorShowerStrategy_Leonids_FastMeteors {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_Leonids_FastMeteors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable shower - some years produce meteor storms.
+        /// </summary>
+        internal static string MeteorShowerStrategy_Leonids_Variable {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_Leonids_Variable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Low radiant - expect fewer meteors but longer trails.
+        /// </summary>
+        internal static string MeteorShowerStrategy_LowRadiant {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_LowRadiant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderate moon interference - still good photography conditions.
+        /// </summary>
+        internal static string MeteorShowerStrategy_ModerateMoon {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_ModerateMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Best after midnight when radiant is highest.
+        /// </summary>
+        internal static string MeteorShowerStrategy_Perseids_BestAfterMidnight {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_Perseids_BestAfterMidnight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Premier shower for photography - reliable high rates and bright meteors.
+        /// </summary>
+        internal static string MeteorShowerStrategy_Perseids_Premier {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_Perseids_Premier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cold weather conditions - prepare equipment for freezing temperatures.
+        /// </summary>
+        internal static string MeteorShowerStrategy_Quadrantids_ColdWeather {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_Quadrantids_ColdWeather", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Short sharp peak - timing critical within 6-hour window.
+        /// </summary>
+        internal static string MeteorShowerStrategy_Quadrantids_ShortPeak {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_Quadrantids_ShortPeak", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Radiant below horizon - shower not visible from your location.
+        /// </summary>
+        internal static string MeteorShowerStrategy_RadiantBelowHorizon {
+            get {
+                return ResourceManager.GetString("MeteorShowerStrategy_RadiantBelowHorizon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Core visible immediately after astronomical twilight.
+        /// </summary>
+        internal static string MilkyWayAdvice_Autumn_AfterTwilight {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Autumn_AfterTwilight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Galactic center sets early evening - capture during blue hour.
+        /// </summary>
+        internal static string MilkyWayAdvice_Autumn_EarlyEvening {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Autumn_EarlyEvening", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Golden opportunity for foreground silhouettes.
+        /// </summary>
+        internal static string MilkyWayAdvice_Autumn_GoldenOpportunity {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Autumn_GoldenOpportunity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 3200-6400, f/2.8 or wider, 15-25 second exposures.
+        /// </summary>
+        internal static string MilkyWayAdvice_CameraSettings {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_CameraSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use wide-angle lens, high ISO, and long exposure for Milky Way photography..
+        /// </summary>
+        internal static string MilkyWayAdvice_Default {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good altitude for dramatic foreground compositions.
+        /// </summary>
+        internal static string MilkyWayAdvice_GoodAltitude_ForegroundComposition {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_GoodAltitude_ForegroundComposition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent for landscape astrophotography.
+        /// </summary>
+        internal static string MilkyWayAdvice_GoodAltitude_LandscapeAstro {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_GoodAltitude_LandscapeAstro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ideal for detailed galactic center photography.
+        /// </summary>
+        internal static string MilkyWayAdvice_HighAltitude_DetailedCore {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_HighAltitude_DetailedCore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to High altitude - minimal atmospheric interference.
+        /// </summary>
+        internal static string MilkyWayAdvice_HighAltitude_MinimalInterference {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_HighAltitude_MinimalInterference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Atmospheric distortion may affect image quality.
+        /// </summary>
+        internal static string MilkyWayAdvice_LowAltitude_AtmosphericDistortion {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_LowAltitude_AtmosphericDistortion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Low altitude - find elevated location with clear southern horizon.
+        /// </summary>
+        internal static string MilkyWayAdvice_LowAltitude_ElevatedLocation {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_LowAltitude_ElevatedLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Galactic center below horizon - not visible.
+        /// </summary>
+        internal static string MilkyWayAdvice_NotVisible {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_NotVisible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider panoramic stitching for ultra-wide compositions.
+        /// </summary>
+        internal static string MilkyWayAdvice_PanoramicStitching {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_PanoramicStitching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Combine with sunrise landscape photography.
+        /// </summary>
+        internal static string MilkyWayAdvice_Spring_CombineSunrise {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Spring_CombineSunrise", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Core rises 2-4 hours before sunrise.
+        /// </summary>
+        internal static string MilkyWayAdvice_Spring_CoreRises {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Spring_CoreRises", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Galactic center visible before dawn - plan early morning shoots.
+        /// </summary>
+        internal static string MilkyWayAdvice_Spring_EarlyMorning {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Spring_EarlyMorning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Best shooting window: 10 PM - 4 AM for optimal positioning.
+        /// </summary>
+        internal static string MilkyWayAdvice_Summer_BestWindow {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Summer_BestWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Galactic center rises in southeast, sets in southwest.
+        /// </summary>
+        internal static string MilkyWayAdvice_Summer_GalacticCenter {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Summer_GalacticCenter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan shoots during new moon for darkest skies.
+        /// </summary>
+        internal static string MilkyWayAdvice_Summer_NewMoon {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Summer_NewMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Peak Milky Way season - galactic center visible all night.
+        /// </summary>
+        internal static string MilkyWayAdvice_Summer_PeakSeason {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Summer_PeakSeason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use 14-24mm wide-angle lens for full galactic arc.
+        /// </summary>
+        internal static string MilkyWayAdvice_WideAngleLens {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_WideAngleLens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Orion region and winter constellations prominent.
+        /// </summary>
+        internal static string MilkyWayAdvice_Winter_Constellations {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Winter_Constellations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Longer nights provide extended shooting opportunities.
+        /// </summary>
+        internal static string MilkyWayAdvice_Winter_LongerNights {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Winter_LongerNights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on winter Milky Way - dimmer but still photographable.
+        /// </summary>
+        internal static string MilkyWayAdvice_Winter_WinterMilkyWay {
+            get {
+                return ResourceManager.GetString("MilkyWayAdvice_Winter_WinterMilkyWay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan shots during blue hour for balanced sky and foreground exposure.
+        /// </summary>
+        internal static string MilkyWayComposition_BlueHour {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_BlueHour", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use wide-angle lens and include interesting foreground elements.
+        /// </summary>
+        internal static string MilkyWayComposition_Default {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to High galactic center excellent for detailed core photography.
+        /// </summary>
+        internal static string MilkyWayComposition_HighAltitude_DetailedCore {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_HighAltitude_DetailedCore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on central bulge detail with longer focal lengths.
+        /// </summary>
+        internal static string MilkyWayComposition_HighAltitude_LongerFocalLengths {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_HighAltitude_LongerFocalLengths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider star tracker for detailed high-resolution captures.
+        /// </summary>
+        internal static string MilkyWayComposition_HighAltitude_StarTracker {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_HighAltitude_StarTracker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Include human figures for scale and storytelling element.
+        /// </summary>
+        internal static string MilkyWayComposition_HumanFigures {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_HumanFigures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use leading lines in landscape to guide eye toward galactic center.
+        /// </summary>
+        internal static string MilkyWayComposition_LeadingLines {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_LeadingLines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Include interesting foreground elements to add depth and scale.
+        /// </summary>
+        internal static string MilkyWayComposition_LowAltitude_ForegroundElements {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_LowAltitude_ForegroundElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Low galactic center perfect for wide horizontal panoramas.
+        /// </summary>
+        internal static string MilkyWayComposition_LowAltitude_HorizontalPanoramas {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_LowAltitude_HorizontalPanoramas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use rule of thirds - place horizon on lower third, sky dominates frame.
+        /// </summary>
+        internal static string MilkyWayComposition_LowAltitude_RuleOfThirds {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_LowAltitude_RuleOfThirds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Frame galactic center with natural archways or cave openings.
+        /// </summary>
+        internal static string MilkyWayComposition_MediumAltitude_NaturalArchways {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_MediumAltitude_NaturalArchways", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Medium altitude ideal for portrait orientation compositions.
+        /// </summary>
+        internal static string MilkyWayComposition_MediumAltitude_Portrait {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_MediumAltitude_Portrait", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider vertical panoramas to capture full galactic arch.
+        /// </summary>
+        internal static string MilkyWayComposition_MediumAltitude_VerticalPanoramas {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_MediumAltitude_VerticalPanoramas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Frame with eastern horizon landmarks like buildings or rock formations.
+        /// </summary>
+        internal static string MilkyWayComposition_Rising_EasternLandmarks {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_Rising_EasternLandmarks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Capture galactic center rising - excellent for time-lapse sequences.
+        /// </summary>
+        internal static string MilkyWayComposition_Rising_TimeLapse {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_Rising_TimeLapse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Document galactic center setting - ideal for panoramic compositions.
+        /// </summary>
+        internal static string MilkyWayComposition_Setting_Panoramic {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_Setting_Panoramic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Combine with western landscape features for compelling foregrounds.
+        /// </summary>
+        internal static string MilkyWayComposition_Setting_WesternLandscape {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_Setting_WesternLandscape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Position galactic center over southern horizon for dramatic arch compositions.
+        /// </summary>
+        internal static string MilkyWayComposition_SouthernHorizon_Arch {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_SouthernHorizon_Arch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider reflection shots over lakes or calm water bodies.
+        /// </summary>
+        internal static string MilkyWayComposition_SouthernHorizon_Reflections {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_SouthernHorizon_Reflections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Include mountain ridges or treelines as foreground silhouettes.
+        /// </summary>
+        internal static string MilkyWayComposition_SouthernHorizon_Ridges {
+            get {
+                return ResourceManager.GetString("MilkyWayComposition_SouthernHorizon_Ridges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use live view at 10x zoom on bright star, focus to infinity then back slightly.
+        /// </summary>
+        internal static string MilkyWayExposureSettings_FocusingTechnique {
+            get {
+                return ResourceManager.GetString("MilkyWayExposureSettings_FocusingTechnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enhance contrast in galactic center region.
+        /// </summary>
+        internal static string MilkyWayExposureSettings_ProcessingNote_EnhanceContrast {
+            get {
+                return ResourceManager.GetString("MilkyWayExposureSettings_ProcessingNote_EnhanceContrast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use gradient removal to even sky background.
+        /// </summary>
+        internal static string MilkyWayExposureSettings_ProcessingNote_GradientRemoval {
+            get {
+                return ResourceManager.GetString("MilkyWayExposureSettings_ProcessingNote_GradientRemoval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider separate processing for foreground if landscape included.
+        /// </summary>
+        internal static string MilkyWayExposureSettings_ProcessingNote_SeparateForeground {
+            get {
+                return ResourceManager.GetString("MilkyWayExposureSettings_ProcessingNote_SeparateForeground", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stack images to reduce noise and enhance detail.
+        /// </summary>
+        internal static string MilkyWayExposureSettings_ProcessingNote_StackImages {
+            get {
+                return ResourceManager.GetString("MilkyWayExposureSettings_ProcessingNote_StackImages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0:F0} seconds (tracked).
+        /// </summary>
+        internal static string MilkyWayExposureSettings_ShutterSpeed_Tracked {
+            get {
+                return ResourceManager.GetString("MilkyWayExposureSettings_ShutterSpeed_Tracked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0:F0} seconds (untracked).
+        /// </summary>
+        internal static string MilkyWayExposureSettings_ShutterSpeed_Untracked {
+            get {
+                return ResourceManager.GetString("MilkyWayExposureSettings_ShutterSpeed_Untracked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No tracker - use wide-angle lens and keep exposures under 25 seconds.
+        /// </summary>
+        internal static string MilkyWayExposureSettings_TrackerRequirements_WithoutTracker {
+            get {
+                return ResourceManager.GetString("MilkyWayExposureSettings_TrackerRequirements_WithoutTracker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Polar align tracker to within 5 arcminutes for sharp stars.
+        /// </summary>
+        internal static string MilkyWayExposureSettings_TrackerRequirements_WithTracker {
+            get {
+                return ResourceManager.GetString("MilkyWayExposureSettings_TrackerRequirements_WithTracker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autumn - Galactic center sets early evening, golden hour overlap opportunities.
+        /// </summary>
+        internal static string MilkyWaySeason_Autumn {
+            get {
+                return ResourceManager.GetString("MilkyWaySeason_Autumn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Seasonal visibility varies.
+        /// </summary>
+        internal static string MilkyWaySeason_SeasonalVariability {
+            get {
+                return ResourceManager.GetString("MilkyWaySeason_SeasonalVariability", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spring - Galactic center rises before dawn, early morning photography opportunity.
+        /// </summary>
+        internal static string MilkyWaySeason_Spring {
+            get {
+                return ResourceManager.GetString("MilkyWaySeason_Spring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summer - Peak season! Galactic center visible all night, best photography conditions.
+        /// </summary>
+        internal static string MilkyWaySeason_Summer {
+            get {
+                return ResourceManager.GetString("MilkyWaySeason_Summer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Winter - Galactic center not visible, focus on winter constellations like Orion.
+        /// </summary>
+        internal static string MilkyWaySeason_Winter {
+            get {
+                return ResourceManager.GetString("MilkyWaySeason_Winter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Year-round.
+        /// </summary>
+        internal static string MilkyWaySeason_YearRound {
+            get {
+                return ResourceManager.GetString("MilkyWaySeason_YearRound", resourceCulture);
             }
         }
         
@@ -1920,6 +4305,60 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string MoonPhase_Name {
             get {
                 return ResourceManager.GetString("MoonPhase_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Galaxy.
+        /// </summary>
+        internal static string ObjectType_Galaxy {
+            get {
+                return ResourceManager.GetString("ObjectType_Galaxy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Globular Cluster.
+        /// </summary>
+        internal static string ObjectType_GlobularCluster {
+            get {
+                return ResourceManager.GetString("ObjectType_GlobularCluster", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nebula.
+        /// </summary>
+        internal static string ObjectType_Nebula {
+            get {
+                return ResourceManager.GetString("ObjectType_Nebula", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open Cluster.
+        /// </summary>
+        internal static string ObjectType_OpenCluster {
+            get {
+                return ResourceManager.GetString("ObjectType_OpenCluster", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Planetary Nebula.
+        /// </summary>
+        internal static string ObjectType_PlanetaryNebula {
+            get {
+                return ResourceManager.GetString("ObjectType_PlanetaryNebula", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supernova Remnant.
+        /// </summary>
+        internal static string ObjectType_SupernovaRemnant {
+            get {
+                return ResourceManager.GetString("ObjectType_SupernovaRemnant", resourceCulture);
             }
         }
         
@@ -2167,6 +4606,69 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Focus on planet disc using live view at maximum zoom.
+        /// </summary>
+        internal static string PlanetaryExposureSettings_FocusingTechnique {
+            get {
+                return ResourceManager.GetString("PlanetaryExposureSettings_FocusingTechnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider RGB separation for color planets.
+        /// </summary>
+        internal static string PlanetaryExposureSettings_ProcessingNote_RGB {
+            get {
+                return ResourceManager.GetString("PlanetaryExposureSettings_ProcessingNote_RGB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stack best 10-20% of frames to reduce atmospheric turbulence.
+        /// </summary>
+        internal static string PlanetaryExposureSettings_ProcessingNote_Stacking {
+            get {
+                return ResourceManager.GetString("PlanetaryExposureSettings_ProcessingNote_Stacking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use wavelets or deconvolution to enhance planetary detail.
+        /// </summary>
+        internal static string PlanetaryExposureSettings_ProcessingNote_Wavelets {
+            get {
+                return ResourceManager.GetString("PlanetaryExposureSettings_ProcessingNote_Wavelets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1/60 - 1/250 second (depends on planet brightness).
+        /// </summary>
+        internal static string PlanetaryExposureSettings_ShutterSpeed {
+            get {
+                return ResourceManager.GetString("PlanetaryExposureSettings_ShutterSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Short exposures minimize tracking requirements.
+        /// </summary>
+        internal static string PlanetaryExposureSettings_TrackerRequirements_WithoutTracker {
+            get {
+                return ResourceManager.GetString("PlanetaryExposureSettings_TrackerRequirements_WithoutTracker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tracking recommended for longer focal lengths.
+        /// </summary>
+        internal static string PlanetaryExposureSettings_TrackerRequirements_WithTracker {
+            get {
+                return ResourceManager.GetString("PlanetaryExposureSettings_TrackerRequirements_WithTracker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Medium telephoto lens.
         /// </summary>
         internal static string PlanetEquipment_Default {
@@ -2289,6 +4791,204 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string PlanetNotes_Venus {
             get {
                 return ResourceManager.GetString("PlanetNotes_Venus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fine-tune using drift alignment method for precise tracking.
+        /// </summary>
+        internal static string PolarAlignment_FineTuneDrift {
+            get {
+                return ResourceManager.GetString("PolarAlignment_FineTuneDrift", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to High latitude - polar alignment critical for long exposures.
+        /// </summary>
+        internal static string PolarAlignment_HighLatitude {
+            get {
+                return ResourceManager.GetString("PolarAlignment_HighLatitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Low latitude - less critical but still important for tracking accuracy.
+        /// </summary>
+        internal static string PolarAlignment_LowLatitude {
+            get {
+                return ResourceManager.GetString("PolarAlignment_LowLatitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At this time, place Polaris at {0} position in polar scope reticle.
+        /// </summary>
+        internal static string PolarAlignment_PlacePolarisPosition {
+            get {
+                return ResourceManager.GetString("PolarAlignment_PlacePolarisPosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Point mount&apos;s polar axis toward azimuth {0:F1}° and altitude {1:F1}°.
+        /// </summary>
+        internal static string PolarAlignment_PointMount {
+            get {
+                return ResourceManager.GetString("PolarAlignment_PointMount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Polaris will be offset {0:F1}° from true pole.
+        /// </summary>
+        internal static string PolarAlignment_PolarisOffset {
+            get {
+                return ResourceManager.GetString("PolarAlignment_PolarisOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Octantis is much dimmer than Polaris - consider electronic polar scope.
+        /// </summary>
+        internal static string PolarAlignment_SouthernHemisphere_ElectronicScope {
+            get {
+                return ResourceManager.GetString("PolarAlignment_SouthernHemisphere_ElectronicScope", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Southern Hemisphere polar alignment - use Sigma Octantis or drift alignment method.
+        /// </summary>
+        internal static string PolarAlignment_SouthernHemisphere_SigmaOctantis {
+            get {
+                return ResourceManager.GetString("PolarAlignment_SouthernHemisphere_SigmaOctantis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use mount&apos;s altitude and azimuth adjustments to center Polaris in correct position.
+        /// </summary>
+        internal static string PolarAlignment_UseMountAdjustments {
+            get {
+                return ResourceManager.GetString("PolarAlignment_UseMountAdjustments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verify alignment by checking tracking accuracy on stars near celestial equator.
+        /// </summary>
+        internal static string PolarAlignment_VerifyAlignment {
+            get {
+                return ResourceManager.GetString("PolarAlignment_VerifyAlignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alpha Centauri - Bright reference for southern sky navigation.
+        /// </summary>
+        internal static string PolarAlignmentStars_AlphaCentauri {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_AlphaCentauri", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Beta Centauri - Pointer star with Alpha Centauri.
+        /// </summary>
+        internal static string PolarAlignmentStars_BetaCentauri {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_BetaCentauri", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Canopus - Second brightest star, excellent southern reference.
+        /// </summary>
+        internal static string PolarAlignmentStars_Canopus {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_Canopus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cassiopeia - W-shaped constellation, useful for Polaris finding.
+        /// </summary>
+        internal static string PolarAlignmentStars_Cassiopeia {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_Cassiopeia", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Draco - Dragon constellation curves around Little Dipper.
+        /// </summary>
+        internal static string PolarAlignmentStars_Draco {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_Draco", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dubhe - Alpha Ursae Majoris, pointer star in Big Dipper.
+        /// </summary>
+        internal static string PolarAlignmentStars_Dubhe {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_Dubhe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Kochab - Beta Ursae Minoris, bright star in Little Dipper bowl.
+        /// </summary>
+        internal static string PolarAlignmentStars_Kochab {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_Kochab", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merak - Beta Ursae Majoris, other pointer star in Big Dipper.
+        /// </summary>
+        internal static string PolarAlignmentStars_Merak {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_Merak", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pherkad - Gamma Ursae Minoris, other bright star in Little Dipper bowl.
+        /// </summary>
+        internal static string PolarAlignmentStars_Pherkad {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_Pherkad", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Polaris - Primary alignment star in Ursa Minor.
+        /// </summary>
+        internal static string PolarAlignmentStars_Polaris {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_Polaris", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sigma Octantis - Faint polar star, magnitude 5.47.
+        /// </summary>
+        internal static string PolarAlignmentStars_SigmaOctantis {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_SigmaOctantis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Southern Cross - Use to locate celestial south pole.
+        /// </summary>
+        internal static string PolarAlignmentStars_SouthernCross {
+            get {
+                return ResourceManager.GetString("PolarAlignmentStars_SouthernCross", resourceCulture);
             }
         }
         
@@ -2644,6 +5344,330 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use foreground elements to anchor the composition.
+        /// </summary>
+        internal static string StarTrailComposition_ForegroundElements {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_ForegroundElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Celestial pole high in sky - excellent for circular star trails.
+        /// </summary>
+        internal static string StarTrailComposition_HighLatitude_CelestialPole {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_HighLatitude_CelestialPole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Include interesting foreground silhouettes for scale and context.
+        /// </summary>
+        internal static string StarTrailComposition_HighLatitude_ForegroundSilhouettes {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_HighLatitude_ForegroundSilhouettes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider ultra-wide lens to capture full circular trails.
+        /// </summary>
+        internal static string StarTrailComposition_HighLatitude_UltraWide {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_HighLatitude_UltraWide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Include horizon line for reference and scale.
+        /// </summary>
+        internal static string StarTrailComposition_LowLatitude_HorizonLine {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_LowLatitude_HorizonLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Horizontal framing emphasizes linear trail patterns.
+        /// </summary>
+        internal static string StarTrailComposition_LowLatitude_HorizontalFraming {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_LowLatitude_HorizontalFraming", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Low pole altitude - linear trails dominate composition.
+        /// </summary>
+        internal static string StarTrailComposition_LowLatitude_LinearTrails {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_LowLatitude_LinearTrails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Landscape elements can create leading lines to pole.
+        /// </summary>
+        internal static string StarTrailComposition_MidLatitude_LeadingLines {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_MidLatitude_LeadingLines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Frame with pole off-center for dynamic composition.
+        /// </summary>
+        internal static string StarTrailComposition_MidLatitude_OffCenter {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_MidLatitude_OffCenter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moderate pole altitude - good for partial circular or diagonal trails.
+        /// </summary>
+        internal static string StarTrailComposition_MidLatitude_PartialCircular {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_MidLatitude_PartialCircular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider multiple exposures for blending foreground and trails.
+        /// </summary>
+        internal static string StarTrailComposition_MultipleExposures {
+            get {
+                return ResourceManager.GetString("StarTrailComposition_MultipleExposures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus to infinity on bright star before starting sequence.
+        /// </summary>
+        internal static string StarTrailExposureSettings_FocusingTechnique {
+            get {
+                return ResourceManager.GetString("StarTrailExposureSettings_FocusingTechnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lighten or Maximum blend mode for continuous trails.
+        /// </summary>
+        internal static string StarTrailExposureSettings_ProcessingNote_BlendMode {
+            get {
+                return ResourceManager.GetString("StarTrailExposureSettings_ProcessingNote_BlendMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider gap filling for uninterrupted trails.
+        /// </summary>
+        internal static string StarTrailExposureSettings_ProcessingNote_GapFilling {
+            get {
+                return ResourceManager.GetString("StarTrailExposureSettings_ProcessingNote_GapFilling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Separate foreground exposure for landscape elements.
+        /// </summary>
+        internal static string StarTrailExposureSettings_ProcessingNote_SeparateForeground {
+            get {
+                return ResourceManager.GetString("StarTrailExposureSettings_ProcessingNote_SeparateForeground", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use StarStaX or similar software to blend exposures.
+        /// </summary>
+        internal static string StarTrailExposureSettings_ProcessingNote_StarStaX {
+            get {
+                return ResourceManager.GetString("StarTrailExposureSettings_ProcessingNote_StarStaX", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple 2-4 minute exposures (stack for long trails).
+        /// </summary>
+        internal static string StarTrailExposureSettings_ShutterSpeed {
+            get {
+                return ResourceManager.GetString("StarTrailExposureSettings_ShutterSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No tracking required - star motion creates the trails.
+        /// </summary>
+        internal static string StarTrailExposureSettings_TrackerRequirements {
+            get {
+                return ResourceManager.GetString("StarTrailExposureSettings_TrackerRequirements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monitor battery life - long sequences require external power.
+        /// </summary>
+        internal static string StarTrailStrategy_BatteryLife {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_BatteryLife", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disable image stabilization and long exposure noise reduction.
+        /// </summary>
+        internal static string StarTrailStrategy_DisableStabilization {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_DisableStabilization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to High latitude - prepare for temperature extremes affecting equipment.
+        /// </summary>
+        internal static string StarTrailStrategy_HighLatitude_Temperature {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_HighLatitude_Temperature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blend mode: Lighten or Maximum for continuous trails.
+        /// </summary>
+        internal static string StarTrailStrategy_Long_BlendMode {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Long_BlendMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Capture 30-120 exposures of 2-4 minutes each.
+        /// </summary>
+        internal static string StarTrailStrategy_Long_CaptureFrames {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Long_CaptureFrames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use intervalometer with minimal gap between exposures.
+        /// </summary>
+        internal static string StarTrailStrategy_Long_Intervalometer {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Long_Intervalometer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Process using StarStaX or similar stacking software.
+        /// </summary>
+        internal static string StarTrailStrategy_Long_ProcessingSoftware {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Long_ProcessingSoftware", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 200-400, f/4-5.6 for optimal star quality.
+        /// </summary>
+        internal static string StarTrailStrategy_Long_Settings {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Long_Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Long star trails - image stacking highly recommended.
+        /// </summary>
+        internal static string StarTrailStrategy_Long_StackingRecommended {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Long_StackingRecommended", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use manual focus set to infinity.
+        /// </summary>
+        internal static string StarTrailStrategy_ManualFocus {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_ManualFocus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Medium star trails - consider image stacking approach.
+        /// </summary>
+        internal static string StarTrailStrategy_Medium_ImageStacking {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Medium_ImageStacking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Option 1: Single exposure - ISO 200-400, f/4-5.6.
+        /// </summary>
+        internal static string StarTrailStrategy_Medium_Option1 {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Medium_Option1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Option 2: Stack 15-30 shorter exposures (2-4 minutes each).
+        /// </summary>
+        internal static string StarTrailStrategy_Medium_Option2 {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Medium_Option2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stacking reduces noise and prevents overexposure.
+        /// </summary>
+        internal static string StarTrailStrategy_Medium_StackingReducesNoise {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Medium_StackingReducesNoise", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use dark frame subtraction for noise reduction.
+        /// </summary>
+        internal static string StarTrailStrategy_Short_DarkFrame {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Short_DarkFrame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monitor for overexposure in bright star cores.
+        /// </summary>
+        internal static string StarTrailStrategy_Short_MonitorOverexposure {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Short_MonitorOverexposure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 400-800, f/2.8-4, 15-30 minute exposure.
+        /// </summary>
+        internal static string StarTrailStrategy_Short_Settings {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Short_Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Short star trails - single exposure approach.
+        /// </summary>
+        internal static string StarTrailStrategy_Short_SingleExposure {
+            get {
+                return ResourceManager.GetString("StarTrailStrategy_Short_SingleExposure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Billing service not available.
         /// </summary>
         internal static string Subscription_Error_BillingServiceNotAvailable {
@@ -2757,6 +5781,285 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string SubscriptionStatus_Error_UnableToValidateAfterMultipleAttempts {
             get {
                 return ResourceManager.GetString("SubscriptionStatus_Error_UnableToValidateAfterMultipleAttempts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supermoon Event.
+        /// </summary>
+        internal static string SupermoonEvent_Default {
+            get {
+                return ResourceManager.GetString("SupermoonEvent_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Super Crescent Moon.
+        /// </summary>
+        internal static string SupermoonEvent_SuperCrescentMoon {
+            get {
+                return ResourceManager.GetString("SupermoonEvent_SuperCrescentMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Super Full Moon.
+        /// </summary>
+        internal static string SupermoonEvent_SuperFullMoon {
+            get {
+                return ResourceManager.GetString("SupermoonEvent_SuperFullMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Super Gibbous Moon.
+        /// </summary>
+        internal static string SupermoonEvent_SuperGibbousMoon {
+            get {
+                return ResourceManager.GetString("SupermoonEvent_SuperGibbousMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Super New Moon.
+        /// </summary>
+        internal static string SupermoonEvent_SuperNewMoon {
+            get {
+                return ResourceManager.GetString("SupermoonEvent_SuperNewMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Crater shadows more pronounced due to increased apparent size.
+        /// </summary>
+        internal static string SupermoonPhotography_CraterShadows {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_CraterShadows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supermoon offers enhanced size and brightness for dramatic lunar photography..
+        /// </summary>
+        internal static string SupermoonPhotography_Default {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supermoon appears {0:F1}% larger with enhanced detail visibility.
+        /// </summary>
+        internal static string SupermoonPhotography_EnhancedDetail {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_EnhancedDetail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exceptionally close approach - maximum detail photography opportunity.
+        /// </summary>
+        internal static string SupermoonPhotography_ExceptionallyClose {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_ExceptionallyClose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exposure: ISO 100, f/8-11, 1/500-1/1000s due to increased brightness.
+        /// </summary>
+        internal static string SupermoonPhotography_ExposureFullMoon {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_ExposureFullMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan shots with interesting foreground elements like buildings or landmarks.
+        /// </summary>
+        internal static string SupermoonPhotography_ForegroundElements {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_ForegroundElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider lunar mosaic photography for ultra-high resolution results.
+        /// </summary>
+        internal static string SupermoonPhotography_LunarMosaic {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_LunarMosaic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plan meteor shower photography during this window.
+        /// </summary>
+        internal static string SupermoonPhotography_MeteorShowers {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_MeteorShowers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perfect opportunity for Milky Way and deep sky object photography.
+        /// </summary>
+        internal static string SupermoonPhotography_MilkyWayOpportunity {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_MilkyWayOpportunity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use precise timing apps for optimal rise/set positioning.
+        /// </summary>
+        internal static string SupermoonPhotography_PreciseTiming {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_PreciseTiming", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Super Full Moon appears {0:F1}% larger and ~30% brighter than average.
+        /// </summary>
+        internal static string SupermoonPhotography_SuperFullMoon_SizeIncrease {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_SuperFullMoon_SizeIncrease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Super New Moon ideal for dark sky photography - moon won&apos;t interfere.
+        /// </summary>
+        internal static string SupermoonPhotography_SuperNewMoon_DarkSky {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_SuperNewMoon_DarkSky", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent for terminator detail photography with increased contrast.
+        /// </summary>
+        internal static string SupermoonPhotography_TerminatorDetail {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_TerminatorDetail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moon&apos;s gravitational effects may cause higher tides - coastal photography opportunities.
+        /// </summary>
+        internal static string SupermoonPhotography_TidalEffects {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_TidalEffects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moon rise/set timing critical for dramatic low-horizon compositions.
+        /// </summary>
+        internal static string SupermoonPhotography_TimingCritical {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_TimingCritical", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use telephoto lens 200mm+ to emphasize size against foreground objects.
+        /// </summary>
+        internal static string SupermoonPhotography_UseTelephoto {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_UseTelephoto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather contingency planning essential - supermoons are infrequent events.
+        /// </summary>
+        internal static string SupermoonPhotography_Weather {
+            get {
+                return ResourceManager.GetString("SupermoonPhotography_Weather", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Typical constellation span.
+        /// </summary>
+        internal static string TargetSizeInfo_Constellations_Description {
+            get {
+                return ResourceManager.GetString("TargetSizeInfo_Constellations_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Typical nebula/galaxy (highly variable).
+        /// </summary>
+        internal static string TargetSizeInfo_DeepSkyObjects_Description {
+            get {
+                return ResourceManager.GetString("TargetSizeInfo_DeepSkyObjects_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to General astrophotography target.
+        /// </summary>
+        internal static string TargetSizeInfo_General_Description {
+            get {
+                return ResourceManager.GetString("TargetSizeInfo_General_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide area around radiant.
+        /// </summary>
+        internal static string TargetSizeInfo_MeteorShowers_Description {
+            get {
+                return ResourceManager.GetString("TargetSizeInfo_MeteorShowers_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Galactic center region.
+        /// </summary>
+        internal static string TargetSizeInfo_MilkyWayCore_Description {
+            get {
+                return ResourceManager.GetString("TargetSizeInfo_MilkyWayCore_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lunar disc.
+        /// </summary>
+        internal static string TargetSizeInfo_Moon_Description {
+            get {
+                return ResourceManager.GetString("TargetSizeInfo_Moon_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Planetary disc (varies by planet and distance).
+        /// </summary>
+        internal static string TargetSizeInfo_Planets_Description {
+            get {
+                return ResourceManager.GetString("TargetSizeInfo_Planets_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Polaris and surrounding stars.
+        /// </summary>
+        internal static string TargetSizeInfo_PolarAlignment_Description {
+            get {
+                return ResourceManager.GetString("TargetSizeInfo_PolarAlignment_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full sky coverage for circular trails.
+        /// </summary>
+        internal static string TargetSizeInfo_StarTrails_Description {
+            get {
+                return ResourceManager.GetString("TargetSizeInfo_StarTrails_Description", resourceCulture);
             }
         }
         

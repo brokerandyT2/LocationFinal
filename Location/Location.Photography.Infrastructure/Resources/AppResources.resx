@@ -1,103 +1,44 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-	<!-- 
-		Microsoft ResX Schema
-
-		Version 1.3
-
-		The primary goals of this format is to allow a simple XML format 
-		that is mostly human readable. The generation and parsing of the 
-		various data types are done through the TypeConverter classes 
-		associated with the data types.
-
-		Example:
-
-		... ado.net/XML headers & schema ...
-		<resheader name="resmimetype">text/microsoft-resx</resheader>
-		<resheader name="version">1.3</resheader>
-		<resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-		<resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-		<data name="Name1">this is my long string</data>
-		<data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-		<data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-			[base64 mime encoded serialized .NET Framework object]
-		</data>
-		<data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-			[base64 mime encoded string representing a byte array form of the .NET Framework object]
-		</data>
-
-		There are any number of "resheader" rows that contain simple 
-		name/value pairs.
-
-		Each data row contains a name, and value. The row also contains a 
-		type or mimetype. Type corresponds to a .NET class that support 
-		text/value conversion through the TypeConverter architecture. 
-		Classes that don't support this are serialized and stored with the 
-		mimetype set.
-
-		The mimetype is used for serialized objects, and tells the 
-		ResXResourceReader how to depersist the object. This is currently not 
-		extensible. For a given mimetype the value must be set accordingly:
-
-		Note - application/x-microsoft.net.object.binary.base64 is the format 
-		that the ResXResourceWriter will generate, however the reader can 
-		read any of the formats listed below.
-
-		mimetype: application/x-microsoft.net.object.binary.base64
-		value   : The object must be serialized with 
-			: System.Serialization.Formatters.Binary.BinaryFormatter
-			: and then encoded with base64 encoding.
-
-		mimetype: application/x-microsoft.net.object.soap.base64
-		value   : The object must be serialized with 
-			: System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-			: and then encoded with base64 encoding.
-
-		mimetype: application/x-microsoft.net.object.bytearray.base64
-		value   : The object must be serialized into a byte array 
-			: using a System.ComponentModel.TypeConverter
-			: and then encoded with base64 encoding.
-	-->
-	
-	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-		<xsd:element name="root" msdata:IsDataSet="true">
-			<xsd:complexType>
-				<xsd:choice maxOccurs="unbounded">
-					<xsd:element name="data">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-								<xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
-							<xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-							<xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="resheader">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" use="required" />
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:choice>
-			</xsd:complexType>
-		</xsd:element>
-	</xsd:schema>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>1.3</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
   <data name="DatabaseInitializer_Error_InitializationFailed">
     <value>Failed to initialize database: {0}</value>
     <comment>Error message shown when database initialization fails, {0} is the specific error</comment>
@@ -236,15 +177,139 @@
   </data>
   <data name="Equipment_ShoppingList_RemoteShutter">
     <value>Remote shutter release or intervalometer</value>
-    <comment>Shopping list item for remote shutter</comment>
+    <comment>Shopping list item for remote shutter release</comment>
   </data>
   <data name="Equipment_ShoppingList_StarTracker">
-    <value>Star tracking mount for long exposures</value>
-    <comment>Shopping list item for star tracking mount</comment>
+    <value>Star tracker mount for long exposures</value>
+    <comment>Shopping list item for star tracker mount</comment>
   </data>
   <data name="Equipment_DefaultTargetDescription">
     <value>astrophotography</value>
     <comment>Default description when specific target description cannot be determined</comment>
+  </data>
+  <data name="Equipment_Strength_FastAperture">
+    <value>Fast f/{0} aperture ideal for {1}</value>
+    <comment>Equipment strength message for fast aperture, {0} is f-stop, {1} is recommended settings</comment>
+  </data>
+  <data name="Equipment_Strength_OptimalFocalLength">
+    <value>{0}mm focal length is optimal for this target</value>
+    <comment>Equipment strength message for optimal focal length, {0} is focal length</comment>
+  </data>
+  <data name="Equipment_Strength_LargeSensor">
+    <value>Large sensor provides excellent light gathering</value>
+    <comment>Equipment strength message for large sensor</comment>
+  </data>
+  <data name="Equipment_Limitation_SlowerAperture">
+    <value>f/{0} aperture is slower than ideal f/{1}</value>
+    <comment>Equipment limitation message for slower aperture, {0} is actual f-stop, {1} is ideal f-stop</comment>
+  </data>
+  <data name="Equipment_Limitation_TooWide">
+    <value>{0}mm may be too wide, consider {1}mm or longer</value>
+    <comment>Equipment limitation message for too wide focal length, {0} is actual focal length, {1} is minimum recommended</comment>
+  </data>
+  <data name="Equipment_Limitation_TooTelephoto">
+    <value>{0}mm may be too telephoto, consider {1}mm or shorter</value>
+    <comment>Equipment limitation message for too telephoto focal length, {0} is actual focal length, {1} is maximum recommended</comment>
+  </data>
+  <data name="Equipment_RecommendationText_Excellent">
+    <value>This is an excellent combination for this target. </value>
+    <comment>Recommendation text for excellent equipment match</comment>
+  </data>
+  <data name="Equipment_RecommendationText_VeryGood">
+    <value>This is a very good combination with minor limitations. </value>
+    <comment>Recommendation text for very good equipment match</comment>
+  </data>
+  <data name="Equipment_Settings_MilkyWay">
+    <value>ISO 3200, f/2.8, 20-25 seconds</value>
+    <comment>Recommended camera settings for Milky Way photography</comment>
+  </data>
+  <data name="Equipment_Notes_MilkyWay">
+    <value>Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering.</value>
+    <comment>Equipment notes for Milky Way photography</comment>
+  </data>
+  <data name="Equipment_Settings_Moon">
+    <value>ISO 200, f/8, 1/125s</value>
+    <comment>Recommended camera settings for Moon photography</comment>
+  </data>
+  <data name="Equipment_Notes_Moon">
+    <value>Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure.</value>
+    <comment>Equipment notes for Moon photography</comment>
+  </data>
+  <data name="Equipment_Settings_Planets">
+    <value>ISO 1600, f/5.6, 1/60s</value>
+    <comment>Recommended camera settings for planet photography</comment>
+  </data>
+  <data name="Equipment_Notes_Planets">
+    <value>Long telephoto essential. Planets are small - maximum focal length recommended.</value>
+    <comment>Equipment notes for planet photography</comment>
+  </data>
+  <data name="Equipment_Settings_DeepSky">
+    <value>ISO 1600, f/4, 2-5 minutes (with tracking)</value>
+    <comment>Recommended camera settings for deep sky photography</comment>
+  </data>
+  <data name="Equipment_Notes_DeepSky">
+    <value>Medium telephoto with tracking mount. Requires dark skies and precise tracking.</value>
+    <comment>Equipment notes for deep sky photography</comment>
+  </data>
+  <data name="Equipment_Settings_StarTrails">
+    <value>ISO 400, f/5.6, 30 minutes - 4 hours</value>
+    <comment>Recommended camera settings for star trail photography</comment>
+  </data>
+  <data name="Equipment_Notes_StarTrails">
+    <value>Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures.</value>
+    <comment>Equipment notes for star trail photography</comment>
+  </data>
+  <data name="Equipment_Settings_General">
+    <value>ISO 1600, f/2.8, 15-30 seconds</value>
+    <comment>Recommended camera settings for general astrophotography</comment>
+  </data>
+  <data name="Equipment_Notes_General">
+    <value>General astrophotography setup. Versatile for various targets.</value>
+    <comment>Equipment notes for general astrophotography</comment>
+  </data>
+  <data name="Equipment_UserEquipmentRecommendation">
+    <value>{0} with {1}</value>
+    <comment>Recommendation using user equipment, {0} is camera, {1} is lens</comment>
+  </data>
+  <data name="Equipment_RequiredEquipmentRecommendation">
+    <value>You need a {0}-{1}mm lens with f/{2} aperture</value>
+    <comment>Equipment requirement recommendation, {0} is min focal length, {1} is max focal length, {2} is aperture</comment>
+  </data>
+  <data name="Equipment_DefaultRecommendation_MediumTelephoto">
+    <value>Medium telephoto lens (85-300mm) recommended for most deep sky objects</value>
+    <comment>Default equipment recommendation for deep sky objects</comment>
+  </data>
+  <data name="Equipment_UseUserEquipment">
+    <value>Use your {0} with {1}</value>
+    <comment>Recommendation to use specific user equipment, {0} is camera, {1} is lens</comment>
+  </data>
+  <data name="Equipment_UnableToAccessEquipment">
+    <value>Unable to access your equipment - standard telephoto lens recommended</value>
+    <comment>Message when user equipment cannot be accessed</comment>
+  </data>
+  <data name="Equipment_MeteorShower_Recommendation">
+    <value>Wide-angle lens recommended for meteor showers</value>
+    <comment>Equipment recommendation for meteor shower photography</comment>
+  </data>
+  <data name="Equipment_MoonPhase_NewMoon">
+    <value>Perfect dark sky conditions for deep sky photography</value>
+    <comment>Equipment recommendation for new moon conditions</comment>
+  </data>
+  <data name="Equipment_MoonPhase_FullMoon">
+    <value>Bright moon - good for lunar photography, challenging for deep sky</value>
+    <comment>Equipment recommendation for full moon conditions</comment>
+  </data>
+  <data name="Equipment_MoonPhase_Partial">
+    <value>Partial moon - moderate light pollution from moonlight</value>
+    <comment>Equipment recommendation for partial moon conditions</comment>
+  </data>
+  <data name="Equipment_GeneralRecommendation">
+    <value>{0}</value>
+    <comment>Template for general equipment recommendations, {0} is the recommendation text</comment>
+  </data>
+  <data name="Equipment_StandardGuidelines">
+    <value>Standard astrophotography guidelines apply.</value>
+    <comment>Default equipment recommendation when specific guidance unavailable</comment>
   </data>
   <data name="SceneEvaluation_Error_FailedToCaptureImage">
     <value>Failed to capture image: {0}</value>
@@ -386,14 +451,6 @@
     <value>UserId cannot be null or empty</value>
     <comment>Error message when UserId parameter is null or empty</comment>
   </data>
-  <data name="AstroCalculation_Error_CoordinateConversion">
-    <value>Error converting coordinates from {0} to {1}: {2}</value>
-    <comment>Error message when coordinate conversion fails, {0} is from type, {1} is to type, {2} is specific error</comment>
-  </data>
-  <data name="AstroCalculation_Error_UnsupportedCoordinateType">
-    <value>Unsupported coordinate type: {0}</value>
-    <comment>Error message when an unsupported coordinate type is used, {0} is the coordinate type</comment>
-  </data>
   <data name="UserCameraBody_Error_UserCameraBodyNotFound">
     <value>User camera body not found</value>
     <comment>Error message when user camera body cannot be found</comment>
@@ -410,17 +467,14 @@
     <value>Error updating saved camera: {0}</value>
     <comment>Error message when updating saved camera fails, {0} is the specific error</comment>
   </data>
-
   <data name="UserCameraBody_Error_RemovingSavedCamera">
     <value>Error removing saved camera: {0}</value>
     <comment>Error message when removing saved camera fails, {0} is the specific error</comment>
   </data>
-
   <data name="UserCameraBody_Error_RetrievingFavoriteCameras">
     <value>Error retrieving favorite cameras: {0}</value>
     <comment>Error message when retrieving favorite cameras fails, {0} is the specific error</comment>
   </data>
-
   <data name="UserCameraBody_Error_RetrievingAllUserCameraBodies">
     <value>Error retrieving all user camera bodies: {0}</value>
     <comment>Error message when retrieving all user camera bodies fails, {0} is the specific error</comment>
@@ -429,97 +483,78 @@
     <value>Camera body cannot be null</value>
     <comment>Error message when CameraBody parameter is null</comment>
   </data>
-
   <data name="CameraBody_Error_CreatingCameraBody">
     <value>Error creating camera body: {0}</value>
     <comment>Error message when creating camera body fails, {0} is the specific error</comment>
   </data>
-
   <data name="CameraBody_Error_CameraBodyNotFound">
     <value>Camera body not found</value>
     <comment>Error message when camera body cannot be found</comment>
   </data>
-
   <data name="CameraBody_Error_GettingCameraBody">
     <value>Error getting camera body: {0}</value>
     <comment>Error message when retrieving camera body fails, {0} is the specific error</comment>
   </data>
-
   <data name="CameraBody_Error_GettingAllCameraBodies">
     <value>Error getting all camera bodies: {0}</value>
     <comment>Error message when retrieving all camera bodies fails, {0} is the specific error</comment>
   </data>
-
   <data name="CameraBody_Error_SearchingCameraBodies">
     <value>Error searching camera bodies: {0}</value>
     <comment>Error message when searching camera bodies fails, {0} is the specific error</comment>
   </data>
-
   <data name="CameraBody_Error_GettingUserCameras">
     <value>Error getting user cameras: {0}</value>
     <comment>Error message when getting user cameras fails, {0} is the specific error</comment>
   </data>
-
   <data name="CameraBody_Error_GettingCameraBodies">
     <value>Error getting camera bodies: {0}</value>
     <comment>Error message when getting camera bodies by mount type fails, {0} is the specific error</comment>
   </data>
-
   <data name="CameraBody_Error_GettingCount">
     <value>Error getting count: {0}</value>
     <comment>Error message when getting camera body count fails, {0} is the specific error</comment>
   </data>
-
   <data name="CameraBody_Error_UpdatingCameraBody">
     <value>Error updating camera body: {0}</value>
     <comment>Error message when updating camera body fails, {0} is the specific error</comment>
   </data>
-
   <data name="CameraBody_Error_DeletingCameraBody">
     <value>Error deleting camera body: {0}</value>
     <comment>Error message when deleting camera body fails, {0} is the specific error</comment>
   </data>
-
   <data name="Lens_Error_CannotBeNull">
     <value>Lens cannot be null</value>
     <comment>Error message when Lens parameter is null</comment>
   </data>
-
   <data name="Lens_Error_CreatingLens">
     <value>Error creating lens: {0}</value>
     <comment>Error message when creating lens fails, {0} is the specific error</comment>
   </data>
-
   <data name="Lens_Error_LensNotFound">
     <value>Lens not found</value>
     <comment>Error message when lens cannot be found</comment>
   </data>
-
   <data name="Lens_Error_GettingLens">
     <value>Error getting lens: {0}</value>
     <comment>Error message when retrieving lens fails, {0} is the specific error</comment>
   </data>
-
   <data name="Lens_Error_GettingAllLenses">
     <value>Error getting all lenses: {0}</value>
     <comment>Error message when retrieving all lenses fails, {0} is the specific error</comment>
   </data>
-
   <data name="Lens_Error_SearchingLenses">
     <value>Error searching lenses: {0}</value>
     <comment>Error message when searching lenses fails, {0} is the specific error</comment>
   </data>
-
   <data name="Lens_Error_GettingUserLenses">
     <value>Error getting user lenses: {0}</value>
     <comment>Error message when getting user lenses fails, {0} is the specific error</comment>
   </data>
-
   <data name="Lens_Error_UpdatingLens">
     <value>Error updating lens: {0}</value>
     <comment>Error message when updating lens fails, {0} is the specific error</comment>
   </data>
-
   <data name="Lens_Error_DeletingLens">
     <value>Error deleting lens: {0}</value>
     <comment>Error message when deleting lens fails, {0} is the specific error</comment>
@@ -528,272 +563,49 @@
     <value>Profile cannot be null</value>
     <comment>Error message when phone camera profile is null</comment>
   </data>
-
   <data name="PhoneCameraProfile_Error_CreatingProfile">
     <value>Error creating profile: {0}</value>
     <comment>Error message when creating phone camera profile fails, {0} is the specific error</comment>
   </data>
-
   <data name="PhoneCameraProfile_Error_NoActiveProfileFound">
     <value>No active profile found</value>
     <comment>Error message when no active phone camera profile is found</comment>
   </data>
-
   <data name="PhoneCameraProfile_Error_RetrievingActiveProfile">
     <value>Error retrieving active profile: {0}</value>
     <comment>Error message when retrieving active phone camera profile fails, {0} is the specific error</comment>
   </data>
-
   <data name="PhoneCameraProfile_Error_ProfileNotFound">
     <value>Profile not found</value>
     <comment>Error message when phone camera profile is not found</comment>
   </data>
-
   <data name="PhoneCameraProfile_Error_RetrievingProfile">
     <value>Error retrieving profile: {0}</value>
     <comment>Error message when retrieving phone camera profile fails, {0} is the specific error</comment>
   </data>
-
   <data name="PhoneCameraProfile_Error_RetrievingProfiles">
     <value>Error retrieving profiles: {0}</value>
     <comment>Error message when retrieving phone camera profiles fails, {0} is the specific error</comment>
   </data>
-
   <data name="PhoneCameraProfile_Error_UpdatingProfile">
     <value>Error updating profile: {0}</value>
     <comment>Error message when updating phone camera profile fails, {0} is the specific error</comment>
   </data>
-
   <data name="PhoneCameraProfile_Error_DeletingProfile">
     <value>Error deleting profile: {0}</value>
     <comment>Error message when deleting phone camera profile fails, {0} is the specific error</comment>
   </data>
-
   <data name="PhoneCameraProfile_Error_SettingActiveProfile">
     <value>Error setting active profile: {0}</value>
     <comment>Error message when setting active phone camera profile fails, {0} is the specific error</comment>
   </data>
-  <data name="Equipment_Strength_FastAperture">
-    <value>Fast f/{0} aperture ideal for {1}</value>
-    <comment>Equipment strength message for fast aperture, {0} is f-stop, {1} is recommended settings</comment>
+  <data name="AstroCalculation_Error_CoordinateConversion">
+    <value>Error converting coordinates from {0} to {1}: {2}</value>
+    <comment>Error message when coordinate conversion fails, {0} is from type, {1} is to type, {2} is specific error</comment>
   </data>
-
-  <data name="Equipment_Strength_OptimalFocalLength">
-    <value>{0}mm focal length is optimal for this target</value>
-    <comment>Equipment strength message for optimal focal length, {0} is focal length</comment>
-  </data>
-
-  <data name="Equipment_Strength_LargeSensor">
-    <value>Large sensor provides excellent light gathering</value>
-    <comment>Equipment strength message for large sensor</comment>
-  </data>
-
-  <data name="Equipment_Limitation_SlowerAperture">
-    <value>f/{0} aperture is slower than ideal f/{1}</value>
-    <comment>Equipment limitation message for slower aperture, {0} is actual f-stop, {1} is ideal f-stop</comment>
-  </data>
-
-  <data name="Equipment_Limitation_TooWide">
-    <value>{0}mm may be too wide, consider {1}mm or longer</value>
-    <comment>Equipment limitation message for too wide focal length, {0} is actual focal length, {1} is minimum recommended</comment>
-  </data>
-
-  <data name="Equipment_Limitation_TooTelephoto">
-    <value>{0}mm may be too telephoto, consider {1}mm or shorter</value>
-    <comment>Equipment limitation message for too telephoto focal length, {0} is actual focal length, {1} is maximum recommended</comment>
-  </data>
-
-  <data name="Equipment_RecommendationText_Excellent">
-    <value>This is an excellent combination for this target. </value>
-    <comment>Recommendation text for excellent equipment match</comment>
-  </data>
-
-  <data name="Equipment_RecommendationText_VeryGood">
-    <value>This is a very good combination with minor limitations. </value>
-    <comment>Recommendation text for very good equipment match</comment>
-  </data>
-
-  <data name="Equipment_Settings_MilkyWay">
-    <value>ISO 3200, f/2.8, 20-25 seconds</value>
-    <comment>Recommended camera settings for Milky Way photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_MilkyWay">
-    <value>Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering.</value>
-    <comment>Equipment notes for Milky Way photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_Moon">
-    <value>ISO 200, f/8, 1/125s</value>
-    <comment>Recommended camera settings for Moon photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_Moon">
-    <value>Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure.</value>
-    <comment>Equipment notes for Moon photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_Planets">
-    <value>ISO 1600, f/5.6, 1/60s</value>
-    <comment>Recommended camera settings for planet photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_Planets">
-    <value>Long telephoto essential. Planets are small - maximum focal length recommended.</value>
-    <comment>Equipment notes for planet photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_DeepSky">
-    <value>ISO 1600, f/4, 2-5 minutes (with tracking)</value>
-    <comment>Recommended camera settings for deep sky photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_DeepSky">
-    <value>Medium telephoto with tracking mount. Requires dark skies and precise tracking.</value>
-    <comment>Equipment notes for deep sky photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_StarTrails">
-    <value>ISO 400, f/5.6, 30 minutes - 4 hours</value>
-    <comment>Recommended camera settings for star trail photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_StarTrails">
-    <value>Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures.</value>
-    <comment>Equipment notes for star trail photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_General">
-    <value>ISO 1600, f/2.8, 15-30 seconds</value>
-    <comment>Recommended camera settings for general astrophotography</comment>
-  </data>
-
-  <data name="Equipment_Notes_General">
-    <value>General astrophotography setup. Versatile for various targets.</value>
-    <comment>Equipment notes for general astrophotography</comment>
-  </data>
-
-  <data name="Equipment_ShoppingList_RemoteShutter">
-    <value>Remote shutter release or intervalometer</value>
-    <comment>Shopping list item for remote shutter release</comment>
-  </data>
-
-  <data name="Equipment_ShoppingList_StarTracker">
-    <value>Star tracker mount for long exposures</value>
-    <comment>Shopping list item for star tracker mount</comment>
-  </data>
-  <data name="Equipment_Settings_MilkyWay">
-    <value>ISO 3200, f/2.8, 20-25 seconds</value>
-    <comment>Recommended camera settings for Milky Way photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_MilkyWay">
-    <value>Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering.</value>
-    <comment>Equipment notes for Milky Way photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_Moon">
-    <value>ISO 200, f/8, 1/125s</value>
-    <comment>Recommended camera settings for Moon photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_Moon">
-    <value>Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure.</value>
-    <comment>Equipment notes for Moon photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_Planets">
-    <value>ISO 1600, f/5.6, 1/60s</value>
-    <comment>Recommended camera settings for planet photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_Planets">
-    <value>Long telephoto essential. Planets are small - maximum focal length recommended.</value>
-    <comment>Equipment notes for planet photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_DeepSky">
-    <value>ISO 1600, f/4, 2-5 minutes (with tracking)</value>
-    <comment>Recommended camera settings for deep sky photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_DeepSky">
-    <value>Medium telephoto with tracking mount. Requires dark skies and precise tracking.</value>
-    <comment>Equipment notes for deep sky photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_StarTrails">
-    <value>ISO 400, f/5.6, 30 minutes - 4 hours</value>
-    <comment>Recommended camera settings for star trail photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_StarTrails">
-    <value>Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures.</value>
-    <comment>Equipment notes for star trail photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_General">
-    <value>ISO 1600, f/2.8, 15-30 seconds</value>
-    <comment>Recommended camera settings for general astrophotography</comment>
-  </data>
-
-  <data name="Equipment_Notes_General">
-    <value>General astrophotography setup. Versatile for various targets.</value>
-    <comment>Equipment notes for general astrophotography</comment>
-  </data>
-  <data name="Equipment_Settings_MilkyWay">
-    <value>ISO 3200, f/2.8, 20-25 seconds</value>
-    <comment>Recommended camera settings for Milky Way photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_MilkyWay">
-    <value>Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering.</value>
-    <comment>Equipment notes for Milky Way photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_Moon">
-    <value>ISO 200, f/8, 1/125s</value>
-    <comment>Recommended camera settings for Moon photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_Moon">
-    <value>Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure.</value>
-    <comment>Equipment notes for Moon photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_Planets">
-    <value>ISO 1600, f/5.6, 1/60s</value>
-    <comment>Recommended camera settings for planet photography</comment>
-  </data>
-
-  <data name="Equipment_Notes_Planets">
-    <value>Long telephoto essential. Planets are small - maximum focal length recommended.</value>
-    <comment>Equipment notes for planet photography</comment>
-  </data>
-
-  <data name="Equipment_Settings_DeepSky">
-    <value>ISO 1600, f/4, 2-5 minutes (with tracking)</value>
-    <comment>Recommended camera settings for deep sky photography</comment>
-  </data>
-  <data name="Equipment_Notes_DeepSky">
-    <value>Medium telephoto with tracking mount. Requires dark skies and precise tracking.</value>
-    <comment>Equipment notes for deep sky photography</comment>
-  </data>
-  <data name="Equipment_Settings_StarTrails">
-    <value>ISO 400, f/5.6, 30 minutes - 4 hours</value>
-    <comment>Recommended camera settings for star trail photography</comment>
-  </data>
-  <data name="Equipment_Notes_StarTrails">
-    <value>Wide-angle for dramatic trails. Lower ISO to minimize noise in long exposures.</value>
-    <comment>Equipment notes for star trail photography</comment>
-  </data>
-  <data name="Equipment_Settings_General">
-    <value>ISO 1600, f/2.8, 15-30 seconds</value>
-    <comment>Recommended camera settings for general astrophotography</comment>
-  </data>
-  <data name="Equipment_Notes_General">
-    <value>General astrophotography setup. Versatile for various targets.</value>
-    <comment>Equipment notes for general astrophotography</comment>
+  <data name="AstroCalculation_Error_UnsupportedCoordinateType">
+    <value>Unsupported coordinate type: {0}</value>
+    <comment>Error message when an unsupported coordinate type is used, {0} is the coordinate type</comment>
   </data>
   <data name="Weather_Error_WeatherEntityIsNull">
     <value>Weather entity is null</value>
@@ -815,134 +627,102 @@
     <value>No valid timezone data - using local timezone</value>
     <comment>Warning message when timezone data is not valid and local timezone is used instead</comment>
   </data>
+  <data name="Weather_Unknown">
+    <value>Unknown</value>
+    <comment>Weather status when conditions cannot be determined</comment>
+  </data>
   <data name="PredictiveLight_Error_ServiceTemporarilyUnavailable">
     <value>Prediction service temporarily unavailable</value>
     <comment>Error message when prediction service is temporarily unavailable</comment>
   </data>
-
   <data name="PredictiveLight_Error_WeatherAnalysisUnavailable">
     <value>Weather analysis unavailable</value>
     <comment>Error message when weather analysis is unavailable</comment>
   </data>
-
   <data name="PredictiveLight_ConfidenceReason_WithCalibration">
     <value>based on recent light meter calibration and environmental data ({0}h forecast)</value>
     <comment>Confidence reason when calibration is available, {0} is hours from now</comment>
   </data>
-
   <data name="PredictiveLight_ConfidenceReason_WithoutCalibration">
     <value>based on lux calculations from sun position and weather conditions ({0}h forecast)</value>
     <comment>Confidence reason when no calibration is available, {0} is hours from now</comment>
   </data>
-
   <data name="PredictiveLight_ConfidenceModifier_LongRangeForecast">
     <value> - long-range forecast has increased uncertainty</value>
     <comment>Additional confidence reason for long-range forecasts</comment>
   </data>
-
   <data name="PredictiveLight_ConfidenceModifier_MediumRangeForecast">
     <value> - medium-range forecast</value>
     <comment>Additional confidence reason for medium-range forecasts</comment>
   </data>
-
   <data name="PredictiveLight_Recommendation_ExcellentConditions">
     <value>Excellent shooting conditions expected at {0:HH:mm}. {1}</value>
     <comment>Recommendation for excellent shooting conditions, {0} is time, {1} is description</comment>
   </data>
-
   <data name="PredictiveLight_Recommendation_GoodConditionsWithAlternative">
     <value>Good conditions at {0:HH:mm}. {1}. Alternative: {2}</value>
     <comment>Recommendation for good conditions with alternative, {0} is time, {1} is description, {2} is alternative</comment>
   </data>
-
   <data name="PredictiveLight_Recommendation_GoodConditions">
     <value>Good conditions at {0:HH:mm}. {1}.</value>
     <comment>Recommendation for good conditions, {0} is time, {1} is description</comment>
   </data>
-
   <data name="PredictiveLight_Recommendation_Alternative">
     <value>Alternative: {0}</value>
     <comment>Alternative recommendation text, {0} is the alternative description</comment>
   </data>
-
   <data name="PredictiveLight_Recommendation_ChallengingConditions">
     <value>Challenging conditions predicted. Consider indoor photography or wait for better weather.</value>
     <comment>Recommendation when challenging conditions are predicted</comment>
   </data>
-
   <data name="PredictiveLight_Insight_OptimalHours">
     <value>{0} hours of optimal shooting conditions available</value>
     <comment>Insight about optimal shooting hours, {0} is the number of hours</comment>
   </data>
-
   <data name="PredictiveLight_Insight_LightRange">
     <value>Light range: EV {0:F1} to EV {1:F1}</value>
     <comment>Insight about light range, {0} is minimum EV, {1} is maximum EV</comment>
   </data>
-
   <data name="PredictiveLight_Insight_WeatherImpact">
     <value>Significant weather impact on light quality</value>
     <comment>Insight about significant weather impact on light quality</comment>
   </data>
-
   <data name="PredictiveLight_Insight_GoldenHourAvailable">
     <value>{0} hours of golden hour light available</value>
     <comment>Insight about golden hour availability, {0} is the number of hours</comment>
   </data>
-
   <data name="PredictiveLight_Description_BlueHour">
     <value>Blue hour: EV {0:F1}</value>
     <comment>Description for blue hour conditions, {0} is the EV value</comment>
   </data>
-
   <data name="PredictiveLight_Description_SoftOvercastLight">
     <value>Soft overcast light: EV {0:F1}</value>
     <comment>Description for soft overcast light conditions, {0} is the EV value</comment>
-  </data>
-  <data name="SubscriptionStatus_Error_FailedToRetrieveLocalInfo">
-    <value>Failed to retrieve local subscription info</value>
-    <comment>Error message when local subscription info cannot be retrieved</comment>
-  </data>
-
-  <data name="SubscriptionStatus_Error_CheckingSubscriptionStatus">
-    <value>Error checking subscription status: {0}</value>
-    <comment>Error message when checking subscription status fails, {0} is the specific error</comment>
-  </data>
-
-  <data name="SubscriptionStatus_Error_UnableToValidateAfterMultipleAttempts">
-    <value>Unable to validate subscription after multiple attempts</value>
-    <comment>Error message when subscription validation fails after multiple attempts</comment>
   </data>
   <data name="FOVCalculation_Error_FocalLengthAndSensorWidthMustBePositive">
     <value>Focal length and sensor width must be positive values</value>
     <comment>Error message when focal length or sensor width values are not positive</comment>
   </data>
-
   <data name="FOVCalculation_Error_FocalLengthAndSensorHeightMustBePositive">
     <value>Focal length and sensor height must be positive values</value>
     <comment>Error message when focal length or sensor height values are not positive</comment>
   </data>
-
   <data name="FOVCalculation_Error_PhoneModelCannotBeNullOrEmpty">
     <value>Phone model cannot be null or empty</value>
     <comment>Error message when phone model parameter is null or empty</comment>
   </data>
-
   <data name="FOVCalculation_Error_FocalLengthMustBePositive">
     <value>Focal length must be positive</value>
     <comment>Error message when focal length value is not positive</comment>
   </data>
-
   <data name="FOVCalculation_Error_FailedToGetSensorDimensions">
     <value>Failed to get sensor dimensions: {0}</value>
     <comment>Error message when getting sensor dimensions fails, {0} is the specific error</comment>
   </data>
-
   <data name="FOVCalculation_Error_EstimatingSensorDimensions">
     <value>Error estimating sensor dimensions: {0}</value>
     <comment>Error message when estimating sensor dimensions fails, {0} is the specific error</comment>
   </data>
-
   <data name="FOVCalculation_Error_CreatingPhoneCameraProfile">
     <value>Error creating phone camera profile: {0}</value>
     <comment>Error message when creating phone camera profile fails, {0} is the specific error</comment>
@@ -951,188 +731,14 @@
     <value>Error creating camera profile: {0}</value>
     <comment>Error message when creating camera profile fails, {0} is the specific error</comment>
   </data>
-
   <data name="FOVCalculation_Error_FOVValuesMustBePositive">
     <value>FOV values must be positive</value>
     <comment>Error message when FOV values are not positive</comment>
   </data>
-
   <data name="FOVCalculation_Error_ScreenSizeMustBePositive">
     <value>Screen size must be positive</value>
     <comment>Error message when screen size values are not positive</comment>
   </data>
-  <data name="SolarEvent_Unknown">
-  <value>Unknown</value>
-  <comment>Solar event when status cannot be determined</comment>
-</data>
-<data name="Quality_Excellent">
-  <value>Excellent</value>
-  <comment>Quality rating for photography conditions</comment>
-</data>
-<data name="Quality_VeryGood">
-  <value>Very Good</value>
-  <comment>Quality rating for photography conditions</comment>
-</data>
-<data name="Quality_Good">
-  <value>Good</value>
-  <comment>Quality rating for photography conditions</comment>
-</data>
-<data name="Quality_Fair">
-  <value>Fair</value>
-  <comment>Quality rating for photography conditions</comment>
-</data>
-<data name="Quality_Poor">
-  <value>Poor</value>
-  <comment>Quality rating for photography conditions</comment>
-</data>
-<data name="QualityDescription_Excellent">
-  <value>Perfect conditions for astrophotography</value>
-  <comment>Description for excellent quality conditions</comment>
-</data>
-<data name="QualityDescription_VeryGood">
-  <value>Very good conditions with minimal limitations</value>
-  <comment>Description for very good quality conditions</comment>
-</data>
-<data name="QualityDescription_Good">
-  <value>Good conditions for most targets</value>
-  <comment>Description for good quality conditions</comment>
-</data>
-<data name="QualityDescription_Fair">
-  <value>Fair conditions with some challenges</value>
-  <comment>Description for fair quality conditions</comment>
-</data>
-<data name="QualityDescription_Poor">
-  <value>Poor conditions, not recommended</value>
-  <comment>Description for poor quality conditions</comment>
-</data>
-<data name="QualityDescription_Unknown">
-  <value>Conditions unknown</value>
-  <comment>Description when conditions cannot be determined</comment>
-</data>
-<data name="DSOEvent_Description">
-  <value>{0} visible at {1}° altitude</value>
-  <comment>Description for deep sky object visibility, {0} is object name, {1} is altitude</comment>
-</data>
-<data name="Equipment_UserEquipmentRecommendation">
-  <value>{0} with {1}</value>
-  <comment>Recommendation using user equipment, {0} is camera, {1} is lens</comment>
-</data>
-<data name="Equipment_RequiredEquipmentRecommendation">
-  <value>You need a {0}-{1}mm lens with f/{2} aperture</value>
-  <comment>Equipment requirement recommendation, {0} is min focal length, {1} is max focal length, {2} is aperture</comment>
-</data>
-<data name="Equipment_DefaultRecommendation_MediumTelephoto">
-  <value>Medium telephoto lens (85-300mm) recommended for most deep sky objects</value>
-  <comment>Default equipment recommendation for deep sky objects</comment>
-</data>
-<data name="Equipment_UseUserEquipment">
-  <value>Use your {0} with {1}</value>
-  <comment>Recommendation to use specific user equipment, {0} is camera, {1} is lens</comment>
-</data>
-<data name="Equipment_UnableToAccessEquipment">
-  <value>Unable to access your equipment - standard telephoto lens recommended</value>
-  <comment>Message when user equipment cannot be accessed</comment>
-</data>
-<data name="MeteorShower_Description">
-  <value>{0} meteor shower active - up to {1} meteors per hour</value>
-  <comment>Description for meteor shower event, {0} is shower name, {1} is rate</comment>
-</data>
-<data name="Equipment_MeteorShower_Recommendation">
-  <value>Wide-angle lens recommended for meteor showers</value>
-  <comment>Equipment recommendation for meteor shower photography</comment>
-</data>
-<data name="MoonPhase_Name">
-  <value>Moon: {0}</value>
-  <comment>Moon phase name display, {0} is the phase name</comment>
-</data>
-<data name="MoonPhase_Description">
-  <value>{0} moon phase - {1}% illuminated</value>
-  <comment>Moon phase description, {0} is phase name, {1} is illumination percentage</comment>
-</data>
-<data name="Equipment_MoonPhase_NewMoon">
-  <value>Perfect dark sky conditions for deep sky photography</value>
-  <comment>Equipment recommendation for new moon conditions</comment>
-</data>
-<data name="Equipment_MoonPhase_FullMoon">
-  <value>Bright moon - good for lunar photography, challenging for deep sky</value>
-  <comment>Equipment recommendation for full moon conditions</comment>
-</data>
-<data name="Equipment_MoonPhase_Partial">
-  <value>Partial moon - moderate light pollution from moonlight</value>
-  <comment>Equipment recommendation for partial moon conditions</comment>
-</data>
-<data name="Equipment_GeneralRecommendation">
-  <value>{0}</value>
-  <comment>Template for general equipment recommendations, {0} is the recommendation text</comment>
-</data>
-<data name="Equipment_StandardGuidelines">
-  <value>Standard astrophotography guidelines apply.</value>
-  <comment>Default equipment recommendation when specific guidance unavailable</comment>
-</data>
-<data name="Season_Winter">
-  <value>winter</value>
-  <comment>Winter season name</comment>
-</data>
-<data name="Season_Spring">
-  <value>spring</value>
-  <comment>Spring season name</comment>
-</data>
-<data name="Season_Summer">
-  <value>summer</value>
-  <comment>Summer season name</comment>
-</data>
-<data name="Season_Autumn">
-  <value>autumn</value>
-  <comment>Autumn season name</comment>
-</data>
-<data name="Season_Any">
-  <value>any</value>
-  <comment>Any season indicator</comment>
-</data>
-<data name="AstroTarget_MilkyWayCore">
-  <value>Milky Way Core</value>
-  <comment>Display name for Milky Way Core target</comment>
-</data>
-<data name="AstroTarget_DeepSkyObjects">
-  <value>Deep Sky Objects</value>
-  <comment>Display name for Deep Sky Objects target</comment>
-</data>
-<data name="AstroTarget_StarTrails">
-  <value>Star Trails</value>
-  <comment>Display name for Star Trails target</comment>
-</data>
-<data name="AstroTarget_MeteorShowers">
-  <value>Meteor Showers</value>
-  <comment>Display name for Meteor Showers target</comment>
-</data>
-<data name="AstroTarget_PolarAlignment">
-  <value>Polar Alignment</value>
-  <comment>Display name for Polar Alignment target</comment>
-</data>
-<data name="AstroTarget_NorthernLights">
-  <value>Northern Lights</value>
-  <comment>Display name for Northern Lights target</comment>
-</data>
-<data name="Weather_Unknown">
-  <value>Unknown</value>
-  <comment>Weather status when conditions cannot be determined</comment>
-</data>
-<data name="WeatherSuitability_Excellent">
-  <value>Excellent</value>
-  <comment>Weather suitability rating for photography</comment>
-</data>
-<data name="WeatherSuitability_Good">
-  <value>Good</value>
-  <comment>Weather suitability rating for photography</comment>
-</data>
-<data name="WeatherSuitability_Fair">
-  <value>Fair</value>
-  <comment>Weather suitability rating for photography</comment>
-</data>
-<data name="WeatherSuitability_Poor">
-  <value>Poor</value>
-  <comment>Weather suitability rating for photography</comment>
-</data>
   <data name="SolarEvent_Unknown">
     <value>Unknown</value>
     <comment>Solar event when status cannot be determined</comment>
@@ -1185,33 +791,9 @@
     <value>{0} visible at {1}° altitude</value>
     <comment>Description for deep sky object visibility, {0} is object name, {1} is altitude</comment>
   </data>
-  <data name="Equipment_UserEquipmentRecommendation">
-    <value>{0} with {1}</value>
-    <comment>Recommendation using user equipment, {0} is camera, {1} is lens</comment>
-  </data>
-  <data name="Equipment_RequiredEquipmentRecommendation">
-    <value>You need a {0}-{1}mm lens with f/{2} aperture</value>
-    <comment>Equipment requirement recommendation, {0} is min focal length, {1} is max focal length, {2} is aperture</comment>
-  </data>
-  <data name="Equipment_DefaultRecommendation_MediumTelephoto">
-    <value>Medium telephoto lens (85-300mm) recommended for most deep sky objects</value>
-    <comment>Default equipment recommendation for deep sky objects</comment>
-  </data>
-  <data name="Equipment_UseUserEquipment">
-    <value>Use your {0} with {1}</value>
-    <comment>Recommendation to use specific user equipment, {0} is camera, {1} is lens</comment>
-  </data>
-  <data name="Equipment_UnableToAccessEquipment">
-    <value>Unable to access your equipment - standard telephoto lens recommended</value>
-    <comment>Message when user equipment cannot be accessed</comment>
-  </data>
   <data name="MeteorShower_Description">
     <value>{0} meteor shower active - up to {1} meteors per hour</value>
     <comment>Description for meteor shower event, {0} is shower name, {1} is rate</comment>
-  </data>
-  <data name="Equipment_MeteorShower_Recommendation">
-    <value>Wide-angle lens recommended for meteor showers</value>
-    <comment>Equipment recommendation for meteor shower photography</comment>
   </data>
   <data name="MoonPhase_Name">
     <value>Moon: {0}</value>
@@ -1220,26 +802,6 @@
   <data name="MoonPhase_Description">
     <value>{0} moon phase - {1}% illuminated</value>
     <comment>Moon phase description, {0} is phase name, {1} is illumination percentage</comment>
-  </data>
-  <data name="Equipment_MoonPhase_NewMoon">
-    <value>Perfect dark sky conditions for deep sky photography</value>
-    <comment>Equipment recommendation for new moon conditions</comment>
-  </data>
-  <data name="Equipment_MoonPhase_FullMoon">
-    <value>Bright moon - good for lunar photography, challenging for deep sky</value>
-    <comment>Equipment recommendation for full moon conditions</comment>
-  </data>
-  <data name="Equipment_MoonPhase_Partial">
-    <value>Partial moon - moderate light pollution from moonlight</value>
-    <comment>Equipment recommendation for partial moon conditions</comment>
-  </data>
-  <data name="Equipment_GeneralRecommendation">
-    <value>{0}</value>
-    <comment>Template for general equipment recommendations, {0} is the recommendation text</comment>
-  </data>
-  <data name="Equipment_StandardGuidelines">
-    <value>Standard astrophotography guidelines apply.</value>
-    <comment>Default equipment recommendation when specific guidance unavailable</comment>
   </data>
   <data name="Season_Winter">
     <value>winter</value>
@@ -1285,10 +847,6 @@
     <value>Northern Lights</value>
     <comment>Display name for Northern Lights target</comment>
   </data>
-  <data name="Weather_Unknown">
-    <value>Unknown</value>
-    <comment>Weather status when conditions cannot be determined</comment>
-  </data>
   <data name="WeatherSuitability_Excellent">
     <value>Excellent</value>
     <comment>Weather suitability rating for photography</comment>
@@ -1304,62 +862,6 @@
   <data name="WeatherSuitability_Poor">
     <value>Poor</value>
     <comment>Weather suitability rating for photography</comment>
-  </data>
-  <data name="Weather_Unknown">
-    <value>Unknown</value>
-    <comment>Text displayed when weather status cannot be determined</comment>
-  </data>
-  <data name="Quality_Fair">
-    <value>Fair</value>
-    <comment>Quality rating for moderate photography conditions</comment>
-  </data>
-  <data name="QualityDescription_Unknown">
-    <value>Conditions unknown</value>
-    <comment>Description when photography conditions cannot be determined</comment>
-  </data>
-  <data name="Season_Winter">
-    <value>winter</value>
-    <comment>Winter season name</comment>
-  </data>
-  <data name="Season_Spring">
-    <value>spring</value>
-    <comment>Spring season name</comment>
-  </data>
-  <data name="Season_Summer">
-    <value>summer</value>
-    <comment>Summer season name</comment>
-  </data>
-  <data name="Season_Autumn">
-    <value>autumn</value>
-    <comment>Autumn season name</comment>
-  </data>
-  <data name="Season_Any">
-    <value>any</value>
-    <comment>Any season indicator</comment>
-  </data>
-  <data name="AstroTarget_MilkyWayCore">
-    <value>Milky Way Core</value>
-    <comment>Display name for Milky Way Core photography target</comment>
-  </data>
-  <data name="AstroTarget_DeepSkyObjects">
-    <value>Deep Sky Objects</value>
-    <comment>Display name for Deep Sky Objects photography target</comment>
-  </data>
-  <data name="AstroTarget_StarTrails">
-    <value>Star Trails</value>
-    <comment>Display name for Star Trails photography target</comment>
-  </data>
-  <data name="AstroTarget_MeteorShowers">
-    <value>Meteor Showers</value>
-    <comment>Display name for Meteor Showers photography target</comment>
-  </data>
-  <data name="AstroTarget_PolarAlignment">
-    <value>Polar Alignment</value>
-    <comment>Display name for Polar Alignment photography target</comment>
-  </data>
-  <data name="AstroTarget_NorthernLights">
-    <value>Northern Lights</value>
-    <comment>Display name for Northern Lights photography target</comment>
   </data>
   <data name="LunarPhase_NewMoon_Description">
     <value>New Moon - ideal for deep sky photography, moon not visible</value>
@@ -1881,6 +1383,1475 @@
     <value>Unknown Visiblity</value>
     <comment>Default error message for unknown visibility</comment>
   </data>
+  <data name="ConjunctionPhotography_VeryClosure_Telephoto">
+    <value>Very close conjunction - use telephoto lens 200mm+ to capture both objects in frame</value>
+    <comment>Photography advice for very close planetary conjunctions</comment>
+  </data>
+  <data name="ConjunctionPhotography_ModerateSeparation_Lens">
+    <value>Moderate separation - 85-200mm lens ideal for composition</value>
+    <comment>Photography advice for moderate separation conjunctions</comment>
+  </data>
+  <data name="ConjunctionPhotography_WideSeparation_WideAngle">
+    <value>Wide separation - wide angle lens to capture both objects</value>
+    <comment>Photography advice for wide separation conjunctions</comment>
+  </data>
+  <data name="ConjunctionPhotography_LowAltitude_ElevatedLocation">
+    <value>Low altitude - find elevated location with clear horizon</value>
+    <comment>Photography advice for low altitude conjunctions</comment>
+  </data>
+  <data name="ConjunctionPhotography_ModerateAltitude_ForegroundComposition">
+    <value>Moderate altitude - good for foreground composition</value>
+    <comment>Photography advice for moderate altitude conjunctions</comment>
+  </data>
+  <data name="ConjunctionPhotography_HighAltitude_DetailedPhotography">
+    <value>High altitude - excellent for detailed planetary photography</value>
+    <comment>Photography advice for high altitude conjunctions</comment>
+  </data>
+  <data name="ConjunctionPhotography_UseTripodAndTimer">
+    <value>Use tripod and timer/remote to avoid camera shake</value>
+    <comment>Technical advice for conjunction photography</comment>
+  </data>
+  <data name="ConjunctionPhotography_ShootInRAW">
+    <value>Shoot in RAW for maximum post-processing flexibility</value>
+    <comment>Technical advice for conjunction photography</comment>
+  </data>
+  <data name="ConjunctionPhotography_DefaultAdvice">
+    <value>Use telephoto lens and tripod for best results.</value>
+    <comment>Default conjunction photography advice when specific advice unavailable</comment>
+  </data>
+  <data name="SupermoonEvent_SuperNewMoon">
+    <value>Super New Moon</value>
+    <comment>Supermoon event name for new moon phase</comment>
+  </data>
+  <data name="SupermoonEvent_SuperCrescentMoon">
+    <value>Super Crescent Moon</value>
+    <comment>Supermoon event name for crescent moon phase</comment>
+  </data>
+  <data name="SupermoonEvent_SuperFullMoon">
+    <value>Super Full Moon</value>
+    <comment>Supermoon event name for full moon phase</comment>
+  </data>
+  <data name="SupermoonEvent_SuperGibbousMoon">
+    <value>Super Gibbous Moon</value>
+    <comment>Supermoon event name for gibbous moon phase</comment>
+  </data>
+  <data name="SupermoonEvent_Default">
+    <value>Supermoon Event</value>
+    <comment>Default supermoon event name when phase cannot be determined</comment>
+  </data>
+  <data name="SupermoonPhotography_SuperFullMoon_SizeIncrease">
+    <value>Super Full Moon appears {0:F1}% larger and ~30% brighter than average</value>
+    <comment>Supermoon photography advice for size increase, {0} is percentage</comment>
+  </data>
+  <data name="SupermoonPhotography_UseTelephoto">
+    <value>Use telephoto lens 200mm+ to emphasize size against foreground objects</value>
+    <comment>Lens recommendation for supermoon photography</comment>
+  </data>
+  <data name="SupermoonPhotography_ForegroundElements">
+    <value>Plan shots with interesting foreground elements like buildings or landmarks</value>
+    <comment>Composition advice for supermoon photography</comment>
+  </data>
+  <data name="SupermoonPhotography_TimingCritical">
+    <value>Moon rise/set timing critical for dramatic low-horizon compositions</value>
+    <comment>Timing advice for supermoon photography</comment>
+  </data>
+  <data name="SupermoonPhotography_ExposureFullMoon">
+    <value>Exposure: ISO 100, f/8-11, 1/500-1/1000s due to increased brightness</value>
+    <comment>Exposure settings for super full moon</comment>
+  </data>
+  <data name="SupermoonPhotography_SuperNewMoon_DarkSky">
+    <value>Super New Moon ideal for dark sky photography - moon won't interfere</value>
+    <comment>Photography advice for super new moon</comment>
+  </data>
+  <data name="SupermoonPhotography_MilkyWayOpportunity">
+    <value>Perfect opportunity for Milky Way and deep sky object photography</value>
+    <comment>Dark sky photography opportunity during super new moon</comment>
+  </data>
+  <data name="SupermoonPhotography_TidalEffects">
+    <value>Moon's gravitational effects may cause higher tides - coastal photography opportunities</value>
+    <comment>Tidal effects advice for supermoon</comment>
+  </data>
+  <data name="SupermoonPhotography_MeteorShowers">
+    <value>Plan meteor shower photography during this window</value>
+    <comment>Meteor shower photography advice during super new moon</comment>
+  </data>
+  <data name="SupermoonPhotography_EnhancedDetail">
+    <value>Supermoon appears {0:F1}% larger with enhanced detail visibility</value>
+    <comment>Enhanced detail advice for other super phases, {0} is percentage</comment>
+  </data>
+  <data name="SupermoonPhotography_TerminatorDetail">
+    <value>Excellent for terminator detail photography with increased contrast</value>
+    <comment>Terminator photography advice for supermoon</comment>
+  </data>
+  <data name="SupermoonPhotography_CraterShadows">
+    <value>Crater shadows more pronounced due to increased apparent size</value>
+    <comment>Crater shadow advice for supermoon</comment>
+  </data>
+  <data name="SupermoonPhotography_ExceptionallyClose">
+    <value>Exceptionally close approach - maximum detail photography opportunity</value>
+    <comment>Advice for very close supermoon approach</comment>
+  </data>
+  <data name="SupermoonPhotography_LunarMosaic">
+    <value>Consider lunar mosaic photography for ultra-high resolution results</value>
+    <comment>Mosaic technique advice for close supermoon</comment>
+  </data>
+  <data name="SupermoonPhotography_PreciseTiming">
+    <value>Use precise timing apps for optimal rise/set positioning</value>
+    <comment>Timing app recommendation for supermoon</comment>
+  </data>
+  <data name="SupermoonPhotography_Weather">
+    <value>Weather contingency planning essential - supermoons are infrequent events</value>
+    <comment>Weather planning advice for supermoon</comment>
+  </data>
+  <data name="SupermoonPhotography_Default">
+    <value>Supermoon offers enhanced size and brightness for dramatic lunar photography.</value>
+    <comment>Default supermoon photography advice</comment>
+  </data>
+  <data name="LunarEclipseType_Penumbral">
+    <value>Penumbral</value>
+    <comment>Penumbral lunar eclipse type</comment>
+  </data>
+  <data name="LunarEclipseType_Partial">
+    <value>Partial</value>
+    <comment>Partial lunar eclipse type</comment>
+  </data>
+  <data name="LunarEclipseType_Total">
+    <value>Total</value>
+    <comment>Total lunar eclipse type</comment>
+  </data>
+  <data name="LunarEclipseType_Unknown">
+    <value>Unknown</value>
+    <comment>Unknown lunar eclipse type</comment>
+  </data>
+  <data name="LunarEclipseType_Default">
+    <value>Lunar Eclipse</value>
+    <comment>Default lunar eclipse type when kind cannot be determined</comment>
+  </data>
+  <data name="LunarEclipsePhotography_NotVisible">
+    <value>Eclipse not visible from your location</value>
+    <comment>Photography planning when eclipse is not visible</comment>
+  </data>
+  <data name="LunarEclipsePhotography_ConsiderStreaming">
+    <value>Consider live streaming or plan travel to visibility zone</value>
+    <comment>Alternative suggestion when eclipse is not visible</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Total_Rare">
+    <value>Total lunar eclipse - rare and spectacular photography opportunity</value>
+    <comment>Photography planning for total lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Total_TimeLapse">
+    <value>Plan multi-hour time-lapse from first contact to totality end</value>
+    <comment>Time-lapse advice for total lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Total_ScoutLocation">
+    <value>Scout location with clear eastern horizon for moonrise eclipses</value>
+    <comment>Location scouting advice for total lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Total_MultipleExposures">
+    <value>Prepare multiple exposure settings for dramatic brightness changes</value>
+    <comment>Exposure planning advice for total lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Total_TotalityPhase">
+    <value>Totality phase allows for creative compositions with foreground elements</value>
+    <comment>Composition advice for totality phase</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Total_BloodMoon">
+    <value>Blood moon color varies - prepare for deep red to bright copper tones</value>
+    <comment>Color advice for total lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Partial_ShadowProgression">
+    <value>Partial lunar eclipse - excellent for showing Earth's shadow progression</value>
+    <comment>Photography planning for partial lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Partial_TimeLapseIdeal">
+    <value>Time-lapse photography ideal for capturing shadow movement</value>
+    <comment>Time-lapse advice for partial lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Partial_Contrast">
+    <value>Contrast between shadowed and illuminated portions creates dramatic images</value>
+    <comment>Contrast advice for partial lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Partial_LongerDuration">
+    <value>Longer event duration allows for multiple composition attempts</value>
+    <comment>Duration advantage for partial lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Penumbral_Subtle">
+    <value>Penumbral eclipse - subtle but photographically interesting</value>
+    <comment>Photography planning for penumbral lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Penumbral_ExposureMonitoring">
+    <value>Requires careful exposure monitoring as changes are gradual</value>
+    <comment>Exposure monitoring advice for penumbral eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Penumbral_TimeLapseBest">
+    <value>Best captured through time-lapse showing gradual dimming</value>
+    <comment>Time-lapse recommendation for penumbral eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_Penumbral_PreciseMetering">
+    <value>Use precise metering to detect subtle brightness variations</value>
+    <comment>Metering advice for penumbral eclipse</comment>
+  </data>
+  <data name="LunarEclipsePhotography_BatteryBackup">
+    <value>Battery backup essential for extended shooting sessions</value>
+    <comment>Universal planning advice for lunar eclipses</comment>
+  </data>
+  <data name="LunarEclipsePhotography_RemoteShutter">
+    <value>Remote shutter release prevents camera shake during long sequences</value>
+    <comment>Universal technical advice for lunar eclipses</comment>
+  </data>
+  <data name="LunarEclipsePhotography_PreFocus">
+    <value>Pre-focus on moon before eclipse begins to avoid autofocus issues in darkness</value>
+    <comment>Universal focusing advice for lunar eclipses</comment>
+  </data>
+  <data name="LunarEclipsePhotography_DefaultPlanning">
+    <value>Plan for extended shooting session with backup equipment and multiple exposure settings.</value>
+    <comment>Default eclipse photography planning advice</comment>
+  </data>
+  <data name="LunarEclipseExposure_Total_PreEclipse">
+    <value>Pre-eclipse: ISO 100, f/8, 1/250s for normal moon brightness</value>
+    <comment>Exposure settings before total lunar eclipse begins</comment>
+  </data>
+  <data name="LunarEclipseExposure_Total_PartialPhases">
+    <value>Partial phases: ISO 200-800, f/5.6-8, 1/60-1/250s as shadow progresses</value>
+    <comment>Exposure settings during partial phases of total eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_Total_Totality">
+    <value>Totality: ISO 1600-6400, f/4-5.6, 1-8 seconds for blood moon color</value>
+    <comment>Exposure settings during totality phase</comment>
+  </data>
+  <data name="LunarEclipseExposure_Total_DeepTotality">
+    <value>Deep totality: ISO 3200-12800, f/2.8-4, 2-15 seconds for faint details</value>
+    <comment>Exposure settings for deep totality phase</comment>
+  </data>
+  <data name="LunarEclipseExposure_Total_PostTotality">
+    <value>Post-totality: Reverse exposure sequence as moon brightens</value>
+    <comment>Exposure guidance after totality ends</comment>
+  </data>
+  <data name="LunarEclipseExposure_Total_BracketExtensively">
+    <value>Bracket extensively during totality - color and brightness vary significantly</value>
+    <comment>Bracketing advice for total eclipse totality</comment>
+  </data>
+  <data name="LunarEclipseExposure_Partial_UneclipsedPortion">
+    <value>Uneclipsed portion: ISO 100-200, f/8-11, 1/250-1/500s</value>
+    <comment>Exposure settings for uneclipsed portion during partial eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_Partial_ShadowedPortion">
+    <value>Shadowed portion: ISO 400-1600, f/5.6-8, 1/30-1/125s</value>
+    <comment>Exposure settings for shadowed portion during partial eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_Partial_HDRTechnique">
+    <value>HDR technique: Bracket for both bright and dark portions simultaneously</value>
+    <comment>HDR technique for partial lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_Partial_MaximumEclipse">
+    <value>Maximum eclipse: ISO 800-3200, f/5.6, 1/60-1/250s depending on coverage</value>
+    <comment>Exposure settings at maximum partial eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_Penumbral_ThroughoutEvent">
+    <value>Throughout event: ISO 100-400, f/8, 1/125-1/500s with subtle adjustments</value>
+    <comment>Exposure settings throughout penumbral eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_Penumbral_MonitorHistogram">
+    <value>Monitor histogram carefully - changes are gradual and subtle</value>
+    <comment>Histogram monitoring advice for penumbral eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_Penumbral_ConsistentMetering">
+    <value>Consistent metering point essential for detecting brightness variations</value>
+    <comment>Metering consistency advice for penumbral eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_Penumbral_Maximum">
+    <value>Maximum penumbral: ISO 200-800, f/5.6-8, 1/60-1/250s</value>
+    <comment>Exposure settings at maximum penumbral eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_ShootRAW">
+    <value>Shoot RAW for maximum post-processing flexibility with color and exposure</value>
+    <comment>Universal advice to shoot RAW during lunar eclipses</comment>
+  </data>
+  <data name="LunarEclipseExposure_SpotMetering">
+    <value>Use spot metering on moon to avoid foreground influence</value>
+    <comment>Metering advice for lunar eclipse photography</comment>
+  </data>
+  <data name="LunarEclipseExposure_FocusStacking">
+    <value>Consider focus stacking during totality for sharp edge-to-edge detail</value>
+    <comment>Focus stacking technique for lunar eclipse</comment>
+  </data>
+  <data name="LunarEclipseExposure_Default">
+    <value>Use bracketed exposures and shoot in RAW for optimal results.</value>
+    <comment>Default lunar eclipse exposure advice</comment>
+  </data>
+  <data name="LunarPhotographyType_EarthshinePhotography">
+    <value>Earthshine Photography</value>
+    <comment>Photography type for new moon phase</comment>
+  </data>
+  <data name="LunarPhotographyType_TerminatorDetailAndCrescent">
+    <value>Terminator Detail and Crescent Composition</value>
+    <comment>Photography type for waxing crescent phase</comment>
+  </data>
+  <data name="LunarPhotographyType_CraterShadowPhotography">
+    <value>Crater Shadow Photography</value>
+    <comment>Photography type for first quarter phase</comment>
+  </data>
+  <data name="LunarPhotographyType_MareAndHighlandDetail">
+    <value>Mare and Highland Detail</value>
+    <comment>Photography type for waxing gibbous phase</comment>
+  </data>
+  <data name="LunarPhotographyType_LunarLandscapeAndRaySystems">
+    <value>Lunar Landscape and Ray Systems</value>
+    <comment>Photography type for full moon phase</comment>
+  </data>
+  <data name="LunarPhotographyType_WesternLimbFeatures">
+    <value>Western Limb Features</value>
+    <comment>Photography type for waning gibbous phase</comment>
+  </data>
+  <data name="LunarPhotographyType_EveningTerminatorAndCraterDetail">
+    <value>Evening Terminator and Crater Detail</value>
+    <comment>Photography type for third quarter phase</comment>
+  </data>
+  <data name="LunarPhotographyType_MorningTerminatorAndEarthshine">
+    <value>Morning Terminator and Earthshine</value>
+    <comment>Photography type for waning crescent phase</comment>
+  </data>
+  <data name="LunarPhotographyType_GeneralLunarPhotography">
+    <value>General Lunar Photography</value>
+    <comment>Default photography type when phase cannot be determined</comment>
+  </data>
+  <data name="LunarPhotographyType_LunarSurfacePhotography">
+    <value>Lunar Surface Photography</value>
+    <comment>Default photography type for error cases</comment>
+  </data>
+  <data name="MilkyWaySeason_Winter">
+    <value>Winter - Galactic center not visible, focus on winter constellations like Orion</value>
+    <comment>Milky Way season description for winter months</comment>
+  </data>
+  <data name="MilkyWaySeason_Spring">
+    <value>Spring - Galactic center rises before dawn, early morning photography opportunity</value>
+    <comment>Milky Way season description for spring months</comment>
+  </data>
+  <data name="MilkyWaySeason_Summer">
+    <value>Summer - Peak season! Galactic center visible all night, best photography conditions</value>
+    <comment>Milky Way season description for summer months</comment>
+  </data>
+  <data name="MilkyWaySeason_Autumn">
+    <value>Autumn - Galactic center sets early evening, golden hour overlap opportunities</value>
+    <comment>Milky Way season description for autumn months</comment>
+  </data>
+  <data name="MilkyWaySeason_YearRound">
+    <value>Year-round</value>
+    <comment>Default Milky Way season when month cannot be determined</comment>
+  </data>
+  <data name="MilkyWaySeason_SeasonalVariability">
+    <value>Seasonal visibility varies</value>
+    <comment>Error fallback for Milky Way season</comment>
+  </data>
+  <data name="MilkyWayComposition_SouthernHorizon_Arch">
+    <value>Position galactic center over southern horizon for dramatic arch compositions</value>
+    <comment>Composition advice for galactic center in southern sky</comment>
+  </data>
+  <data name="MilkyWayComposition_SouthernHorizon_Ridges">
+    <value>Include mountain ridges or treelines as foreground silhouettes</value>
+    <comment>Foreground advice for southern galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_SouthernHorizon_Reflections">
+    <value>Consider reflection shots over lakes or calm water bodies</value>
+    <comment>Reflection composition advice for southern galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_Rising_TimeLapse">
+    <value>Capture galactic center rising - excellent for time-lapse sequences</value>
+    <comment>Composition advice for rising galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_Rising_EasternLandmarks">
+    <value>Frame with eastern horizon landmarks like buildings or rock formations</value>
+    <comment>Landmark framing advice for rising galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_Setting_Panoramic">
+    <value>Document galactic center setting - ideal for panoramic compositions</value>
+    <comment>Composition advice for setting galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_Setting_WesternLandscape">
+    <value>Combine with western landscape features for compelling foregrounds</value>
+    <comment>Western landscape composition advice</comment>
+  </data>
+  <data name="MilkyWayComposition_LowAltitude_HorizontalPanoramas">
+    <value>Low galactic center perfect for wide horizontal panoramas</value>
+    <comment>Composition advice for low altitude galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_LowAltitude_RuleOfThirds">
+    <value>Use rule of thirds - place horizon on lower third, sky dominates frame</value>
+    <comment>Rule of thirds advice for low galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_LowAltitude_ForegroundElements">
+    <value>Include interesting foreground elements to add depth and scale</value>
+    <comment>Foreground advice for low galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_MediumAltitude_Portrait">
+    <value>Medium altitude ideal for portrait orientation compositions</value>
+    <comment>Orientation advice for medium altitude galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_MediumAltitude_NaturalArchways">
+    <value>Frame galactic center with natural archways or cave openings</value>
+    <comment>Natural framing advice for medium altitude</comment>
+  </data>
+  <data name="MilkyWayComposition_MediumAltitude_VerticalPanoramas">
+    <value>Consider vertical panoramas to capture full galactic arch</value>
+    <comment>Vertical panorama advice for medium altitude</comment>
+  </data>
+  <data name="MilkyWayComposition_HighAltitude_DetailedCore">
+    <value>High galactic center excellent for detailed core photography</value>
+    <comment>Detailed photography advice for high altitude galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_HighAltitude_LongerFocalLengths">
+    <value>Focus on central bulge detail with longer focal lengths</value>
+    <comment>Focal length advice for high altitude galactic center</comment>
+  </data>
+  <data name="MilkyWayComposition_HighAltitude_StarTracker">
+    <value>Consider star tracker for detailed high-resolution captures</value>
+    <comment>Star tracker advice for high altitude detailed photography</comment>
+  </data>
+  <data name="MilkyWayComposition_LeadingLines">
+    <value>Use leading lines in landscape to guide eye toward galactic center</value>
+    <comment>Universal composition advice - leading lines</comment>
+  </data>
+  <data name="MilkyWayComposition_HumanFigures">
+    <value>Include human figures for scale and storytelling element</value>
+    <comment>Universal composition advice - human scale</comment>
+  </data>
+  <data name="MilkyWayComposition_BlueHour">
+    <value>Plan shots during blue hour for balanced sky and foreground exposure</value>
+    <comment>Universal composition advice - blue hour timing</comment>
+  </data>
+  <data name="MilkyWayComposition_Default">
+    <value>Use wide-angle lens and include interesting foreground elements</value>
+    <comment>Default Milky Way composition advice</comment>
+  </data>
+  <data name="ConstellationNotes_Lyra">
+    <value>Summer constellation featuring Vega and Ring Nebula M57. Compact constellation perfect for wide-field imaging.</value>
+    <comment>Photography notes for Lyra constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Aquila">
+    <value>Summer constellation along Milky Way with bright star Altair. Rich star fields excellent for wide-field photography.</value>
+    <comment>Photography notes for Aquila constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Centaurus">
+    <value>Southern constellation featuring Alpha Centauri and Omega Centauri globular cluster. Excellent southern hemisphere target.</value>
+    <comment>Photography notes for Centaurus constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Crux">
+    <value>Southern Cross constellation with Coal Sack Nebula. Iconic southern hemisphere target for wide-field compositions.</value>
+    <comment>Photography notes for Crux constellation</comment>
+  </data>
+  <data name="ConstellationNotes_UrsaMinor">
+    <value>Circumpolar constellation containing Polaris. Essential for polar alignment and star trail photography.</value>
+    <comment>Photography notes for Ursa Minor constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Draco">
+    <value>Large circumpolar constellation curving around the north celestial pole. Excellent for star trail compositions.</value>
+    <comment>Photography notes for Draco constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Gemini">
+    <value>Winter constellation with bright stars Castor and Pollux. Contains open cluster M35 and Eskimo Nebula.</value>
+    <comment>Photography notes for Gemini constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Cancer">
+    <value>Faint zodiacal constellation containing Beehive Cluster M44. Requires dark skies for optimal photography.</value>
+    <comment>Photography notes for Cancer constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Virgo">
+    <value>Spring constellation containing Virgo Galaxy Cluster. Excellent for galaxy photography with longer focal lengths.</value>
+    <comment>Photography notes for Virgo constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Libra">
+    <value>Autumn constellation with modest deep sky targets. Good for constellation pattern photography.</value>
+    <comment>Photography notes for Libra constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Capricornus">
+    <value>Autumn constellation in southern sky. Globular cluster M30 is the main deep sky target.</value>
+    <comment>Photography notes for Capricornus constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Aquarius">
+    <value>Autumn constellation containing Helix Nebula and several globular clusters. Large constellation requires wide-field approach.</value>
+    <comment>Photography notes for Aquarius constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Pisces">
+    <value>Large but faint autumn constellation. Challenging target requiring dark skies for constellation photography.</value>
+    <comment>Photography notes for Pisces constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Aries">
+    <value>Small autumn constellation with few deep sky objects. Good for constellation pattern and wide-field photography.</value>
+    <comment>Photography notes for Aries constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Taurus">
+    <value>Winter constellation featuring Pleiades M45 and Hyades clusters. Excellent wide-field targets with bright stars.</value>
+    <comment>Photography notes for Taurus constellation</comment>
+  </data>
+  <data name="ISSPhotography_ExcellentOverhead">
+    <value>Excellent overhead pass - ideal for star trail composites</value>
+    <comment>ISS photography advice for high overhead passes</comment>
+  </data>
+  <data name="ISSPhotography_GoodHighPass">
+    <value>Good high pass - suitable for single exposure captures</value>
+    <comment>ISS photography advice for good high passes</comment>
+  </data>
+  <data name="ISSPhotography_ModeratePass">
+    <value>Moderate pass - visible but lower in sky</value>
+    <comment>ISS photography advice for moderate altitude passes</comment>
+  </data>
+  <data name="ISSPhotography_LowPass">
+    <value>Low pass - challenging due to atmosphere and obstacles</value>
+    <comment>ISS photography advice for low altitude passes</comment>
+  </data>
+  <data name="ISSPhotography_LongDuration">
+    <value>Long duration pass - excellent for time-lapse sequences</value>
+    <comment>ISS photography advice for long duration passes</comment>
+  </data>
+  <data name="ISSPhotography_StandardDuration">
+    <value>Standard duration - good for multiple exposures</value>
+    <comment>ISS photography advice for standard duration passes</comment>
+  </data>
+  <data name="ISSPhotography_ShortPass">
+    <value>Short pass - plan timing carefully</value>
+    <comment>ISS photography advice for short duration passes</comment>
+  </data>
+  <data name="ISSPhotography_VeryBright">
+    <value>Very bright pass - easily visible and photographable</value>
+    <comment>ISS photography advice for very bright passes</comment>
+  </data>
+  <data name="ISSPhotography_Bright">
+    <value>Bright pass - good photographic target</value>
+    <comment>ISS photography advice for bright passes</comment>
+  </data>
+  <data name="ISSPhotography_Dimmer">
+    <value>Dimmer pass - may require longer exposures</value>
+    <comment>ISS photography advice for dimmer passes</comment>
+  </data>
+  <data name="ISSPhotography_CameraSettings">
+    <value>Use 15-30 second exposures, ISO 800-3200, wide-angle lens</value>
+    <comment>Camera settings recommendation for ISS photography</comment>
+  </data>
+  <data name="MeteorShowerStrategy_Perseids_Premier">
+    <value>Premier shower for photography - reliable high rates and bright meteors</value>
+    <comment>Photography strategy for Perseid meteor shower</comment>
+  </data>
+  <data name="MeteorShowerStrategy_Perseids_BestAfterMidnight">
+    <value>Best after midnight when radiant is highest</value>
+    <comment>Timing advice for Perseid meteor shower</comment>
+  </data>
+  <data name="MeteorShowerStrategy_Geminids_Excellent">
+    <value>Excellent winter shower - slower meteors good for photography</value>
+    <comment>Photography strategy for Geminid meteor shower</comment>
+  </data>
+  <data name="MeteorShowerStrategy_Geminids_ActiveAllNight">
+    <value>Active all night, best after 10 PM</value>
+    <comment>Timing advice for Geminid meteor shower</comment>
+  </data>
+  <data name="MeteorShowerStrategy_Quadrantids_ShortPeak">
+    <value>Short sharp peak - timing critical within 6-hour window</value>
+    <comment>Photography strategy for Quadrantid meteor shower</comment>
+  </data>
+  <data name="MeteorShowerStrategy_Quadrantids_ColdWeather">
+    <value>Cold weather conditions - prepare equipment for freezing temperatures</value>
+    <comment>Weather preparation advice for Quadrantid meteor shower</comment>
+  </data>
+  <data name="MeteorShowerStrategy_Leonids_Variable">
+    <value>Variable shower - some years produce meteor storms</value>
+    <comment>Photography strategy for Leonid meteor shower</comment>
+  </data>
+  <data name="MeteorShowerStrategy_Leonids_FastMeteors">
+    <value>Fast meteors require shorter exposures</value>
+    <comment>Technical advice for Leonid meteor shower</comment>
+  </data>
+  <data name="MeteorShowerStrategy_RadiantBelowHorizon">
+    <value>Radiant below horizon - shower not visible from your location</value>
+    <comment>Visibility advice when radiant is below horizon</comment>
+  </data>
+  <data name="MeteorShowerStrategy_LowRadiant">
+    <value>Low radiant - expect fewer meteors but longer trails</value>
+    <comment>Strategy for low radiant altitude</comment>
+  </data>
+  <data name="MeteorShowerStrategy_HighRadiant">
+    <value>High radiant - maximum meteor rates expected</value>
+    <comment>Strategy for high radiant altitude</comment>
+  </data>
+  <data name="MeteorShowerStrategy_BrightMoon">
+    <value>Bright moon - focus on brightest meteors, consider HDR techniques</value>
+    <comment>Strategy for bright moon interference</comment>
+  </data>
+  <data name="MeteorShowerStrategy_ModerateMoon">
+    <value>Moderate moon interference - still good photography conditions</value>
+    <comment>Strategy for moderate moon interference</comment>
+  </data>
+  <data name="MeteorShowerStrategy_DarkSkies">
+    <value>Dark skies - optimal conditions for meteor photography</value>
+    <comment>Strategy for dark sky conditions</comment>
+  </data>
+  <data name="MeteorShowerStrategy_CameraSettings">
+    <value>Use 14-35mm wide-angle lens, ISO 1600-6400, 15-30 second exposures</value>
+    <comment>Camera settings for meteor shower photography</comment>
+  </data>
+  <data name="MeteorShowerStrategy_CameraPointing">
+    <value>Point camera 45-60 degrees away from radiant for longer trails</value>
+    <comment>Camera pointing advice for meteor shower photography</comment>
+  </data>
+  <data name="MeteorConditions_Excellent">
+    <value>Excellent conditions - ideal for meteor photography</value>
+    <comment>Meteor conditions recommendation for excellent conditions</comment>
+  </data>
+  <data name="MeteorConditions_Good">
+    <value>Good conditions - favorable for meteor capture</value>
+    <comment>Meteor conditions recommendation for good conditions</comment>
+  </data>
+  <data name="MeteorConditions_Fair">
+    <value>Fair conditions - meteors visible but challenging</value>
+    <comment>Meteor conditions recommendation for fair conditions</comment>
+  </data>
+  <data name="MeteorConditions_Poor">
+    <value>Poor conditions - limited meteor visibility</value>
+    <comment>Meteor conditions recommendation for poor conditions</comment>
+  </data>
+  <data name="MeteorConditions_VeryPoor">
+    <value>Very poor conditions - meteor photography not recommended</value>
+    <comment>Meteor conditions recommendation for very poor conditions</comment>
+  </data>
+  <data name="MeteorCameraDirection_OptimalPointing">
+    <value>Point camera {0} or {1} (60° from radiant) for optimal meteor trails</value>
+    <comment>Optimal camera direction for meteor photography, {0} and {1} are cardinal directions</comment>
+  </data>
+  <data name="CardinalDirection_North">
+    <value>North</value>
+    <comment>Cardinal direction - North</comment>
+  </data>
+  <data name="CardinalDirection_Northeast">
+    <value>Northeast</value>
+    <comment>Cardinal direction - Northeast</comment>
+  </data>
+  <data name="CardinalDirection_East">
+    <value>East</value>
+    <comment>Cardinal direction - East</comment>
+  </data>
+  <data name="CardinalDirection_Southeast">
+    <value>Southeast</value>
+    <comment>Cardinal direction - Southeast</comment>
+  </data>
+  <data name="CardinalDirection_South">
+    <value>South</value>
+    <comment>Cardinal direction - South</comment>
+  </data>
+  <data name="CardinalDirection_Southwest">
+    <value>Southwest</value>
+    <comment>Cardinal direction - Southwest</comment>
+  </data>
+  <data name="CardinalDirection_West">
+    <value>West</value>
+    <comment>Cardinal direction - West</comment>
+  </data>
+  <data name="CardinalDirection_Northwest">
+    <value>Northwest</value>
+    <comment>Cardinal direction - Northwest</comment>
+  </data>
+  <data name="MilkyWayAdvice_Summer_PeakSeason">
+    <value>Peak Milky Way season - galactic center visible all night</value>
+    <comment>Milky Way photography advice for summer season</comment>
+  </data>
+  <data name="MilkyWayAdvice_Summer_NewMoon">
+    <value>Plan shoots during new moon for darkest skies</value>
+    <comment>Moon phase advice for summer Milky Way</comment>
+  </data>
+  <data name="MilkyWayAdvice_Summer_GalacticCenter">
+    <value>Galactic center rises in southeast, sets in southwest</value>
+    <comment>Galactic center movement advice for summer</comment>
+  </data>
+  <data name="MilkyWayAdvice_Summer_BestWindow">
+    <value>Best shooting window: 10 PM - 4 AM for optimal positioning</value>
+    <comment>Optimal timing advice for summer Milky Way</comment>
+  </data>
+  <data name="MilkyWayAdvice_Spring_EarlyMorning">
+    <value>Galactic center visible before dawn - plan early morning shoots</value>
+    <comment>Milky Way photography advice for spring season</comment>
+  </data>
+  <data name="MilkyWayAdvice_Spring_CoreRises">
+    <value>Core rises 2-4 hours before sunrise</value>
+    <comment>Timing advice for spring Milky Way</comment>
+  </data>
+  <data name="MilkyWayAdvice_Spring_CombineSunrise">
+    <value>Combine with sunrise landscape photography</value>
+    <comment>Combination shooting advice for spring</comment>
+  </data>
+  <data name="MilkyWayAdvice_Autumn_EarlyEvening">
+    <value>Galactic center sets early evening - capture during blue hour</value>
+    <comment>Milky Way photography advice for autumn season</comment>
+  </data>
+  <data name="MilkyWayAdvice_Autumn_GoldenOpportunity">
+    <value>Golden opportunity for foreground silhouettes</value>
+    <comment>Composition advice for autumn Milky Way</comment>
+  </data>
+  <data name="MilkyWayAdvice_Autumn_AfterTwilight">
+    <value>Core visible immediately after astronomical twilight</value>
+    <comment>Timing advice for autumn Milky Way</comment>
+  </data>
+  <data name="MilkyWayAdvice_Winter_WinterMilkyWay">
+    <value>Focus on winter Milky Way - dimmer but still photographable</value>
+    <comment>Milky Way photography advice for winter season</comment>
+  </data>
+  <data name="MilkyWayAdvice_Winter_Constellations">
+    <value>Orion region and winter constellations prominent</value>
+    <comment>Constellation advice for winter Milky Way</comment>
+  </data>
+  <data name="MilkyWayAdvice_Winter_LongerNights">
+    <value>Longer nights provide extended shooting opportunities</value>
+    <comment>Duration advantage for winter Milky Way</comment>
+  </data>
+  <data name="MilkyWayAdvice_NotVisible">
+    <value>Galactic center below horizon - not visible</value>
+    <comment>Advice when galactic center is not visible</comment>
+  </data>
+  <data name="MilkyWayAdvice_LowAltitude_ElevatedLocation">
+    <value>Low altitude - find elevated location with clear southern horizon</value>
+    <comment>Location advice for low altitude galactic center</comment>
+  </data>
+  <data name="MilkyWayAdvice_LowAltitude_AtmosphericDistortion">
+    <value>Atmospheric distortion may affect image quality</value>
+    <comment>Quality warning for low altitude galactic center</comment>
+  </data>
+  <data name="MilkyWayAdvice_GoodAltitude_ForegroundComposition">
+    <value>Good altitude for dramatic foreground compositions</value>
+    <comment>Composition advice for good altitude galactic center</comment>
+  </data>
+  <data name="MilkyWayAdvice_GoodAltitude_LandscapeAstro">
+    <value>Excellent for landscape astrophotography</value>
+    <comment>Photography type advice for good altitude</comment>
+  </data>
+  <data name="MilkyWayAdvice_HighAltitude_MinimalInterference">
+    <value>High altitude - minimal atmospheric interference</value>
+    <comment>Quality advantage for high altitude galactic center</comment>
+  </data>
+  <data name="MilkyWayAdvice_HighAltitude_DetailedCore">
+    <value>Ideal for detailed galactic center photography</value>
+    <comment>Detail photography advice for high altitude</comment>
+  </data>
+  <data name="MilkyWayAdvice_WideAngleLens">
+    <value>Use 14-24mm wide-angle lens for full galactic arc</value>
+    <comment>Lens recommendation for Milky Way photography</comment>
+  </data>
+  <data name="MilkyWayAdvice_CameraSettings">
+    <value>ISO 3200-6400, f/2.8 or wider, 15-25 second exposures</value>
+    <comment>Camera settings for Milky Way photography</comment>
+  </data>
+  <data name="MilkyWayAdvice_PanoramicStitching">
+    <value>Consider panoramic stitching for ultra-wide compositions</value>
+    <comment>Panoramic technique advice for Milky Way</comment>
+  </data>
+  <data name="MilkyWayAdvice_Default">
+    <value>Use wide-angle lens, high ISO, and long exposure for Milky Way photography.</value>
+    <comment>Default Milky Way photography advice</comment>
+  </data>
+  <data name="LunarExposureSettings_ISO">
+    <value>ISO {0}</value>
+    <comment>ISO setting format for lunar photography, {0} is ISO value</comment>
+  </data>
+  <data name="LunarExposureSettings_Aperture">
+    <value>f/{0:F1}</value>
+    <comment>Aperture setting format for lunar photography, {0} is f-stop value</comment>
+  </data>
+  <data name="LunarExposureSettings_ShutterSpeed">
+    <value>1/125 - 1/500 second (varies by lunar phase)</value>
+    <comment>Shutter speed recommendation for lunar photography</comment>
+  </data>
+  <data name="LunarExposureSettings_FocusingTechnique">
+    <value>Use live view to focus on lunar crater edges for maximum sharpness</value>
+    <comment>Focusing technique for lunar photography</comment>
+  </data>
+  <data name="LunarExposureSettings_ProcessingNote_Histogram">
+    <value>Use histogram to avoid overexposure of lunar surface</value>
+    <comment>Processing note for lunar photography - histogram</comment>
+  </data>
+  <data name="LunarExposureSettings_ProcessingNote_HDR">
+    <value>Consider HDR for earthshine and bright lunar surface</value>
+    <comment>Processing note for lunar photography - HDR</comment>
+  </data>
+  <data name="LunarExposureSettings_ProcessingNote_UnsharpMask">
+    <value>Apply unsharp mask to enhance crater detail</value>
+    <comment>Processing note for lunar photography - sharpening</comment>
+  </data>
+  <data name="LunarExposureSettings_TrackerRequirements">
+    <value>Tracking not required for short lunar exposures</value>
+    <comment>Tracker requirements for lunar photography</comment>
+  </data>
+  <data name="PlanetaryExposureSettings_ShutterSpeed">
+    <value>1/60 - 1/250 second (depends on planet brightness)</value>
+    <comment>Shutter speed recommendation for planetary photography</comment>
+  </data>
+  <data name="PlanetaryExposureSettings_FocusingTechnique">
+    <value>Focus on planet disc using live view at maximum zoom</value>
+    <comment>Focusing technique for planetary photography</comment>
+  </data>
+  <data name="PlanetaryExposureSettings_ProcessingNote_Stacking">
+    <value>Stack best 10-20% of frames to reduce atmospheric turbulence</value>
+    <comment>Processing note for planetary photography - stacking</comment>
+  </data>
+  <data name="PlanetaryExposureSettings_ProcessingNote_Wavelets">
+    <value>Use wavelets or deconvolution to enhance planetary detail</value>
+    <comment>Processing note for planetary photography - detail enhancement</comment>
+  </data>
+  <data name="PlanetaryExposureSettings_ProcessingNote_RGB">
+    <value>Consider RGB separation for color planets</value>
+    <comment>Processing note for planetary photography - color separation</comment>
+  </data>
+  <data name="PlanetaryExposureSettings_TrackerRequirements_WithTracker">
+    <value>Tracking recommended for longer focal lengths</value>
+    <comment>Tracker requirements for planetary photography with tracker</comment>
+  </data>
+  <data name="PlanetaryExposureSettings_TrackerRequirements_WithoutTracker">
+    <value>Short exposures minimize tracking requirements</value>
+    <comment>Tracker requirements for planetary photography without tracker</comment>
+  </data>
+  <data name="ConstellationExposureSettings_ShutterSpeed_Tracked">
+    <value>2-5 minutes (tracked)</value>
+    <comment>Shutter speed recommendation for tracked constellation photography</comment>
+  </data>
+  <data name="ConstellationExposureSettings_ShutterSpeed_Untracked">
+    <value>15-30 seconds (untracked)</value>
+    <comment>Shutter speed recommendation for untracked constellation photography</comment>
+  </data>
+  <data name="ConstellationExposureSettings_FocusingTechnique">
+    <value>Focus on brightest star in constellation</value>
+    <comment>Focusing technique for constellation photography</comment>
+  </data>
+  <data name="ConstellationExposureSettings_ProcessingNote_StackFrames">
+    <value>Stack frames to enhance faint stars</value>
+    <comment>Processing note for constellation photography - stacking</comment>
+  </data>
+  <data name="ConstellationExposureSettings_ProcessingNote_AdjustCurves">
+    <value>Adjust curves to bring out constellation patterns</value>
+    <comment>Processing note for constellation photography - curves</comment>
+  </data>
+  <data name="ConstellationExposureSettings_ProcessingNote_DiffractionSpikes">
+    <value>Consider star diffraction spikes for artistic effect</value>
+    <comment>Processing note for constellation photography - artistic effects</comment>
+  </data>
+  <data name="ConstellationExposureSettings_ProcessingNote_BalanceBrightness">
+    <value>Balance star brightness with any nebulosity present</value>
+    <comment>Processing note for constellation photography - brightness balance</comment>
+  </data>
+  <data name="ConstellationExposureSettings_TrackerRequirements_WithTracker">
+    <value>Tracking allows longer exposures for fainter stars</value>
+    <comment>Tracker requirements for constellation photography with tracker</comment>
+  </data>
+  <data name="ConstellationExposureSettings_TrackerRequirements_WithoutTracker">
+    <value>Untracked suitable for bright constellation stars</value>
+    <comment>Tracker requirements for constellation photography without tracker</comment>
+  </data>
+  <data name="StarTrailExposureSettings_ShutterSpeed">
+    <value>Multiple 2-4 minute exposures (stack for long trails)</value>
+    <comment>Shutter speed recommendation for star trail photography</comment>
+  </data>
+  <data name="StarTrailExposureSettings_FocusingTechnique">
+    <value>Focus to infinity on bright star before starting sequence</value>
+    <comment>Focusing technique for star trail photography</comment>
+  </data>
+  <data name="StarTrailExposureSettings_ProcessingNote_StarStaX">
+    <value>Use StarStaX or similar software to blend exposures</value>
+    <comment>Processing note for star trail photography - software</comment>
+  </data>
+  <data name="StarTrailExposureSettings_ProcessingNote_BlendMode">
+    <value>Lighten or Maximum blend mode for continuous trails</value>
+    <comment>Processing note for star trail photography - blend modes</comment>
+  </data>
+  <data name="StarTrailExposureSettings_ProcessingNote_GapFilling">
+    <value>Consider gap filling for uninterrupted trails</value>
+    <comment>Processing note for star trail photography - gap filling</comment>
+  </data>
+  <data name="StarTrailExposureSettings_ProcessingNote_SeparateForeground">
+    <value>Separate foreground exposure for landscape elements</value>
+    <comment>Processing note for star trail photography - foreground</comment>
+  </data>
+  <data name="StarTrailExposureSettings_TrackerRequirements">
+    <value>No tracking required - star motion creates the trails</value>
+    <comment>Tracker requirements for star trail photography</comment>
+  </data>
+  <data name="MeteorExposureSettings_ShutterSpeed">
+    <value>15-30 seconds per frame</value>
+    <comment>Shutter speed recommendation for meteor photography</comment>
+  </data>
+  <data name="MeteorExposureSettings_FocusingTechnique">
+    <value>Focus on bright star, then switch to manual to lock focus</value>
+    <comment>Focusing technique for meteor photography</comment>
+  </data>
+  <data name="MeteorExposureSettings_ProcessingNote_ReviewFrames">
+    <value>Review frames for meteors before stacking</value>
+    <comment>Processing note for meteor photography - review frames</comment>
+  </data>
+  <data name="MeteorExposureSettings_ProcessingNote_StackBackground">
+    <value>Stack meteor-free frames for background sky</value>
+    <comment>Processing note for meteor photography - background stacking</comment>
+  </data>
+  <data name="MeteorExposureSettings_ProcessingNote_BlendMeteors">
+    <value>Blend meteor frames as separate layers</value>
+    <comment>Processing note for meteor photography - meteor blending</comment>
+  </data>
+  <data name="MeteorExposureSettings_ProcessingNote_AutomatedDetection">
+    <value>Consider automated meteor detection software</value>
+    <comment>Processing note for meteor photography - automated detection</comment>
+  </data>
+  <data name="MeteorExposureSettings_TrackerRequirements">
+    <value>No tracking - keep exposures under 30 seconds to prevent star trailing</value>
+    <comment>Tracker requirements for meteor photography</comment>
+  </data>
+  <data name="GenericAstroExposureSettings_ShutterSpeed">
+    <value>20-30 seconds</value>
+    <comment>Shutter speed recommendation for generic astrophotography</comment>
+  </data>
+  <data name="GenericAstroExposureSettings_FocusingTechnique">
+    <value>Focus on bright star using live view magnification</value>
+    <comment>Focusing technique for generic astrophotography</comment>
+  </data>
+  <data name="GenericAstroExposureSettings_ProcessingNote_ConservativeSettings">
+    <value>Start with conservative settings and adjust based on results</value>
+    <comment>Processing note for generic astrophotography - conservative approach</comment>
+  </data>
+  <data name="GenericAstroExposureSettings_ProcessingNote_MonitorHistogram">
+    <value>Monitor histogram to avoid overexposure</value>
+    <comment>Processing note for generic astrophotography - histogram monitoring</comment>
+  </data>
+  <data name="GenericAstroExposureSettings_ProcessingNote_StackFrames">
+    <value>Stack multiple frames to improve signal-to-noise ratio</value>
+    <comment>Processing note for generic astrophotography - stacking</comment>
+  </data>
+  <data name="GenericAstroExposureSettings_TrackerRequirements">
+    <value>Tracking mount recommended for exposures over 30 seconds</value>
+    <comment>Tracker requirements for generic astrophotography</comment>
+  </data>
+  <data name="MilkyWayExposureSettings_ShutterSpeed_Tracked">
+    <value>{0:F0} seconds (tracked)</value>
+    <comment>Shutter speed recommendation for tracked Milky Way photography, {0} is exposure time</comment>
+  </data>
+  <data name="MilkyWayExposureSettings_ShutterSpeed_Untracked">
+    <value>{0:F0} seconds (untracked)</value>
+    <comment>Shutter speed recommendation for untracked Milky Way photography, {0} is exposure time</comment>
+  </data>
+  <data name="MilkyWayExposureSettings_FocusingTechnique">
+    <value>Use live view at 10x zoom on bright star, focus to infinity then back slightly</value>
+    <comment>Focusing technique for Milky Way photography</comment>
+  </data>
+  <data name="MilkyWayExposureSettings_ProcessingNote_StackImages">
+    <value>Stack images to reduce noise and enhance detail</value>
+    <comment>Processing note for Milky Way photography - stacking</comment>
+  </data>
+  <data name="MilkyWayExposureSettings_ProcessingNote_GradientRemoval">
+    <value>Use gradient removal to even sky background</value>
+    <comment>Processing note for Milky Way photography - gradient removal</comment>
+  </data>
+  <data name="MilkyWayExposureSettings_ProcessingNote_EnhanceContrast">
+    <value>Enhance contrast in galactic center region</value>
+    <comment>Processing note for Milky Way photography - contrast enhancement</comment>
+  </data>
+  <data name="MilkyWayExposureSettings_ProcessingNote_SeparateForeground">
+    <value>Consider separate processing for foreground if landscape included</value>
+    <comment>Processing note for Milky Way photography - separate foreground</comment>
+  </data>
+  <data name="MilkyWayExposureSettings_TrackerRequirements_WithTracker">
+    <value>Polar align tracker to within 5 arcminutes for sharp stars</value>
+    <comment>Tracker requirements for Milky Way photography with tracker</comment>
+  </data>
+  <data name="MilkyWayExposureSettings_TrackerRequirements_WithoutTracker">
+    <value>No tracker - use wide-angle lens and keep exposures under 25 seconds</value>
+    <comment>Tracker requirements for Milky Way photography without tracker</comment>
+  </data>
+  <data name="DeepSkyExposureSettings_ShutterSpeed">
+    <value>{0:F0} seconds</value>
+    <comment>Shutter speed recommendation for deep sky photography, {0} is exposure time</comment>
+  </data>
+  <data name="DeepSkyExposureSettings_FocusingTechnique">
+    <value>Use Bahtinov mask or live view focusing on bright star near target</value>
+    <comment>Focusing technique for deep sky photography</comment>
+  </data>
+  <data name="DeepSkyExposureSettings_ProcessingNote_CalibrateFrames">
+    <value>Calibrate with dark, bias, and flat frames</value>
+    <comment>Processing note for deep sky photography - calibration frames</comment>
+  </data>
+  <data name="DeepSkyExposureSettings_ProcessingNote_SigmaClipping">
+    <value>Stack using sigma clipping to reject outliers</value>
+    <comment>Processing note for deep sky photography - sigma clipping</comment>
+  </data>
+  <data name="DeepSkyExposureSettings_ProcessingNote_StretchHistogram">
+    <value>Stretch histogram carefully to reveal faint detail</value>
+    <comment>Processing note for deep sky photography - histogram stretching</comment>
+  </data>
+  <data name="DeepSkyExposureSettings_ProcessingNote_NarrowbandFilters">
+    <value>Consider narrowband filters for emission nebulae</value>
+    <comment>Processing note for deep sky photography - narrowband filters</comment>
+  </data>
+  <data name="DeepSkyExposureSettings_ProcessingNote_StarReduction">
+    <value>Use star reduction techniques if stars are prominent</value>
+    <comment>Processing note for deep sky photography - star reduction</comment>
+  </data>
+  <data name="DeepSkyExposureSettings_TrackerRequirements_WithTracker">
+    <value>Essential - requires accurate polar alignment and autoguiding for long exposures</value>
+    <comment>Tracker requirements for deep sky photography with tracker</comment>
+  </data>
+  <data name="DeepSkyExposureSettings_TrackerRequirements_WithoutTracker">
+    <value>Tracking mount highly recommended for deep sky photography</value>
+    <comment>Tracker requirements for deep sky photography without tracker</comment>
+  </data>
+  <data name="TargetSizeInfo_Moon_Description">
+    <value>Lunar disc</value>
+    <comment>Description for moon target size</comment>
+  </data>
+  <data name="TargetSizeInfo_Planets_Description">
+    <value>Planetary disc (varies by planet and distance)</value>
+    <comment>Description for planet target size</comment>
+  </data>
+  <data name="TargetSizeInfo_MilkyWayCore_Description">
+    <value>Galactic center region</value>
+    <comment>Description for Milky Way core target size</comment>
+  </data>
+  <data name="TargetSizeInfo_DeepSkyObjects_Description">
+    <value>Typical nebula/galaxy (highly variable)</value>
+    <comment>Description for deep sky objects target size</comment>
+  </data>
+  <data name="TargetSizeInfo_StarTrails_Description">
+    <value>Full sky coverage for circular trails</value>
+    <comment>Description for star trails target size</comment>
+  </data>
+  <data name="TargetSizeInfo_MeteorShowers_Description">
+    <value>Wide area around radiant</value>
+    <comment>Description for meteor showers target size</comment>
+  </data>
+  <data name="TargetSizeInfo_Constellations_Description">
+    <value>Typical constellation span</value>
+    <comment>Description for constellations target size</comment>
+  </data>
+  <data name="TargetSizeInfo_PolarAlignment_Description">
+    <value>Polaris and surrounding stars</value>
+    <comment>Description for polar alignment target size</comment>
+  </data>
+  <data name="TargetSizeInfo_General_Description">
+    <value>General astrophotography target</value>
+    <comment>Description for general astrophotography target size</comment>
+  </data>
+  <data name="CompositionRecommendations_Moon_Wide">
+    <value>Wide field - excellent for lunar landscape compositions with foreground</value>
+    <comment>Composition recommendation for wide field moon photography</comment>
+  </data>
+  <data name="CompositionRecommendations_Moon_Medium">
+    <value>Medium field - good for lunar detail with some sky context</value>
+    <comment>Composition recommendation for medium field moon photography</comment>
+  </data>
+  <data name="CompositionRecommendations_Moon_Narrow">
+    <value>Narrow field - ideal for detailed lunar surface photography</value>
+    <comment>Composition recommendation for narrow field moon photography</comment>
+  </data>
+  <data name="CompositionRecommendations_MilkyWay_UltraWide">
+    <value>Ultra-wide field - capture full galactic arch</value>
+    <comment>Composition recommendation for ultra-wide Milky Way photography</comment>
+  </data>
+  <data name="CompositionRecommendations_MilkyWay_Wide">
+    <value>Wide field - excellent for galactic center with landscape</value>
+    <comment>Composition recommendation for wide field Milky Way photography</comment>
+  </data>
+  <data name="CompositionRecommendations_MilkyWay_Medium">
+    <value>Medium field - focus on galactic center detail</value>
+    <comment>Composition recommendation for medium field Milky Way photography</comment>
+  </data>
+  <data name="CompositionRecommendations_DeepSky_Generous">
+    <value>Generous framing - allows for composition flexibility and guiding errors</value>
+    <comment>Composition recommendation for generous deep sky framing</comment>
+  </data>
+  <data name="CompositionRecommendations_DeepSky_Good">
+    <value>Good framing - object well-sized in frame</value>
+    <comment>Composition recommendation for good deep sky framing</comment>
+  </data>
+  <data name="CompositionRecommendations_DeepSky_Tight">
+    <value>Tight framing - may cut off object extensions, consider wider field</value>
+    <comment>Composition recommendation for tight deep sky framing</comment>
+  </data>
+  <data name="CompositionRecommendations_StarTrails_Excellent">
+    <value>Excellent for full circular star trails around celestial pole</value>
+    <comment>Composition recommendation for wide field star trails</comment>
+  </data>
+  <data name="CompositionRecommendations_StarTrails_Good">
+    <value>Good for partial circular trails or linear trails</value>
+    <comment>Composition recommendation for medium field star trails</comment>
+  </data>
+  <data name="CompositionRecommendations_StarTrails_Narrow">
+    <value>Narrow field - creates linear star trail segments</value>
+    <comment>Composition recommendation for narrow field star trails</comment>
+  </data>
+  <data name="CompositionRecommendations_VeryWideAspect">
+    <value>Very wide aspect ratio - consider panoramic compositions</value>
+    <comment>Composition recommendation for very wide aspect ratios</comment>
+  </data>
+  <data name="CompositionRecommendations_TallAspect">
+    <value>Tall aspect ratio - good for vertical compositions</value>
+    <comment>Composition recommendation for tall aspect ratios</comment>
+  </data>
+  <data name="AlternativeFocalLength_Optimal">
+    <value>{0:F0}mm - optimal for target size</value>
+    <comment>Alternative focal length suggestion for optimal target size, {0} is focal length</comment>
+  </data>
+  <data name="AlternativeFocalLength_14mm">
+    <value>Ultra-wide for full sky surveys and Milky Way arch</value>
+    <comment>Use case description for 14mm focal length</comment>
+  </data>
+  <data name="AlternativeFocalLength_24mm">
+    <value>Wide-angle for constellation photography and landscape astro</value>
+    <comment>Use case description for 24mm focal length</comment>
+  </data>
+  <data name="AlternativeFocalLength_50mm">
+    <value>Standard for large nebulae and galaxy clusters</value>
+    <comment>Use case description for 50mm focal length</comment>
+  </data>
+  <data name="AlternativeFocalLength_85mm">
+    <value>Short telephoto for medium nebulae and galaxy groups</value>
+    <comment>Use case description for 85mm focal length</comment>
+  </data>
+  <data name="AlternativeFocalLength_135mm">
+    <value>Telephoto for smaller deep sky objects</value>
+    <comment>Use case description for 135mm focal length</comment>
+  </data>
+  <data name="AlternativeFocalLength_200mm">
+    <value>Long telephoto for detailed nebulae and small galaxies</value>
+    <comment>Use case description for 200mm focal length</comment>
+  </data>
+  <data name="AlternativeFocalLength_300mm">
+    <value>Very long for planetary and small planetary nebulae</value>
+    <comment>Use case description for 300mm focal length</comment>
+  </data>
+  <data name="AlternativeFocalLength_600mm">
+    <value>Extreme telephoto for lunar detail and planets</value>
+    <comment>Use case description for 600mm focal length</comment>
+  </data>
+  <data name="AlternativeFocalLength_1000mm">
+    <value>Telescope territory for high-resolution planetary work</value>
+    <comment>Use case description for 1000mm focal length</comment>
+  </data>
+  <data name="PolarAlignment_SouthernHemisphere_SigmaOctantis">
+    <value>Southern Hemisphere polar alignment - use Sigma Octantis or drift alignment method</value>
+    <comment>Polar alignment instruction for Southern Hemisphere</comment>
+  </data>
+  <data name="PolarAlignment_SouthernHemisphere_ElectronicScope">
+    <value>Octantis is much dimmer than Polaris - consider electronic polar scope</value>
+    <comment>Equipment recommendation for Southern Hemisphere polar alignment</comment>
+  </data>
+  <data name="PolarAlignment_PointMount">
+    <value>Point mount's polar axis toward azimuth {0:F1}° and altitude {1:F1}°</value>
+    <comment>Basic pointing instruction for polar alignment, {0} is azimuth, {1} is altitude</comment>
+  </data>
+  <data name="PolarAlignment_PolarisOffset">
+    <value>Polaris will be offset {0:F1}° from true pole</value>
+    <comment>Polaris offset information, {0} is offset angle</comment>
+  </data>
+  <data name="PolarAlignment_PlacePolarisPosition">
+    <value>At this time, place Polaris at {0} position in polar scope reticle</value>
+    <comment>Specific Polaris positioning instruction, {0} is clock position</comment>
+  </data>
+  <data name="PolarAlignment_UseMountAdjustments">
+    <value>Use mount's altitude and azimuth adjustments to center Polaris in correct position</value>
+    <comment>Mount adjustment instruction for polar alignment</comment>
+  </data>
+  <data name="PolarAlignment_FineTuneDrift">
+    <value>Fine-tune using drift alignment method for precise tracking</value>
+    <comment>Fine-tuning instruction for polar alignment</comment>
+  </data>
+  <data name="PolarAlignment_HighLatitude">
+    <value>High latitude - polar alignment critical for long exposures</value>
+    <comment>High latitude polar alignment advice</comment>
+  </data>
+  <data name="PolarAlignment_LowLatitude">
+    <value>Low latitude - less critical but still important for tracking accuracy</value>
+    <comment>Low latitude polar alignment advice</comment>
+  </data>
+  <data name="PolarAlignment_VerifyAlignment">
+    <value>Verify alignment by checking tracking accuracy on stars near celestial equator</value>
+    <comment>Verification instruction for polar alignment</comment>
+  </data>
+  <data name="ClockPosition_12OClock">
+    <value>12 o'clock</value>
+    <comment>Clock position for 12 o'clock</comment>
+  </data>
+  <data name="ClockPosition_1OClock">
+    <value>1 o'clock</value>
+    <comment>Clock position for 1 o'clock</comment>
+  </data>
+  <data name="ClockPosition_2OClock">
+    <value>2 o'clock</value>
+    <comment>Clock position for 2 o'clock</comment>
+  </data>
+  <data name="ClockPosition_3OClock">
+    <value>3 o'clock</value>
+    <comment>Clock position for 3 o'clock</comment>
+  </data>
+  <data name="ClockPosition_4OClock">
+    <value>4 o'clock</value>
+    <comment>Clock position for 4 o'clock</comment>
+  </data>
+  <data name="ClockPosition_5OClock">
+    <value>5 o'clock</value>
+    <comment>Clock position for 5 o'clock</comment>
+  </data>
+  <data name="ClockPosition_6OClock">
+    <value>6 o'clock</value>
+    <comment>Clock position for 6 o'clock</comment>
+  </data>
+  <data name="ClockPosition_7OClock">
+    <value>7 o'clock</value>
+    <comment>Clock position for 7 o'clock</comment>
+  </data>
+  <data name="ClockPosition_8OClock">
+    <value>8 o'clock</value>
+    <comment>Clock position for 8 o'clock</comment>
+  </data>
+  <data name="ClockPosition_9OClock">
+    <value>9 o'clock</value>
+    <comment>Clock position for 9 o'clock</comment>
+  </data>
+  <data name="ClockPosition_10OClock">
+    <value>10 o'clock</value>
+    <comment>Clock position for 10 o'clock</comment>
+  </data>
+  <data name="ClockPosition_11OClock">
+    <value>11 o'clock</value>
+    <comment>Clock position for 11 o'clock</comment>
+  </data>
+  <data name="ClockPosition_Generic">
+    <value>{0:F0} o'clock</value>
+    <comment>Generic clock position format, {0} is hour</comment>
+  </data>
+  <data name="PolarAlignmentStars_Polaris">
+    <value>Polaris - Primary alignment star in Ursa Minor</value>
+    <comment>Reference star description for Polaris</comment>
+  </data>
+  <data name="PolarAlignmentStars_Kochab">
+    <value>Kochab - Beta Ursae Minoris, bright star in Little Dipper bowl</value>
+    <comment>Reference star description for Kochab</comment>
+  </data>
+  <data name="PolarAlignmentStars_Pherkad">
+    <value>Pherkad - Gamma Ursae Minoris, other bright star in Little Dipper bowl</value>
+    <comment>Reference star description for Pherkad</comment>
+  </data>
+  <data name="PolarAlignmentStars_Dubhe">
+    <value>Dubhe - Alpha Ursae Majoris, pointer star in Big Dipper</value>
+    <comment>Reference star description for Dubhe</comment>
+  </data>
+  <data name="PolarAlignmentStars_Merak">
+    <value>Merak - Beta Ursae Majoris, other pointer star in Big Dipper</value>
+    <comment>Reference star description for Merak</comment>
+  </data>
+  <data name="PolarAlignmentStars_Cassiopeia">
+    <value>Cassiopeia - W-shaped constellation, useful for Polaris finding</value>
+    <comment>Reference constellation description for Cassiopeia</comment>
+  </data>
+  <data name="PolarAlignmentStars_Draco">
+    <value>Draco - Dragon constellation curves around Little Dipper</value>
+    <comment>Reference constellation description for Draco</comment>
+  </data>
+  <data name="PolarAlignmentStars_SigmaOctantis">
+    <value>Sigma Octantis - Faint polar star, magnitude 5.47</value>
+    <comment>Reference star description for Sigma Octantis (Southern Hemisphere)</comment>
+  </data>
+  <data name="PolarAlignmentStars_SouthernCross">
+    <value>Southern Cross - Use to locate celestial south pole</value>
+    <comment>Reference constellation description for Southern Cross</comment>
+  </data>
+  <data name="PolarAlignmentStars_AlphaCentauri">
+    <value>Alpha Centauri - Bright reference for southern sky navigation</value>
+    <comment>Reference star description for Alpha Centauri</comment>
+  </data>
+  <data name="PolarAlignmentStars_BetaCentauri">
+    <value>Beta Centauri - Pointer star with Alpha Centauri</value>
+    <comment>Reference star description for Beta Centauri</comment>
+  </data>
+  <data name="PolarAlignmentStars_Canopus">
+    <value>Canopus - Second brightest star, excellent southern reference</value>
+    <comment>Reference star description for Canopus</comment>
+  </data>
+  <data name="StarTrailComposition_HighLatitude_CelestialPole">
+    <value>Celestial pole high in sky - excellent for circular star trails</value>
+    <comment>Star trail composition advice for high latitude</comment>
+  </data>
+  <data name="StarTrailComposition_HighLatitude_ForegroundSilhouettes">
+    <value>Include interesting foreground silhouettes for scale and context</value>
+    <comment>Foreground advice for high latitude star trails</comment>
+  </data>
+  <data name="StarTrailComposition_HighLatitude_UltraWide">
+    <value>Consider ultra-wide lens to capture full circular trails</value>
+    <comment>Lens advice for high latitude star trails</comment>
+  </data>
+  <data name="StarTrailComposition_MidLatitude_PartialCircular">
+    <value>Moderate pole altitude - good for partial circular or diagonal trails</value>
+    <comment>Star trail composition advice for mid latitude</comment>
+  </data>
+  <data name="StarTrailComposition_MidLatitude_OffCenter">
+    <value>Frame with pole off-center for dynamic composition</value>
+    <comment>Framing advice for mid latitude star trails</comment>
+  </data>
+  <data name="StarTrailComposition_MidLatitude_LeadingLines">
+    <value>Landscape elements can create leading lines to pole</value>
+    <comment>Leading lines advice for mid latitude star trails</comment>
+  </data>
+  <data name="StarTrailComposition_LowLatitude_LinearTrails">
+    <value>Low pole altitude - linear trails dominate composition</value>
+    <comment>Star trail composition advice for low latitude</comment>
+  </data>
+  <data name="StarTrailComposition_LowLatitude_HorizontalFraming">
+    <value>Horizontal framing emphasizes linear trail patterns</value>
+    <comment>Framing advice for low latitude star trails</comment>
+  </data>
+  <data name="StarTrailComposition_LowLatitude_HorizonLine">
+    <value>Include horizon line for reference and scale</value>
+    <comment>Horizon advice for low latitude star trails</comment>
+  </data>
+  <data name="StarTrailComposition_ForegroundElements">
+    <value>Use foreground elements to anchor the composition</value>
+    <comment>Universal composition advice for star trails - foreground</comment>
+  </data>
+  <data name="StarTrailComposition_MultipleExposures">
+    <value>Consider multiple exposures for blending foreground and trails</value>
+    <comment>Universal composition advice for star trails - exposure blending</comment>
+  </data>
+  <data name="StarTrailStrategy_Short_SingleExposure">
+    <value>Short star trails - single exposure approach</value>
+    <comment>Star trail strategy for short duration trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Short_Settings">
+    <value>ISO 400-800, f/2.8-4, 15-30 minute exposure</value>
+    <comment>Camera settings for short star trail exposure</comment>
+  </data>
+  <data name="StarTrailStrategy_Short_MonitorOverexposure">
+    <value>Monitor for overexposure in bright star cores</value>
+    <comment>Overexposure monitoring advice for short star trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Short_DarkFrame">
+    <value>Use dark frame subtraction for noise reduction</value>
+    <comment>Dark frame advice for short star trail exposure</comment>
+  </data>
+  <data name="StarTrailStrategy_Medium_ImageStacking">
+    <value>Medium star trails - consider image stacking approach</value>
+    <comment>Star trail strategy for medium duration trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Medium_Option1">
+    <value>Option 1: Single exposure - ISO 200-400, f/4-5.6</value>
+    <comment>Single exposure option for medium star trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Medium_Option2">
+    <value>Option 2: Stack 15-30 shorter exposures (2-4 minutes each)</value>
+    <comment>Stacking option for medium star trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Medium_StackingReducesNoise">
+    <value>Stacking reduces noise and prevents overexposure</value>
+    <comment>Benefits of stacking for medium star trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Long_StackingRecommended">
+    <value>Long star trails - image stacking highly recommended</value>
+    <comment>Star trail strategy for long duration trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Long_CaptureFrames">
+    <value>Capture 30-120 exposures of 2-4 minutes each</value>
+    <comment>Frame count advice for long star trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Long_Settings">
+    <value>ISO 200-400, f/4-5.6 for optimal star quality</value>
+    <comment>Camera settings for long star trail stacking</comment>
+  </data>
+  <data name="StarTrailStrategy_Long_Intervalometer">
+    <value>Use intervalometer with minimal gap between exposures</value>
+    <comment>Intervalometer advice for long star trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Long_ProcessingSoftware">
+    <value>Process using StarStaX or similar stacking software</value>
+    <comment>Processing software advice for long star trails</comment>
+  </data>
+  <data name="StarTrailStrategy_Long_BlendMode">
+    <value>Blend mode: Lighten or Maximum for continuous trails</value>
+    <comment>Blend mode advice for long star trail processing</comment>
+  </data>
+  <data name="StarTrailStrategy_ManualFocus">
+    <value>Use manual focus set to infinity</value>
+    <comment>Universal technical advice for star trails - focus</comment>
+  </data>
+  <data name="StarTrailStrategy_DisableStabilization">
+    <value>Disable image stabilization and long exposure noise reduction</value>
+    <comment>Universal technical advice for star trails - camera settings</comment>
+  </data>
+  <data name="StarTrailStrategy_BatteryLife">
+    <value>Monitor battery life - long sequences require external power</value>
+    <comment>Universal technical advice for star trails - power</comment>
+  </data>
+  <data name="StarTrailStrategy_HighLatitude_Temperature">
+    <value>High latitude - prepare for temperature extremes affecting equipment</value>
+    <comment>Weather preparation advice for high latitude star trails</comment>
+  </data>
+  <data name="AtmosphericCorrection_VeryLargeRefraction">
+    <value>Very large refraction correction - object appears significantly higher than true position</value>
+    <comment>Atmospheric correction note for very large refraction</comment>
+  </data>
+  <data name="AtmosphericCorrection_SubstantialRefraction">
+    <value>Substantial refraction correction - important for precise positioning</value>
+    <comment>Atmospheric correction note for substantial refraction</comment>
+  </data>
+  <data name="AtmosphericCorrection_ModerateRefraction">
+    <value>Moderate refraction correction - noticeable effect on object position</value>
+    <comment>Atmospheric correction note for moderate refraction</comment>
+  </data>
+  <data name="AtmosphericCorrection_MinimalRefraction">
+    <value>Minimal refraction correction - object near true position</value>
+    <comment>Atmospheric correction note for minimal refraction</comment>
+  </data>
+  <data name="AtmosphericCorrection_SevereExtinction">
+    <value>Severe atmospheric extinction - object much dimmer than extraterrestrial brightness</value>
+    <comment>Atmospheric correction note for severe extinction</comment>
+  </data>
+  <data name="AtmosphericCorrection_SignificantExtinction">
+    <value>Significant atmospheric extinction - object noticeably dimmer</value>
+    <comment>Atmospheric correction note for significant extinction</comment>
+  </data>
+  <data name="AtmosphericCorrection_ModerateExtinction">
+    <value>Moderate atmospheric extinction - some brightness reduction</value>
+    <comment>Atmospheric correction note for moderate extinction</comment>
+  </data>
+  <data name="AtmosphericCorrection_MinimalExtinction">
+    <value>Minimal atmospheric extinction - object near full brightness</value>
+    <comment>Atmospheric correction note for minimal extinction</comment>
+  </data>
+  <data name="AtmosphericCorrection_VeryLowAltitude">
+    <value>Very low altitude - atmospheric effects are extreme and unpredictable</value>
+    <comment>Atmospheric correction note for very low altitude objects</comment>
+  </data>
+  <data name="AtmosphericCorrection_LowAltitude">
+    <value>Low altitude - significant atmospheric effects, consider observation timing</value>
+    <comment>Atmospheric correction note for low altitude objects</comment>
+  </data>
+  <data name="AtmosphericCorrection_HighAltitude">
+    <value>High altitude - minimal atmospheric effects, excellent observing conditions</value>
+    <comment>Atmospheric correction note for high altitude objects</comment>
+  </data>
+  <data name="AtmosphericCorrection_SignificantForPhotography">
+    <value>Atmospheric effects significant for precision astrophotography - consider correction</value>
+    <comment>Photography implication note for significant atmospheric effects</comment>
+  </data>
+  <data name="ObjectType_Galaxy">
+    <value>Galaxy</value>
+    <comment>Deep sky object type - Galaxy</comment>
+  </data>
+  <data name="ObjectType_Nebula">
+    <value>Nebula</value>
+    <comment>Deep sky object type - Nebula</comment>
+  </data>
+  <data name="ObjectType_GlobularCluster">
+    <value>Globular Cluster</value>
+    <comment>Deep sky object type - Globular Cluster</comment>
+  </data>
+  <data name="ObjectType_OpenCluster">
+    <value>Open Cluster</value>
+    <comment>Deep sky object type - Open Cluster</comment>
+  </data>
+  <data name="ObjectType_PlanetaryNebula">
+    <value>Planetary Nebula</value>
+    <comment>Deep sky object type - Planetary Nebula</comment>
+  </data>
+  <data name="ObjectType_SupernovaRemnant">
+    <value>Supernova Remnant</value>
+    <comment>Deep sky object type - Supernova Remnant</comment>
+  </data>
+  
   
   
   

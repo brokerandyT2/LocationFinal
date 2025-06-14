@@ -176,7 +176,7 @@
 
                 <!-- Calculation Results with Loading Overlay -->
                 <Frame HasShadow="True" CornerRadius="10" Padding="15"
-     IsVisible="{Binding CurrentCalculations, Converter={StaticResource CollectionToBoolConverter}}">
+     IsVisible="{Binding HourlyAstroPredictions, Converter={StaticResource CollectionToBoolConverter}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -210,9 +210,9 @@
                                                     <Label Text="{Binding TimeDisplay}" 
                                                          FontSize="16" 
                                                          FontAttributes="Bold" BackgroundColor="{Binding IsOptimalTime, Converter={StaticResource BoolToColorConverterSun}}"/>        
-                                                    <Label Text="{Binding SolarEventsDisplay}" 
+                                                   <!-- <Label Text="{Binding SolarEventsDisplay}" 
                                                          FontSize="12" 
-                                                         TextColor="White" BackgroundColor="{Binding IsOptimalTime, Converter={StaticResource BoolToColorConverterSun}}"/>
+                                                         TextColor="White" BackgroundColor="{Binding IsOptimalTime, Converter={StaticResource BoolToColorConverterSun}}"/> -->
                                                 </StackLayout>
 
                                                 <StackLayout Grid.Column="1" VerticalOptions="Center">

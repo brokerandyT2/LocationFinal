@@ -22,24 +22,45 @@
             <SolidColorBrush x:Key="TransparentOverlayBrush" Color="#80000000"/>
             <SolidColorBrush x:Key="TransparentErrorBrush" Color="#80FF0000"/>
 
-            <!-- Community Toolkit Converters -->
+            <!-- Community Toolkit Converters (Use these first) -->
             <toolkit:IsStringNotNullOrEmptyConverter x:Key="StringToBoolConverter"/>
+            <toolkit:IsStringNullOrEmptyConverter x:Key="InvertedStringToBoolConverter"/>
             <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
             <toolkit:IsNotNullConverter x:Key="IsNotNullConverter"/>
             <toolkit:IsNullConverter x:Key="IsNullConverter"/>
             <toolkit:DoubleToIntConverter x:Key="DoubleToIntConverter"/>
-            
+            <toolkit:BoolToObjectConverter x:Key="BoolToVisibilityConverter" TrueObject="True" FalseObject="False"/>
 
-            <!-- Custom Converters -->
-            <!-- Add your custom converters here -->
+            <!-- Custom Converters (only when toolkit doesn't provide them) -->
             <converters:StringToBoolConverter x:Key="CustomStringToBoolConverter"/>
-            <converters:BoolToOptimalColorConverter x:Key="BoolToOptimalColorConverter" />
-            <converters:BoolToColorConverterSun x:Key="BoolToColorConverterSun" />
-            <converters:BoolToColorConverterSunEvents x:Key="BoolToColorConverterSunEvents" />
-            <converters:ScoreToProgressConverter x:Key="ScoreToProgressConverter" />
-            <converters:NotNullToBoolConverter x:Key="NotNullToBoolConverter" />
-            <converters:ScoreToColorConverter x:Key="ScoreToColorConverter" />
-            
+            <converters:BoolToVisibilityConverter x:Key="CustomBoolToVisibilityConverter"/>
+            <converters:InvertedBoolToVisibilityConverter x:Key="CustomInvertedBoolToVisibilityConverter"/>
+            <converters:BoolToTextConverter x:Key="BoolToTextConverter"/>
+            <converters:ScoreToProgressConverter x:Key="ScoreToProgressConverter"/>
+            <converters:NotNullToBoolConverter x:Key="NotNullToBoolConverter"/>
+            <converters:ScoreToColorConverter x:Key="ScoreToColorConverter"/>
+            <converters:TemperatureScaleConverter x:Key="TemperatureScaleConverter"/>
+
+            <!-- Sun Calculator Converters -->
+            <converters:BoolToOptimalColorConverter x:Key="BoolToOptimalColorConverter"/>
+            <converters:BoolToColorConverterSun x:Key="BoolToColorConverterSun"/>
+            <converters:BoolToColorConverterSunEvents x:Key="BoolToColorConverterSunEvents"/>
+            <converters:BoolToSunStatusConverter x:Key="BoolToSunStatusConverter"/>
+            <converters:BoolToActiveColorConverter x:Key="BoolToActiveColorConverter"/>
+            <converters:DoubleToEVStringConverter x:Key="DoubleToEVStringConverter"/>
+            <converters:DoubleToAzimuthStringConverter x:Key="DoubleToAzimuthStringConverter"/>
+            <converters:DoubleToElevationStringConverter x:Key="DoubleToElevationStringConverter"/>
+            <converters:LightReductionToColorConverter x:Key="LightReductionToColorConverter"/>
+            <converters:ColorTemperatureToColorConverter x:Key="ColorTemperatureToColorConverter"/>
+            <converters:TimeSpanToDurationStringConverter x:Key="TimeSpanToDurationStringConverter"/>
+            <converters:ConfidenceToColorConverter x:Key="ConfidenceToColorConverter"/>
+            <converters:LightQualityToIconConverter x:Key="LightQualityToIconConverter"/>
+            <converters:NullableDoubleToStringConverter x:Key="NullableDoubleToStringConverter"/>
+
+            <!-- Generic Color Converter -->
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+            <converters:CollectionToBoolConverter x:Key="CollectionToBoolConverter" />
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -6,9 +6,6 @@
             x:Class="Location.Photography.Maui.Views.Professional.SunCalculator"
             x:DataType="viewmodels:EnhancedSunCalculatorViewModel"
             Title="Location Calculator">
-    <ContentPage.Resources>
-
-    </ContentPage.Resources>
 
     <Grid Padding="10" Margin="5">
         <Grid.RowDefinitions>

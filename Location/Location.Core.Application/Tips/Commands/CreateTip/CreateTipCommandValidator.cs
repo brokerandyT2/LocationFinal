@@ -36,7 +36,7 @@ namespace Location.Core.Application.Tips.Commands.CreateTip
                 .MaximumLength(1000).WithMessage(AppResources.Tip_ValidationError_ContentMaxLength);
 
             RuleFor(x => x.Fstop)
-                .MaximumLength(20).WithMessage(AppResources.Tip_ValidationError_FStopMaxLength);
+                .MaximumLength(20).WithMessage(AppResources.Tip_ValidationError_FstopMaxLength);
 
             RuleFor(x => x.ShutterSpeed)
                 .MaximumLength(20).WithMessage(AppResources.Tip_ValidationError_ShutterSpeedMaxLength);

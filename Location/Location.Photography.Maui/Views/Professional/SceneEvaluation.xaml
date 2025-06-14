@@ -155,15 +155,15 @@
                     </Grid.ColumnDefinitions>
 
                     <StackLayout Grid.Column="0" Spacing="5">
-                        <Label Text="{Binding DynamicRange, StringFormat='Dynamic Range: {0:F1} stops'}" Style="{StaticResource MetricLabelStyle}"/>
-                        <Label Text="{Binding ColorTemperature, StringFormat='Color Temp: {0:F0}K'}" Style="{StaticResource MetricLabelStyle}"/>
-                        <Label Text="{Binding RmsContrast, StringFormat='RMS Contrast: {0:F3}'}" Style="{StaticResource MetricLabelStyle}"/>
+                        <Label Text="{Binding DynamicRange, StringFormat='Dynamic Range: {0:F1} stops'}" />
+                        <Label Text="{Binding ColorTemperature, StringFormat='Color Temp: {0:F0}K'}" />
+                        <Label Text="{Binding RmsContrast, StringFormat='RMS Contrast: {0:F3}'}" />
                     </StackLayout>
 
                     <StackLayout Grid.Column="1" Spacing="5">
-                        <Label Text="{Binding RedMean, StringFormat='Red Mean: {0:F1}'}" Style="{StaticResource MetricLabelStyle}"/>
-                        <Label Text="{Binding GreenMean, StringFormat='Green Mean: {0:F1}'}" Style="{StaticResource MetricLabelStyle}"/>
-                        <Label Text="{Binding BlueMean, StringFormat='Blue Mean: {0:F1}'}" Style="{StaticResource MetricLabelStyle}"/>
+                        <Label Text="{Binding RedMean, StringFormat='Red Mean: {0:F1}'}" />
+                        <Label Text="{Binding GreenMean, StringFormat='Green Mean: {0:F1}'}" />
+                        <Label Text="{Binding BlueMean, StringFormat='Blue Mean: {0:F1}'}" />
                     </StackLayout>
                 </Grid>
 

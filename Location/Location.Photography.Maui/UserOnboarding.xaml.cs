@@ -1,4 +1,5 @@
 // Location.Photography.Maui/Views/UserOnboarding.xaml.cs
+
 using Location.Core.Application.Services;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Photography.Infrastructure;
@@ -29,6 +30,26 @@ namespace Location.Photography.Maui.Views
             _databaseInitializer = databaseInitializer ?? throw new ArgumentNullException(nameof(databaseInitializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceProvider = serviceProvider;
+
+
+            try
+            {
+
+                
+                var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "locations.db");
+                if(!System.IO.File.Exists(path))
+                {
+                    var x = SecureStorage.Remove(MagicStrings.Email);
+                }
+
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing UserOnboarding constructor parameters");
+                throw;
+            }
+
 
             try
             {
@@ -88,18 +109,17 @@ namespace Location.Photography.Maui.Views
         {
             try
             {
-                var sq = new GetSettingByKeyQuery { Key = MagicStrings.Email };
-                var mediator = new Mediator(_serviceProvider);
-                var result = await mediator.Send(sq);
+                // Check SecureStorage first (source of truth for user state)
+                var email = await SecureStorage.Default.GetAsync(MagicStrings.Email);
 
-                if (result != null && result.Data?.Value != null && !string.IsNullOrEmpty(result.Data.Value))
+                if (!string.IsNullOrEmpty(email))
                 {
-                    _logger.LogInformation("Existing email found, navigating to CameraEvaluation: {Email}", result.Data.Value);
+                    _logger.LogInformation("Existing email found in SecureStorage, navigating to CameraEvaluation: {Email}", email);
                     await Navigation.PushAsync((ContentPage)_serviceProvider.GetRequiredService<CameraEvaluation>());
                 }
                 else
                 {
-                    _logger.LogInformation("No existing email found, staying on onboarding page");
+                    _logger.LogInformation("No existing email found in SecureStorage, staying on onboarding page");
                 }
             }
             catch (Exception ex)

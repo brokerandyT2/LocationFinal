@@ -266,7 +266,22 @@ namespace Location.Photography.Maui
                     return;
                 }
 
-                if (ContentArea.Content?.BindingContext is IDisposable disposablePage)
+                // Enhanced disposal handling - especially for FieldOfView pages
+                if (ContentArea.Content?.BindingContext is FieldOfView fovPage)
+                {
+                    try
+                    {
+                        _logger.LogInformation("Disposing Field of View page with camera cleanup");
+                        fovPage.OnNavigatedFromAsync(); // Stop camera gracefully (non-blocking)
+                        fovPage.Dispose(); // Clean disposal
+                        _logger.LogInformation("Field of View page disposed successfully");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error disposing Field of View page");
+                    }
+                }
+                else if (ContentArea.Content?.BindingContext is IDisposable disposablePage)
                 {
                     try
                     {
@@ -279,6 +294,7 @@ namespace Location.Photography.Maui
                     }
                 }
 
+                // Create the new page instance
                 var page = _serviceProvider.GetService(tab.PageType) as ContentPage;
 
                 if (page == null)
@@ -292,7 +308,24 @@ namespace Location.Photography.Maui
                     {
                         try
                         {
+                            // Set the new content
                             ContentArea.Content = page.Content;
+
+                            // Special handling for FieldOfView pages - call navigation method
+                            if (page is FieldOfView newFovPage)
+                            {
+                                try
+                                {
+                                    _logger.LogInformation("Initializing Field of View page");
+                                    newFovPage.OnNavigatedToAsync();
+                                    _logger.LogInformation("Field of View page navigation completed");
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "Error during Field of View page navigation");
+                                }
+                            }
+
                             _logger.LogInformation($"Loaded page for tab: {tab.Title}");
                         }
                         catch (Exception ex)
@@ -486,7 +519,7 @@ namespace Location.Photography.Maui
                                 {
                                     CanAccessPremium = true,
                                     CanAccessPro = true,
-                                    Source = "Debug"
+                                    Source = "Any"
                                 };
                             }
                         }

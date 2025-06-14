@@ -221,7 +221,7 @@ namespace Location.Photography.Maui.Views
                 ProcessingLabel.Text = message;
 
                 CaptureButton.IsEnabled = !isProcessing;
-                SkipButton.IsEnabled = !isProcessing;
+                //SkipButton.IsEnabled = !isProcessing;
 
                 if (isProcessing)
                 {

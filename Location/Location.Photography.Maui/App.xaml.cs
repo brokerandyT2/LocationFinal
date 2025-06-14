@@ -1,6 +1,8 @@
 ﻿// Location.Photography.Maui/App.xaml.cs - FIXED VERSION
+using Location.Core.Application.Settings.Queries.GetSettingByKey;
 using Location.Photography.Infrastructure;
 using Location.Photography.Maui.Views;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Location.Photography.Maui
@@ -147,17 +149,64 @@ namespace Location.Photography.Maui
         {
             try
             {
+                // Step 1: Check if email exists in SecureStorage (primary requirement)
                 var email = await SecureStorage.Default.GetAsync(MagicStrings.Email);
-                var hasProfile = await CheckForCameraProfileAsync();
 
-                // User has completed onboarding if they have email AND camera profile (or skipped camera setup)
-                return !string.IsNullOrEmpty(email) && (hasProfile || await HasSkippedCameraSetupAsync());
+                if (string.IsNullOrEmpty(email))
+                {
+                    _logger.LogInformation("No email in SecureStorage - onboarding not completed");
+                    return false;
+                }
+
+                // Step 2: Check if user settings exist in database (secondary requirement)
+                // This ensures the user completed the full onboarding process
+                var hasUserSettings = await CheckUserSettingsExistAsync();
+
+                if (!hasUserSettings)
+                {
+                    _logger.LogInformation("Email exists but user settings not in database - onboarding not completed");
+                    return false;
+                }
+
+                // Step 3: Check camera profile completion (optional)
+                var hasProfile = await CheckForCameraProfileAsync();
+                var hasSkippedCamera = await HasSkippedCameraSetupAsync();
+
+                bool onboardingComplete = hasProfile || hasSkippedCamera;
+
+                _logger.LogInformation("Onboarding status: Email={HasEmail}, Settings={HasSettings}, Camera={CameraStatus}",
+                    !string.IsNullOrEmpty(email), hasUserSettings,
+                    hasProfile ? "Completed" : (hasSkippedCamera ? "Skipped" : "Pending"));
+
+                return onboardingComplete;
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error checking onboarding status");
+                // Fallback to Preferences if SecureStorage fails
                 return Preferences.Default.ContainsKey(MagicStrings.Email) &&
                        !string.IsNullOrEmpty(Preferences.Default.Get(MagicStrings.Email, string.Empty));
+            }
+        }
+
+        private async Task<bool> CheckUserSettingsExistAsync()
+        {
+            try
+            {
+                // Check if essential user settings exist in database
+                using var scope = _serviceProvider.CreateScope();
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+                var emailQuery = new GetSettingByKeyQuery { Key = MagicStrings.Email };
+                var emailResult = await mediator.Send(emailQuery);
+
+                // If email setting exists in database, assume other settings were also saved
+                return emailResult?.Data?.Value != null && !string.IsNullOrEmpty(emailResult.Data.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error checking user settings in database");
+                return false;
             }
         }
 

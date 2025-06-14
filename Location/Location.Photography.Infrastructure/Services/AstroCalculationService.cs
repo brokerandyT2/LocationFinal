@@ -746,32 +746,32 @@ namespace Location.Photography.Infrastructure.Services
 
                 // Separation advice
                 if (separationArcMinutes < 30)
-                    advice.Add("Very close conjunction - use telephoto lens 200mm+ to capture both objects in frame");
+                    advice.Add(AppResources.ConjunctionPhotography_VeryClosure_Telephoto);
                 else if (separationArcMinutes < 120)
-                    advice.Add("Moderate separation - 85-200mm lens ideal for composition");
+                    advice.Add(AppResources.ConjunctionPhotography_ModerateSeparation_Lens);
                 else
-                    advice.Add("Wide separation - wide angle lens to capture both objects");
+                    advice.Add(AppResources.ConjunctionPhotography_WideSeparation_WideAngle);
 
                 // Altitude advice
                 if (altitude < 10)
-                    advice.Add("Low altitude - find elevated location with clear horizon");
+                    advice.Add(AppResources.ConjunctionPhotography_LowAltitude_ElevatedLocation);
                 else if (altitude < 30)
-                    advice.Add("Moderate altitude - good for foreground composition");
+                    advice.Add(AppResources.ConjunctionPhotography_ModerateAltitude_ForegroundComposition);
                 else
-                    advice.Add("High altitude - excellent for detailed planetary photography");
+                    advice.Add(AppResources.ConjunctionPhotography_HighAltitude_DetailedPhotography);
 
                 // Technical advice
                 if (separationArcMinutes < 60)
-                    advice.Add("Use tripod and timer/remote to avoid camera shake");
+                    advice.Add(AppResources.ConjunctionPhotography_UseTripodAndTimer);
 
-                advice.Add("Shoot in RAW for maximum post-processing flexibility");
+                advice.Add(AppResources.ConjunctionPhotography_ShootInRAW);
 
                 return string.Join(". ", advice) + ".";
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error generating conjunction photography advice");
-                return "Use telephoto lens and tripod for best results.";
+                return AppResources.ConjunctionPhotography_DefaultAdvice;
             }
         }
         private string GetOppositionViewingConditions(PlanetType planet, double distanceAU)
@@ -793,7 +793,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error getting opposition viewing conditions for {Planet}", planet);
-                return "Optimal viewing conditions during opposition - planet closest to Earth.";
+                return AppResources.OppositionConditions_Default;
             }
         }
         private string GetOppositionEquipmentAdvice(PlanetType planet, double distanceAU)
@@ -814,7 +814,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error getting opposition equipment advice for {Planet}", planet);
-                return "Use longest focal length available for maximum planetary detail.";
+                return AppResources.OppositionEquipment_DefaultError;
             }
         }
         private string GetMoonPhaseName(double phaseAngle)
@@ -890,7 +890,7 @@ namespace Location.Photography.Infrastructure.Services
             }
         }
 
-       
+
 
         private string GetSupermoonEventName(double phaseAngle)
         {
@@ -900,17 +900,17 @@ namespace Location.Photography.Infrastructure.Services
 
                 return normalizedPhase switch
                 {
-                    >= 0 and < 45 => "Super New Moon",
-                    >= 45 and < 135 => "Super Crescent Moon",
-                    >= 135 and < 225 => "Super Full Moon",
-                    >= 225 and < 315 => "Super Gibbous Moon",
-                    _ => "Super New Moon"
+                    >= 0 and < 45 => AppResources.SupermoonEvent_SuperNewMoon,
+                    >= 45 and < 135 => AppResources.SupermoonEvent_SuperCrescentMoon,
+                    >= 135 and < 225 => AppResources.SupermoonEvent_SuperFullMoon,
+                    >= 225 and < 315 => AppResources.SupermoonEvent_SuperGibbousMoon,
+                    _ => AppResources.SupermoonEvent_SuperNewMoon
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error determining supermoon event name for phase {PhaseAngle}", phaseAngle);
-                return "Supermoon Event";
+                return AppResources.SupermoonEvent_Default;
             }
         }
         private List<string> GetVisibleLunarFeatures(double phaseAngle, CosineKitty.LibrationInfo libration)
@@ -1025,7 +1025,7 @@ namespace Location.Photography.Infrastructure.Services
                 return AppResources.LunarExposure_DefaultRecommendation;
             }
             }
-                 
+
         private string GetSupermoonPhotographyAdvice(double phaseAngle, double distanceKm)
         {
             try
@@ -1037,42 +1037,42 @@ namespace Location.Photography.Infrastructure.Services
                 // Phase-specific advice
                 if (normalizedPhase >= 135 && normalizedPhase < 225) // Super Full Moon
                 {
-                    advice.Add($"Super Full Moon appears {percentCloser:F1}% larger and ~30% brighter than average");
-                    advice.Add("Use telephoto lens 200mm+ to emphasize size against foreground objects");
-                    advice.Add("Plan shots with interesting foreground elements like buildings or landmarks");
-                    advice.Add("Moon rise/set timing critical for dramatic low-horizon compositions");
-                    advice.Add("Exposure: ISO 100, f/8-11, 1/500-1/1000s due to increased brightness");
+                    advice.Add(string.Format(AppResources.SupermoonPhotography_SuperFullMoon_SizeIncrease, percentCloser));
+                    advice.Add(AppResources.SupermoonPhotography_UseTelephoto);
+                    advice.Add(AppResources.SupermoonPhotography_ForegroundElements);
+                    advice.Add(AppResources.SupermoonPhotography_TimingCritical);
+                    advice.Add(AppResources.SupermoonPhotography_ExposureFullMoon);
                 }
                 else if (normalizedPhase < 45 || normalizedPhase >= 315) // Super New Moon
                 {
-                    advice.Add("Super New Moon ideal for dark sky photography - moon won't interfere");
-                    advice.Add("Perfect opportunity for Milky Way and deep sky object photography");
-                    advice.Add("Moon's gravitational effects may cause higher tides - coastal photography opportunities");
-                    advice.Add("Plan meteor shower photography during this window");
+                    advice.Add(AppResources.SupermoonPhotography_SuperNewMoon_DarkSky);
+                    advice.Add(AppResources.SupermoonPhotography_MilkyWayOpportunity);
+                    advice.Add(AppResources.SupermoonPhotography_TidalEffects);
+                    advice.Add(AppResources.SupermoonPhotography_MeteorShowers);
                 }
                 else // Other super phases
                 {
-                    advice.Add($"Supermoon appears {percentCloser:F1}% larger with enhanced detail visibility");
-                    advice.Add("Excellent for terminator detail photography with increased contrast");
-                    advice.Add("Crater shadows more pronounced due to increased apparent size");
+                    advice.Add(string.Format(AppResources.SupermoonPhotography_EnhancedDetail, percentCloser));
+                    advice.Add(AppResources.SupermoonPhotography_TerminatorDetail);
+                    advice.Add(AppResources.SupermoonPhotography_CraterShadows);
                 }
 
                 // Distance-specific technical advice
                 if (distanceKm < 357000) // Very close supermoon
                 {
-                    advice.Add("Exceptionally close approach - maximum detail photography opportunity");
-                    advice.Add("Consider lunar mosaic photography for ultra-high resolution results");
+                    advice.Add(AppResources.SupermoonPhotography_ExceptionallyClose);
+                    advice.Add(AppResources.SupermoonPhotography_LunarMosaic);
                 }
 
-                advice.Add("Use precise timing apps for optimal rise/set positioning");
-                advice.Add("Weather contingency planning essential - supermoons are infrequent events");
+                advice.Add(AppResources.SupermoonPhotography_PreciseTiming);
+                advice.Add(AppResources.SupermoonPhotography_Weather);
 
                 return string.Join(". ", advice) + ".";
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error generating supermoon photography advice");
-                return "Supermoon offers enhanced size and brightness for dramatic lunar photography.";
+                return AppResources.SupermoonPhotography_Default;
             }
         }
 
@@ -1082,16 +1082,16 @@ namespace Location.Photography.Infrastructure.Services
             {
                 return kind switch
                 {
-                    EclipseKind.Penumbral => "Penumbral",
-                    EclipseKind.Partial => "Partial",
-                    EclipseKind.Total => "Total",
-                    _ => "Unknown"
+                    EclipseKind.Penumbral => AppResources.LunarEclipseType_Penumbral,
+                    EclipseKind.Partial => AppResources.LunarEclipseType_Partial,
+                    EclipseKind.Total => AppResources.LunarEclipseType_Total,
+                    _ => AppResources.LunarEclipseType_Unknown
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error determining lunar eclipse type for kind {Kind}", kind);
-                return "Lunar Eclipse";
+                return AppResources.LunarEclipseType_Default;
             }
         }
 
@@ -1103,48 +1103,48 @@ namespace Location.Photography.Infrastructure.Services
 
                 if (!isVisible)
                 {
-                    planning.Add("Eclipse not visible from your location");
-                    planning.Add("Consider live streaming or plan travel to visibility zone");
+                    planning.Add(AppResources.LunarEclipsePhotography_NotVisible);
+                    planning.Add(AppResources.LunarEclipsePhotography_ConsiderStreaming);
                     return string.Join(". ", planning) + ".";
                 }
 
                 switch (kind)
                 {
                     case EclipseKind.Total:
-                        planning.Add("Total lunar eclipse - rare and spectacular photography opportunity");
-                        planning.Add("Plan multi-hour time-lapse from first contact to totality end");
-                        planning.Add("Scout location with clear eastern horizon for moonrise eclipses");
-                        planning.Add("Prepare multiple exposure settings for dramatic brightness changes");
-                        planning.Add("Totality phase allows for creative compositions with foreground elements");
-                        planning.Add("Blood moon color varies - prepare for deep red to bright copper tones");
+                        planning.Add(AppResources.LunarEclipsePhotography_Total_Rare);
+                        planning.Add(AppResources.LunarEclipsePhotography_Total_TimeLapse);
+                        planning.Add(AppResources.LunarEclipsePhotography_Total_ScoutLocation);
+                        planning.Add(AppResources.LunarEclipsePhotography_Total_MultipleExposures);
+                        planning.Add(AppResources.LunarEclipsePhotography_Total_TotalityPhase);
+                        planning.Add(AppResources.LunarEclipsePhotography_Total_BloodMoon);
                         break;
 
                     case EclipseKind.Partial:
-                        planning.Add("Partial lunar eclipse - excellent for showing Earth's shadow progression");
-                        planning.Add("Time-lapse photography ideal for capturing shadow movement");
-                        planning.Add("Contrast between shadowed and illuminated portions creates dramatic images");
-                        planning.Add("Longer event duration allows for multiple composition attempts");
+                        planning.Add(AppResources.LunarEclipsePhotography_Partial_ShadowProgression);
+                        planning.Add(AppResources.LunarEclipsePhotography_Partial_TimeLapseIdeal);
+                        planning.Add(AppResources.LunarEclipsePhotography_Partial_Contrast);
+                        planning.Add(AppResources.LunarEclipsePhotography_Partial_LongerDuration);
                         break;
 
                     case EclipseKind.Penumbral:
-                        planning.Add("Penumbral eclipse - subtle but photographically interesting");
-                        planning.Add("Requires careful exposure monitoring as changes are gradual");
-                        planning.Add("Best captured through time-lapse showing gradual dimming");
-                        planning.Add("Use precise metering to detect subtle brightness variations");
+                        planning.Add(AppResources.LunarEclipsePhotography_Penumbral_Subtle);
+                        planning.Add(AppResources.LunarEclipsePhotography_Penumbral_ExposureMonitoring);
+                        planning.Add(AppResources.LunarEclipsePhotography_Penumbral_TimeLapseBest);
+                        planning.Add(AppResources.LunarEclipsePhotography_Penumbral_PreciseMetering);
                         break;
                 }
 
                 // Universal planning advice
-                planning.Add("Battery backup essential for extended shooting sessions");
-                planning.Add("Remote shutter release prevents camera shake during long sequences");
-                planning.Add("Pre-focus on moon before eclipse begins to avoid autofocus issues in darkness");
+                planning.Add(AppResources.LunarEclipsePhotography_BatteryBackup);
+                planning.Add(AppResources.LunarEclipsePhotography_RemoteShutter);
+                planning.Add(AppResources.LunarEclipsePhotography_PreFocus);
 
                 return string.Join(". ", planning) + ".";
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error generating lunar eclipse photography planning for kind {Kind}", kind);
-                return "Plan for extended shooting session with backup equipment and multiple exposure settings.";
+                return AppResources.LunarEclipsePhotography_DefaultPlanning;
             }
         }
 
@@ -1157,40 +1157,40 @@ namespace Location.Photography.Infrastructure.Services
                 switch (kind)
                 {
                     case EclipseKind.Total:
-                        exposures.Add("Pre-eclipse: ISO 100, f/8, 1/250s for normal moon brightness");
-                        exposures.Add("Partial phases: ISO 200-800, f/5.6-8, 1/60-1/250s as shadow progresses");
-                        exposures.Add("Totality: ISO 1600-6400, f/4-5.6, 1-8 seconds for blood moon color");
-                        exposures.Add("Deep totality: ISO 3200-12800, f/2.8-4, 2-15 seconds for faint details");
-                        exposures.Add("Post-totality: Reverse exposure sequence as moon brightens");
-                        exposures.Add("Bracket extensively during totality - color and brightness vary significantly");
+                        exposures.Add(AppResources.LunarEclipseExposure_Total_PreEclipse);
+                        exposures.Add(AppResources.LunarEclipseExposure_Total_PartialPhases);
+                        exposures.Add(AppResources.LunarEclipseExposure_Total_Totality);
+                        exposures.Add(AppResources.LunarEclipseExposure_Total_DeepTotality);
+                        exposures.Add(AppResources.LunarEclipseExposure_Total_PostTotality);
+                        exposures.Add(AppResources.LunarEclipseExposure_Total_BracketExtensively);
                         break;
 
                     case EclipseKind.Partial:
-                        exposures.Add("Uneclipsed portion: ISO 100-200, f/8-11, 1/250-1/500s");
-                        exposures.Add("Shadowed portion: ISO 400-1600, f/5.6-8, 1/30-1/125s");
-                        exposures.Add("HDR technique: Bracket for both bright and dark portions simultaneously");
-                        exposures.Add("Maximum eclipse: ISO 800-3200, f/5.6, 1/60-1/250s depending on coverage");
+                        exposures.Add(AppResources.LunarEclipseExposure_Partial_UneclipsedPortion);
+                        exposures.Add(AppResources.LunarEclipseExposure_Partial_ShadowedPortion);
+                        exposures.Add(AppResources.LunarEclipseExposure_Partial_HDRTechnique);
+                        exposures.Add(AppResources.LunarEclipseExposure_Partial_MaximumEclipse);
                         break;
 
                     case EclipseKind.Penumbral:
-                        exposures.Add("Throughout event: ISO 100-400, f/8, 1/125-1/500s with subtle adjustments");
-                        exposures.Add("Monitor histogram carefully - changes are gradual and subtle");
-                        exposures.Add("Consistent metering point essential for detecting brightness variations");
-                        exposures.Add("Maximum penumbral: ISO 200-800, f/5.6-8, 1/60-1/250s");
+                        exposures.Add(AppResources.LunarEclipseExposure_Penumbral_ThroughoutEvent);
+                        exposures.Add(AppResources.LunarEclipseExposure_Penumbral_MonitorHistogram);
+                        exposures.Add(AppResources.LunarEclipseExposure_Penumbral_ConsistentMetering);
+                        exposures.Add(AppResources.LunarEclipseExposure_Penumbral_Maximum);
                         break;
                 }
 
                 // Universal technical advice
-                exposures.Add("Shoot RAW for maximum post-processing flexibility with color and exposure");
-                exposures.Add("Use spot metering on moon to avoid foreground influence");
-                exposures.Add("Consider focus stacking during totality for sharp edge-to-edge detail");
+                exposures.Add(AppResources.LunarEclipseExposure_ShootRAW);
+                exposures.Add(AppResources.LunarEclipseExposure_SpotMetering);
+                exposures.Add(AppResources.LunarEclipseExposure_FocusStacking);
 
                 return exposures;
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error generating lunar eclipse exposure advice for kind {Kind}", kind);
-                return new List<string> { "Use bracketed exposures and shoot in RAW for optimal results." };
+                return new List<string> { AppResources.LunarEclipseExposure_Default };
             }
         }
         private double CalculateLunarPhotographyQuality(double phaseAngle, double altitude, double illuminationFraction)
@@ -1255,21 +1255,21 @@ namespace Location.Photography.Infrastructure.Services
 
                 return normalizedPhase switch
                 {
-                    >= 0 and < 22.5 => "Earthshine Photography",
-                    >= 22.5 and < 67.5 => "Terminator Detail and Crescent Composition",
-                    >= 67.5 and < 112.5 => "Crater Shadow Photography",
-                    >= 112.5 and < 157.5 => "Mare and Highland Detail",
-                    >= 157.5 and < 202.5 => "Lunar Landscape and Ray Systems",
-                    >= 202.5 and < 247.5 => "Western Limb Features",
-                    >= 247.5 and < 292.5 => "Evening Terminator and Crater Detail",
-                    >= 292.5 and < 337.5 => "Morning Terminator and Earthshine",
-                    _ => "General Lunar Photography"
+                    >= 0 and < 22.5 => AppResources.LunarPhotographyType_EarthshinePhotography,
+                    >= 22.5 and < 67.5 => AppResources.LunarPhotographyType_TerminatorDetailAndCrescent,
+                    >= 67.5 and < 112.5 => AppResources.LunarPhotographyType_CraterShadowPhotography,
+                    >= 112.5 and < 157.5 => AppResources.LunarPhotographyType_MareAndHighlandDetail,
+                    >= 157.5 and < 202.5 => AppResources.LunarPhotographyType_LunarLandscapeAndRaySystems,
+                    >= 202.5 and < 247.5 => AppResources.LunarPhotographyType_WesternLimbFeatures,
+                    >= 247.5 and < 292.5 => AppResources.LunarPhotographyType_EveningTerminatorAndCraterDetail,
+                    >= 292.5 and < 337.5 => AppResources.LunarPhotographyType_MorningTerminatorAndEarthshine,
+                    _ => AppResources.LunarPhotographyType_GeneralLunarPhotography
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error determining lunar photography type for phase {PhaseAngle}", phaseAngle);
-                return "Lunar Surface Photography";
+                return AppResources.LunarPhotographyType_LunarSurfacePhotography;
             }
         }
 
@@ -1281,17 +1281,17 @@ namespace Location.Photography.Infrastructure.Services
 
                 return month switch
                 {
-                    12 or 1 or 2 => "Winter - Galactic center not visible, focus on winter constellations like Orion",
-                    3 or 4 or 5 => "Spring - Galactic center rises before dawn, early morning photography opportunity",
-                    6 or 7 or 8 => "Summer - Peak season! Galactic center visible all night, best photography conditions",
-                    9 or 10 or 11 => "Autumn - Galactic center sets early evening, golden hour overlap opportunities",
-                    _ => "Year-round"
+                    12 or 1 or 2 => AppResources.MilkyWaySeason_Winter,
+                    3 or 4 or 5 => AppResources.MilkyWaySeason_Spring,
+                    6 or 7 or 8 => AppResources.MilkyWaySeason_Summer,
+                    9 or 10 or 11 => AppResources.MilkyWaySeason_Autumn,
+                    _ => AppResources.MilkyWaySeason_YearRound
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error determining Milky Way season for date {DateTime}", dateTime);
-                return "Seasonal visibility varies";
+                return AppResources.MilkyWaySeason_SeasonalVariability;
             }
         }
 
@@ -1396,52 +1396,52 @@ namespace Location.Photography.Infrastructure.Services
                 // Azimuth-based composition advice
                 if (azimuth >= 135 && azimuth <= 225) // Southeast to Southwest
                 {
-                    suggestions.Add("Position galactic center over southern horizon for dramatic arch compositions");
-                    suggestions.Add("Include mountain ridges or treelines as foreground silhouettes");
-                    suggestions.Add("Consider reflection shots over lakes or calm water bodies");
+                    suggestions.Add(AppResources.MilkyWayComposition_SouthernHorizon_Arch);
+                    suggestions.Add(AppResources.MilkyWayComposition_SouthernHorizon_Ridges);
+                    suggestions.Add(AppResources.MilkyWayComposition_SouthernHorizon_Reflections);
                 }
                 else if (azimuth >= 90 && azimuth < 135) // East to Southeast
                 {
-                    suggestions.Add("Capture galactic center rising - excellent for time-lapse sequences");
-                    suggestions.Add("Frame with eastern horizon landmarks like buildings or rock formations");
+                    suggestions.Add(AppResources.MilkyWayComposition_Rising_TimeLapse);
+                    suggestions.Add(AppResources.MilkyWayComposition_Rising_EasternLandmarks);
                 }
                 else if (azimuth > 225 && azimuth <= 270) // Southwest to West
                 {
-                    suggestions.Add("Document galactic center setting - ideal for panoramic compositions");
-                    suggestions.Add("Combine with western landscape features for compelling foregrounds");
+                    suggestions.Add(AppResources.MilkyWayComposition_Setting_Panoramic);
+                    suggestions.Add(AppResources.MilkyWayComposition_Setting_WesternLandscape);
                 }
 
                 // Altitude-based composition advice
                 if (altitude < 15)
                 {
-                    suggestions.Add("Low galactic center perfect for wide horizontal panoramas");
-                    suggestions.Add("Use rule of thirds - place horizon on lower third, sky dominates frame");
-                    suggestions.Add("Include interesting foreground elements to add depth and scale");
+                    suggestions.Add(AppResources.MilkyWayComposition_LowAltitude_HorizontalPanoramas);
+                    suggestions.Add(AppResources.MilkyWayComposition_LowAltitude_RuleOfThirds);
+                    suggestions.Add(AppResources.MilkyWayComposition_LowAltitude_ForegroundElements);
                 }
                 else if (altitude >= 15 && altitude < 45)
                 {
-                    suggestions.Add("Medium altitude ideal for portrait orientation compositions");
-                    suggestions.Add("Frame galactic center with natural archways or cave openings");
-                    suggestions.Add("Consider vertical panoramas to capture full galactic arch");
+                    suggestions.Add(AppResources.MilkyWayComposition_MediumAltitude_Portrait);
+                    suggestions.Add(AppResources.MilkyWayComposition_MediumAltitude_NaturalArchways);
+                    suggestions.Add(AppResources.MilkyWayComposition_MediumAltitude_VerticalPanoramas);
                 }
                 else if (altitude >= 45)
                 {
-                    suggestions.Add("High galactic center excellent for detailed core photography");
-                    suggestions.Add("Focus on central bulge detail with longer focal lengths");
-                    suggestions.Add("Consider star tracker for detailed high-resolution captures");
+                    suggestions.Add(AppResources.MilkyWayComposition_HighAltitude_DetailedCore);
+                    suggestions.Add(AppResources.MilkyWayComposition_HighAltitude_LongerFocalLengths);
+                    suggestions.Add(AppResources.MilkyWayComposition_HighAltitude_StarTracker);
                 }
 
                 // Universal composition advice
-                suggestions.Add("Use leading lines in landscape to guide eye toward galactic center");
-                suggestions.Add("Include human figures for scale and storytelling element");
-                suggestions.Add("Plan shots during blue hour for balanced sky and foreground exposure");
+                suggestions.Add(AppResources.MilkyWayComposition_LeadingLines);
+                suggestions.Add(AppResources.MilkyWayComposition_HumanFigures);
+                suggestions.Add(AppResources.MilkyWayComposition_BlueHour);
 
                 return suggestions;
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error generating Milky Way composition suggestions");
-                return new List<string> { "Use wide-angle lens and include interesting foreground elements" };
+                return new List<string> { AppResources.MilkyWayComposition_Default };
             }
         }
 
@@ -1559,54 +1559,54 @@ namespace Location.Photography.Infrastructure.Services
                     case ConstellationType.Orion:
                         objects.AddRange(new[]
                         {
-                   CreateDeepSkyObject("M42", "Orion Nebula", "Nebula", 5.58, -5.39, 4.0, 85),
-                   CreateDeepSkyObject("M43", "De Mairan's Nebula", "Nebula", 5.58, -5.27, 9.0, 20),
-                   CreateDeepSkyObject("NGC 2024", "Flame Nebula", "Nebula", 5.68, -1.9, 2.0, 30)
+                   CreateDeepSkyObject("M42", "Orion Nebula", AppResources.ObjectType_Nebula, 5.58, -5.39, 4.0, 85),
+                   CreateDeepSkyObject("M43", "De Mairan's Nebula", AppResources.ObjectType_Nebula, 5.58, -5.27, 9.0, 20),
+                   CreateDeepSkyObject("NGC 2024", "Flame Nebula", AppResources.ObjectType_Nebula, 5.68, -1.9, 2.0, 30)
                });
                         break;
 
                     case ConstellationType.Andromeda:
                         objects.AddRange(new[]
                         {
-                   CreateDeepSkyObject("M31", "Andromeda Galaxy", "Galaxy", 0.71, 41.27, 3.4, 190),
-                   CreateDeepSkyObject("M32", "Le Gentil", "Galaxy", 0.71, 40.87, 8.1, 8),
-                   CreateDeepSkyObject("M110", "NGC 205", "Galaxy", 0.67, 41.68, 8.5, 19)
+                   CreateDeepSkyObject("M31", "Andromeda Galaxy", AppResources.ObjectType_Galaxy, 0.71, 41.27, 3.4, 190),
+                   CreateDeepSkyObject("M32", "Le Gentil", AppResources.ObjectType_Galaxy, 0.71, 40.87, 8.1, 8),
+                   CreateDeepSkyObject("M110", "NGC 205", AppResources.ObjectType_Galaxy, 0.67, 41.68, 8.5, 19)
                });
                         break;
 
                     case ConstellationType.Sagittarius:
                         objects.AddRange(new[]
                         {
-                   CreateDeepSkyObject("M8", "Lagoon Nebula", "Nebula", 18.06, -24.38, 6.0, 90),
-                   CreateDeepSkyObject("M20", "Trifid Nebula", "Nebula", 18.03, -23.03, 9.0, 20),
-                   CreateDeepSkyObject("M22", "Great Sagittarius Cluster", "Globular Cluster", 18.61, -23.9, 5.1, 32)
+                   CreateDeepSkyObject("M8", "Lagoon Nebula", AppResources.ObjectType_Nebula, 18.06, -24.38, 6.0, 90),
+                   CreateDeepSkyObject("M20", "Trifid Nebula", AppResources.ObjectType_Nebula, 18.03, -23.03, 9.0, 20),
+                   CreateDeepSkyObject("M22", "Great Sagittarius Cluster", AppResources.ObjectType_GlobularCluster, 18.61, -23.9, 5.1, 32)
                });
                         break;
 
                     case ConstellationType.Cygnus:
                         objects.AddRange(new[]
                         {
-                   CreateDeepSkyObject("NGC 7000", "North America Nebula", "Nebula", 20.98, 44.22, 4.0, 120),
-                   CreateDeepSkyObject("M27", "Dumbbell Nebula", "Planetary Nebula", 19.99, 22.72, 7.5, 8),
-                   CreateDeepSkyObject("NGC 6960", "Western Veil Nebula", "Supernova Remnant", 20.75, 30.72, 7.0, 70)
+                   CreateDeepSkyObject("NGC 7000", "North America Nebula", AppResources.ObjectType_Nebula, 20.98, 44.22, 4.0, 120),
+                   CreateDeepSkyObject("M27", "Dumbbell Nebula", AppResources.ObjectType_PlanetaryNebula, 19.99, 22.72, 7.5, 8),
+                   CreateDeepSkyObject("NGC 6960", "Western Veil Nebula", AppResources.ObjectType_SupernovaRemnant, 20.75, 30.72, 7.0, 70)
                });
                         break;
 
                     case ConstellationType.Leo:
                         objects.AddRange(new[]
                         {
-                   CreateDeepSkyObject("M65", "Leo Triplet", "Galaxy", 11.31, 13.1, 9.3, 8),
-                   CreateDeepSkyObject("M66", "Leo Triplet", "Galaxy", 11.34, 12.99, 8.9, 8),
-                   CreateDeepSkyObject("M95", "Barred Spiral Galaxy", "Galaxy", 10.74, 11.7, 9.7, 4)
+                   CreateDeepSkyObject("M65", "Leo Triplet", AppResources.ObjectType_Galaxy, 11.31, 13.1, 9.3, 8),
+                   CreateDeepSkyObject("M66", "Leo Triplet", AppResources.ObjectType_Galaxy, 11.34, 12.99, 8.9, 8),
+                   CreateDeepSkyObject("M95", "Barred Spiral Galaxy", AppResources.ObjectType_Galaxy, 10.74, 11.7, 9.7, 4)
                });
                         break;
 
                     case ConstellationType.Virgo:
                         objects.AddRange(new[]
                         {
-                   CreateDeepSkyObject("M87", "Virgo A", "Galaxy", 12.51, 12.39, 8.6, 7),
-                   CreateDeepSkyObject("M104", "Sombrero Galaxy", "Galaxy", 12.67, -11.62, 8.0, 9),
-                   CreateDeepSkyObject("M49", "Elliptical Galaxy", "Galaxy", 12.50, 8.0, 8.4, 9)
+                   CreateDeepSkyObject("M87", "Virgo A", AppResources.ObjectType_Galaxy, 12.51, 12.39, 8.6, 7),
+                   CreateDeepSkyObject("M104", "Sombrero Galaxy", AppResources.ObjectType_Galaxy, 12.67, -11.62, 8.0, 9),
+                   CreateDeepSkyObject("M49", "Elliptical Galaxy", AppResources.ObjectType_Galaxy, 12.50, 8.0, 8.4, 9)
                });
                         break;
 
@@ -1680,18 +1680,33 @@ namespace Location.Photography.Infrastructure.Services
                     ConstellationType.Sagittarius => AppResources.ConstellationNotes_Sagittarius,
                     ConstellationType.Cygnus => AppResources.ConstellationNotes_Cygnus,
                     ConstellationType.Cassiopeia => AppResources.ConstellationNotes_Cassiopeia,
-                    ConstellationType.Ursa_Major => AppResources.ConstellationNotes_UrsaMajor,
+                    ConstellationType.UrsaMajor => AppResources.ConstellationNotes_UrsaMajor,
                     ConstellationType.Leo => AppResources.ConstellationNotes_Leo,
                     ConstellationType.Scorpius => AppResources.ConstellationNotes_Scorpius,
                     ConstellationType.Perseus => AppResources.ConstellationNotes_Perseus,
                     ConstellationType.Auriga => AppResources.ConstellationNotes_Auriga,
+                    ConstellationType.Lyra => AppResources.ConstellationNotes_Lyra,
+                    ConstellationType.Aquila => AppResources.ConstellationNotes_Aquila,
+                    ConstellationType.Centaurus => AppResources.ConstellationNotes_Centaurus,
+                    ConstellationType.Crux => AppResources.ConstellationNotes_Crux,
+                    ConstellationType.UrsaMinor => AppResources.ConstellationNotes_UrsaMinor,
+                    ConstellationType.Draco => AppResources.ConstellationNotes_Draco,
+                    ConstellationType.Gemini => AppResources.ConstellationNotes_Gemini,
+                    ConstellationType.Cancer => AppResources.ConstellationNotes_Cancer,
+                    ConstellationType.Virgo => AppResources.ConstellationNotes_Virgo,
+                    ConstellationType.Libra => AppResources.ConstellationNotes_Libra,
+                    ConstellationType.Capricornus => AppResources.ConstellationNotes_Capricornus,
+                    ConstellationType.Aquarius => AppResources.ConstellationNotes_Aquarius,
+                    ConstellationType.Pisces => AppResources.ConstellationNotes_Pisces,
+                    ConstellationType.Aries => AppResources.ConstellationNotes_Aries,
+                    ConstellationType.Taurus => AppResources.ConstellationNotes_Taurus,
                     _ => AppResources.ConstellationNotes_Default
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error getting constellation photography notes for {Constellation}", constellation);
-                return "Excellent constellation for astrophotography with various deep sky objects to explore.";
+                return AppResources.ConstellationNotes_Default;
             }
         }
 
@@ -1753,28 +1768,28 @@ namespace Location.Photography.Infrastructure.Services
             var catalog = new Dictionary<string, (double ra, double dec, string commonName, string objectType, double magnitude, double angularSize)>
     {
         // Messier Objects
-        { "M1", (5.575, 22.02, "Crab Nebula", "Supernova Remnant", 8.4, 6) },
-        { "M8", (18.06, -24.38, "Lagoon Nebula", "Nebula", 6.0, 90) },
-        { "M13", (16.69, 36.46, "Great Globular Cluster", "Globular Cluster", 5.8, 20) },
-        { "M20", (18.03, -23.03, "Trifid Nebula", "Nebula", 9.0, 20) },
-        { "M27", (19.99, 22.72, "Dumbbell Nebula", "Planetary Nebula", 7.5, 8) },
-        { "M31", (0.71, 41.27, "Andromeda Galaxy", "Galaxy", 3.4, 190) },
-        { "M42", (5.58, -5.39, "Orion Nebula", "Nebula", 4.0, 85) },
-        { "M45", (3.79, 24.11, "Pleiades", "Open Cluster", 1.6, 110) },
-        { "M51", (13.50, 47.19, "Whirlpool Galaxy", "Galaxy", 8.4, 11) },
-        { "M57", (18.88, 33.03, "Ring Nebula", "Planetary Nebula", 8.8, 1.4) },
-        { "M81", (9.93, 69.07, "Bode's Galaxy", "Galaxy", 6.9, 21) },
-        { "M82", (9.93, 69.68, "Cigar Galaxy", "Galaxy", 8.4, 9) },
-        { "M87", (12.51, 12.39, "Virgo A", "Galaxy", 8.6, 7) },
-        { "M104", (12.67, -11.62, "Sombrero Galaxy", "Galaxy", 8.0, 9) },
+        { "M1", (5.575, 22.02, "Crab Nebula", AppResources.ObjectType_SupernovaRemnant, 8.4, 6) },
+        { "M8", (18.06, -24.38, "Lagoon Nebula", AppResources.ObjectType_Nebula, 6.0, 90) },
+        { "M13", (16.69, 36.46, "Great Globular Cluster", AppResources.ObjectType_GlobularCluster, 5.8, 20) },
+        { "M20", (18.03, -23.03, "Trifid Nebula", AppResources.ObjectType_Nebula, 9.0, 20) },
+        { "M27", (19.99, 22.72, "Dumbbell Nebula", AppResources.ObjectType_PlanetaryNebula, 7.5, 8) },
+        { "M31", (0.71, 41.27, "Andromeda Galaxy", AppResources.ObjectType_Galaxy, 3.4, 190) },
+        { "M42", (5.58, -5.39, "Orion Nebula", AppResources.ObjectType_Nebula, 4.0, 85) },
+        { "M45", (3.79, 24.11, "Pleiades", AppResources.ObjectType_OpenCluster, 1.6, 110) },
+        { "M51", (13.50, 47.19, "Whirlpool Galaxy", AppResources.ObjectType_Galaxy, 8.4, 11) },
+        { "M57", (18.88, 33.03, "Ring Nebula", AppResources.ObjectType_PlanetaryNebula, 8.8, 1.4) },
+        { "M81", (9.93, 69.07, "Bode's Galaxy", AppResources.ObjectType_Galaxy, 6.9, 21) },
+        { "M82", (9.93, 69.68, "Cigar Galaxy", AppResources.ObjectType_Galaxy, 8.4, 9) },
+        { "M87", (12.51, 12.39, "Virgo A", AppResources.ObjectType_Galaxy, 8.6, 7) },
+        { "M104", (12.67, -11.62, "Sombrero Galaxy", AppResources.ObjectType_Galaxy, 8.0, 9) },
         
         // Notable NGC Objects
-        { "NGC 7000", (20.98, 44.22, "North America Nebula", "Nebula", 4.0, 120) },
-        { "NGC 6960", (20.75, 30.72, "Western Veil Nebula", "Supernova Remnant", 7.0, 70) },
-        { "NGC 2024", (5.68, -1.9, "Flame Nebula", "Nebula", 2.0, 30) },
-        { "NGC 3372", (10.75, -59.87, "Eta Carinae Nebula", "Nebula", 3.0, 120) },
-        { "NGC 869", (2.35, 57.13, "Double Cluster h", "Open Cluster", 4.3, 18) },
-        { "NGC 884", (2.37, 57.14, "Double Cluster chi", "Open Cluster", 4.4, 18) }
+        { "NGC 7000", (20.98, 44.22, "North America Nebula", AppResources.ObjectType_Nebula, 4.0, 120) },
+        { "NGC 6960", (20.75, 30.72, "Western Veil Nebula", AppResources.ObjectType_SupernovaRemnant, 7.0, 70) },
+        { "NGC 2024", (5.68, -1.9, "Flame Nebula", AppResources.ObjectType_Nebula, 2.0, 30) },
+        { "NGC 3372", (10.75, -59.87, "Eta Carinae Nebula", AppResources.ObjectType_Nebula, 3.0, 120) },
+        { "NGC 869", (2.35, 57.13, "Double Cluster h", AppResources.ObjectType_OpenCluster, 4.3, 18) },
+        { "NGC 884", (2.37, 57.14, "Double Cluster chi", AppResources.ObjectType_OpenCluster, 4.4, 18) }
     };
 
             return catalog.TryGetValue(catalogId.ToUpper(), out var objectData) ? objectData : null;
@@ -1867,29 +1882,29 @@ namespace Location.Photography.Infrastructure.Services
             var potential = new List<string>();
 
             if (maxAltitude > 70)
-                potential.Add("Excellent overhead pass - ideal for star trail composites");
+                potential.Add(AppResources.ISSPhotography_ExcellentOverhead);
             else if (maxAltitude > 40)
-                potential.Add("Good high pass - suitable for single exposure captures");
+                potential.Add(AppResources.ISSPhotography_GoodHighPass);
             else if (maxAltitude > 20)
-                potential.Add("Moderate pass - visible but lower in sky");
+                potential.Add(AppResources.ISSPhotography_ModeratePass);
             else
-                potential.Add("Low pass - challenging due to atmosphere and obstacles");
+                potential.Add(AppResources.ISSPhotography_LowPass);
 
             if (duration.TotalMinutes > 5)
-                potential.Add("Long duration pass - excellent for time-lapse sequences");
+                potential.Add(AppResources.ISSPhotography_LongDuration);
             else if (duration.TotalMinutes > 3)
-                potential.Add("Standard duration - good for multiple exposures");
+                potential.Add(AppResources.ISSPhotography_StandardDuration);
             else
-                potential.Add("Short pass - plan timing carefully");
+                potential.Add(AppResources.ISSPhotography_ShortPass);
 
             if (magnitude < -3.0)
-                potential.Add("Very bright pass - easily visible and photographable");
+                potential.Add(AppResources.ISSPhotography_VeryBright);
             else if (magnitude < -2.0)
-                potential.Add("Bright pass - good photographic target");
+                potential.Add(AppResources.ISSPhotography_Bright);
             else
-                potential.Add("Dimmer pass - may require longer exposures");
+                potential.Add(AppResources.ISSPhotography_Dimmer);
 
-            potential.Add("Use 15-30 second exposures, ISO 800-3200, wide-angle lens");
+            potential.Add(AppResources.ISSPhotography_CameraSettings);
 
             return string.Join(". ", potential) + ".";
         }
@@ -2015,42 +2030,42 @@ namespace Location.Photography.Infrastructure.Services
             switch (shower)
             {
                 case MeteorShowerType.Perseids:
-                    strategy.Add("Premier shower for photography - reliable high rates and bright meteors");
-                    strategy.Add("Best after midnight when radiant is highest");
+                    strategy.Add(AppResources.MeteorShowerStrategy_Perseids_Premier);
+                    strategy.Add(AppResources.MeteorShowerStrategy_Perseids_BestAfterMidnight);
                     break;
                 case MeteorShowerType.Geminids:
-                    strategy.Add("Excellent winter shower - slower meteors good for photography");
-                    strategy.Add("Active all night, best after 10 PM");
+                    strategy.Add(AppResources.MeteorShowerStrategy_Geminids_Excellent);
+                    strategy.Add(AppResources.MeteorShowerStrategy_Geminids_ActiveAllNight);
                     break;
                 case MeteorShowerType.Quadrantids:
-                    strategy.Add("Short sharp peak - timing critical within 6-hour window");
-                    strategy.Add("Cold weather conditions - prepare equipment for freezing temperatures");
+                    strategy.Add(AppResources.MeteorShowerStrategy_Quadrantids_ShortPeak);
+                    strategy.Add(AppResources.MeteorShowerStrategy_Quadrantids_ColdWeather);
                     break;
                 case MeteorShowerType.Leonids:
-                    strategy.Add("Variable shower - some years produce meteor storms");
-                    strategy.Add("Fast meteors require shorter exposures");
+                    strategy.Add(AppResources.MeteorShowerStrategy_Leonids_Variable);
+                    strategy.Add(AppResources.MeteorShowerStrategy_Leonids_FastMeteors);
                     break;
             }
 
             // Radiant altitude advice
             if (radiantAltitude < 0)
-                strategy.Add("Radiant below horizon - shower not visible from your location");
+                strategy.Add(AppResources.MeteorShowerStrategy_RadiantBelowHorizon);
             else if (radiantAltitude < 30)
-                strategy.Add("Low radiant - expect fewer meteors but longer trails");
+                strategy.Add(AppResources.MeteorShowerStrategy_LowRadiant);
             else if (radiantAltitude > 60)
-                strategy.Add("High radiant - maximum meteor rates expected");
+                strategy.Add(AppResources.MeteorShowerStrategy_HighRadiant);
 
             // Moon interference advice
             if (moonIllumination > 0.7)
-                strategy.Add("Bright moon - focus on brightest meteors, consider HDR techniques");
+                strategy.Add(AppResources.MeteorShowerStrategy_BrightMoon);
             else if (moonIllumination > 0.3)
-                strategy.Add("Moderate moon interference - still good photography conditions");
+                strategy.Add(AppResources.MeteorShowerStrategy_ModerateMoon);
             else
-                strategy.Add("Dark skies - optimal conditions for meteor photography");
+                strategy.Add(AppResources.MeteorShowerStrategy_DarkSkies);
 
             // Technical advice
-            strategy.Add("Use 14-35mm wide-angle lens, ISO 1600-6400, 15-30 second exposures");
-            strategy.Add("Point camera 45-60 degrees away from radiant for longer trails");
+            strategy.Add(AppResources.MeteorShowerStrategy_CameraSettings);
+            strategy.Add(AppResources.MeteorShowerStrategy_CameraPointing);
 
             return string.Join(". ", strategy) + ".";
         }
@@ -2162,11 +2177,11 @@ namespace Location.Photography.Infrastructure.Services
 
         private string GetMeteorConditionsRecommendation(double score, double radiantAltitude, double moonIllumination)
         {
-            if (score > 0.8) return "Excellent conditions - ideal for meteor photography";
-            if (score > 0.6) return "Good conditions - favorable for meteor capture";
-            if (score > 0.4) return "Fair conditions - meteors visible but challenging";
-            if (score > 0.2) return "Poor conditions - limited meteor visibility";
-            return "Very poor conditions - meteor photography not recommended";
+            if (score > 0.8) return AppResources.MeteorConditions_Excellent;
+            if (score > 0.6) return AppResources.MeteorConditions_Good;
+            if (score > 0.4) return AppResources.MeteorConditions_Fair;
+            if (score > 0.2) return AppResources.MeteorConditions_Poor;
+            return AppResources.MeteorConditions_VeryPoor;
         }
 
         private string GetOptimalMeteorCameraDirection(double radiantAzimuth, double radiantAltitude)
@@ -2178,30 +2193,24 @@ namespace Location.Photography.Infrastructure.Services
             var direction1 = GetCardinalDirection(optimalAzimuth1);
             var direction2 = GetCardinalDirection(optimalAzimuth2);
 
-            return $"Point camera {direction1} or {direction2} (60° from radiant) for optimal meteor trails";
+            return string.Format(AppResources.MeteorCameraDirection_OptimalPointing, direction1, direction2);
         }
 
         private string GetCardinalDirection(double azimuth)
         {
             return azimuth switch
             {
-                >= 337.5 or < 22.5 => "North",
-                >= 22.5 and < 67.5 => "Northeast",
-                >= 67.5 and < 112.5 => "East",
-                >= 112.5 and < 157.5 => "Southeast",
-                >= 157.5 and < 202.5 => "South",
-                >= 202.5 and < 247.5 => "Southwest",
-                >= 247.5 and < 292.5 => "West",
-                >= 292.5 and < 337.5 => "Northwest",
-                _ => "North"
+                >= 337.5 or < 22.5 => AppResources.CardinalDirection_North,
+                >= 22.5 and < 67.5 => AppResources.CardinalDirection_Northeast,
+                >= 67.5 and < 112.5 => AppResources.CardinalDirection_East,
+                >= 112.5 and < 157.5 => AppResources.CardinalDirection_Southeast,
+                >= 157.5 and < 202.5 => AppResources.CardinalDirection_South,
+                >= 202.5 and < 247.5 => AppResources.CardinalDirection_Southwest,
+                >= 247.5 and < 292.5 => AppResources.CardinalDirection_West,
+                >= 292.5 and < 337.5 => AppResources.CardinalDirection_Northwest,
+                _ => AppResources.CardinalDirection_North
             };
         }
-
-
-
-
-
-
         private string GetMilkyWayPhotographyAdvice(string season, double altitude)
         {
             try
@@ -2209,64 +2218,64 @@ namespace Location.Photography.Infrastructure.Services
                 var advice = new List<string>();
 
                 // Season-specific advice
-                if (season.Contains("Summer"))
+                if (season.Contains(AppResources.Season_Summer))
                 {
-                    advice.Add("Peak Milky Way season - galactic center visible all night");
-                    advice.Add("Plan shoots during new moon for darkest skies");
-                    advice.Add("Galactic center rises in southeast, sets in southwest");
-                    advice.Add("Best shooting window: 10 PM - 4 AM for optimal positioning");
+                    advice.Add(AppResources.MilkyWayAdvice_Summer_PeakSeason);
+                    advice.Add(AppResources.MilkyWayAdvice_Summer_NewMoon);
+                    advice.Add(AppResources.MilkyWayAdvice_Summer_GalacticCenter);
+                    advice.Add(AppResources.MilkyWayAdvice_Summer_BestWindow);
                 }
-                else if (season.Contains("Spring"))
+                else if (season.Contains(AppResources.Season_Spring))
                 {
-                    advice.Add("Galactic center visible before dawn - plan early morning shoots");
-                    advice.Add("Core rises 2-4 hours before sunrise");
-                    advice.Add("Combine with sunrise landscape photography");
+                    advice.Add(AppResources.MilkyWayAdvice_Spring_EarlyMorning);
+                    advice.Add(AppResources.MilkyWayAdvice_Spring_CoreRises);
+                    advice.Add(AppResources.MilkyWayAdvice_Spring_CombineSunrise);
                 }
-                else if (season.Contains("Autumn"))
+                else if (season.Contains(AppResources.Season_Autumn))
                 {
-                    advice.Add("Galactic center sets early evening - capture during blue hour");
-                    advice.Add("Golden opportunity for foreground silhouettes");
-                    advice.Add("Core visible immediately after astronomical twilight");
+                    advice.Add(AppResources.MilkyWayAdvice_Autumn_EarlyEvening);
+                    advice.Add(AppResources.MilkyWayAdvice_Autumn_GoldenOpportunity);
+                    advice.Add(AppResources.MilkyWayAdvice_Autumn_AfterTwilight);
                 }
-                else if (season.Contains("Winter"))
+                else if (season.Contains(AppResources.Season_Winter))
                 {
-                    advice.Add("Focus on winter Milky Way - dimmer but still photographable");
-                    advice.Add("Orion region and winter constellations prominent");
-                    advice.Add("Longer nights provide extended shooting opportunities");
+                    advice.Add(AppResources.MilkyWayAdvice_Winter_WinterMilkyWay);
+                    advice.Add(AppResources.MilkyWayAdvice_Winter_Constellations);
+                    advice.Add(AppResources.MilkyWayAdvice_Winter_LongerNights);
                 }
 
                 // Altitude-specific advice
                 if (altitude < 0)
                 {
-                    advice.Add("Galactic center below horizon - not visible");
+                    advice.Add(AppResources.MilkyWayAdvice_NotVisible);
                 }
                 else if (altitude < 20)
                 {
-                    advice.Add("Low altitude - find elevated location with clear southern horizon");
-                    advice.Add("Atmospheric distortion may affect image quality");
+                    advice.Add(AppResources.MilkyWayAdvice_LowAltitude_ElevatedLocation);
+                    advice.Add(AppResources.MilkyWayAdvice_LowAltitude_AtmosphericDistortion);
                 }
                 else if (altitude < 45)
                 {
-                    advice.Add("Good altitude for dramatic foreground compositions");
-                    advice.Add("Excellent for landscape astrophotography");
+                    advice.Add(AppResources.MilkyWayAdvice_GoodAltitude_ForegroundComposition);
+                    advice.Add(AppResources.MilkyWayAdvice_GoodAltitude_LandscapeAstro);
                 }
                 else
                 {
-                    advice.Add("High altitude - minimal atmospheric interference");
-                    advice.Add("Ideal for detailed galactic center photography");
+                    advice.Add(AppResources.MilkyWayAdvice_HighAltitude_MinimalInterference);
+                    advice.Add(AppResources.MilkyWayAdvice_HighAltitude_DetailedCore);
                 }
 
                 // Technical advice
-                advice.Add("Use 14-24mm wide-angle lens for full galactic arc");
-                advice.Add("ISO 3200-6400, f/2.8 or wider, 15-25 second exposures");
-                advice.Add("Consider panoramic stitching for ultra-wide compositions");
+                advice.Add(AppResources.MilkyWayAdvice_WideAngleLens);
+                advice.Add(AppResources.MilkyWayAdvice_CameraSettings);
+                advice.Add(AppResources.MilkyWayAdvice_PanoramicStitching);
 
                 return string.Join(". ", advice) + ".";
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error generating Milky Way photography advice");
-                return "Use wide-angle lens, high ISO, and long exposure for Milky Way photography.";
+                return AppResources.MilkyWayAdvice_Default;
             }
         }
         private AstroExposureRecommendation CalculateLunarExposureSettings(CameraEquipmentData equipment, AstroConditions conditions)
@@ -2278,19 +2287,19 @@ namespace Location.Photography.Infrastructure.Services
             return new AstroExposureRecommendation
             {
                 Target = AstroTarget.Moon,
-                RecommendedISO = $"ISO {recommendedISO}",
-                RecommendedAperture = $"f/{recommendedAperture:F1}",
-                RecommendedShutterSpeed = "1/125 - 1/500 second (varies by lunar phase)",
+                RecommendedISO = string.Format(AppResources.LunarExposureSettings_ISO, recommendedISO),
+                RecommendedAperture = string.Format(AppResources.LunarExposureSettings_Aperture, recommendedAperture),
+                RecommendedShutterSpeed = AppResources.LunarExposureSettings_ShutterSpeed,
                 NumberOfFrames = 1,
                 TotalExposureTime = TimeSpan.FromSeconds(1),
-                FocusingTechnique = "Use live view to focus on lunar crater edges for maximum sharpness",
+                FocusingTechnique = AppResources.LunarExposureSettings_FocusingTechnique,
                 ProcessingNotes = new List<string>
-        {
-            "Use histogram to avoid overexposure of lunar surface",
-            "Consider HDR for earthshine and bright lunar surface",
-            "Apply unsharp mask to enhance crater detail"
-        },
-                TrackerRequirements = "Tracking not required for short lunar exposures"
+                    {
+                        AppResources.LunarExposureSettings_ProcessingNote_Histogram,
+                        AppResources.LunarExposureSettings_ProcessingNote_HDR,
+                        AppResources.LunarExposureSettings_ProcessingNote_UnsharpMask
+                    },
+                TrackerRequirements = AppResources.LunarExposureSettings_TrackerRequirements
             };
         }
 
@@ -2302,21 +2311,21 @@ namespace Location.Photography.Infrastructure.Services
             return new AstroExposureRecommendation
             {
                 Target = AstroTarget.Planets,
-                RecommendedISO = $"ISO {recommendedISO}",
-                RecommendedAperture = $"f/{recommendedAperture:F1}",
-                RecommendedShutterSpeed = "1/60 - 1/250 second (depends on planet brightness)",
+                RecommendedISO = string.Format(AppResources.LunarExposureSettings_ISO, recommendedISO),
+                RecommendedAperture = string.Format(AppResources.LunarExposureSettings_Aperture, recommendedAperture),
+                RecommendedShutterSpeed = AppResources.PlanetaryExposureSettings_ShutterSpeed,
                 NumberOfFrames = 100,
                 TotalExposureTime = TimeSpan.FromMinutes(2),
-                FocusingTechnique = "Focus on planet disc using live view at maximum zoom",
+                FocusingTechnique = AppResources.PlanetaryExposureSettings_FocusingTechnique,
                 ProcessingNotes = new List<string>
-        {
-            "Stack best 10-20% of frames to reduce atmospheric turbulence",
-            "Use wavelets or deconvolution to enhance planetary detail",
-            "Consider RGB separation for color planets"
-        },
+                        {
+                            AppResources.PlanetaryExposureSettings_ProcessingNote_Stacking,
+                            AppResources.PlanetaryExposureSettings_ProcessingNote_Wavelets,
+                            AppResources.PlanetaryExposureSettings_ProcessingNote_RGB
+                        },
                 TrackerRequirements = equipment.HasTracker ?
-                    "Tracking recommended for longer focal lengths" :
-                    "Short exposures minimize tracking requirements"
+                    AppResources.PlanetaryExposureSettings_TrackerRequirements_WithTracker :
+                    AppResources.PlanetaryExposureSettings_TrackerRequirements_WithoutTracker
             };
         }
 
@@ -2328,20 +2337,20 @@ namespace Location.Photography.Infrastructure.Services
             return new AstroExposureRecommendation
             {
                 Target = AstroTarget.StarTrails,
-                RecommendedISO = $"ISO {recommendedISO}",
-                RecommendedAperture = $"f/{recommendedAperture:F1}",
-                RecommendedShutterSpeed = "Multiple 2-4 minute exposures (stack for long trails)",
+                RecommendedISO = string.Format(AppResources.LunarExposureSettings_ISO, recommendedISO),
+                RecommendedAperture = string.Format(AppResources.LunarExposureSettings_Aperture, recommendedAperture),
+                RecommendedShutterSpeed = AppResources.StarTrailExposureSettings_ShutterSpeed,
                 NumberOfFrames = 60,
                 TotalExposureTime = TimeSpan.FromHours(3),
-                FocusingTechnique = "Focus to infinity on bright star before starting sequence",
+                FocusingTechnique = AppResources.StarTrailExposureSettings_FocusingTechnique,
                 ProcessingNotes = new List<string>
-        {
-            "Use StarStaX or similar software to blend exposures",
-            "Lighten or Maximum blend mode for continuous trails",
-            "Consider gap filling for uninterrupted trails",
-            "Separate foreground exposure for landscape elements"
-        },
-                TrackerRequirements = "No tracking required - star motion creates the trails"
+                    {
+                        AppResources.StarTrailExposureSettings_ProcessingNote_StarStaX,
+                        AppResources.StarTrailExposureSettings_ProcessingNote_BlendMode,
+                        AppResources.StarTrailExposureSettings_ProcessingNote_GapFilling,
+                        AppResources.StarTrailExposureSettings_ProcessingNote_SeparateForeground
+                    },
+                TrackerRequirements = AppResources.StarTrailExposureSettings_TrackerRequirements
             };
         }
 
@@ -2353,20 +2362,20 @@ namespace Location.Photography.Infrastructure.Services
             return new AstroExposureRecommendation
             {
                 Target = AstroTarget.MeteorShowers,
-                RecommendedISO = $"ISO {recommendedISO}",
-                RecommendedAperture = $"f/{recommendedAperture:F1}",
-                RecommendedShutterSpeed = "15-30 seconds per frame",
+                RecommendedISO = string.Format(AppResources.LunarExposureSettings_ISO, recommendedISO),
+                RecommendedAperture = string.Format(AppResources.LunarExposureSettings_Aperture, recommendedAperture),
+                RecommendedShutterSpeed = AppResources.MeteorExposureSettings_ShutterSpeed,
                 NumberOfFrames = 200,
                 TotalExposureTime = TimeSpan.FromHours(2),
-                FocusingTechnique = "Focus on bright star, then switch to manual to lock focus",
+                FocusingTechnique = AppResources.MeteorExposureSettings_FocusingTechnique,
                 ProcessingNotes = new List<string>
-        {
-            "Review frames for meteors before stacking",
-            "Stack meteor-free frames for background sky",
-            "Blend meteor frames as separate layers",
-            "Consider automated meteor detection software"
-        },
-                TrackerRequirements = "No tracking - keep exposures under 30 seconds to prevent star trailing"
+                    {
+                        AppResources.MeteorExposureSettings_ProcessingNote_ReviewFrames,
+                        AppResources.MeteorExposureSettings_ProcessingNote_StackBackground,
+                        AppResources.MeteorExposureSettings_ProcessingNote_BlendMeteors,
+                        AppResources.MeteorExposureSettings_ProcessingNote_AutomatedDetection
+                    },
+                TrackerRequirements = AppResources.MeteorExposureSettings_TrackerRequirements
             };
         }
 
@@ -2378,22 +2387,24 @@ namespace Location.Photography.Infrastructure.Services
             return new AstroExposureRecommendation
             {
                 Target = AstroTarget.Constellations,
-                RecommendedISO = $"ISO {recommendedISO}",
-                RecommendedAperture = $"f/{recommendedAperture:F1}",
-                RecommendedShutterSpeed = equipment.HasTracker ? "2-5 minutes (tracked)" : "15-30 seconds (untracked)",
+                RecommendedISO = string.Format(AppResources.LunarExposureSettings_ISO, recommendedISO),
+                RecommendedAperture = string.Format(AppResources.LunarExposureSettings_Aperture, recommendedAperture),
+                RecommendedShutterSpeed = equipment.HasTracker ?
+                    AppResources.ConstellationExposureSettings_ShutterSpeed_Tracked :
+                    AppResources.ConstellationExposureSettings_ShutterSpeed_Untracked,
                 NumberOfFrames = equipment.HasTracker ? 10 : 30,
                 TotalExposureTime = equipment.HasTracker ? TimeSpan.FromMinutes(30) : TimeSpan.FromMinutes(15),
-                FocusingTechnique = "Focus on brightest star in constellation",
+                FocusingTechnique = AppResources.ConstellationExposureSettings_FocusingTechnique,
                 ProcessingNotes = new List<string>
-        {
-            "Stack frames to enhance faint stars",
-            "Adjust curves to bring out constellation patterns",
-            "Consider star diffraction spikes for artistic effect",
-            "Balance star brightness with any nebulosity present"
-        },
+                    {
+                        AppResources.ConstellationExposureSettings_ProcessingNote_StackFrames,
+                        AppResources.ConstellationExposureSettings_ProcessingNote_AdjustCurves,
+                        AppResources.ConstellationExposureSettings_ProcessingNote_DiffractionSpikes,
+                        AppResources.ConstellationExposureSettings_ProcessingNote_BalanceBrightness
+                    },
                 TrackerRequirements = equipment.HasTracker ?
-                    "Tracking allows longer exposures for fainter stars" :
-                    "Untracked suitable for bright constellation stars"
+                    AppResources.ConstellationExposureSettings_TrackerRequirements_WithTracker :
+                    AppResources.ConstellationExposureSettings_TrackerRequirements_WithoutTracker
             };
         }
 
@@ -2405,19 +2416,19 @@ namespace Location.Photography.Infrastructure.Services
             return new AstroExposureRecommendation
             {
                 Target = AstroTarget.MilkyWayCore, // Default to Milky Way settings
-                RecommendedISO = $"ISO {recommendedISO}",
-                RecommendedAperture = $"f/{recommendedAperture:F1}",
-                RecommendedShutterSpeed = "20-30 seconds",
+                RecommendedISO = string.Format(AppResources.LunarExposureSettings_ISO, recommendedISO),
+                RecommendedAperture = string.Format(AppResources.LunarExposureSettings_Aperture, recommendedAperture),
+                RecommendedShutterSpeed = AppResources.GenericAstroExposureSettings_ShutterSpeed,
                 NumberOfFrames = 20,
                 TotalExposureTime = TimeSpan.FromMinutes(10),
-                FocusingTechnique = "Focus on bright star using live view magnification",
+                FocusingTechnique = AppResources.GenericAstroExposureSettings_FocusingTechnique,
                 ProcessingNotes = new List<string>
-        {
-            "Start with conservative settings and adjust based on results",
-            "Monitor histogram to avoid overexposure",
-            "Stack multiple frames to improve signal-to-noise ratio"
-        },
-                TrackerRequirements = "Tracking mount recommended for exposures over 30 seconds"
+                    {
+                        AppResources.GenericAstroExposureSettings_ProcessingNote_ConservativeSettings,
+                        AppResources.GenericAstroExposureSettings_ProcessingNote_MonitorHistogram,
+                        AppResources.GenericAstroExposureSettings_ProcessingNote_StackFrames
+                    },
+                TrackerRequirements = AppResources.GenericAstroExposureSettings_TrackerRequirements
             };
         }
         public async Task<AstroExposureRecommendation> GetAstroExposureRecommendationAsync(AstroTarget target, CameraEquipmentData equipment, AstroConditions conditions, CancellationToken cancellationToken = default)
@@ -2492,26 +2503,26 @@ namespace Location.Photography.Infrastructure.Services
             return new AstroExposureRecommendation
             {
                 Target = AstroTarget.MilkyWayCore,
-                RecommendedISO = $"ISO {recommendedISO}",
-                RecommendedAperture = $"f/{recommendedAperture:F1}",
+                RecommendedISO = string.Format(AppResources.LunarExposureSettings_ISO, recommendedISO),
+                RecommendedAperture = string.Format(AppResources.LunarExposureSettings_Aperture, recommendedAperture),
                 RecommendedShutterSpeed = equipment.HasTracker ?
-                    $"{maxExposureSeconds:F0} seconds (tracked)" :
-                    $"{Math.Min(maxExposureSeconds, 25):F0} seconds (untracked)",
+                    string.Format(AppResources.MilkyWayExposureSettings_ShutterSpeed_Tracked, maxExposureSeconds) :
+                    string.Format(AppResources.MilkyWayExposureSettings_ShutterSpeed_Untracked, Math.Min(maxExposureSeconds, 25)),
                 NumberOfFrames = equipment.HasTracker ? 20 : 50,
                 TotalExposureTime = equipment.HasTracker ?
                     TimeSpan.FromMinutes(maxExposureSeconds * 20 / 60) :
                     TimeSpan.FromMinutes(20 * 50 / 60),
-                FocusingTechnique = "Use live view at 10x zoom on bright star, focus to infinity then back slightly",
+                FocusingTechnique = AppResources.MilkyWayExposureSettings_FocusingTechnique,
                 ProcessingNotes = new List<string>
-       {
-           "Stack images to reduce noise and enhance detail",
-           "Use gradient removal to even sky background",
-           "Enhance contrast in galactic center region",
-           "Consider separate processing for foreground if landscape included"
-       },
+                    {
+                        AppResources.MilkyWayExposureSettings_ProcessingNote_StackImages,
+                        AppResources.MilkyWayExposureSettings_ProcessingNote_GradientRemoval,
+                        AppResources.MilkyWayExposureSettings_ProcessingNote_EnhanceContrast,
+                        AppResources.MilkyWayExposureSettings_ProcessingNote_SeparateForeground
+                    },
                 TrackerRequirements = equipment.HasTracker ?
-                    "Polar align tracker to within 5 arcminutes for sharp stars" :
-                    "No tracker - use wide-angle lens and keep exposures under 25 seconds"
+                    AppResources.MilkyWayExposureSettings_TrackerRequirements_WithTracker :
+                    AppResources.MilkyWayExposureSettings_TrackerRequirements_WithoutTracker
             };
         }
 
@@ -2528,23 +2539,23 @@ namespace Location.Photography.Infrastructure.Services
             return new AstroExposureRecommendation
             {
                 Target = AstroTarget.DeepSkyObjects,
-                RecommendedISO = $"ISO {recommendedISO}",
-                RecommendedAperture = $"f/{recommendedAperture:F1}",
-                RecommendedShutterSpeed = $"{maxExposureSeconds:F0} seconds",
+                RecommendedISO = string.Format(AppResources.LunarExposureSettings_ISO, recommendedISO),
+                RecommendedAperture = string.Format(AppResources.LunarExposureSettings_Aperture, recommendedAperture),
+                RecommendedShutterSpeed = string.Format(AppResources.DeepSkyExposureSettings_ShutterSpeed, maxExposureSeconds),
                 NumberOfFrames = equipment.HasTracker ? 30 : 100,
                 TotalExposureTime = TimeSpan.FromHours(maxExposureSeconds * (equipment.HasTracker ? 30 : 100) / 3600),
-                FocusingTechnique = "Use Bahtinov mask or live view focusing on bright star near target",
+                FocusingTechnique = AppResources.DeepSkyExposureSettings_FocusingTechnique,
                 ProcessingNotes = new List<string>
-       {
-           "Calibrate with dark, bias, and flat frames",
-           "Stack using sigma clipping to reject outliers",
-           "Stretch histogram carefully to reveal faint detail",
-           "Consider narrowband filters for emission nebulae",
-           "Use star reduction techniques if stars are prominent"
-       },
+                    {
+                        AppResources.DeepSkyExposureSettings_ProcessingNote_CalibrateFrames,
+                        AppResources.DeepSkyExposureSettings_ProcessingNote_SigmaClipping,
+                        AppResources.DeepSkyExposureSettings_ProcessingNote_StretchHistogram,
+                        AppResources.DeepSkyExposureSettings_ProcessingNote_NarrowbandFilters,
+                        AppResources.DeepSkyExposureSettings_ProcessingNote_StarReduction
+                    },
                 TrackerRequirements = equipment.HasTracker ?
-                    "Essential - requires accurate polar alignment and autoguiding for long exposures" :
-                    "Tracking mount highly recommended for deep sky photography"
+                    AppResources.DeepSkyExposureSettings_TrackerRequirements_WithTracker :
+                    AppResources.DeepSkyExposureSettings_TrackerRequirements_WithoutTracker
             };
         }
 
@@ -2646,20 +2657,20 @@ namespace Location.Photography.Infrastructure.Services
         {
             return target switch
             {
-                AstroTarget.Moon => (0.5, 0.5, "Lunar disc"),
-                AstroTarget.Planets => (0.05, 0.05, "Planetary disc (varies by planet and distance)"),
-                AstroTarget.MilkyWayCore => (30, 15, "Galactic center region"),
-                AstroTarget.DeepSkyObjects => (1.0, 1.0, "Typical nebula/galaxy (highly variable)"),
-                AstroTarget.StarTrails => (180, 90, "Full sky coverage for circular trails"),
-                AstroTarget.MeteorShowers => (60, 60, "Wide area around radiant"),
-                AstroTarget.Constellations => (20, 15, "Typical constellation span"),
-                AstroTarget.PolarAlignment => (2, 2, "Polaris and surrounding stars"),
-                _ => (10, 10, "General astrophotography target")
+                AstroTarget.Moon => (0.5, 0.5, AppResources.TargetSizeInfo_Moon_Description),
+                AstroTarget.Planets => (0.05, 0.05, AppResources.TargetSizeInfo_Planets_Description),
+                AstroTarget.MilkyWayCore => (30, 15, AppResources.TargetSizeInfo_MilkyWayCore_Description),
+                AstroTarget.DeepSkyObjects => (1.0, 1.0, AppResources.TargetSizeInfo_DeepSkyObjects_Description),
+                AstroTarget.StarTrails => (180, 90, AppResources.TargetSizeInfo_StarTrails_Description),
+                AstroTarget.MeteorShowers => (60, 60, AppResources.TargetSizeInfo_MeteorShowers_Description),
+                AstroTarget.Constellations => (20, 15, AppResources.TargetSizeInfo_Constellations_Description),
+                AstroTarget.PolarAlignment => (2, 2, AppResources.TargetSizeInfo_PolarAlignment_Description),
+                _ => (10, 10, AppResources.TargetSizeInfo_General_Description)
             };
         }
 
         private string GenerateCompositionRecommendations(AstroTarget target, double fovWidth, double fovHeight,
-            (double angularWidth, double angularHeight, string description) targetInfo)
+    (double angularWidth, double angularHeight, string description) targetInfo)
         {
             var recommendations = new List<string>();
 
@@ -2667,53 +2678,53 @@ namespace Location.Photography.Infrastructure.Services
             {
                 case AstroTarget.Moon:
                     if (fovWidth > 2)
-                        recommendations.Add("Wide field - excellent for lunar landscape compositions with foreground");
+                        recommendations.Add(AppResources.CompositionRecommendations_Moon_Wide);
                     else if (fovWidth > 1)
-                        recommendations.Add("Medium field - good for lunar detail with some sky context");
+                        recommendations.Add(AppResources.CompositionRecommendations_Moon_Medium);
                     else
-                        recommendations.Add("Narrow field - ideal for detailed lunar surface photography");
+                        recommendations.Add(AppResources.CompositionRecommendations_Moon_Narrow);
                     break;
 
                 case AstroTarget.MilkyWayCore:
                     if (fovWidth > 50)
-                        recommendations.Add("Ultra-wide field - capture full galactic arch");
+                        recommendations.Add(AppResources.CompositionRecommendations_MilkyWay_UltraWide);
                     else if (fovWidth > 30)
-                        recommendations.Add("Wide field - excellent for galactic center with landscape");
+                        recommendations.Add(AppResources.CompositionRecommendations_MilkyWay_Wide);
                     else
-                        recommendations.Add("Medium field - focus on galactic center detail");
+                        recommendations.Add(AppResources.CompositionRecommendations_MilkyWay_Medium);
                     break;
 
                 case AstroTarget.DeepSkyObjects:
                     if (fovWidth > targetInfo.angularWidth * 3)
-                        recommendations.Add("Generous framing - allows for composition flexibility and guiding errors");
+                        recommendations.Add(AppResources.CompositionRecommendations_DeepSky_Generous);
                     else if (fovWidth > targetInfo.angularWidth * 1.5)
-                        recommendations.Add("Good framing - object well-sized in frame");
+                        recommendations.Add(AppResources.CompositionRecommendations_DeepSky_Good);
                     else
-                        recommendations.Add("Tight framing - may cut off object extensions, consider wider field");
+                        recommendations.Add(AppResources.CompositionRecommendations_DeepSky_Tight);
                     break;
 
                 case AstroTarget.StarTrails:
                     if (fovWidth > 90)
-                        recommendations.Add("Excellent for full circular star trails around celestial pole");
+                        recommendations.Add(AppResources.CompositionRecommendations_StarTrails_Excellent);
                     else if (fovWidth > 45)
-                        recommendations.Add("Good for partial circular trails or linear trails");
+                        recommendations.Add(AppResources.CompositionRecommendations_StarTrails_Good);
                     else
-                        recommendations.Add("Narrow field - creates linear star trail segments");
+                        recommendations.Add(AppResources.CompositionRecommendations_StarTrails_Narrow);
                     break;
             }
 
             // Add technical recommendations
             if (fovWidth / fovHeight > 2)
-                recommendations.Add("Very wide aspect ratio - consider panoramic compositions");
+                recommendations.Add(AppResources.CompositionRecommendations_VeryWideAspect);
             else if (fovWidth / fovHeight < 0.8)
-                recommendations.Add("Tall aspect ratio - good for vertical compositions");
+                recommendations.Add(AppResources.CompositionRecommendations_TallAspect);
 
             return string.Join(". ", recommendations) + ".";
         }
 
         private List<string> SuggestAlternativeFocalLengths(AstroTarget target,
-            (double angularWidth, double angularHeight, string description) targetInfo,
-            double sensorWidth, double sensorHeight, double currentFocalLength)
+    (double angularWidth, double angularHeight, string description) targetInfo,
+    double sensorWidth, double sensorHeight, double currentFocalLength)
         {
             var suggestions = new List<string>();
 
@@ -2722,22 +2733,22 @@ namespace Location.Photography.Infrastructure.Services
 
             if (Math.Abs(currentFocalLength - optimalFocalLength) > currentFocalLength * 0.2)
             {
-                suggestions.Add($"{optimalFocalLength:F0}mm - optimal for target size");
+                suggestions.Add(string.Format(AppResources.AlternativeFocalLength_Optimal, optimalFocalLength));
             }
 
             // Standard astrophotography focal lengths with use cases
             var standardLengths = new Dictionary<int, string>
-    {
-        { 14, "Ultra-wide for full sky surveys and Milky Way arch" },
-        { 24, "Wide-angle for constellation photography and landscape astro" },
-        { 50, "Standard for large nebulae and galaxy clusters" },
-        { 85, "Short telephoto for medium nebulae and galaxy groups" },
-        { 135, "Telephoto for smaller deep sky objects" },
-        { 200, "Long telephoto for detailed nebulae and small galaxies" },
-        { 300, "Very long for planetary and small planetary nebulae" },
-        { 600, "Extreme telephoto for lunar detail and planets" },
-        { 1000, "Telescope territory for high-resolution planetary work" }
-    };
+                {
+                    { 14, AppResources.AlternativeFocalLength_14mm },
+                    { 24, AppResources.AlternativeFocalLength_24mm },
+                    { 50, AppResources.AlternativeFocalLength_50mm },
+                    { 85, AppResources.AlternativeFocalLength_85mm },
+                    { 135, AppResources.AlternativeFocalLength_135mm },
+                    { 200, AppResources.AlternativeFocalLength_200mm },
+                    { 300, AppResources.AlternativeFocalLength_300mm },
+                    { 600, AppResources.AlternativeFocalLength_600mm },
+                    { 1000, AppResources.AlternativeFocalLength_1000mm }
+                };
 
             foreach (var length in standardLengths)
             {
@@ -2852,30 +2863,30 @@ namespace Location.Photography.Infrastructure.Services
 
             if (latitude < 0)
             {
-                instructions.Add("Southern Hemisphere polar alignment - use Sigma Octantis or drift alignment method");
-                instructions.Add("Octantis is much dimmer than Polaris - consider electronic polar scope");
+                instructions.Add(AppResources.PolarAlignment_SouthernHemisphere_SigmaOctantis);
+                instructions.Add(AppResources.PolarAlignment_SouthernHemisphere_ElectronicScope);
                 return string.Join(". ", instructions) + ".";
             }
 
             // Northern Hemisphere Polaris alignment
-            instructions.Add($"Point mount's polar axis toward azimuth {polarisAz:F1}° and altitude {polarisAlt:F1}°");
-            instructions.Add($"Polaris will be offset {Math.Abs(offsetAngle):F1}° from true pole");
+            instructions.Add(string.Format(AppResources.PolarAlignment_PointMount, polarisAz, polarisAlt));
+            instructions.Add(string.Format(AppResources.PolarAlignment_PolarisOffset, Math.Abs(offsetAngle)));
 
             // Time-specific instructions based on offset angle
             var hourAngle = (offsetAngle + 180) % 360; // Convert to hour angle position
             var clockPosition = GetClockPosition(hourAngle);
 
-            instructions.Add($"At this time, place Polaris at {clockPosition} position in polar scope reticle");
-            instructions.Add("Use mount's altitude and azimuth adjustments to center Polaris in correct position");
-            instructions.Add("Fine-tune using drift alignment method for precise tracking");
+            instructions.Add(string.Format(AppResources.PolarAlignment_PlacePolarisPosition, clockPosition));
+            instructions.Add(AppResources.PolarAlignment_UseMountAdjustments);
+            instructions.Add(AppResources.PolarAlignment_FineTuneDrift);
 
             // Accuracy recommendations
             if (Math.Abs(latitude) > 60)
-                instructions.Add("High latitude - polar alignment critical for long exposures");
+                instructions.Add(AppResources.PolarAlignment_HighLatitude);
             else if (Math.Abs(latitude) < 30)
-                instructions.Add("Low latitude - less critical but still important for tracking accuracy");
+                instructions.Add(AppResources.PolarAlignment_LowLatitude);
 
-            instructions.Add("Verify alignment by checking tracking accuracy on stars near celestial equator");
+            instructions.Add(AppResources.PolarAlignment_VerifyAlignment);
 
             return string.Join(". ", instructions) + ".";
         }
@@ -2888,19 +2899,19 @@ namespace Location.Photography.Infrastructure.Services
 
             return clockHour switch
             {
-                12 => "12 o'clock",
-                1 => "1 o'clock",
-                2 => "2 o'clock",
-                3 => "3 o'clock",
-                4 => "4 o'clock",
-                5 => "5 o'clock",
-                6 => "6 o'clock",
-                7 => "7 o'clock",
-                8 => "8 o'clock",
-                9 => "9 o'clock",
-                10 => "10 o'clock",
-                11 => "11 o'clock",
-                _ => $"{clockHour:F0} o'clock"
+                12 => AppResources.ClockPosition_12OClock,
+                1 => AppResources.ClockPosition_1OClock,
+                2 => AppResources.ClockPosition_2OClock,
+                3 => AppResources.ClockPosition_3OClock,
+                4 => AppResources.ClockPosition_4OClock,
+                5 => AppResources.ClockPosition_5OClock,
+                6 => AppResources.ClockPosition_6OClock,
+                7 => AppResources.ClockPosition_7OClock,
+                8 => AppResources.ClockPosition_8OClock,
+                9 => AppResources.ClockPosition_9OClock,
+                10 => AppResources.ClockPosition_10OClock,
+                11 => AppResources.ClockPosition_11OClock,
+                _ => string.Format(AppResources.ClockPosition_Generic, clockHour)
             };
         }
 
@@ -2911,35 +2922,35 @@ namespace Location.Photography.Infrastructure.Services
             if (latitude >= 0) // Northern Hemisphere
             {
                 referenceStars.AddRange(new[]
-                {
-            "Polaris - Primary alignment star in Ursa Minor",
-            "Kochab - Beta Ursae Minoris, bright star in Little Dipper bowl",
-            "Pherkad - Gamma Ursae Minoris, other bright star in Little Dipper bowl",
-            "Dubhe - Alpha Ursae Majoris, pointer star in Big Dipper",
-            "Merak - Beta Ursae Majoris, other pointer star in Big Dipper"
-        });
+                        {
+                    AppResources.PolarAlignmentStars_Polaris,
+                    AppResources.PolarAlignmentStars_Kochab,
+                    AppResources.PolarAlignmentStars_Pherkad,
+                    AppResources.PolarAlignmentStars_Dubhe,
+                    AppResources.PolarAlignmentStars_Merak
+                });
 
                 // Season-specific reference stars
                 var month = dateTime.Month;
                 if (month >= 9 && month <= 11) // Autumn
                 {
-                    referenceStars.Add("Cassiopeia - W-shaped constellation, useful for Polaris finding");
+                    referenceStars.Add(AppResources.PolarAlignmentStars_Cassiopeia);
                 }
                 else if (month >= 6 && month <= 8) // Summer
                 {
-                    referenceStars.Add("Draco - Dragon constellation curves around Little Dipper");
+                    referenceStars.Add(AppResources.PolarAlignmentStars_Draco);
                 }
             }
             else // Southern Hemisphere
             {
                 referenceStars.AddRange(new[]
-                {
-            "Sigma Octantis - Faint polar star, magnitude 5.47",
-            "Southern Cross - Use to locate celestial south pole",
-            "Alpha Centauri - Bright reference for southern sky navigation",
-            "Beta Centauri - Pointer star with Alpha Centauri",
-            "Canopus - Second brightest star, excellent southern reference"
-        });
+                        {
+                    AppResources.PolarAlignmentStars_SigmaOctantis,
+                    AppResources.PolarAlignmentStars_SouthernCross,
+                    AppResources.PolarAlignmentStars_AlphaCentauri,
+                    AppResources.PolarAlignmentStars_BetaCentauri,
+                    AppResources.PolarAlignmentStars_Canopus
+                });
             }
 
             return referenceStars;
@@ -3132,26 +3143,26 @@ namespace Location.Photography.Infrastructure.Services
 
             if (Math.Abs(latitude) > 60) // High latitude
             {
-                compositions.Add("Celestial pole high in sky - excellent for circular star trails");
-                compositions.Add("Include interesting foreground silhouettes for scale and context");
-                compositions.Add("Consider ultra-wide lens to capture full circular trails");
+                compositions.Add(AppResources.StarTrailComposition_HighLatitude_CelestialPole);
+                compositions.Add(AppResources.StarTrailComposition_HighLatitude_ForegroundSilhouettes);
+                compositions.Add(AppResources.StarTrailComposition_HighLatitude_UltraWide);
             }
             else if (Math.Abs(latitude) > 30) // Mid latitude
             {
-                compositions.Add("Moderate pole altitude - good for partial circular or diagonal trails");
-                compositions.Add("Frame with pole off-center for dynamic composition");
-                compositions.Add("Landscape elements can create leading lines to pole");
+                compositions.Add(AppResources.StarTrailComposition_MidLatitude_PartialCircular);
+                compositions.Add(AppResources.StarTrailComposition_MidLatitude_OffCenter);
+                compositions.Add(AppResources.StarTrailComposition_MidLatitude_LeadingLines);
             }
             else // Low latitude
             {
-                compositions.Add("Low pole altitude - linear trails dominate composition");
-                compositions.Add("Horizontal framing emphasizes linear trail patterns");
-                compositions.Add("Include horizon line for reference and scale");
+                compositions.Add(AppResources.StarTrailComposition_LowLatitude_LinearTrails);
+                compositions.Add(AppResources.StarTrailComposition_LowLatitude_HorizontalFraming);
+                compositions.Add(AppResources.StarTrailComposition_LowLatitude_HorizonLine);
             }
 
             // Universal composition advice
-            compositions.Add("Use foreground elements to anchor the composition");
-            compositions.Add("Consider multiple exposures for blending foreground and trails");
+            compositions.Add(AppResources.StarTrailComposition_ForegroundElements);
+            compositions.Add(AppResources.StarTrailComposition_MultipleExposures);
 
             return string.Join(". ", compositions) + ".";
         }
@@ -3162,37 +3173,37 @@ namespace Location.Photography.Infrastructure.Services
 
             if (exposureDuration.TotalHours < 0.5) // Short trails
             {
-                strategy.Add("Short star trails - single exposure approach");
-                strategy.Add("ISO 400-800, f/2.8-4, 15-30 minute exposure");
-                strategy.Add("Monitor for overexposure in bright star cores");
-                strategy.Add("Use dark frame subtraction for noise reduction");
+                strategy.Add(AppResources.StarTrailStrategy_Short_SingleExposure);
+                strategy.Add(AppResources.StarTrailStrategy_Short_Settings);
+                strategy.Add(AppResources.StarTrailStrategy_Short_MonitorOverexposure);
+                strategy.Add(AppResources.StarTrailStrategy_Short_DarkFrame);
             }
             else if (exposureDuration.TotalHours < 2) // Medium trails
             {
-                strategy.Add("Medium star trails - consider image stacking approach");
-                strategy.Add("Option 1: Single exposure - ISO 200-400, f/4-5.6");
-                strategy.Add("Option 2: Stack 15-30 shorter exposures (2-4 minutes each)");
-                strategy.Add("Stacking reduces noise and prevents overexposure");
+                strategy.Add(AppResources.StarTrailStrategy_Medium_ImageStacking);
+                strategy.Add(AppResources.StarTrailStrategy_Medium_Option1);
+                strategy.Add(AppResources.StarTrailStrategy_Medium_Option2);
+                strategy.Add(AppResources.StarTrailStrategy_Medium_StackingReducesNoise);
             }
             else // Long trails
             {
-                strategy.Add("Long star trails - image stacking highly recommended");
-                strategy.Add("Capture 30-120 exposures of 2-4 minutes each");
-                strategy.Add("ISO 200-400, f/4-5.6 for optimal star quality");
-                strategy.Add("Use intervalometer with minimal gap between exposures");
-                strategy.Add("Process using StarStaX or similar stacking software");
-                strategy.Add("Blend mode: Lighten or Maximum for continuous trails");
+                strategy.Add(AppResources.StarTrailStrategy_Long_StackingRecommended);
+                strategy.Add(AppResources.StarTrailStrategy_Long_CaptureFrames);
+                strategy.Add(AppResources.StarTrailStrategy_Long_Settings);
+                strategy.Add(AppResources.StarTrailStrategy_Long_Intervalometer);
+                strategy.Add(AppResources.StarTrailStrategy_Long_ProcessingSoftware);
+                strategy.Add(AppResources.StarTrailStrategy_Long_BlendMode);
             }
 
             // Technical considerations
-            strategy.Add("Use manual focus set to infinity");
-            strategy.Add("Disable image stabilization and long exposure noise reduction");
-            strategy.Add("Monitor battery life - long sequences require external power");
+            strategy.Add(AppResources.StarTrailStrategy_ManualFocus);
+            strategy.Add(AppResources.StarTrailStrategy_DisableStabilization);
+            strategy.Add(AppResources.StarTrailStrategy_BatteryLife);
 
             // Weather considerations
             if (Math.Abs(latitude) > 45)
             {
-                strategy.Add("High latitude - prepare for temperature extremes affecting equipment");
+                strategy.Add(AppResources.StarTrailStrategy_HighLatitude_Temperature);
             }
 
             return strategy;
@@ -3346,57 +3357,57 @@ namespace Location.Photography.Infrastructure.Services
             // Refraction notes
             if (refraction > 30) // More than 30 arc minutes
             {
-                notes.Add("Very large refraction correction - object appears significantly higher than true position");
+                notes.Add(AppResources.AtmosphericCorrection_VeryLargeRefraction);
             }
             else if (refraction > 10)
             {
-                notes.Add("Substantial refraction correction - important for precise positioning");
+                notes.Add(AppResources.AtmosphericCorrection_SubstantialRefraction);
             }
             else if (refraction > 2)
             {
-                notes.Add("Moderate refraction correction - noticeable effect on object position");
+                notes.Add(AppResources.AtmosphericCorrection_ModerateRefraction);
             }
             else
             {
-                notes.Add("Minimal refraction correction - object near true position");
+                notes.Add(AppResources.AtmosphericCorrection_MinimalRefraction);
             }
 
             // Extinction notes
             if (extinction > 2.0)
             {
-                notes.Add("Severe atmospheric extinction - object much dimmer than extraterrestrial brightness");
+                notes.Add(AppResources.AtmosphericCorrection_SevereExtinction);
             }
             else if (extinction > 1.0)
             {
-                notes.Add("Significant atmospheric extinction - object noticeably dimmer");
+                notes.Add(AppResources.AtmosphericCorrection_SignificantExtinction);
             }
             else if (extinction > 0.5)
             {
-                notes.Add("Moderate atmospheric extinction - some brightness reduction");
+                notes.Add(AppResources.AtmosphericCorrection_ModerateExtinction);
             }
             else
             {
-                notes.Add("Minimal atmospheric extinction - object near full brightness");
+                notes.Add(AppResources.AtmosphericCorrection_MinimalExtinction);
             }
 
             // Altitude-specific advice
             if (altitude < 10)
             {
-                notes.Add("Very low altitude - atmospheric effects are extreme and unpredictable");
+                notes.Add(AppResources.AtmosphericCorrection_VeryLowAltitude);
             }
             else if (altitude < 20)
             {
-                notes.Add("Low altitude - significant atmospheric effects, consider observation timing");
+                notes.Add(AppResources.AtmosphericCorrection_LowAltitude);
             }
             else if (altitude > 70)
             {
-                notes.Add("High altitude - minimal atmospheric effects, excellent observing conditions");
+                notes.Add(AppResources.AtmosphericCorrection_HighAltitude);
             }
 
             // Photography implications
             if (refraction > 5 || extinction > 0.5)
             {
-                notes.Add("Atmospheric effects significant for precision astrophotography - consider correction");
+                notes.Add(AppResources.AtmosphericCorrection_SignificantForPhotography);
             }
 
             return string.Join(". ", notes) + ".";

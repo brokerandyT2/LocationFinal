@@ -96,16 +96,7 @@
                        VerticalOptions="Center" />
             </StackLayout>
 
-            <!-- Skip Button -->
-            <Button x:Name="SkipButton"
-                    Text="Skip Calibration"
-                    FontSize="14"
-                    BorderWidth="1"
-                    HeightRequest="45"
-                    CornerRadius="22"
-                    Clicked="OnSkipButtonClicked" />
-
-            <!-- Help Text -->
+           
            
         </StackLayout>
 

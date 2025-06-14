@@ -1897,6 +1897,15 @@ namespace Location.Core.Application.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to f/stop can not exceed 20 characters.
+        /// </summary>
+        internal static string Tip_ValidationError_FstopMaxLength {
+            get {
+                return ResourceManager.GetString("Tip_ValidationError_FstopMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Id must be greater than 0.
         /// </summary>
         internal static string Tip_ValidationError_IdRequired {

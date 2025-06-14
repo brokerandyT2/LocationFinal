@@ -84,24 +84,6 @@ namespace Location.Core.Infrastructure.Data
         /// </summary>
         public async Task InitializeDatabaseAsync()
         {
-            string em = string.Empty;
-            var isDB = File.Exists(_databasePath);
-            try
-            {
-                em = await SecureStorage.GetAsync("Email");
-            }
-            catch { }
-
-            if (!isDB && !String.IsNullOrEmpty(em))
-            {
-                SecureStorage.Remove("Email");
-                
-            }
-
-
-
-
-
             if (_isInitialized) return;
 
             await _initializationSemaphore.WaitAsync();
@@ -111,14 +93,42 @@ namespace Location.Core.Infrastructure.Data
 
                 _logger.LogInformation("Initializing database at {DatabasePath}", _databasePath);
 
+                // Check database and SecureStorage state
+                bool databaseExists = File.Exists(_databasePath);
+                string emailFromSecureStorage = string.Empty;
+
+                try
+                {
+                    emailFromSecureStorage = await SecureStorage.GetAsync("Email") ?? string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not access SecureStorage during database initialization");
+                }
+
+                _logger.LogInformation("Database exists: {DatabaseExists}, Email in SecureStorage: {HasEmail}",
+                    databaseExists, !string.IsNullOrEmpty(emailFromSecureStorage));
+
+                // Business Logic: If database doesn't exist but email is in SecureStorage,
+                // this indicates a fresh install - clear SecureStorage to force proper onboarding
+                if (!databaseExists && !string.IsNullOrEmpty(emailFromSecureStorage))
+                {
+                    _logger.LogInformation("Fresh installation detected - clearing SecureStorage to ensure proper onboarding");
+                    try
+                    {
+                        SecureStorage.Remove("Email");
+                        SecureStorage.Remove("UniqueID");
+                        SecureStorage.Remove("OnboardingCompleted");
+                        // Clear any other user-specific SecureStorage items
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to clear SecureStorage during fresh installation");
+                    }
+                }
+
                 // Enable foreign keys and performance optimizations
                 await _connection.ExecuteAsync("PRAGMA foreign_keys = ON");
-                //await _connection.ExecuteAsync($"PRAGMA busy_timeout = {BUSY_TIMEOUT_MS}");
-                //await _connection.ExecuteAsync("PRAGMA journal_mode = WAL");
-                //await _connection.ExecuteAsync("PRAGMA synchronous = NORMAL");
-                //await _connection.ExecuteAsync("PRAGMA cache_size = 10000");
-                //await _connection.ExecuteAsync("PRAGMA temp_store = MEMORY");
-
                 _logger.LogDebug("Database PRAGMA settings configured");
 
                 // Create tables with optimized order (dependencies first)

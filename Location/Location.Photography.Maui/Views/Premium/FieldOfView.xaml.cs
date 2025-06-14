@@ -23,12 +23,16 @@ namespace Location.Photography.Maui.Views.Premium
         private readonly ICameraDataService _cameraDataService;
         private readonly ICameraSensorProfileService _cameraSensorProfileService;
         private readonly IUserCameraBodyRepository _userCameraBodyRepository;
+        private readonly IServiceProvider _serviceProvider;
+
         private double _selectedCameraFOV = 0;
         private bool _isCalculating = false;
         private string _currentImagePath = string.Empty;
         private string _currentUserId = string.Empty;
         private double _imageWidth = 0;
         private double _imageHeight = 0;
+        private bool _disposed = false;
+        private bool _cameraInitialized = false;
 
         // Collections for camera and lens data
         private ObservableCollection<CameraDisplayItem> _availableCameras = new();
@@ -54,10 +58,7 @@ namespace Location.Photography.Maui.Views.Premium
                 OnPropertyChanged();
             }
         }
-        ~FieldOfView()
-        {
-            var x = CameraPreview.StopCameraAsync().Result;
-        }
+
         public ObservableCollection<LensDisplayItem> AvailableLenses
         {
             get => _availableLenses;
@@ -75,7 +76,7 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 _selectedCamera = value;
                 OnPropertyChanged();
-                OnCameraSelectionChanged();
+                _ = Task.Run(async () => await OnCameraSelectionChanged());
             }
         }
 
@@ -86,12 +87,12 @@ namespace Location.Photography.Maui.Views.Premium
             {
                 _selectedLens = value;
                 OnPropertyChanged();
-                OnLensSelectionChanged();
+                _ = Task.Run(async () => await OnLensSelectionChanged());
             }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        private readonly IServiceProvider _serviceProvider;
+
         public FieldOfView(
             IMediator mediator,
             ILogger<FieldOfView> logger,
@@ -99,7 +100,8 @@ namespace Location.Photography.Maui.Views.Premium
             IAlertService alertService,
             ICameraDataService cameraDataService,
             ICameraSensorProfileService cameraSensorProfileService,
-            IUserCameraBodyRepository userCameraBodyRepository, IServiceProvider serviceProvider)
+            IUserCameraBodyRepository userCameraBodyRepository,
+            IServiceProvider serviceProvider)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -109,13 +111,170 @@ namespace Location.Photography.Maui.Views.Premium
             _cameraSensorProfileService = cameraSensorProfileService;
             _userCameraBodyRepository = userCameraBodyRepository ?? throw new ArgumentNullException(nameof(userCameraBodyRepository));
             _serviceProvider = serviceProvider;
+
             InitializeComponent();
             BindingContext = this;
             InitializeFieldOfView();
-            LoadCurrentUserIdAsync();
-            LoadCamerasAsync();
+            _ = LoadCurrentUserIdAsync();
+            _ = LoadCamerasAsync();
+
+            // Use weak event handler to prevent memory leaks
             CameraPreview.CamerasLoaded += CameraView_CamerasLoaded;
         }
+
+        #region Camera Management Methods
+
+        public void PauseCamera()
+        {
+            if (_disposed) return;
+
+            _logger.LogInformation("Pausing camera");
+            _cameraInitialized = false;
+
+            // Fire and forget - don't block
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+                    if (CameraPreview != null)
+                    {
+                        await CameraPreview.StopCameraAsync().WaitAsync(cts.Token);
+                        _logger.LogInformation("Camera paused successfully");
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogWarning("Camera pause timed out");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Camera pause failed (ignored)");
+                }
+            });
+        }
+
+        public async Task ResumeCameraAsync()
+        {
+            if (_disposed) return;
+
+            try
+            {
+                _logger.LogInformation("Resuming camera");
+
+                if (CameraPreview?.Camera != null && !_cameraInitialized)
+                {
+                    await CameraPreview.StartCameraAsync();
+                    _cameraInitialized = true;
+                    _logger.LogInformation("Camera resumed successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Camera resume failed");
+            }
+        }
+
+        private async void CameraView_CamerasLoaded(object? sender, EventArgs e)
+        {
+            try
+            {
+                // Safety check - don't initialize if disposed
+                if (_disposed)
+                {
+                    _logger.LogInformation("Page disposed, skipping camera initialization");
+                    return;
+                }
+
+                foreach (var x in CameraPreview.Cameras)
+                {
+                    if (x.Position == CameraPosition.Back)
+                    {
+                        CameraPreview.Camera = x;
+
+                        // Get actual camera resolution and calculate real aspect ratio
+                        if (x.AvailableResolutions != null && x.AvailableResolutions.Any())
+                        {
+                            // Use the highest resolution available (usually the native resolution)
+                            var maxResolution = x.AvailableResolutions.OrderByDescending(r => r.Width * r.Height).First();
+                            var cameraAspectRatio = (double)maxResolution.Width / maxResolution.Height;
+
+                            var containerWidth = 500.0; // From WidthRequest
+                            var calculatedHeight = containerWidth / cameraAspectRatio;
+
+                            _imageWidth = containerWidth;
+                            _imageHeight = calculatedHeight;
+
+                            _logger.LogInformation("Camera resolution: {Width}x{Height}, Aspect ratio: {Ratio:F2}, Calculated height: {Height:F1}",
+                                maxResolution.Width, maxResolution.Height, cameraAspectRatio, calculatedHeight);
+                        }
+                        else
+                        {
+                            // Fallback to common mobile camera aspect ratio
+                            var fallbackAspectRatio = 16.0 / 9.0;
+                            _imageWidth = 500.0;
+                            _imageHeight = 500.0 / fallbackAspectRatio;
+
+                            _logger.LogWarning("No camera resolutions available, using fallback 16:9 aspect ratio");
+                        }
+
+                        break;
+                    }
+                }
+
+                // Only start if not disposed
+                if (!_disposed)
+                {
+                    await CameraPreview.StartCameraAsync();
+                    _cameraInitialized = true;
+                    _logger.LogInformation("Camera started successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CameraView_CamerasLoaded");
+            }
+        }
+
+        #endregion
+
+        #region Navigation Events (Custom Tab Implementation)
+
+        // These methods should be called by your custom tab system
+        public async void OnNavigatedToAsync()
+        {
+            try
+            {
+                if (_disposed) return;
+
+                _logger.LogInformation("Navigated to Field of View page");
+                await LoadCamerasAsync();
+
+                // Camera will auto-start when CamerasLoaded event fires
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during navigation to page");
+            }
+        }
+
+        public void OnNavigatedFromAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Navigating away from Field of View page");
+                PauseCamera(); // Non-blocking camera stop
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during navigation away from page");
+            }
+        }
+
+        #endregion
+
+        #region Event Handlers
+
         private async void OnCameraManagementClicked(object sender, EventArgs e)
         {
             try
@@ -129,6 +288,7 @@ namespace Location.Photography.Maui.Views.Premium
                 await _alertService.ShowErrorAlertAsync("Error opening Camera Management", "Error");
             }
         }
+
         public async Task Handle(CameraCreatedNotification notification, CancellationToken cancellationToken)
         {
             try
@@ -164,63 +324,80 @@ namespace Location.Photography.Maui.Views.Premium
                 _logger.LogError(ex, "Error handling lens created notification");
             }
         }
-        private async void CameraView_CamerasLoaded(object? sender, EventArgs e)
+
+        private async void OnCameraSelectionChanged(object sender, EventArgs e)
         {
-            foreach (var x in CameraPreview.Cameras)
+            await OnCameraSelectionChanged();
+        }
+
+        private async Task OnCameraSelectionChanged()
+        {
+            try
             {
-                if (x.Position == CameraPosition.Back)
+                if (_disposed) return;
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    CameraPreview.Camera = x;
+                    // Reset lens selection
+                    SelectedLens = null;
+                    AvailableLenses.Clear();
+                    LensPicker.IsEnabled = false;
+                });
 
-                    // Get actual camera resolution and calculate real aspect ratio
-                    if (x.AvailableResolutions != null && x.AvailableResolutions.Any())
+                if (SelectedCamera?.Camera != null)
+                {
+                    await LoadLensesAsync();
+                }
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    UpdateFOVDisplay();
+                    UpdateOverlay();
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling camera selection");
+            }
+        }
+
+        private async void OnLensSelectionChanged(object sender, EventArgs e)
+        {
+            await OnLensSelectionChanged();
+        }
+
+        private async Task OnLensSelectionChanged()
+        {
+            try
+            {
+                if (_disposed) return;
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (SelectedLens?.Lens != null)
                     {
-                        // Use the highest resolution available (usually the native resolution)
-                        var maxResolution = x.AvailableResolutions.OrderByDescending(r => r.Width * r.Height).First();
-                        var cameraAspectRatio = (double)maxResolution.Width / maxResolution.Height;
-
-                        var containerWidth = 500.0; // From WidthRequest
-                        var calculatedHeight = containerWidth / cameraAspectRatio;
-
-                        _imageWidth = containerWidth;
-                        _imageHeight = calculatedHeight;
-
-                        _logger.LogInformation("Camera resolution: {Width}x{Height}, Aspect ratio: {Ratio:F2}, Calculated height: {Height:F1}",
-                            maxResolution.Width, maxResolution.Height, cameraAspectRatio, calculatedHeight);
+                        CalculateSelectedCameraFOV();
+                        OverlayGraphicsView.IsVisible = true;
                     }
                     else
                     {
-                        // Fallback to common mobile camera aspect ratio
-                        var fallbackAspectRatio = 16.0 / 9.0;
-                        _imageWidth = 500.0;
-                        _imageHeight = 500.0 / fallbackAspectRatio;
-
-                        _logger.LogWarning("No camera resolutions available, using fallback 16:9 aspect ratio");
+                        _selectedCameraFOV = 0;
+                        OverlayGraphicsView.IsVisible = false;
                     }
 
-                    break;
-                }
+                    UpdateFOVDisplay();
+                    UpdateOverlay();
+                });
             }
-            await CameraPreview.StartCameraAsync();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling lens selection");
+            }
         }
 
+        #endregion
 
-        // INavigationAware implementation
-        public async void OnNavigatedToAsync()
-        {
-            await LoadCamerasAsync();
-        }
-
-        public void OnNavigatedFromAsync()
-        {
-            // Cleanup if needed
-        }
-
-        protected override void OnAppearing()
-        {
-            base.OnAppearing();
-            // Remove the async calls from here since we're using INavigationAware
-        }
+        #region Data Loading Methods
 
         private async Task LoadCurrentUserIdAsync()
         {
@@ -235,68 +412,59 @@ namespace Location.Photography.Maui.Views.Premium
             }
         }
 
-        private void InitializeFieldOfView()
-        {
-            try
-            {
-                OverlayGraphicsView.Drawable = new FOVOverlayDrawable();
-                _logger.LogInformation("Field of View page initialized");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error initializing Field of View page");
-            }
-        }
-
         private async Task LoadCamerasAsync(bool loadMore = false)
         {
-            if (_isLoadingCameras) return;
+            if (_isLoadingCameras || _disposed) return;
 
             try
             {
                 _isLoadingCameras = true;
-                ProcessingOverlay.IsVisible = true;
+                await MainThread.InvokeOnMainThreadAsync(() => ProcessingOverlay.IsVisible = true);
 
                 if (!loadMore)
                 {
                     _currentCameraSkip = 0;
-                    AvailableCameras.Clear();
+                    await MainThread.InvokeOnMainThreadAsync(() => AvailableCameras.Clear());
                 }
+
                 var userResult = await _cameraDataService.GetUserCameraBodiesAsync(_currentUserId, 0, int.MaxValue);
                 userResult.Data.CameraBodies = userResult.Data.CameraBodies.OrderBy(c => c.DisplayName).ToList();
 
                 if (userResult.IsSuccess)
                 {
-                    foreach (var res in userResult.Data.CameraBodies)
-                        AvailableCameras.Add(new CameraDisplayItem
-                        {
-                            Camera = res,
-                            DisplayName = "* " + res.DisplayName,
-                            IsMissingOption = false
-                        });
-
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        foreach (var res in userResult.Data.CameraBodies)
+                            AvailableCameras.Add(new CameraDisplayItem
+                            {
+                                Camera = res,
+                                DisplayName = "* " + res.DisplayName,
+                                IsMissingOption = false
+                            });
+                    });
                 }
 
                 // Load cameras from database (includes proper ordering: user cameras first, then alphabetically)
                 var result = await _cameraDataService.GetCameraBodiesAsync(0, int.MaxValue);
                 result.Data.CameraBodies = result.Data.CameraBodies.OrderBy(c => c.DisplayName).ToList();
+
                 if (result.IsSuccess)
                 {
-                    foreach (var camera in result.Data.CameraBodies)
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-
-                        AvailableCameras.Add(new CameraDisplayItem
+                        foreach (var camera in result.Data.CameraBodies)
                         {
-                            Camera = camera,
-                            DisplayName = camera.DisplayName,
-                            IsMissingOption = false
-                        });
-                    }
+                            AvailableCameras.Add(new CameraDisplayItem
+                            {
+                                Camera = camera,
+                                DisplayName = camera.DisplayName,
+                                IsMissingOption = false
+                            });
+                        }
 
-
+                        CameraPicker.SelectedIndex = -1;
+                    });
                 }
-
-                CameraPicker.SelectedIndex = -1;
             }
             catch (Exception ex)
             {
@@ -306,44 +474,45 @@ namespace Location.Photography.Maui.Views.Premium
             finally
             {
                 _isLoadingCameras = false;
-                ProcessingOverlay.IsVisible = false;
+                await MainThread.InvokeOnMainThreadAsync(() => ProcessingOverlay.IsVisible = false);
             }
         }
 
         private async Task LoadLensesAsync(bool loadMore = false)
         {
-            if (_isLoadingLenses || SelectedCamera?.Camera == null) return;
+            if (_isLoadingLenses || SelectedCamera?.Camera == null || _disposed) return;
 
             try
             {
                 _isLoadingLenses = true;
-                ProcessingOverlay.IsVisible = true;
+                await MainThread.InvokeOnMainThreadAsync(() => ProcessingOverlay.IsVisible = true);
 
                 if (!loadMore)
                 {
                     _currentLensSkip = 0;
-                    AvailableLenses.Clear();
+                    await MainThread.InvokeOnMainThreadAsync(() => AvailableLenses.Clear());
                 }
 
                 var result = await _cameraDataService.GetLensesAsync(_currentLensSkip, _pageSize, false, SelectedCamera.Camera.Id);
                 if (result.IsSuccess)
                 {
-                    foreach (var lens in result.Data.Lenses)
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        AvailableLenses.Add(new LensDisplayItem
+                        foreach (var lens in result.Data.Lenses)
                         {
-                            Lens = lens,
-                            DisplayName = lens.DisplayName,
-                            IsMissingOption = false
-                        });
-                    }
+                            AvailableLenses.Add(new LensDisplayItem
+                            {
+                                Lens = lens,
+                                DisplayName = lens.DisplayName,
+                                IsMissingOption = false
+                            });
+                        }
 
-                    _hasMoreLenses = result.Data.HasMore;
-                    // LoadMoreLensesButton.IsVisible = _hasMoreLenses;
-                    _currentLensSkip += _pageSize;
+                        _hasMoreLenses = result.Data.HasMore;
+                        _currentLensSkip += _pageSize;
+                        LensPicker.IsEnabled = true;
+                    });
                 }
-
-                LensPicker.IsEnabled = true;
             }
             catch (Exception ex)
             {
@@ -353,9 +522,13 @@ namespace Location.Photography.Maui.Views.Premium
             finally
             {
                 _isLoadingLenses = false;
-                ProcessingOverlay.IsVisible = false;
+                await MainThread.InvokeOnMainThreadAsync(() => ProcessingOverlay.IsVisible = false);
             }
         }
+
+        #endregion
+
+        #region Button Click Handlers
 
         private async void OnLoadMoreCamerasClicked(object sender, EventArgs e)
         {
@@ -446,100 +619,6 @@ namespace Location.Photography.Maui.Views.Premium
             }
         }
 
-        private async void OnCameraSelectionChanged(object sender, EventArgs e)
-        {
-            await OnCameraSelectionChanged();
-        }
-
-        private async Task OnCameraSelectionChanged()
-        {
-            try
-            {
-                // Reset lens selection
-                SelectedLens = null;
-                AvailableLenses.Clear();
-                LensPicker.IsEnabled = false;
-                // LoadMoreLensesButton.IsVisible = false;
-
-                if (SelectedCamera?.Camera != null)
-                {
-                    await LoadLensesAsync();
-                }
-
-                UpdateFOVDisplay();
-                UpdateOverlay();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error handling camera selection");
-            }
-        }
-
-        private async void OnLensSelectionChanged(object sender, EventArgs e)
-        {
-            await OnLensSelectionChanged();
-        }
-
-        private async Task OnLensSelectionChanged()
-        {
-            try
-            {
-                if (SelectedLens?.Lens != null)
-                {
-                    CalculateSelectedCameraFOV(); OverlayGraphicsView.IsVisible = true; // Add this line
-                }
-                else
-                {
-                    _selectedCameraFOV = 0;
-                    OverlayGraphicsView.IsVisible = false; // Add this line
-                }
-
-                UpdateFOVDisplay();
-                UpdateOverlay();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error handling lens selection");
-            }
-        }
-
-        private void CalculateSelectedCameraFOV()
-        {
-            try
-            {
-                if (SelectedCamera?.Camera == null || SelectedLens?.Lens == null) return;
-
-                var sensorWidth = SelectedCamera.Camera.SensorWidth;
-
-                // Calculate wide FOV (minimum focal length, maximum aperture)
-                var wideFOV = _fovCalculationService.CalculateHorizontalFOV(SelectedLens.Lens.MinMM, sensorWidth);
-
-                // Calculate telephoto FOV (maximum focal length, minimum aperture)
-                var telephotoFOV = wideFOV; // Default for prime lenses
-                if (SelectedLens.Lens.MaxMM.HasValue && SelectedLens.Lens.MaxMM.Value > SelectedLens.Lens.MinMM)
-                {
-                    telephotoFOV = _fovCalculationService.CalculateHorizontalFOV(SelectedLens.Lens.MaxMM.Value, sensorWidth);
-                }
-
-                // Update the drawable with both FOV values and image dimensions
-                if (OverlayGraphicsView.Drawable is FOVOverlayDrawable drawable)
-                {
-                    drawable.WideFOV = wideFOV;
-                    drawable.TelephotoFOV = telephotoFOV;
-                    drawable.IsPrimeLens = !SelectedLens.Lens.MaxMM.HasValue || SelectedLens.Lens.MaxMM.Value <= SelectedLens.Lens.MinMM;
-                    //drawable.ImageWidth = _imageWidth;
-                    //drawable.ImageHeight = _imageHeight;
-                }
-
-                _selectedCameraFOV = wideFOV; // Use wide FOV for display
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating selected camera FOV");
-                _selectedCameraFOV = 0;
-            }
-        }
-
         private async void OnCaptureButtonClicked(object sender, EventArgs e)
         {
             try
@@ -579,6 +658,58 @@ namespace Location.Photography.Maui.Views.Premium
             }
         }
 
+        #endregion
+
+        #region Helper Methods
+
+        private void InitializeFieldOfView()
+        {
+            try
+            {
+                OverlayGraphicsView.Drawable = new FOVOverlayDrawable();
+                _logger.LogInformation("Field of View page initialized");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing Field of View page");
+            }
+        }
+
+        private void CalculateSelectedCameraFOV()
+        {
+            try
+            {
+                if (SelectedCamera?.Camera == null || SelectedLens?.Lens == null) return;
+
+                var sensorWidth = SelectedCamera.Camera.SensorWidth;
+
+                // Calculate wide FOV (minimum focal length, maximum aperture)
+                var wideFOV = _fovCalculationService.CalculateHorizontalFOV(SelectedLens.Lens.MinMM, sensorWidth);
+
+                // Calculate telephoto FOV (maximum focal length, minimum aperture)
+                var telephotoFOV = wideFOV; // Default for prime lenses
+                if (SelectedLens.Lens.MaxMM.HasValue && SelectedLens.Lens.MaxMM.Value > SelectedLens.Lens.MinMM)
+                {
+                    telephotoFOV = _fovCalculationService.CalculateHorizontalFOV(SelectedLens.Lens.MaxMM.Value, sensorWidth);
+                }
+
+                // Update the drawable with both FOV values and image dimensions
+                if (OverlayGraphicsView.Drawable is FOVOverlayDrawable drawable)
+                {
+                    drawable.WideFOV = wideFOV;
+                    drawable.TelephotoFOV = telephotoFOV;
+                    drawable.IsPrimeLens = !SelectedLens.Lens.MaxMM.HasValue || SelectedLens.Lens.MaxMM.Value <= SelectedLens.Lens.MinMM;
+                }
+
+                _selectedCameraFOV = wideFOV; // Use wide FOV for display
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating selected camera FOV");
+                _selectedCameraFOV = 0;
+            }
+        }
+
         private async Task DisplayCapturedImageAsync(FileResult photo)
         {
             try
@@ -594,8 +725,6 @@ namespace Location.Photography.Maui.Views.Premium
                 await GetImageDimensionsAsync(imageStream);
 
                 _currentImagePath = newFile;
-                //CapturedImage.Source = ImageSource.FromFile(newFile);
-                // PlaceholderStack.IsVisible = false;
                 OverlayGraphicsView.IsVisible = true;
 
                 UpdateFOVDisplay();
@@ -675,21 +804,35 @@ namespace Location.Photography.Maui.Views.Premium
             }
         }
 
-        protected override void OnDisappearing()
+        private void CleanupTempFiles()
         {
-            base.OnDisappearing();
-
-            if (!string.IsNullOrEmpty(_currentImagePath) && File.Exists(_currentImagePath))
+            try
             {
-                try
+                if (!string.IsNullOrEmpty(_currentImagePath) && File.Exists(_currentImagePath))
                 {
                     File.Delete(_currentImagePath);
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to delete temporary image file: {ImagePath}", _currentImagePath);
-                }
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to delete temporary image file: {ImagePath}", _currentImagePath);
+            }
+        }
+
+        #endregion
+
+        #region Lifecycle and Disposal
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            // Don't put camera logic here since this is a custom tab implementation
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            CleanupTempFiles();
         }
 
         protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
@@ -697,21 +840,58 @@ namespace Location.Photography.Maui.Views.Premium
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                _disposed = true; // Set immediately to prevent re-entry
+
+                if (disposing)
+                {
+                    try
+                    {
+                        // Immediately disconnect event handler to prevent new camera operations
+                        CameraPreview.CamerasLoaded -= CameraView_CamerasLoaded;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error disconnecting camera event handler");
+                    }
+
+                    // Fire and forget camera cleanup - don't block disposal
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(500)); // Very short timeout
+                            if (CameraPreview != null)
+                            {
+                                await CameraPreview.StopCameraAsync().WaitAsync(cts.Token);
+                                _logger.LogInformation("Camera disposed successfully");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Camera disposal failed (ignored)");
+                        }
+                    });
+
+                    // Clean up temp files synchronously
+                    CleanupTempFiles();
+                }
+            }
+        }
+
         public void Dispose()
         {
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await CameraPreview?.StopCameraAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error disposing camera");
-                }
-            });
+            Dispose(true);
+            GC.SuppressFinalize(this); // Prevent finalizer from running
         }
+
+        #endregion
     }
+
+    #region Helper Classes
 
     public class CameraDisplayItem
     {
@@ -744,20 +924,20 @@ namespace Location.Photography.Maui.Views.Premium
             var referenceFOV = 60.0;
             var outerBox = CalculateFOVBox(WideFOV, imageRect, referenceFOV);
             var innerBox = CalculateFOVBox(TelephotoFOV, imageRect, referenceFOV);
-            //var outerBox = CalculateFOVBox(WideFOV, imageRect, referenceFOV);
+
             DrawSolidRectangle(canvas, outerBox, Colors.Red);
 
             if (!IsPrimeLens && TelephotoFOV > 0 && TelephotoFOV != WideFOV)
             {
-                // var innerBox = CalculateFOVBox(TelephotoFOV, imageRect, referenceFOV);
                 FillAreaBetweenBoxes(canvas, outerBox, innerBox);
                 DrawCornerBrackets(canvas, innerBox, Colors.Red);
             }
         }
+
         private void FillAreaBetweenBoxes(ICanvas canvas, RectF outerBox, RectF innerBox)
         {
             // Create 10% alpha gray color
-            var fillColor = Color.FromRgba(128, 128, 128, 128); // 26 = 10% of 255
+            var fillColor = Color.FromRgba(128, 128, 128, 128);
 
             canvas.FillColor = fillColor;
 
@@ -780,7 +960,6 @@ namespace Location.Photography.Maui.Views.Premium
 
             canvas.FillPath(path);
         }
-
 
         private RectF CalculateFOVBox(double fov, RectF imageRect, double referenceFOV)
         {
@@ -831,4 +1010,6 @@ namespace Location.Photography.Maui.Views.Premium
             canvas.DrawLine(box.Right, box.Bottom - cornerSize, box.Right, box.Bottom);
         }
     }
+
+    #endregion
 }

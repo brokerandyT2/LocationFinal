@@ -310,5 +310,10 @@ namespace Location.Photography.Application.Services
                 return Result<List<MountTypeDto>>.Failure(AppResources.CameraEvaluation_Error_GettingMountTypes);
             }
         }
+
+        public Task<Result<bool>> UpdateLensCompatibilityAsync(int lensId, List<int> compatibleCameraIds, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
