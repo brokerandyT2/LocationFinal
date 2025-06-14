@@ -3,6 +3,7 @@ using CosineKitty;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
+using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -211,15 +212,15 @@ namespace Location.Photography.Infrastructure.Services
                             {
                                 var illumination = Astronomy.Illumination(body, opposition);
                                 var equatorial = Astronomy.Equator(body, opposition, geocentricObserver, EquatorEpoch.OfDate, Aberration.Corrected);
-
+                                var au = GetPlanetAngularDiameter(body, equatorial.dist);
                                 oppositions.Add(new PlanetaryEvent
                                 {
                                     DateTime = opposition.ToUtcDateTime(),
                                     Planet = planet,
-                                    EventType = "Opposition",
+                                    EventType =  "Opposition",
                                     ApparentMagnitude = illumination.mag,
-                                    AngularDiameter = GetPlanetAngularDiameter(body, equatorial.dist),
-                                    OptimalViewingConditions = GetOppositionViewingConditions(planet),
+                                    AngularDiameter = au,
+                                    OptimalViewingConditions = GetOppositionViewingConditions(planet, au),
                                     EquipmentRecommendations = GetOppositionEquipmentAdvice(planet, equatorial.dist)
                                 });
 
@@ -625,13 +626,13 @@ namespace Location.Photography.Infrastructure.Services
         {
             return planet switch
             {
-                PlanetType.Mercury or PlanetType.Venus => "Wide angle lens for conjunction photography",
-                PlanetType.Mars => distance < 0.7 ? "200-600mm telephoto lens" : "400mm+ telephoto lens",
-                PlanetType.Jupiter => "200mm+ telephoto lens, telescope for detail",
-                PlanetType.Saturn => "300mm+ telephoto lens, telescope for rings",
-                PlanetType.Uranus or PlanetType.Neptune => "Telescope required for detection",
-                PlanetType.Pluto => "Large telescope and long exposure required",
-                _ => "Medium telephoto lens"
+                PlanetType.Venus => distance < 0.3 ? AppResources.PlanetEquipment_Venus_Close : AppResources.PlanetEquipment_Venus_Standard,
+                PlanetType.Mars => distance < 0.5 ? AppResources.PlanetEquipment_Mars_Close : AppResources.PlanetEquipment_Mars_Standard,
+                PlanetType.Jupiter => AppResources.PlanetEquipment_Jupiter,
+                PlanetType.Saturn => AppResources.PlanetEquipment_Saturn,
+                PlanetType.Uranus or PlanetType.Neptune => AppResources.PlanetEquipment_OuterPlanets,
+                PlanetType.Pluto => AppResources.PlanetEquipment_Pluto,
+                _ => AppResources.PlanetEquipment_Default
             };
         }
 
@@ -639,11 +640,11 @@ namespace Location.Photography.Infrastructure.Services
         {
             return planet switch
             {
-                PlanetType.Venus => $"Phase: {phase:P0}. Best photographed during crescent phases.",
-                PlanetType.Mars => "Best during opposition when closest to Earth.",
-                PlanetType.Jupiter => "Capture the Great Red Spot and Galilean moons.",
-                PlanetType.Saturn => "Photograph rings and major moons like Titan.",
-                _ => "Use highest magnification available for planetary detail."
+                PlanetType.Venus => string.Format(AppResources.PlanetNotes_Venus, phase.ToString("P0")),
+                PlanetType.Mars => AppResources.PlanetNotes_Mars,
+                PlanetType.Jupiter => AppResources.PlanetNotes_Jupiter,
+                PlanetType.Saturn => AppResources.PlanetNotes_Saturn,
+                _ => AppResources.PlanetNotes_Default
             };
         }
         private double CalculateAngularSeparation(Body body1, Body body2, AstroTime time, Observer observer)
@@ -734,7 +735,7 @@ namespace Location.Photography.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error determining conjunction visibility for altitude {Altitude}", altitude);
-                return "Unknown visibility";
+                return AppResources.Visibility_Unknown; //.. "Unknown visibility";
             }
         }
         private string GetConjunctionPhotographyAdvice(double separationArcMinutes, double altitude)
@@ -773,23 +774,20 @@ namespace Location.Photography.Infrastructure.Services
                 return "Use telephoto lens and tripod for best results.";
             }
         }
-        private string GetOppositionViewingConditions(PlanetType planet)
+        private string GetOppositionViewingConditions(PlanetType planet, double distanceAU)
         {
             try
             {
                 return planet switch
                 {
-                    PlanetType.Mars => "Best viewing conditions every 26 months. Planet appears largest and brightest, ideal for surface feature photography. Look for polar ice caps and dust storms.",
-
-                    PlanetType.Jupiter => "Excellent conditions for moon photography. All four Galilean moons visible. Great Red Spot rotates every ~10 hours - plan timing for best views.",
-
-                    PlanetType.Saturn => "Ring system fully illuminated and widest apparent size. Titan and other major moons easily visible. Cassini Division in rings may be detectable.",
-
-                    PlanetType.Uranus => "Reaches magnitude ~5.7, barely visible to naked eye in dark skies. Telescope required for disc visibility. Appears blue-green due to methane atmosphere.",
-
-                    PlanetType.Neptune => "Magnitude ~7.8, telescope essential. Appears as small blue disc. Triton (largest moon) may be visible with larger instruments.",
-
-                    _ => "Planet reaches maximum brightness and apparent size during opposition. Best time for detailed photography and observation."
+                    PlanetType.Mars when distanceAU < 0.4 => AppResources.OppositionConditions_Mars_Excellent,
+                    PlanetType.Mars when distanceAU < 0.6 => AppResources.OppositionConditions_Mars_Good,
+                    PlanetType.Mars => AppResources.OppositionConditions_Mars_Standard,
+                    PlanetType.Jupiter => AppResources.OppositionConditions_Jupiter,
+                    PlanetType.Saturn => AppResources.OppositionConditions_Saturn,
+                    PlanetType.Uranus => AppResources.OppositionConditions_Uranus,
+                    PlanetType.Neptune => AppResources.OppositionConditions_Neptune,
+                    _ => AppResources.OppositionConditions_Default
                 };
             }
             catch (Exception ex)
@@ -804,19 +802,13 @@ namespace Location.Photography.Infrastructure.Services
             {
                 return planet switch
                 {
-                    PlanetType.Mars when distanceAU < 0.5 => "Excellent opposition! 200-400mm telephoto sufficient for surface features. Consider telescope with 2000mm+ focal length for detailed imaging.",
-
-                    PlanetType.Mars => "Standard opposition. 400mm+ telephoto lens minimum. Telescope with 1500mm+ focal length recommended for surface detail photography.",
-
-                    PlanetType.Jupiter => "200mm+ telephoto shows disc and moons. 600mm+ reveals Great Red Spot. Telescope with 2000mm+ focal length for detailed surface bands and storm systems.",
-
-                    PlanetType.Saturn => "300mm+ telephoto shows rings. 600mm+ resolves ring gap. Telescope with 2500mm+ focal length required for ring divisions and moon details.",
-
-                    PlanetType.Uranus => "Telescope with 1000mm+ focal length minimum. 2000mm+ shows small disc. Very challenging target requiring excellent atmospheric conditions.",
-
-                    PlanetType.Neptune => "Large telescope essential - 2000mm+ focal length minimum. 3000mm+ preferred. Requires excellent seeing conditions and precise tracking.",
-
-                    _ => "Telescope or long telephoto lens recommended for planetary detail during opposition."
+                    PlanetType.Mars when distanceAU < 0.5 => AppResources.OppositionEquipment_Mars_Excellent,
+                    PlanetType.Mars => AppResources.OppositionEquipment_Mars_Standard,
+                    PlanetType.Jupiter => AppResources.OppositionEquipment_Jupiter,
+                    PlanetType.Saturn => AppResources.OppositionEquipment_Saturn,
+                    PlanetType.Uranus => AppResources.OppositionEquipment_Uranus,
+                    PlanetType.Neptune => AppResources.OppositionEquipment_Neptune,
+                    _ => AppResources.OppositionEquipment_Default
                 };
             }
             catch (Exception ex)
@@ -834,21 +826,21 @@ namespace Location.Photography.Infrastructure.Services
 
                 return normalizedPhase switch
                 {
-                    >= 0 and < 22.5 => "New Moon",
-                    >= 22.5 and < 67.5 => "Waxing Crescent",
-                    >= 67.5 and < 112.5 => "First Quarter",
-                    >= 112.5 and < 157.5 => "Waxing Gibbous",
-                    >= 157.5 and < 202.5 => "Full Moon",
-                    >= 202.5 and < 247.5 => "Waning Gibbous",
-                    >= 247.5 and < 292.5 => "Third Quarter",
-                    >= 292.5 and < 337.5 => "Waning Crescent",
-                    _ => "New Moon"
+                    >= 0 and < 22.5 => AppResources.LunarPhase_NewMoon,
+                    >= 22.5 and < 67.5 => AppResources.LunarPhase_WaxingCrescent,
+                    >= 67.5 and < 112.5 => AppResources.LunarPhase_FirstQuarter,
+                    >= 112.5 and < 157.5 => AppResources.LunarPhase_WaxingGibbous,
+                    >= 157.5 and < 202.5 => AppResources.LunarPhase_FullMoon,
+                    >= 202.5 and < 247.5 => AppResources.LunarPhase_WaningGibbous,
+                    >= 247.5 and < 292.5 => AppResources.LunarPhase_ThirdQuarter,
+                    >= 292.5 and < 337.5 => AppResources.LunarPhase_WaningCrescent,
+                    _ => AppResources.LunarPhase_NewMoon
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error determining moon phase name for angle {PhaseAngle}", phaseAngle);
-                return "Unknown Phase";
+                return AppResources.LunarPhase_Unknown;
             }
         }
         private bool IsSupermoon(double distanceAU)
@@ -880,117 +872,25 @@ namespace Location.Photography.Infrastructure.Services
 
                 return normalizedPhase switch
                 {
-                    >= 0 and < 22.5 => "New Moon - ideal for deep sky photography, moon not visible",
-                    >= 22.5 and < 67.5 => "Waxing Crescent - excellent for terminator detail and earthshine photography",
-                    >= 67.5 and < 112.5 => "First Quarter - perfect for crater photography along terminator line",
-                    >= 112.5 and < 157.5 => "Waxing Gibbous - good for mare detail and mountain range photography",
-                    >= 157.5 and < 202.5 => "Full Moon - best for lunar landscapes and overall surface detail",
-                    >= 202.5 and < 247.5 => "Waning Gibbous - excellent for eastern limb features and libration photography",
-                    >= 247.5 and < 292.5 => "Third Quarter - ideal for western crater detail and terminator photography",
-                    >= 292.5 and < 337.5 => "Waning Crescent - perfect for sunrise terminator and earthshine",
-                    _ => "New Moon - dark sky conditions for deep space objects"
+                    >= 0 and < 22.5 => AppResources.LunarPhase_NewMoon_Description,
+                    >= 22.5 and < 67.5 => AppResources.LunarPhase_WaxingCrescent_Description,
+                    >= 67.5 and < 112.5 => AppResources.LunarPhase_FirstQuarter_Description,
+                    >= 112.5 and < 157.5 => AppResources.LunarPhase_WaxingGibbous_Description,
+                    >= 157.5 and < 202.5 => AppResources.LunarPhase_FullMoon_Description,
+                    >= 202.5 and < 247.5 => AppResources.LunarPhase_WaningGibbous_Description,
+                    >= 247.5 and < 292.5 => AppResources.LunarPhase_ThirdQuarter_Description,
+                    >= 292.5 and < 337.5 => AppResources.LunarPhase_WaningCrescent_Description,
+                    _ => AppResources.LunarPhase_NewMoon_DarkSky_Description
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error getting optimal lunar phase description for angle {PhaseAngle}", phaseAngle);
-                return "Lunar photography opportunities available at all phases";
+                return AppResources.LunarPhase_DefaultDescription;
             }
         }
 
-        // Fix LibrationData parameter in GetVisibleLunarFeatures method signature
-        private List<string> GetVisibleLunarFeatures(double phaseAngle, CosineKitty.LibrationInfo libration)
-        {
-            try
-            {
-                var features = new List<string>();
-                var normalizedPhase = ((phaseAngle % 360) + 360) % 360;
-
-                // Phase-specific features (same logic as before)
-                switch (normalizedPhase)
-                {
-                    case >= 22.5 and < 67.5:
-                        features.AddRange(new[] { "Mare Crisium", "Langrenus Crater", "Petavius Crater", "Earthshine on dark limb" });
-                        break;
-                        // ... rest of cases same as before
-                }
-
-                // Libration-enhanced features - fix property names
-                if (Math.Abs(libration.elon) > 4.0)
-                {
-                    if (libration.elon > 0)
-                        features.Add("Eastern limb features enhanced by libration");
-                    else
-                        features.Add("Western limb features enhanced by libration");
-                }
-
-                if (Math.Abs(libration.elat) > 4.0)
-                {
-                    if (libration.elat > 0)
-                        features.Add("Northern polar region enhanced by libration");
-                    else
-                        features.Add("Southern polar region enhanced by libration");
-                }
-
-                return features.Distinct().ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error getting visible lunar features");
-                return new List<string> { "Major craters and maria visible" };
-            }
-        }
-
-        private string GetLunarExposureRecommendations(double illuminationFraction)
-        {
-            try
-            {
-                var recommendations = new List<string>();
-
-                // Base exposure recommendations based on illumination
-                if (illuminationFraction < 0.1) // New Moon/Thin Crescent
-                {
-                    recommendations.Add("Earthshine: ISO 1600-6400, f/2.8-4, 1-4 seconds");
-                    recommendations.Add("Crescent: ISO 100-400, f/5.6-8, 1/60-1/250 second");
-                    recommendations.Add("Use bracketing for HDR composite of lit and earthshine portions");
-                }
-                else if (illuminationFraction < 0.3) // Crescent
-                {
-                    recommendations.Add("ISO 100-800, f/5.6-8, 1/125-1/500 second");
-                    recommendations.Add("Focus on terminator detail and crater shadows");
-                    recommendations.Add("Consider focus stacking for sharp edge-to-edge detail");
-                }
-                else if (illuminationFraction < 0.7) // Quarter to Gibbous
-                {
-                    recommendations.Add("ISO 100-400, f/8-11, 1/250-1/1000 second");
-                    recommendations.Add("Optimal for crater detail photography");
-                    recommendations.Add("Use longer focal lengths (1000mm+) for feature detail");
-                }
-                else if (illuminationFraction < 0.95) // Near Full
-                {
-                    recommendations.Add("ISO 100-200, f/8-11, 1/500-1/2000 second");
-                    recommendations.Add("Watch for overexposure - use histogram monitoring");
-                    recommendations.Add("Consider neutral density filter for longer exposures");
-                }
-                else // Full Moon
-                {
-                    recommendations.Add("ISO 100, f/11-16, 1/1000-1/4000 second");
-                    recommendations.Add("Very bright - may require ND filter or stopped down aperture");
-                    recommendations.Add("Best for overall lunar landscape and ray system photography");
-                }
-
-                // Universal recommendations
-                recommendations.Add("Use tripod and mirror lock-up/electronic shutter to minimize vibration");
-                recommendations.Add("Shoot in RAW for maximum post-processing flexibility");
-
-                return string.Join(". ", recommendations) + ".";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error getting lunar exposure recommendations for illumination {Illumination}", illuminationFraction);
-                return "Use tripod, shoot in RAW, adjust exposure based on moon brightness.";
-            }
-        }
+       
 
         private string GetSupermoonEventName(double phaseAngle)
         {
@@ -1013,6 +913,119 @@ namespace Location.Photography.Infrastructure.Services
                 return "Supermoon Event";
             }
         }
+        private List<string> GetVisibleLunarFeatures(double phaseAngle, CosineKitty.LibrationInfo libration)
+        {
+            try
+            {
+                var features = new List<string>();
+                var normalizedPhase = ((phaseAngle % 360) + 360) % 360;
+
+                // Phase-specific features
+                switch (normalizedPhase)
+                {
+                    case >= 22.5 and < 67.5:
+                        features.AddRange(new[] { AppResources.LunarFeature_MareCrisium, AppResources.LunarFeature_LangrenusCreater, AppResources.LunarFeature_PetaviusCreater, AppResources.LunarFeature_EarthshineOnDarkLimb });
+                        break;
+                    case >= 67.5 and < 112.5:
+                        features.AddRange(new[] { AppResources.LunarFeature_MareTransquillitatis, AppResources.LunarFeature_MareFecunditatis, AppResources.LunarFeature_TheophilusCreater, AppResources.LunarFeature_CyrillusCreater });
+                        break;
+                    case >= 112.5 and < 157.5:
+                        features.AddRange(new[] { AppResources.LunarFeature_MareImbrium, AppResources.LunarFeature_MareSerenitatis, AppResources.LunarFeature_CopernicusCreater, AppResources.LunarFeature_EratosthenesCreater });
+                        break;
+                    case >= 157.5 and < 202.5:
+                        features.AddRange(new[] { AppResources.LunarFeature_OceanusProcellarum, AppResources.LunarFeature_MareOrientale, AppResources.LunarFeature_TychoCreater, AppResources.LunarFeature_ClavviusCreater });
+                        break;
+                    case >= 202.5 and < 247.5:
+                        features.AddRange(new[] { AppResources.LunarFeature_MareNubium, AppResources.LunarFeature_MareHumorum, AppResources.LunarFeature_BullialdusCreater, AppResources.LunarFeature_GassendiiCreater });
+                        break;
+                    case >= 247.5 and < 292.5:
+                        features.AddRange(new[] { AppResources.LunarFeature_MareVaporum, AppResources.LunarFeature_SinusSuccessus, AppResources.LunarFeature_ArchimedesCreater, AppResources.LunarFeature_AristillusCreater });
+                        break;
+                    case >= 292.5 and < 337.5:
+                        features.AddRange(new[] { AppResources.LunarFeature_MareAnguis, AppResources.LunarFeature_MareUndarum, AppResources.LunarFeature_CleomadesCreater, AppResources.LunarFeature_BurckardtCreater });
+                        break;
+                    default:
+                        features.Add(AppResources.LunarFeature_NewMoonNoFeatures);
+                        break;
+                }
+
+                // Libration-enhanced features
+                if (Math.Abs(libration.elon) > 4.0)
+                {
+                    if (libration.elon > 0)
+                        features.Add(AppResources.LunarFeature_EasternLimbEnhanced);
+                    else
+                        features.Add(AppResources.LunarFeature_WesternLimbEnhanced);
+                }
+
+                if (Math.Abs(libration.elat) > 4.0)
+                {
+                    if (libration.elat > 0)
+                        features.Add(AppResources.LunarFeature_NorthernPolarEnhanced);
+                    else
+                        features.Add(AppResources.LunarFeature_SouthernPolarEnhanced);
+                }
+
+                return features.Distinct().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error getting visible lunar features");
+                return new List<string> { AppResources.LunarFeature_MajorCratersVisible };
+            }
+        }
+
+        private string GetLunarExposureRecommendations(double illuminationFraction)
+        {
+            try
+            {
+                var recommendations = new List<string>();
+
+                // Base exposure recommendations based on illumination
+                if (illuminationFraction < 0.1) // New Moon/Thin Crescent
+                {
+                    recommendations.Add(AppResources.LunarExposure_Earthshine);
+                    recommendations.Add(AppResources.LunarExposure_Crescent);
+                    recommendations.Add(AppResources.LunarExposure_BracketingForHDR);
+                }
+                else if (illuminationFraction < 0.3) // Crescent
+                {
+                    recommendations.Add(AppResources.LunarExposure_CrescentSettings);
+                    recommendations.Add(AppResources.LunarExposure_TerminatorDetail);
+                    recommendations.Add(AppResources.LunarExposure_FocusStacking);
+                }
+                else if (illuminationFraction < 0.7) // Quarter to Gibbous
+                {
+                    recommendations.Add(AppResources.LunarExposure_QuarterToGibbousSettings);
+                    recommendations.Add(AppResources.LunarExposure_OptimalForCraterDetail);
+                    recommendations.Add(AppResources.LunarExposure_LongerFocalLengths);
+                }
+                else if (illuminationFraction < 0.95) // Near Full
+                {
+                    recommendations.Add(AppResources.LunarExposure_NearFullSettings);
+                    recommendations.Add(AppResources.LunarExposure_WatchForOverexposure);
+                    recommendations.Add(AppResources.LunarExposure_ConsiderNeutralDensity);
+                }
+                else // Full Moon
+                {
+                    recommendations.Add(AppResources.LunarExposure_FullMoonSettings);
+                    recommendations.Add(AppResources.LunarExposure_VeryBrightRequiresND);
+                    recommendations.Add(AppResources.LunarExposure_BestForLandscape);
+                }
+
+                // Universal recommendations
+                recommendations.Add(AppResources.LunarExposure_UseTripodAndMirrorLockup);
+                recommendations.Add(AppResources.LunarExposure_ShootInRAW);
+
+                return string.Join(". ", recommendations) + ".";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error getting lunar exposure recommendations for illumination {Illumination}", illuminationFraction);
+                return AppResources.LunarExposure_DefaultRecommendation;
+            }
+            }
+                 
         private string GetSupermoonPhotographyAdvice(double phaseAngle, double distanceKm)
         {
             try
@@ -1634,13 +1647,13 @@ namespace Location.Photography.Infrastructure.Services
         {
             return objectType switch
             {
-                "Galaxy" when magnitude > 9 => "Telescope 200mm+ focal length, dark sky location essential",
-                "Galaxy" => "135-200mm telephoto lens sufficient, moderate light pollution acceptable",
-                "Nebula" when angularSize > 60 => "Wide-angle lens 14-50mm for full frame capture",
-                "Nebula" => "Telephoto lens 85-200mm for detail, consider H-alpha filter",
-                "Globular Cluster" => "200mm+ telephoto lens, resolve individual stars with longer focal lengths",
-                "Planetary Nebula" => "Telescope 300mm+ focal length, OIII filter recommended",
-                _ => "Medium telephoto lens 135-200mm recommended"
+                "Galaxy" when magnitude > 9 => AppResources.DeepSkyEquipment_Galaxy_Faint,
+                "Galaxy" => AppResources.DeepSkyEquipment_Galaxy_Bright,
+                "Nebula" when angularSize > 60 => AppResources.DeepSkyEquipment_Nebula_Large,
+                "Nebula" => AppResources.DeepSkyEquipment_Nebula_Standard,
+                "Globular Cluster" => AppResources.DeepSkyEquipment_GlobularCluster,
+                "Planetary Nebula" => AppResources.DeepSkyEquipment_PlanetaryNebula,
+                _ => AppResources.DeepSkyEquipment_Default
             };
         }
 
@@ -1648,11 +1661,11 @@ namespace Location.Photography.Infrastructure.Services
         {
             return objectType switch
             {
-                "Galaxy" => "ISO 1600-6400, f/2.8-4, 2-5 minute exposures with tracking",
-                "Nebula" => "ISO 800-3200, f/2.8-4, 3-8 minute exposures, consider narrowband filters",
-                "Globular Cluster" => "ISO 400-1600, f/4-5.6, 1-3 minute exposures",
-                "Planetary Nebula" => "ISO 800-1600, f/4-5.6, 2-5 minute exposures with OIII filter",
-                _ => "ISO 800-3200, f/2.8-4, 2-5 minute exposures with star tracker"
+                "Galaxy" => AppResources.DeepSkyExposure_Galaxy,
+                "Nebula" => AppResources.DeepSkyExposure_Nebula,
+                "Globular Cluster" => AppResources.DeepSkyExposure_GlobularCluster,
+                "Planetary Nebula" => AppResources.DeepSkyExposure_PlanetaryNebula,
+                _ => AppResources.DeepSkyExposure_Default
             };
         }
 
@@ -1662,41 +1675,17 @@ namespace Location.Photography.Infrastructure.Services
             {
                 return constellation switch
                 {
-                    ConstellationType.Orion => "Winter constellation, excellent for nebula photography. M42 Orion Nebula is ideal beginner target. Use 85-200mm lens for detail.",
-
-                    ConstellationType.Andromeda => "Autumn constellation featuring M31 Andromeda Galaxy. Use 135-200mm lens. Galaxy spans 3+ degrees, plan wide compositions.",
-
-                    ConstellationType.Sagittarius => "Summer constellation in Milky Way core region. Rich nebula fields, excellent for wide-field astrophotography. Dark skies essential.",
-
-                    ConstellationType.Cygnus => "Summer constellation along Milky Way. North America Nebula excellent widefield target. Veil Nebula complex requires H-alpha filter.",
-
-                    ConstellationType.Cassiopeia => "Circumpolar constellation, visible year-round from northern latitudes. Heart and Soul nebulae excellent autumn targets.",
-
-                    ConstellationType.UrsaMajor => "Spring constellation, contains several galaxies including M81/M82 Bode's Galaxy pair. 200mm+ lens recommended.",
-
-                    ConstellationType.Leo => "Spring constellation with Leo Triplet galaxies. M65, M66, NGC 3628 form excellent galaxy group for photography.",
-
-                    ConstellationType.Virgo => "Spring constellation, heart of Virgo Galaxy Cluster. M87, M104 Sombrero Galaxy prime targets. Requires dark skies.",
-
-                    ConstellationType.Scorpius => "Summer constellation, competes with Sagittarius for nebula richness. M4 globular cluster excellent target.",
-
-                    ConstellationType.Perseus => "Winter constellation, contains Double Cluster and California Nebula. Excellent for widefield star field photography.",
-
-                    ConstellationType.Auriga => "Winter constellation with several star clusters. M36, M37, M38 form excellent telescopic targets.",
-
-                    ConstellationType.Gemini => "Winter constellation, M35 open cluster excellent binocular/widefield target. Eskimo Nebula requires longer focal length.",
-
-                    ConstellationType.Taurus => "Winter constellation featuring Pleiades M45 and Hyades clusters. Crab Nebula M1 challenging but rewarding target.",
-
-                    ConstellationType.Lyra => "Summer constellation with Ring Nebula M57. Compact planetary nebula requires telescope for detail.",
-
-                    ConstellationType.Aquila => "Summer constellation along Milky Way. Rich star fields excellent for widefield photography.",
-
-                    ConstellationType.Centaurus => "Southern constellation with Omega Centauri globular cluster. Not visible from northern latitudes.",
-
-                    ConstellationType.Crux => "Southern Cross, iconic southern hemisphere constellation. Coalsack Nebula and Jewel Box Cluster prime targets.",
-
-                    _ => "Constellation offers various astrophotography opportunities. Research specific deep sky objects for optimal imaging strategies."
+                    ConstellationType.Orion => AppResources.ConstellationNotes_Orion,
+                    ConstellationType.Andromeda => AppResources.ConstellationNotes_Andromeda,
+                    ConstellationType.Sagittarius => AppResources.ConstellationNotes_Sagittarius,
+                    ConstellationType.Cygnus => AppResources.ConstellationNotes_Cygnus,
+                    ConstellationType.Cassiopeia => AppResources.ConstellationNotes_Cassiopeia,
+                    ConstellationType.Ursa_Major => AppResources.ConstellationNotes_UrsaMajor,
+                    ConstellationType.Leo => AppResources.ConstellationNotes_Leo,
+                    ConstellationType.Scorpius => AppResources.ConstellationNotes_Scorpius,
+                    ConstellationType.Perseus => AppResources.ConstellationNotes_Perseus,
+                    ConstellationType.Auriga => AppResources.ConstellationNotes_Auriga,
+                    _ => AppResources.ConstellationNotes_Default
                 };
             }
             catch (Exception ex)

@@ -58,7 +58,8 @@ namespace Location.Photography.Domain.Models
         Aquarius,
         Pisces,
         Aries,
-        Taurus
+        Taurus,
+        Ursa_Major
     }
 
     public enum MeteorShowerType

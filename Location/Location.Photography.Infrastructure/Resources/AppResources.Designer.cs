@@ -79,6 +79,60 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deep Sky Objects.
+        /// </summary>
+        internal static string AstroTarget_DeepSkyObjects {
+            get {
+                return ResourceManager.GetString("AstroTarget_DeepSkyObjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Meteor Showers.
+        /// </summary>
+        internal static string AstroTarget_MeteorShowers {
+            get {
+                return ResourceManager.GetString("AstroTarget_MeteorShowers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Milky Way Core.
+        /// </summary>
+        internal static string AstroTarget_MilkyWayCore {
+            get {
+                return ResourceManager.GetString("AstroTarget_MilkyWayCore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Northern Lights.
+        /// </summary>
+        internal static string AstroTarget_NorthernLights {
+            get {
+                return ResourceManager.GetString("AstroTarget_NorthernLights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Polar Alignment.
+        /// </summary>
+        internal static string AstroTarget_PolarAlignment {
+            get {
+                return ResourceManager.GetString("AstroTarget_PolarAlignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Star Trails.
+        /// </summary>
+        internal static string AstroTarget_StarTrails {
+            get {
+                return ResourceManager.GetString("AstroTarget_StarTrails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Camera body not found.
         /// </summary>
         internal static string CameraBody_Error_CameraBodyNotFound {
@@ -178,6 +232,105 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autumn constellation featuring M31 Andromeda Galaxy. Use 135-200mm lens. Galaxy spans 3+ degrees, plan wide compositions..
+        /// </summary>
+        internal static string ConstellationNotes_Andromeda {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Andromeda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Winter constellation with bright star Capella. IC 405 Flaming Star Nebula and IC 410 Tadpole Nebula are highlights..
+        /// </summary>
+        internal static string ConstellationNotes_Auriga {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Auriga", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Circumpolar constellation, visible year-round from northern latitudes. Heart and Soul nebulae excellent autumn targets..
+        /// </summary>
+        internal static string ConstellationNotes_Cassiopeia {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Cassiopeia", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summer constellation along Milky Way. North America Nebula excellent widefield target. Veil Nebula complex requires H-alpha filter..
+        /// </summary>
+        internal static string ConstellationNotes_Cygnus {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Cygnus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use wide-angle lens for constellation patterns, telephoto for deep sky objects within constellation boundaries..
+        /// </summary>
+        internal static string ConstellationNotes_Default {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spring constellation with Leo Triplet galaxy group. M65, M66, and NGC 3628 form beautiful wide-field composition..
+        /// </summary>
+        internal static string ConstellationNotes_Leo {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Leo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Winter constellation, excellent for nebula photography. M42 Orion Nebula is ideal beginner target. Use 85-200mm lens for detail..
+        /// </summary>
+        internal static string ConstellationNotes_Orion {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Orion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autumn constellation in rich Milky Way region. Double Cluster and California Nebula excellent wide-field targets..
+        /// </summary>
+        internal static string ConstellationNotes_Perseus {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Perseus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summer constellation in Milky Way core region. Rich nebula fields, excellent for wide-field astrophotography. Dark skies essential..
+        /// </summary>
+        internal static string ConstellationNotes_Sagittarius {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Sagittarius", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summer constellation with colorful star Antares. Rich Milky Way fields with numerous star clusters and nebulae..
+        /// </summary>
+        internal static string ConstellationNotes_Scorpius {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_Scorpius", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spring constellation featuring the Big Dipper asterism. M81 and M82 galaxy pair excellent telescopic targets..
+        /// </summary>
+        internal static string ConstellationNotes_UrsaMajor {
+            get {
+                return ResourceManager.GetString("ConstellationNotes_UrsaMajor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to initialize database: {0}.
         /// </summary>
         internal static string DatabaseInitializer_Error_InitializationFailed {
@@ -192,6 +345,159 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string DatabaseInitializer_Error_Title {
             get {
                 return ResourceManager.GetString("DatabaseInitializer_Error_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Medium telephoto lens 135-200mm recommended.
+        /// </summary>
+        internal static string DeepSkyEquipment_Default {
+            get {
+                return ResourceManager.GetString("DeepSkyEquipment_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 135-200mm telephoto lens sufficient, moderate light pollution acceptable.
+        /// </summary>
+        internal static string DeepSkyEquipment_Galaxy_Bright {
+            get {
+                return ResourceManager.GetString("DeepSkyEquipment_Galaxy_Bright", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telescope 200mm+ focal length, dark sky location essential.
+        /// </summary>
+        internal static string DeepSkyEquipment_Galaxy_Faint {
+            get {
+                return ResourceManager.GetString("DeepSkyEquipment_Galaxy_Faint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 200mm+ telephoto lens, resolve individual stars with longer focal lengths.
+        /// </summary>
+        internal static string DeepSkyEquipment_GlobularCluster {
+            get {
+                return ResourceManager.GetString("DeepSkyEquipment_GlobularCluster", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide-angle lens 14-50mm for full frame capture.
+        /// </summary>
+        internal static string DeepSkyEquipment_Nebula_Large {
+            get {
+                return ResourceManager.GetString("DeepSkyEquipment_Nebula_Large", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telephoto lens 85-200mm for detail, consider H-alpha filter.
+        /// </summary>
+        internal static string DeepSkyEquipment_Nebula_Standard {
+            get {
+                return ResourceManager.GetString("DeepSkyEquipment_Nebula_Standard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telescope 300mm+ focal length, OIII filter recommended.
+        /// </summary>
+        internal static string DeepSkyEquipment_PlanetaryNebula {
+            get {
+                return ResourceManager.GetString("DeepSkyEquipment_PlanetaryNebula", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 800-3200, f/2.8-4, 2-5 minute exposures with star tracker.
+        /// </summary>
+        internal static string DeepSkyExposure_Default {
+            get {
+                return ResourceManager.GetString("DeepSkyExposure_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 1600-6400, f/2.8-4, 2-5 minute exposures with tracking.
+        /// </summary>
+        internal static string DeepSkyExposure_Galaxy {
+            get {
+                return ResourceManager.GetString("DeepSkyExposure_Galaxy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 400-1600, f/4-5.6, 1-3 minute exposures.
+        /// </summary>
+        internal static string DeepSkyExposure_GlobularCluster {
+            get {
+                return ResourceManager.GetString("DeepSkyExposure_GlobularCluster", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 800-3200, f/2.8-4, 3-8 minute exposures, consider narrowband filters.
+        /// </summary>
+        internal static string DeepSkyExposure_Nebula {
+            get {
+                return ResourceManager.GetString("DeepSkyExposure_Nebula", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 800-1600, f/4-5.6, 2-5 minute exposures with OIII filter.
+        /// </summary>
+        internal static string DeepSkyExposure_PlanetaryNebula {
+            get {
+                return ResourceManager.GetString("DeepSkyExposure_PlanetaryNebula", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Galaxy.
+        /// </summary>
+        internal static string DeepSkyObjectType_Galaxy {
+            get {
+                return ResourceManager.GetString("DeepSkyObjectType_Galaxy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Globular Cluster.
+        /// </summary>
+        internal static string DeepSkyObjectType_GlobularCluster {
+            get {
+                return ResourceManager.GetString("DeepSkyObjectType_GlobularCluster", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nebula.
+        /// </summary>
+        internal static string DeepSkyObjectType_Nebula {
+            get {
+                return ResourceManager.GetString("DeepSkyObjectType_Nebula", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Planetary Nebula.
+        /// </summary>
+        internal static string DeepSkyObjectType_PlanetaryNebula {
+            get {
+                return ResourceManager.GetString("DeepSkyObjectType_PlanetaryNebula", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} visible at {1}° altitude.
+        /// </summary>
+        internal static string DSOEvent_Description {
+            get {
+                return ResourceManager.GetString("DSOEvent_Description", resourceCulture);
             }
         }
         
@@ -237,6 +543,15 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string Equipment_CombinationWorksWith {
             get {
                 return ResourceManager.GetString("Equipment_CombinationWorksWith", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Medium telephoto lens (85-300mm) recommended for most deep sky objects.
+        /// </summary>
+        internal static string Equipment_DefaultRecommendation_MediumTelephoto {
+            get {
+                return ResourceManager.GetString("Equipment_DefaultRecommendation_MediumTelephoto", resourceCulture);
             }
         }
         
@@ -295,6 +610,15 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0}.
+        /// </summary>
+        internal static string Equipment_GeneralRecommendation {
+            get {
+                return ResourceManager.GetString("Equipment_GeneralRecommendation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} f/{1} {2} lens.
         /// </summary>
         internal static string Equipment_LensRecommendationFormat {
@@ -327,6 +651,42 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string Equipment_Limitation_TooWide {
             get {
                 return ResourceManager.GetString("Equipment_Limitation_TooWide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wide-angle lens recommended for meteor showers.
+        /// </summary>
+        internal static string Equipment_MeteorShower_Recommendation {
+            get {
+                return ResourceManager.GetString("Equipment_MeteorShower_Recommendation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bright moon - good for lunar photography, challenging for deep sky.
+        /// </summary>
+        internal static string Equipment_MoonPhase_FullMoon {
+            get {
+                return ResourceManager.GetString("Equipment_MoonPhase_FullMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perfect dark sky conditions for deep sky photography.
+        /// </summary>
+        internal static string Equipment_MoonPhase_NewMoon {
+            get {
+                return ResourceManager.GetString("Equipment_MoonPhase_NewMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partial moon - moderate light pollution from moonlight.
+        /// </summary>
+        internal static string Equipment_MoonPhase_Partial {
+            get {
+                return ResourceManager.GetString("Equipment_MoonPhase_Partial", resourceCulture);
             }
         }
         
@@ -430,6 +790,15 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You need a {0}-{1}mm lens with f/{2} aperture.
+        /// </summary>
+        internal static string Equipment_RequiredEquipmentRecommendation {
+            get {
+                return ResourceManager.GetString("Equipment_RequiredEquipmentRecommendation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ISO 1600, f/4, 2-5 minutes (with tracking).
         /// </summary>
         internal static string Equipment_Settings_DeepSky {
@@ -529,6 +898,15 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Standard astrophotography guidelines apply..
+        /// </summary>
+        internal static string Equipment_StandardGuidelines {
+            get {
+                return ResourceManager.GetString("Equipment_StandardGuidelines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fast f/{0} aperture ideal for {1}.
         /// </summary>
         internal static string Equipment_Strength_FastAperture {
@@ -552,6 +930,33 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string Equipment_Strength_OptimalFocalLength {
             get {
                 return ResourceManager.GetString("Equipment_Strength_OptimalFocalLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access your equipment - standard telephoto lens recommended.
+        /// </summary>
+        internal static string Equipment_UnableToAccessEquipment {
+            get {
+                return ResourceManager.GetString("Equipment_UnableToAccessEquipment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} with {1}.
+        /// </summary>
+        internal static string Equipment_UserEquipmentRecommendation {
+            get {
+                return ResourceManager.GetString("Equipment_UserEquipmentRecommendation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use your {0} with {1}.
+        /// </summary>
+        internal static string Equipment_UseUserEquipment {
+            get {
+                return ResourceManager.GetString("Equipment_UseUserEquipment", resourceCulture);
             }
         }
         
@@ -853,6 +1258,825 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Best for overall lunar landscape and ray system photography.
+        /// </summary>
+        internal static string LunarExposure_BestForLandscape {
+            get {
+                return ResourceManager.GetString("LunarExposure_BestForLandscape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use bracketing for HDR composite of lit and earthshine portions.
+        /// </summary>
+        internal static string LunarExposure_BracketingForHDR {
+            get {
+                return ResourceManager.GetString("LunarExposure_BracketingForHDR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider neutral density filter for longer exposures.
+        /// </summary>
+        internal static string LunarExposure_ConsiderNeutralDensity {
+            get {
+                return ResourceManager.GetString("LunarExposure_ConsiderNeutralDensity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Crescent: ISO 100-400, f/5.6-8, 1/60-1/250 second.
+        /// </summary>
+        internal static string LunarExposure_Crescent {
+            get {
+                return ResourceManager.GetString("LunarExposure_Crescent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 100-800, f/5.6-8, 1/125-1/500 second.
+        /// </summary>
+        internal static string LunarExposure_CrescentSettings {
+            get {
+                return ResourceManager.GetString("LunarExposure_CrescentSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use tripod, shoot in RAW, adjust exposure based on moon brightness..
+        /// </summary>
+        internal static string LunarExposure_DefaultRecommendation {
+            get {
+                return ResourceManager.GetString("LunarExposure_DefaultRecommendation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Earthshine: ISO 1600-6400, f/2.8-4, 1-4 seconds.
+        /// </summary>
+        internal static string LunarExposure_Earthshine {
+            get {
+                return ResourceManager.GetString("LunarExposure_Earthshine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider focus stacking for sharp edge-to-edge detail.
+        /// </summary>
+        internal static string LunarExposure_FocusStacking {
+            get {
+                return ResourceManager.GetString("LunarExposure_FocusStacking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 100, f/11-16, 1/1000-1/4000 second.
+        /// </summary>
+        internal static string LunarExposure_FullMoonSettings {
+            get {
+                return ResourceManager.GetString("LunarExposure_FullMoonSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use longer focal lengths (1000mm+) for feature detail.
+        /// </summary>
+        internal static string LunarExposure_LongerFocalLengths {
+            get {
+                return ResourceManager.GetString("LunarExposure_LongerFocalLengths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 100-200, f/8-11, 1/500-1/2000 second.
+        /// </summary>
+        internal static string LunarExposure_NearFullSettings {
+            get {
+                return ResourceManager.GetString("LunarExposure_NearFullSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Optimal for crater detail photography.
+        /// </summary>
+        internal static string LunarExposure_OptimalForCraterDetail {
+            get {
+                return ResourceManager.GetString("LunarExposure_OptimalForCraterDetail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISO 100-400, f/8-11, 1/250-1/1000 second.
+        /// </summary>
+        internal static string LunarExposure_QuarterToGibbousSettings {
+            get {
+                return ResourceManager.GetString("LunarExposure_QuarterToGibbousSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shoot in RAW for maximum post-processing flexibility.
+        /// </summary>
+        internal static string LunarExposure_ShootInRAW {
+            get {
+                return ResourceManager.GetString("LunarExposure_ShootInRAW", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on terminator detail and crater shadows.
+        /// </summary>
+        internal static string LunarExposure_TerminatorDetail {
+            get {
+                return ResourceManager.GetString("LunarExposure_TerminatorDetail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use tripod and mirror lock-up/electronic shutter to minimize vibration.
+        /// </summary>
+        internal static string LunarExposure_UseTripodAndMirrorLockup {
+            get {
+                return ResourceManager.GetString("LunarExposure_UseTripodAndMirrorLockup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very bright - may require ND filter or stopped down aperture.
+        /// </summary>
+        internal static string LunarExposure_VeryBrightRequiresND {
+            get {
+                return ResourceManager.GetString("LunarExposure_VeryBrightRequiresND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Watch for overexposure - use histogram monitoring.
+        /// </summary>
+        internal static string LunarExposure_WatchForOverexposure {
+            get {
+                return ResourceManager.GetString("LunarExposure_WatchForOverexposure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Archimedes Crater.
+        /// </summary>
+        internal static string LunarFeature_ArchimedesCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_ArchimedesCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Aristillus Crater.
+        /// </summary>
+        internal static string LunarFeature_AristillusCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_AristillusCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bullialdus Crater.
+        /// </summary>
+        internal static string LunarFeature_BullialdusCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_BullialdusCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Burckardt Crater.
+        /// </summary>
+        internal static string LunarFeature_BurckardtCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_BurckardtCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clavius Crater.
+        /// </summary>
+        internal static string LunarFeature_ClavviusCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_ClavviusCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cleomedes Crater.
+        /// </summary>
+        internal static string LunarFeature_CleomadesCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_CleomadesCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copernicus Crater.
+        /// </summary>
+        internal static string LunarFeature_CopernicusCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_CopernicusCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cyrillus Crater.
+        /// </summary>
+        internal static string LunarFeature_CyrillusCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_CyrillusCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Earthshine on dark limb.
+        /// </summary>
+        internal static string LunarFeature_EarthshineOnDarkLimb {
+            get {
+                return ResourceManager.GetString("LunarFeature_EarthshineOnDarkLimb", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Eastern limb features enhanced by libration.
+        /// </summary>
+        internal static string LunarFeature_EasternLimbEnhanced {
+            get {
+                return ResourceManager.GetString("LunarFeature_EasternLimbEnhanced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Eratosthenes Crater.
+        /// </summary>
+        internal static string LunarFeature_EratosthenesCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_EratosthenesCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gassendii Crater.
+        /// </summary>
+        internal static string LunarFeature_GassendiiCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_GassendiiCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Langrenus Crater.
+        /// </summary>
+        internal static string LunarFeature_LangrenusCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_LangrenusCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Major craters and maria visible.
+        /// </summary>
+        internal static string LunarFeature_MajorCratersVisible {
+            get {
+                return ResourceManager.GetString("LunarFeature_MajorCratersVisible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Anguis.
+        /// </summary>
+        internal static string LunarFeature_MareAnguis {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareAnguis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Crisium.
+        /// </summary>
+        internal static string LunarFeature_MareCrisium {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareCrisium", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Fecunditatis.
+        /// </summary>
+        internal static string LunarFeature_MareFecunditatis {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareFecunditatis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Humorum.
+        /// </summary>
+        internal static string LunarFeature_MareHumorum {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareHumorum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Imbrium.
+        /// </summary>
+        internal static string LunarFeature_MareImbrium {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareImbrium", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Nubium.
+        /// </summary>
+        internal static string LunarFeature_MareNubium {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareNubium", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Orientale.
+        /// </summary>
+        internal static string LunarFeature_MareOrientale {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareOrientale", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Serenitatis.
+        /// </summary>
+        internal static string LunarFeature_MareSerenitatis {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareSerenitatis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Tranquillitatis.
+        /// </summary>
+        internal static string LunarFeature_MareTransquillitatis {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareTransquillitatis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Undarum.
+        /// </summary>
+        internal static string LunarFeature_MareUndarum {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareUndarum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mare Vaporum.
+        /// </summary>
+        internal static string LunarFeature_MareVaporum {
+            get {
+                return ResourceManager.GetString("LunarFeature_MareVaporum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Moon - no features visible.
+        /// </summary>
+        internal static string LunarFeature_NewMoonNoFeatures {
+            get {
+                return ResourceManager.GetString("LunarFeature_NewMoonNoFeatures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Northern polar region enhanced by libration.
+        /// </summary>
+        internal static string LunarFeature_NorthernPolarEnhanced {
+            get {
+                return ResourceManager.GetString("LunarFeature_NorthernPolarEnhanced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oceanus Procellarum.
+        /// </summary>
+        internal static string LunarFeature_OceanusProcellarum {
+            get {
+                return ResourceManager.GetString("LunarFeature_OceanusProcellarum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Petavius Crater.
+        /// </summary>
+        internal static string LunarFeature_PetaviusCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_PetaviusCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sinus Successus.
+        /// </summary>
+        internal static string LunarFeature_SinusSuccessus {
+            get {
+                return ResourceManager.GetString("LunarFeature_SinusSuccessus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Southern polar region enhanced by libration.
+        /// </summary>
+        internal static string LunarFeature_SouthernPolarEnhanced {
+            get {
+                return ResourceManager.GetString("LunarFeature_SouthernPolarEnhanced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Theophilus Crater.
+        /// </summary>
+        internal static string LunarFeature_TheophilusCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_TheophilusCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tycho Crater.
+        /// </summary>
+        internal static string LunarFeature_TychoCreater {
+            get {
+                return ResourceManager.GetString("LunarFeature_TychoCreater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Western limb features enhanced by libration.
+        /// </summary>
+        internal static string LunarFeature_WesternLimbEnhanced {
+            get {
+                return ResourceManager.GetString("LunarFeature_WesternLimbEnhanced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lunar photography opportunities available at all phases.
+        /// </summary>
+        internal static string LunarPhase_DefaultDescription {
+            get {
+                return ResourceManager.GetString("LunarPhase_DefaultDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First Quarter.
+        /// </summary>
+        internal static string LunarPhase_FirstQuarter {
+            get {
+                return ResourceManager.GetString("LunarPhase_FirstQuarter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First Quarter - perfect for crater photography along terminator line.
+        /// </summary>
+        internal static string LunarPhase_FirstQuarter_Description {
+            get {
+                return ResourceManager.GetString("LunarPhase_FirstQuarter_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full Moon.
+        /// </summary>
+        internal static string LunarPhase_FullMoon {
+            get {
+                return ResourceManager.GetString("LunarPhase_FullMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full Moon - best for lunar landscapes and overall surface detail.
+        /// </summary>
+        internal static string LunarPhase_FullMoon_Description {
+            get {
+                return ResourceManager.GetString("LunarPhase_FullMoon_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Moon.
+        /// </summary>
+        internal static string LunarPhase_NewMoon {
+            get {
+                return ResourceManager.GetString("LunarPhase_NewMoon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Moon - dark sky conditions for deep space objects.
+        /// </summary>
+        internal static string LunarPhase_NewMoon_DarkSky_Description {
+            get {
+                return ResourceManager.GetString("LunarPhase_NewMoon_DarkSky_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Moon - ideal for deep sky photography, moon not visible.
+        /// </summary>
+        internal static string LunarPhase_NewMoon_Description {
+            get {
+                return ResourceManager.GetString("LunarPhase_NewMoon_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Third Quarter.
+        /// </summary>
+        internal static string LunarPhase_ThirdQuarter {
+            get {
+                return ResourceManager.GetString("LunarPhase_ThirdQuarter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Third Quarter - ideal for western crater detail and terminator photography.
+        /// </summary>
+        internal static string LunarPhase_ThirdQuarter_Description {
+            get {
+                return ResourceManager.GetString("LunarPhase_ThirdQuarter_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown Phase.
+        /// </summary>
+        internal static string LunarPhase_Unknown {
+            get {
+                return ResourceManager.GetString("LunarPhase_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waning Crescent.
+        /// </summary>
+        internal static string LunarPhase_WaningCrescent {
+            get {
+                return ResourceManager.GetString("LunarPhase_WaningCrescent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waning Crescent - perfect for sunrise terminator and earthshine.
+        /// </summary>
+        internal static string LunarPhase_WaningCrescent_Description {
+            get {
+                return ResourceManager.GetString("LunarPhase_WaningCrescent_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waning Gibbous.
+        /// </summary>
+        internal static string LunarPhase_WaningGibbous {
+            get {
+                return ResourceManager.GetString("LunarPhase_WaningGibbous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waning Gibbous - excellent for eastern limb features and libration photography.
+        /// </summary>
+        internal static string LunarPhase_WaningGibbous_Description {
+            get {
+                return ResourceManager.GetString("LunarPhase_WaningGibbous_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waxing Crescent.
+        /// </summary>
+        internal static string LunarPhase_WaxingCrescent {
+            get {
+                return ResourceManager.GetString("LunarPhase_WaxingCrescent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waxing Crescent - excellent for terminator detail and earthshine photography.
+        /// </summary>
+        internal static string LunarPhase_WaxingCrescent_Description {
+            get {
+                return ResourceManager.GetString("LunarPhase_WaxingCrescent_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waxing Gibbous.
+        /// </summary>
+        internal static string LunarPhase_WaxingGibbous {
+            get {
+                return ResourceManager.GetString("LunarPhase_WaxingGibbous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waxing Gibbous - good for mare detail and mountain range photography.
+        /// </summary>
+        internal static string LunarPhase_WaxingGibbous_Description {
+            get {
+                return ResourceManager.GetString("LunarPhase_WaxingGibbous_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} meteor shower active - up to {1} meteors per hour.
+        /// </summary>
+        internal static string MeteorShower_Description {
+            get {
+                return ResourceManager.GetString("MeteorShower_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} moon phase - {1}% illuminated.
+        /// </summary>
+        internal static string MoonPhase_Description {
+            get {
+                return ResourceManager.GetString("MoonPhase_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moon: {0}.
+        /// </summary>
+        internal static string MoonPhase_Name {
+            get {
+                return ResourceManager.GetString("MoonPhase_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Planet reaches maximum brightness and apparent size during opposition. Best time for detailed photography and observation..
+        /// </summary>
+        internal static string OppositionConditions_Default {
+            get {
+                return ResourceManager.GetString("OppositionConditions_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Optimal viewing conditions during opposition - planet closest to Earth..
+        /// </summary>
+        internal static string OppositionConditions_DefaultError {
+            get {
+                return ResourceManager.GetString("OppositionConditions_DefaultError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent conditions for moon photography. All four Galilean moons visible. Great Red Spot rotates every ~10 hours - plan timing for best views..
+        /// </summary>
+        internal static string OppositionConditions_Jupiter {
+            get {
+                return ResourceManager.GetString("OppositionConditions_Jupiter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent opposition! Mars appears largest and shows surface features clearly. Look for polar ice caps and dust storms..
+        /// </summary>
+        internal static string OppositionConditions_Mars_Excellent {
+            get {
+                return ResourceManager.GetString("OppositionConditions_Mars_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good opposition with Mars showing clear surface detail. Polar regions and major dark features visible..
+        /// </summary>
+        internal static string OppositionConditions_Mars_Good {
+            get {
+                return ResourceManager.GetString("OppositionConditions_Mars_Good", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard Mars opposition. Surface features visible with steady seeing. Best time for Mars photography..
+        /// </summary>
+        internal static string OppositionConditions_Mars_Standard {
+            get {
+                return ResourceManager.GetString("OppositionConditions_Mars_Standard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Magnitude ~7.8, telescope essential. Appears as small blue disc. Triton (largest moon) may be visible with larger instruments..
+        /// </summary>
+        internal static string OppositionConditions_Neptune {
+            get {
+                return ResourceManager.GetString("OppositionConditions_Neptune", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ring system fully illuminated and widest apparent size. Titan and other major moons easily visible. Cassini Division in rings may be detectable..
+        /// </summary>
+        internal static string OppositionConditions_Saturn {
+            get {
+                return ResourceManager.GetString("OppositionConditions_Saturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reaches magnitude ~5.7, barely visible to naked eye in dark skies. Telescope required for disc visibility. Appears blue-green due to methane atmosphere..
+        /// </summary>
+        internal static string OppositionConditions_Uranus {
+            get {
+                return ResourceManager.GetString("OppositionConditions_Uranus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telescope or long telephoto lens recommended for planetary detail during opposition..
+        /// </summary>
+        internal static string OppositionEquipment_Default {
+            get {
+                return ResourceManager.GetString("OppositionEquipment_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use longest focal length available for maximum planetary detail..
+        /// </summary>
+        internal static string OppositionEquipment_DefaultError {
+            get {
+                return ResourceManager.GetString("OppositionEquipment_DefaultError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 200mm+ telephoto shows disc and moons. 600mm+ reveals Great Red Spot. Telescope with 2000mm+ focal length for detailed surface bands and storm systems..
+        /// </summary>
+        internal static string OppositionEquipment_Jupiter {
+            get {
+                return ResourceManager.GetString("OppositionEquipment_Jupiter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent opposition! 200-400mm telephoto sufficient for surface features. Consider telescope with 2000mm+ focal length for detailed imaging..
+        /// </summary>
+        internal static string OppositionEquipment_Mars_Excellent {
+            get {
+                return ResourceManager.GetString("OppositionEquipment_Mars_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard opposition. 400mm+ telephoto lens minimum. Telescope with 1500mm+ focal length recommended for surface detail photography..
+        /// </summary>
+        internal static string OppositionEquipment_Mars_Standard {
+            get {
+                return ResourceManager.GetString("OppositionEquipment_Mars_Standard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Large telescope essential - 2000mm+ focal length minimum. 3000mm+ preferred. Requires excellent seeing conditions and precise tracking..
+        /// </summary>
+        internal static string OppositionEquipment_Neptune {
+            get {
+                return ResourceManager.GetString("OppositionEquipment_Neptune", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 300mm+ telephoto shows rings. 600mm+ resolves ring gap. Telescope with 2500mm+ focal length required for ring divisions and moon details..
+        /// </summary>
+        internal static string OppositionEquipment_Saturn {
+            get {
+                return ResourceManager.GetString("OppositionEquipment_Saturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telescope with 1000mm+ focal length minimum. 2000mm+ shows small disc. Very challenging target requiring excellent atmospheric conditions..
+        /// </summary>
+        internal static string OppositionEquipment_Uranus {
+            get {
+                return ResourceManager.GetString("OppositionEquipment_Uranus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error creating profile: {0}.
         /// </summary>
         internal static string PhoneCameraProfile_Error_CreatingProfile {
@@ -939,6 +2163,132 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string PhoneCameraProfile_Error_UpdatingProfile {
             get {
                 return ResourceManager.GetString("PhoneCameraProfile_Error_UpdatingProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Medium telephoto lens.
+        /// </summary>
+        internal static string PlanetEquipment_Default {
+            get {
+                return ResourceManager.GetString("PlanetEquipment_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 200mm+ telephoto lens, telescope for detail.
+        /// </summary>
+        internal static string PlanetEquipment_Jupiter {
+            get {
+                return ResourceManager.GetString("PlanetEquipment_Jupiter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 200-400mm telephoto sufficient for surface features.
+        /// </summary>
+        internal static string PlanetEquipment_Mars_Close {
+            get {
+                return ResourceManager.GetString("PlanetEquipment_Mars_Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 400mm+ telephoto lens minimum.
+        /// </summary>
+        internal static string PlanetEquipment_Mars_Standard {
+            get {
+                return ResourceManager.GetString("PlanetEquipment_Mars_Standard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Telescope required for detection.
+        /// </summary>
+        internal static string PlanetEquipment_OuterPlanets {
+            get {
+                return ResourceManager.GetString("PlanetEquipment_OuterPlanets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Large telescope and long exposure required.
+        /// </summary>
+        internal static string PlanetEquipment_Pluto {
+            get {
+                return ResourceManager.GetString("PlanetEquipment_Pluto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 300mm+ telephoto lens, telescope for rings.
+        /// </summary>
+        internal static string PlanetEquipment_Saturn {
+            get {
+                return ResourceManager.GetString("PlanetEquipment_Saturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 200-600mm telephoto lens.
+        /// </summary>
+        internal static string PlanetEquipment_Venus_Close {
+            get {
+                return ResourceManager.GetString("PlanetEquipment_Venus_Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 400mm+ telephoto lens.
+        /// </summary>
+        internal static string PlanetEquipment_Venus_Standard {
+            get {
+                return ResourceManager.GetString("PlanetEquipment_Venus_Standard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use highest magnification available for planetary detail..
+        /// </summary>
+        internal static string PlanetNotes_Default {
+            get {
+                return ResourceManager.GetString("PlanetNotes_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Capture the Great Red Spot and Galilean moons..
+        /// </summary>
+        internal static string PlanetNotes_Jupiter {
+            get {
+                return ResourceManager.GetString("PlanetNotes_Jupiter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Best during opposition when closest to Earth..
+        /// </summary>
+        internal static string PlanetNotes_Mars {
+            get {
+                return ResourceManager.GetString("PlanetNotes_Mars", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Photograph rings and major moons like Titan..
+        /// </summary>
+        internal static string PlanetNotes_Saturn {
+            get {
+                return ResourceManager.GetString("PlanetNotes_Saturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Phase: {0}. Best photographed during crescent phases..
+        /// </summary>
+        internal static string PlanetNotes_Venus {
+            get {
+                return ResourceManager.GetString("PlanetNotes_Venus", resourceCulture);
             }
         }
         
@@ -1096,6 +2446,105 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Excellent.
+        /// </summary>
+        internal static string Quality_Excellent {
+            get {
+                return ResourceManager.GetString("Quality_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fair.
+        /// </summary>
+        internal static string Quality_Fair {
+            get {
+                return ResourceManager.GetString("Quality_Fair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good.
+        /// </summary>
+        internal static string Quality_Good {
+            get {
+                return ResourceManager.GetString("Quality_Good", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poor.
+        /// </summary>
+        internal static string Quality_Poor {
+            get {
+                return ResourceManager.GetString("Quality_Poor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very Good.
+        /// </summary>
+        internal static string Quality_VeryGood {
+            get {
+                return ResourceManager.GetString("Quality_VeryGood", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perfect conditions for astrophotography.
+        /// </summary>
+        internal static string QualityDescription_Excellent {
+            get {
+                return ResourceManager.GetString("QualityDescription_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fair conditions with some challenges.
+        /// </summary>
+        internal static string QualityDescription_Fair {
+            get {
+                return ResourceManager.GetString("QualityDescription_Fair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good conditions for most targets.
+        /// </summary>
+        internal static string QualityDescription_Good {
+            get {
+                return ResourceManager.GetString("QualityDescription_Good", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poor conditions, not recommended.
+        /// </summary>
+        internal static string QualityDescription_Poor {
+            get {
+                return ResourceManager.GetString("QualityDescription_Poor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Conditions unknown.
+        /// </summary>
+        internal static string QualityDescription_Unknown {
+            get {
+                return ResourceManager.GetString("QualityDescription_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very good conditions with minimal limitations.
+        /// </summary>
+        internal static string QualityDescription_VeryGood {
+            get {
+                return ResourceManager.GetString("QualityDescription_VeryGood", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error evaluating scene: {0}.
         /// </summary>
         internal static string SceneEvaluation_Error_EvaluatingScene {
@@ -1137,6 +2586,60 @@ namespace Location.Photography.Infrastructure.Resources {
         internal static string SceneEvaluation_Error_FileNotFound {
             get {
                 return ResourceManager.GetString("SceneEvaluation_Error_FileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to any.
+        /// </summary>
+        internal static string Season_Any {
+            get {
+                return ResourceManager.GetString("Season_Any", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to autumn.
+        /// </summary>
+        internal static string Season_Autumn {
+            get {
+                return ResourceManager.GetString("Season_Autumn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to spring.
+        /// </summary>
+        internal static string Season_Spring {
+            get {
+                return ResourceManager.GetString("Season_Spring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to summer.
+        /// </summary>
+        internal static string Season_Summer {
+            get {
+                return ResourceManager.GetString("Season_Summer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to winter.
+        /// </summary>
+        internal static string Season_Winter {
+            get {
+                return ResourceManager.GetString("Season_Winter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown.
+        /// </summary>
+        internal static string SolarEvent_Unknown {
+            get {
+                return ResourceManager.GetString("SolarEvent_Unknown", resourceCulture);
             }
         }
         
@@ -1483,6 +2986,15 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown Visiblity.
+        /// </summary>
+        internal static string Visibility_Unknown {
+            get {
+                return ResourceManager.GetString("Visibility_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incomplete forecast data: {0} days available, 5 required.
         /// </summary>
         internal static string Weather_Error_IncompleteForecastData {
@@ -1519,11 +3031,56 @@ namespace Location.Photography.Infrastructure.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown.
+        /// </summary>
+        internal static string Weather_Unknown {
+            get {
+                return ResourceManager.GetString("Weather_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No valid timezone data - using local timezone.
         /// </summary>
         internal static string Weather_Warning_NoValidTimezoneData {
             get {
                 return ResourceManager.GetString("Weather_Warning_NoValidTimezoneData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excellent.
+        /// </summary>
+        internal static string WeatherSuitability_Excellent {
+            get {
+                return ResourceManager.GetString("WeatherSuitability_Excellent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fair.
+        /// </summary>
+        internal static string WeatherSuitability_Fair {
+            get {
+                return ResourceManager.GetString("WeatherSuitability_Fair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Good.
+        /// </summary>
+        internal static string WeatherSuitability_Good {
+            get {
+                return ResourceManager.GetString("WeatherSuitability_Good", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Poor.
+        /// </summary>
+        internal static string WeatherSuitability_Poor {
+            get {
+                return ResourceManager.GetString("WeatherSuitability_Poor", resourceCulture);
             }
         }
     }

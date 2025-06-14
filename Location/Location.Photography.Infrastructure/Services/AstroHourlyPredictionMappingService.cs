@@ -5,6 +5,7 @@ using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
 using Location.Photography.Domain.Services;
+using Location.Photography.Infrastructure.Resources;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -1218,11 +1219,11 @@ namespace Location.Photography.Infrastructure.Services
         {
             return month switch
             {
-                12 or 1 or 2 => "winter",
-                3 or 4 or 5 => "spring",
-                6 or 7 or 8 => "summer",
-                9 or 10 or 11 => "autumn",
-                _ => "any"
+                12 or 1 or 2 => AppResources.Season_Winter,
+                3 or 4 or 5 => AppResources.Season_Spring,
+                6 or 7 or 8 => AppResources.Season_Summer,
+                9 or 10 or 11 => AppResources.Season_Autumn,
+                _ => AppResources.Season_Any
             };
         }
 
@@ -1230,12 +1231,12 @@ namespace Location.Photography.Infrastructure.Services
         {
             return target switch
             {
-                AstroTarget.MilkyWayCore => "Milky Way Core",
-                AstroTarget.DeepSkyObjects => "Deep Sky Objects",
-                AstroTarget.StarTrails => "Star Trails",
-                AstroTarget.MeteorShowers => "Meteor Showers",
-                AstroTarget.PolarAlignment => "Polar Alignment",
-                AstroTarget.NorthernLights => "Northern Lights",
+                AstroTarget.MilkyWayCore => AppResources.AstroTarget_MilkyWayCore,
+                AstroTarget.DeepSkyObjects => AppResources.AstroTarget_DeepSkyObjects,
+                AstroTarget.StarTrails => AppResources.AstroTarget_StarTrails,
+                AstroTarget.MeteorShowers => AppResources.AstroTarget_MeteorShowers,
+                AstroTarget.PolarAlignment => AppResources.AstroTarget_PolarAlignment,
+                AstroTarget.NorthernLights => AppResources.AstroTarget_NorthernLights,
                 _ => target.ToString()
             };
         }
@@ -1403,11 +1404,11 @@ namespace Location.Photography.Infrastructure.Services
             {
                 Hour = hour,
                 TimeDisplay = hour.ToString("h:mm tt"),
-                SolarEvent = "Unknown",
-                SolarEventsDisplay = "Unknown",
+                SolarEvent = AppResources.Weather_Unknown,
+                SolarEventsDisplay = AppResources.Weather_Unknown,
                 QualityScore = 50,
-                QualityDisplay = "Fair",
-                QualityDescription = "Conditions unknown",
+                QualityDisplay = AppResources.Quality_Fair,
+                QualityDescription = AppResources.QualityDescription_Unknown,
                 AstroEvents = new List<AstroEventDto>(),
                 Weather = new WeatherDto
                 {
@@ -1415,11 +1416,12 @@ namespace Location.Photography.Infrastructure.Services
                     Humidity = 70,
                     WindSpeed = 10,
                     Visibility = 8000,
-                    Description = "Unknown",
-                    WeatherDisplay = "Unknown",
-                    WeatherSuitability = "Unknown"
+                    Description = AppResources.Weather_Unknown,
+                    WeatherDisplay = AppResources.Weather_Unknown,
+                    WeatherSuitability = AppResources.Weather_Unknown
                 }
             };
         }
+
     }
 }

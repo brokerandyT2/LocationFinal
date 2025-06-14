@@ -961,7 +961,926 @@
     <value>Screen size must be positive</value>
     <comment>Error message when screen size values are not positive</comment>
   </data>
-  
+  <data name="SolarEvent_Unknown">
+  <value>Unknown</value>
+  <comment>Solar event when status cannot be determined</comment>
+</data>
+<data name="Quality_Excellent">
+  <value>Excellent</value>
+  <comment>Quality rating for photography conditions</comment>
+</data>
+<data name="Quality_VeryGood">
+  <value>Very Good</value>
+  <comment>Quality rating for photography conditions</comment>
+</data>
+<data name="Quality_Good">
+  <value>Good</value>
+  <comment>Quality rating for photography conditions</comment>
+</data>
+<data name="Quality_Fair">
+  <value>Fair</value>
+  <comment>Quality rating for photography conditions</comment>
+</data>
+<data name="Quality_Poor">
+  <value>Poor</value>
+  <comment>Quality rating for photography conditions</comment>
+</data>
+<data name="QualityDescription_Excellent">
+  <value>Perfect conditions for astrophotography</value>
+  <comment>Description for excellent quality conditions</comment>
+</data>
+<data name="QualityDescription_VeryGood">
+  <value>Very good conditions with minimal limitations</value>
+  <comment>Description for very good quality conditions</comment>
+</data>
+<data name="QualityDescription_Good">
+  <value>Good conditions for most targets</value>
+  <comment>Description for good quality conditions</comment>
+</data>
+<data name="QualityDescription_Fair">
+  <value>Fair conditions with some challenges</value>
+  <comment>Description for fair quality conditions</comment>
+</data>
+<data name="QualityDescription_Poor">
+  <value>Poor conditions, not recommended</value>
+  <comment>Description for poor quality conditions</comment>
+</data>
+<data name="QualityDescription_Unknown">
+  <value>Conditions unknown</value>
+  <comment>Description when conditions cannot be determined</comment>
+</data>
+<data name="DSOEvent_Description">
+  <value>{0} visible at {1}° altitude</value>
+  <comment>Description for deep sky object visibility, {0} is object name, {1} is altitude</comment>
+</data>
+<data name="Equipment_UserEquipmentRecommendation">
+  <value>{0} with {1}</value>
+  <comment>Recommendation using user equipment, {0} is camera, {1} is lens</comment>
+</data>
+<data name="Equipment_RequiredEquipmentRecommendation">
+  <value>You need a {0}-{1}mm lens with f/{2} aperture</value>
+  <comment>Equipment requirement recommendation, {0} is min focal length, {1} is max focal length, {2} is aperture</comment>
+</data>
+<data name="Equipment_DefaultRecommendation_MediumTelephoto">
+  <value>Medium telephoto lens (85-300mm) recommended for most deep sky objects</value>
+  <comment>Default equipment recommendation for deep sky objects</comment>
+</data>
+<data name="Equipment_UseUserEquipment">
+  <value>Use your {0} with {1}</value>
+  <comment>Recommendation to use specific user equipment, {0} is camera, {1} is lens</comment>
+</data>
+<data name="Equipment_UnableToAccessEquipment">
+  <value>Unable to access your equipment - standard telephoto lens recommended</value>
+  <comment>Message when user equipment cannot be accessed</comment>
+</data>
+<data name="MeteorShower_Description">
+  <value>{0} meteor shower active - up to {1} meteors per hour</value>
+  <comment>Description for meteor shower event, {0} is shower name, {1} is rate</comment>
+</data>
+<data name="Equipment_MeteorShower_Recommendation">
+  <value>Wide-angle lens recommended for meteor showers</value>
+  <comment>Equipment recommendation for meteor shower photography</comment>
+</data>
+<data name="MoonPhase_Name">
+  <value>Moon: {0}</value>
+  <comment>Moon phase name display, {0} is the phase name</comment>
+</data>
+<data name="MoonPhase_Description">
+  <value>{0} moon phase - {1}% illuminated</value>
+  <comment>Moon phase description, {0} is phase name, {1} is illumination percentage</comment>
+</data>
+<data name="Equipment_MoonPhase_NewMoon">
+  <value>Perfect dark sky conditions for deep sky photography</value>
+  <comment>Equipment recommendation for new moon conditions</comment>
+</data>
+<data name="Equipment_MoonPhase_FullMoon">
+  <value>Bright moon - good for lunar photography, challenging for deep sky</value>
+  <comment>Equipment recommendation for full moon conditions</comment>
+</data>
+<data name="Equipment_MoonPhase_Partial">
+  <value>Partial moon - moderate light pollution from moonlight</value>
+  <comment>Equipment recommendation for partial moon conditions</comment>
+</data>
+<data name="Equipment_GeneralRecommendation">
+  <value>{0}</value>
+  <comment>Template for general equipment recommendations, {0} is the recommendation text</comment>
+</data>
+<data name="Equipment_StandardGuidelines">
+  <value>Standard astrophotography guidelines apply.</value>
+  <comment>Default equipment recommendation when specific guidance unavailable</comment>
+</data>
+<data name="Season_Winter">
+  <value>winter</value>
+  <comment>Winter season name</comment>
+</data>
+<data name="Season_Spring">
+  <value>spring</value>
+  <comment>Spring season name</comment>
+</data>
+<data name="Season_Summer">
+  <value>summer</value>
+  <comment>Summer season name</comment>
+</data>
+<data name="Season_Autumn">
+  <value>autumn</value>
+  <comment>Autumn season name</comment>
+</data>
+<data name="Season_Any">
+  <value>any</value>
+  <comment>Any season indicator</comment>
+</data>
+<data name="AstroTarget_MilkyWayCore">
+  <value>Milky Way Core</value>
+  <comment>Display name for Milky Way Core target</comment>
+</data>
+<data name="AstroTarget_DeepSkyObjects">
+  <value>Deep Sky Objects</value>
+  <comment>Display name for Deep Sky Objects target</comment>
+</data>
+<data name="AstroTarget_StarTrails">
+  <value>Star Trails</value>
+  <comment>Display name for Star Trails target</comment>
+</data>
+<data name="AstroTarget_MeteorShowers">
+  <value>Meteor Showers</value>
+  <comment>Display name for Meteor Showers target</comment>
+</data>
+<data name="AstroTarget_PolarAlignment">
+  <value>Polar Alignment</value>
+  <comment>Display name for Polar Alignment target</comment>
+</data>
+<data name="AstroTarget_NorthernLights">
+  <value>Northern Lights</value>
+  <comment>Display name for Northern Lights target</comment>
+</data>
+<data name="Weather_Unknown">
+  <value>Unknown</value>
+  <comment>Weather status when conditions cannot be determined</comment>
+</data>
+<data name="WeatherSuitability_Excellent">
+  <value>Excellent</value>
+  <comment>Weather suitability rating for photography</comment>
+</data>
+<data name="WeatherSuitability_Good">
+  <value>Good</value>
+  <comment>Weather suitability rating for photography</comment>
+</data>
+<data name="WeatherSuitability_Fair">
+  <value>Fair</value>
+  <comment>Weather suitability rating for photography</comment>
+</data>
+<data name="WeatherSuitability_Poor">
+  <value>Poor</value>
+  <comment>Weather suitability rating for photography</comment>
+</data>
+  <data name="SolarEvent_Unknown">
+    <value>Unknown</value>
+    <comment>Solar event when status cannot be determined</comment>
+  </data>
+  <data name="Quality_Excellent">
+    <value>Excellent</value>
+    <comment>Quality rating for photography conditions</comment>
+  </data>
+  <data name="Quality_VeryGood">
+    <value>Very Good</value>
+    <comment>Quality rating for photography conditions</comment>
+  </data>
+  <data name="Quality_Good">
+    <value>Good</value>
+    <comment>Quality rating for photography conditions</comment>
+  </data>
+  <data name="Quality_Fair">
+    <value>Fair</value>
+    <comment>Quality rating for photography conditions</comment>
+  </data>
+  <data name="Quality_Poor">
+    <value>Poor</value>
+    <comment>Quality rating for photography conditions</comment>
+  </data>
+  <data name="QualityDescription_Excellent">
+    <value>Perfect conditions for astrophotography</value>
+    <comment>Description for excellent quality conditions</comment>
+  </data>
+  <data name="QualityDescription_VeryGood">
+    <value>Very good conditions with minimal limitations</value>
+    <comment>Description for very good quality conditions</comment>
+  </data>
+  <data name="QualityDescription_Good">
+    <value>Good conditions for most targets</value>
+    <comment>Description for good quality conditions</comment>
+  </data>
+  <data name="QualityDescription_Fair">
+    <value>Fair conditions with some challenges</value>
+    <comment>Description for fair quality conditions</comment>
+  </data>
+  <data name="QualityDescription_Poor">
+    <value>Poor conditions, not recommended</value>
+    <comment>Description for poor quality conditions</comment>
+  </data>
+  <data name="QualityDescription_Unknown">
+    <value>Conditions unknown</value>
+    <comment>Description when conditions cannot be determined</comment>
+  </data>
+  <data name="DSOEvent_Description">
+    <value>{0} visible at {1}° altitude</value>
+    <comment>Description for deep sky object visibility, {0} is object name, {1} is altitude</comment>
+  </data>
+  <data name="Equipment_UserEquipmentRecommendation">
+    <value>{0} with {1}</value>
+    <comment>Recommendation using user equipment, {0} is camera, {1} is lens</comment>
+  </data>
+  <data name="Equipment_RequiredEquipmentRecommendation">
+    <value>You need a {0}-{1}mm lens with f/{2} aperture</value>
+    <comment>Equipment requirement recommendation, {0} is min focal length, {1} is max focal length, {2} is aperture</comment>
+  </data>
+  <data name="Equipment_DefaultRecommendation_MediumTelephoto">
+    <value>Medium telephoto lens (85-300mm) recommended for most deep sky objects</value>
+    <comment>Default equipment recommendation for deep sky objects</comment>
+  </data>
+  <data name="Equipment_UseUserEquipment">
+    <value>Use your {0} with {1}</value>
+    <comment>Recommendation to use specific user equipment, {0} is camera, {1} is lens</comment>
+  </data>
+  <data name="Equipment_UnableToAccessEquipment">
+    <value>Unable to access your equipment - standard telephoto lens recommended</value>
+    <comment>Message when user equipment cannot be accessed</comment>
+  </data>
+  <data name="MeteorShower_Description">
+    <value>{0} meteor shower active - up to {1} meteors per hour</value>
+    <comment>Description for meteor shower event, {0} is shower name, {1} is rate</comment>
+  </data>
+  <data name="Equipment_MeteorShower_Recommendation">
+    <value>Wide-angle lens recommended for meteor showers</value>
+    <comment>Equipment recommendation for meteor shower photography</comment>
+  </data>
+  <data name="MoonPhase_Name">
+    <value>Moon: {0}</value>
+    <comment>Moon phase name display, {0} is the phase name</comment>
+  </data>
+  <data name="MoonPhase_Description">
+    <value>{0} moon phase - {1}% illuminated</value>
+    <comment>Moon phase description, {0} is phase name, {1} is illumination percentage</comment>
+  </data>
+  <data name="Equipment_MoonPhase_NewMoon">
+    <value>Perfect dark sky conditions for deep sky photography</value>
+    <comment>Equipment recommendation for new moon conditions</comment>
+  </data>
+  <data name="Equipment_MoonPhase_FullMoon">
+    <value>Bright moon - good for lunar photography, challenging for deep sky</value>
+    <comment>Equipment recommendation for full moon conditions</comment>
+  </data>
+  <data name="Equipment_MoonPhase_Partial">
+    <value>Partial moon - moderate light pollution from moonlight</value>
+    <comment>Equipment recommendation for partial moon conditions</comment>
+  </data>
+  <data name="Equipment_GeneralRecommendation">
+    <value>{0}</value>
+    <comment>Template for general equipment recommendations, {0} is the recommendation text</comment>
+  </data>
+  <data name="Equipment_StandardGuidelines">
+    <value>Standard astrophotography guidelines apply.</value>
+    <comment>Default equipment recommendation when specific guidance unavailable</comment>
+  </data>
+  <data name="Season_Winter">
+    <value>winter</value>
+    <comment>Winter season name</comment>
+  </data>
+  <data name="Season_Spring">
+    <value>spring</value>
+    <comment>Spring season name</comment>
+  </data>
+  <data name="Season_Summer">
+    <value>summer</value>
+    <comment>Summer season name</comment>
+  </data>
+  <data name="Season_Autumn">
+    <value>autumn</value>
+    <comment>Autumn season name</comment>
+  </data>
+  <data name="Season_Any">
+    <value>any</value>
+    <comment>Any season indicator</comment>
+  </data>
+  <data name="AstroTarget_MilkyWayCore">
+    <value>Milky Way Core</value>
+    <comment>Display name for Milky Way Core target</comment>
+  </data>
+  <data name="AstroTarget_DeepSkyObjects">
+    <value>Deep Sky Objects</value>
+    <comment>Display name for Deep Sky Objects target</comment>
+  </data>
+  <data name="AstroTarget_StarTrails">
+    <value>Star Trails</value>
+    <comment>Display name for Star Trails target</comment>
+  </data>
+  <data name="AstroTarget_MeteorShowers">
+    <value>Meteor Showers</value>
+    <comment>Display name for Meteor Showers target</comment>
+  </data>
+  <data name="AstroTarget_PolarAlignment">
+    <value>Polar Alignment</value>
+    <comment>Display name for Polar Alignment target</comment>
+  </data>
+  <data name="AstroTarget_NorthernLights">
+    <value>Northern Lights</value>
+    <comment>Display name for Northern Lights target</comment>
+  </data>
+  <data name="Weather_Unknown">
+    <value>Unknown</value>
+    <comment>Weather status when conditions cannot be determined</comment>
+  </data>
+  <data name="WeatherSuitability_Excellent">
+    <value>Excellent</value>
+    <comment>Weather suitability rating for photography</comment>
+  </data>
+  <data name="WeatherSuitability_Good">
+    <value>Good</value>
+    <comment>Weather suitability rating for photography</comment>
+  </data>
+  <data name="WeatherSuitability_Fair">
+    <value>Fair</value>
+    <comment>Weather suitability rating for photography</comment>
+  </data>
+  <data name="WeatherSuitability_Poor">
+    <value>Poor</value>
+    <comment>Weather suitability rating for photography</comment>
+  </data>
+  <data name="Weather_Unknown">
+    <value>Unknown</value>
+    <comment>Text displayed when weather status cannot be determined</comment>
+  </data>
+  <data name="Quality_Fair">
+    <value>Fair</value>
+    <comment>Quality rating for moderate photography conditions</comment>
+  </data>
+  <data name="QualityDescription_Unknown">
+    <value>Conditions unknown</value>
+    <comment>Description when photography conditions cannot be determined</comment>
+  </data>
+  <data name="Season_Winter">
+    <value>winter</value>
+    <comment>Winter season name</comment>
+  </data>
+  <data name="Season_Spring">
+    <value>spring</value>
+    <comment>Spring season name</comment>
+  </data>
+  <data name="Season_Summer">
+    <value>summer</value>
+    <comment>Summer season name</comment>
+  </data>
+  <data name="Season_Autumn">
+    <value>autumn</value>
+    <comment>Autumn season name</comment>
+  </data>
+  <data name="Season_Any">
+    <value>any</value>
+    <comment>Any season indicator</comment>
+  </data>
+  <data name="AstroTarget_MilkyWayCore">
+    <value>Milky Way Core</value>
+    <comment>Display name for Milky Way Core photography target</comment>
+  </data>
+  <data name="AstroTarget_DeepSkyObjects">
+    <value>Deep Sky Objects</value>
+    <comment>Display name for Deep Sky Objects photography target</comment>
+  </data>
+  <data name="AstroTarget_StarTrails">
+    <value>Star Trails</value>
+    <comment>Display name for Star Trails photography target</comment>
+  </data>
+  <data name="AstroTarget_MeteorShowers">
+    <value>Meteor Showers</value>
+    <comment>Display name for Meteor Showers photography target</comment>
+  </data>
+  <data name="AstroTarget_PolarAlignment">
+    <value>Polar Alignment</value>
+    <comment>Display name for Polar Alignment photography target</comment>
+  </data>
+  <data name="AstroTarget_NorthernLights">
+    <value>Northern Lights</value>
+    <comment>Display name for Northern Lights photography target</comment>
+  </data>
+  <data name="LunarPhase_NewMoon_Description">
+    <value>New Moon - ideal for deep sky photography, moon not visible</value>
+    <comment>Description for New Moon phase and photography recommendations</comment>
+  </data>
+  <data name="LunarPhase_WaxingCrescent_Description">
+    <value>Waxing Crescent - excellent for terminator detail and earthshine photography</value>
+    <comment>Description for Waxing Crescent phase and photography recommendations</comment>
+  </data>
+  <data name="LunarPhase_FirstQuarter_Description">
+    <value>First Quarter - perfect for crater photography along terminator line</value>
+    <comment>Description for First Quarter phase and photography recommendations</comment>
+  </data>
+  <data name="LunarPhase_WaxingGibbous_Description">
+    <value>Waxing Gibbous - good for mare detail and mountain range photography</value>
+    <comment>Description for Waxing Gibbous phase and photography recommendations</comment>
+  </data>
+  <data name="LunarPhase_FullMoon_Description">
+    <value>Full Moon - best for lunar landscapes and overall surface detail</value>
+    <comment>Description for Full Moon phase and photography recommendations</comment>
+  </data>
+  <data name="LunarPhase_WaningGibbous_Description">
+    <value>Waning Gibbous - excellent for eastern limb features and libration photography</value>
+    <comment>Description for Waning Gibbous phase and photography recommendations</comment>
+  </data>
+  <data name="LunarPhase_ThirdQuarter_Description">
+    <value>Third Quarter - ideal for western crater detail and terminator photography</value>
+    <comment>Description for Third Quarter phase and photography recommendations</comment>
+  </data>
+  <data name="LunarPhase_WaningCrescent_Description">
+    <value>Waning Crescent - perfect for sunrise terminator and earthshine</value>
+    <comment>Description for Waning Crescent phase and photography recommendations</comment>
+  </data>
+  <data name="LunarPhase_NewMoon_DarkSky_Description">
+    <value>New Moon - dark sky conditions for deep space objects</value>
+    <comment>Description for New Moon phase focusing on dark sky conditions</comment>
+  </data>
+  <data name="LunarPhase_DefaultDescription">
+    <value>Lunar photography opportunities available at all phases</value>
+    <comment>Default description when lunar phase description cannot be determined</comment>
+  </data>
+  <data name="LunarPhase_NewMoon">
+    <value>New Moon</value>
+    <comment>New Moon phase name</comment>
+  </data>
+  <data name="LunarPhase_WaxingCrescent">
+    <value>Waxing Crescent</value>
+    <comment>Waxing Crescent phase name</comment>
+  </data>
+  <data name="LunarPhase_FirstQuarter">
+    <value>First Quarter</value>
+    <comment>First Quarter phase name</comment>
+  </data>
+  <data name="LunarPhase_WaxingGibbous">
+    <value>Waxing Gibbous</value>
+    <comment>Waxing Gibbous phase name</comment>
+  </data>
+  <data name="LunarPhase_FullMoon">
+    <value>Full Moon</value>
+    <comment>Full Moon phase name</comment>
+  </data>
+  <data name="LunarPhase_WaningGibbous">
+    <value>Waning Gibbous</value>
+    <comment>Waning Gibbous phase name</comment>
+  </data>
+  <data name="LunarPhase_ThirdQuarter">
+    <value>Third Quarter</value>
+    <comment>Third Quarter phase name</comment>
+  </data>
+  <data name="LunarPhase_WaningCrescent">
+    <value>Waning Crescent</value>
+    <comment>Waning Crescent phase name</comment>
+  </data>
+  <data name="LunarPhase_Unknown">
+    <value>Unknown Phase</value>
+    <comment>Unknown lunar phase name</comment>
+  </data>
+  <data name="LunarFeature_MareCrisium">
+    <value>Mare Crisium</value>
+    <comment>Lunar feature name - Sea of Crises</comment>
+  </data>
+  <data name="LunarFeature_LangrenusCreater">
+    <value>Langrenus Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_PetaviusCreater">
+    <value>Petavius Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_EarthshineOnDarkLimb">
+    <value>Earthshine on dark limb</value>
+    <comment>Lunar feature description</comment>
+  </data>
+  <data name="LunarFeature_MareTransquillitatis">
+    <value>Mare Tranquillitatis</value>
+    <comment>Lunar feature name - Sea of Tranquility</comment>
+  </data>
+  <data name="LunarFeature_MareFecunditatis">
+    <value>Mare Fecunditatis</value>
+    <comment>Lunar feature name - Sea of Fertility</comment>
+  </data>
+  <data name="LunarFeature_TheophilusCreater">
+    <value>Theophilus Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_CyrillusCreater">
+    <value>Cyrillus Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_MareImbrium">
+    <value>Mare Imbrium</value>
+    <comment>Lunar feature name - Sea of Rains</comment>
+  </data>
+  <data name="LunarFeature_MareSerenitatis">
+    <value>Mare Serenitatis</value>
+    <comment>Lunar feature name - Sea of Serenity</comment>
+  </data>
+  <data name="LunarFeature_CopernicusCreater">
+    <value>Copernicus Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_EratosthenesCreater">
+    <value>Eratosthenes Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_OceanusProcellarum">
+    <value>Oceanus Procellarum</value>
+    <comment>Lunar feature name - Ocean of Storms</comment>
+  </data>
+  <data name="LunarFeature_MareOrientale">
+    <value>Mare Orientale</value>
+    <comment>Lunar feature name - Eastern Sea</comment>
+  </data>
+  <data name="LunarFeature_TychoCreater">
+    <value>Tycho Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_ClavviusCreater">
+    <value>Clavius Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_MareNubium">
+    <value>Mare Nubium</value>
+    <comment>Lunar feature name - Sea of Clouds</comment>
+  </data>
+  <data name="LunarFeature_MareHumorum">
+    <value>Mare Humorum</value>
+    <comment>Lunar feature name - Sea of Moisture</comment>
+  </data>
+  <data name="LunarFeature_BullialdusCreater">
+    <value>Bullialdus Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_GassendiiCreater">
+    <value>Gassendii Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_MareVaporum">
+    <value>Mare Vaporum</value>
+    <comment>Lunar feature name - Sea of Vapors</comment>
+  </data>
+  <data name="LunarFeature_SinusSuccessus">
+    <value>Sinus Successus</value>
+    <comment>Lunar feature name - Bay of Success</comment>
+  </data>
+  <data name="LunarFeature_ArchimedesCreater">
+    <value>Archimedes Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_AristillusCreater">
+    <value>Aristillus Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_MareAnguis">
+    <value>Mare Anguis</value>
+    <comment>Lunar feature name - Serpent Sea</comment>
+  </data>
+  <data name="LunarFeature_MareUndarum">
+    <value>Mare Undarum</value>
+    <comment>Lunar feature name - Sea of Waves</comment>
+  </data>
+  <data name="LunarFeature_CleomadesCreater">
+    <value>Cleomedes Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_BurckardtCreater">
+    <value>Burckardt Crater</value>
+    <comment>Lunar crater name</comment>
+  </data>
+  <data name="LunarFeature_NewMoonNoFeatures">
+    <value>New Moon - no features visible</value>
+    <comment>Description for new moon when no features are visible</comment>
+  </data>
+  <data name="LunarFeature_EasternLimbEnhanced">
+    <value>Eastern limb features enhanced by libration</value>
+    <comment>Description for enhanced eastern lunar features</comment>
+  </data>
+  <data name="LunarFeature_WesternLimbEnhanced">
+    <value>Western limb features enhanced by libration</value>
+    <comment>Description for enhanced western lunar features</comment>
+  </data>
+  <data name="LunarFeature_NorthernPolarEnhanced">
+    <value>Northern polar region enhanced by libration</value>
+    <comment>Description for enhanced northern polar features</comment>
+  </data>
+  <data name="LunarFeature_SouthernPolarEnhanced">
+    <value>Southern polar region enhanced by libration</value>
+    <comment>Description for enhanced southern polar features</comment>
+  </data>
+  <data name="LunarFeature_MajorCratersVisible">
+    <value>Major craters and maria visible</value>
+    <comment>Default description for visible lunar features</comment>
+  </data>
+  <data name="LunarExposure_Earthshine">
+    <value>Earthshine: ISO 1600-6400, f/2.8-4, 1-4 seconds</value>
+    <comment>Camera settings for earthshine photography</comment>
+  </data>
+  <data name="LunarExposure_Crescent">
+    <value>Crescent: ISO 100-400, f/5.6-8, 1/60-1/250 second</value>
+    <comment>Camera settings for crescent moon photography</comment>
+  </data>
+  <data name="LunarExposure_BracketingForHDR">
+    <value>Use bracketing for HDR composite of lit and earthshine portions</value>
+    <comment>HDR technique recommendation for lunar photography</comment>
+  </data>
+  <data name="LunarExposure_CrescentSettings">
+    <value>ISO 100-800, f/5.6-8, 1/125-1/500 second</value>
+    <comment>Camera settings for crescent moon photography</comment>
+  </data>
+  <data name="LunarExposure_TerminatorDetail">
+    <value>Focus on terminator detail and crater shadows</value>
+    <comment>Photography technique for crescent moon</comment>
+  </data>
+  <data name="LunarExposure_FocusStacking">
+    <value>Consider focus stacking for sharp edge-to-edge detail</value>
+    <comment>Focus stacking technique recommendation</comment>
+  </data>
+  <data name="LunarExposure_QuarterToGibbousSettings">
+    <value>ISO 100-400, f/8-11, 1/250-1/1000 second</value>
+    <comment>Camera settings for quarter to gibbous moon photography</comment>
+  </data>
+  <data name="LunarExposure_OptimalForCraterDetail">
+    <value>Optimal for crater detail photography</value>
+    <comment>Description for quarter to gibbous moon photography</comment>
+  </data>
+  <data name="LunarExposure_LongerFocalLengths">
+    <value>Use longer focal lengths (1000mm+) for feature detail</value>
+    <comment>Lens recommendation for detailed lunar photography</comment>
+  </data>
+  <data name="LunarExposure_NearFullSettings">
+    <value>ISO 100-200, f/8-11, 1/500-1/2000 second</value>
+    <comment>Camera settings for near full moon photography</comment>
+  </data>
+  <data name="LunarExposure_WatchForOverexposure">
+    <value>Watch for overexposure - use histogram monitoring</value>
+    <comment>Exposure warning for bright moon photography</comment>
+  </data>
+  <data name="LunarExposure_ConsiderNeutralDensity">
+    <value>Consider neutral density filter for longer exposures</value>
+    <comment>Filter recommendation for bright moon photography</comment>
+  </data>
+  <data name="LunarExposure_FullMoonSettings">
+    <value>ISO 100, f/11-16, 1/1000-1/4000 second</value>
+    <comment>Camera settings for full moon photography</comment>
+  </data>
+  <data name="LunarExposure_VeryBrightRequiresND">
+    <value>Very bright - may require ND filter or stopped down aperture</value>
+    <comment>Warning about full moon brightness</comment>
+  </data>
+  <data name="LunarExposure_BestForLandscape">
+    <value>Best for overall lunar landscape and ray system photography</value>
+    <comment>Description of full moon photography opportunities</comment>
+  </data>
+  <data name="LunarExposure_UseTripodAndMirrorLockup">
+    <value>Use tripod and mirror lock-up/electronic shutter to minimize vibration</value>
+    <comment>Universal lunar photography technique</comment>
+  </data>
+  <data name="LunarExposure_ShootInRAW">
+    <value>Shoot in RAW for maximum post-processing flexibility</value>
+    <comment>Universal lunar photography recommendation</comment>
+  </data>
+  <data name="LunarExposure_DefaultRecommendation">
+    <value>Use tripod, shoot in RAW, adjust exposure based on moon brightness.</value>
+    <comment>Default lunar exposure recommendation when specific advice unavailable</comment>
+  </data>
+  <data name="PlanetEquipment_Venus_Close">
+    <value>200-600mm telephoto lens</value>
+    <comment>Equipment recommendation for Venus when close</comment>
+  </data>
+  <data name="PlanetEquipment_Venus_Standard">
+    <value>400mm+ telephoto lens</value>
+    <comment>Standard equipment recommendation for Venus</comment>
+  </data>
+  <data name="PlanetEquipment_Mars_Close">
+    <value>200-400mm telephoto sufficient for surface features</value>
+    <comment>Equipment recommendation for Mars when close</comment>
+  </data>
+  <data name="PlanetEquipment_Mars_Standard">
+    <value>400mm+ telephoto lens minimum</value>
+    <comment>Standard equipment recommendation for Mars</comment>
+  </data>
+  <data name="PlanetEquipment_Jupiter">
+    <value>200mm+ telephoto lens, telescope for detail</value>
+    <comment>Equipment recommendation for Jupiter photography</comment>
+  </data>
+  <data name="PlanetEquipment_Saturn">
+    <value>300mm+ telephoto lens, telescope for rings</value>
+    <comment>Equipment recommendation for Saturn photography</comment>
+  </data>
+  <data name="PlanetEquipment_OuterPlanets">
+    <value>Telescope required for detection</value>
+    <comment>Equipment recommendation for Uranus and Neptune</comment>
+  </data>
+  <data name="PlanetEquipment_Pluto">
+    <value>Large telescope and long exposure required</value>
+    <comment>Equipment recommendation for Pluto</comment>
+  </data>
+  <data name="PlanetEquipment_Default">
+    <value>Medium telephoto lens</value>
+    <comment>Default equipment recommendation for planets</comment>
+  </data>
+  <data name="PlanetNotes_Venus">
+    <value>Phase: {0}. Best photographed during crescent phases.</value>
+    <comment>Photography notes for Venus, {0} is phase percentage</comment>
+  </data>
+  <data name="PlanetNotes_Mars">
+    <value>Best during opposition when closest to Earth.</value>
+    <comment>Photography notes for Mars</comment>
+  </data>
+  <data name="PlanetNotes_Jupiter">
+    <value>Capture the Great Red Spot and Galilean moons.</value>
+    <comment>Photography notes for Jupiter</comment>
+  </data>
+  <data name="PlanetNotes_Saturn">
+    <value>Photograph rings and major moons like Titan.</value>
+    <comment>Photography notes for Saturn</comment>
+  </data>
+  <data name="PlanetNotes_Default">
+    <value>Use highest magnification available for planetary detail.</value>
+    <comment>Default photography notes for planets</comment>
+  </data>
+  <data name="DeepSkyObjectType_Galaxy">
+    <value>Galaxy</value>
+    <comment>Deep sky object type name</comment>
+  </data>
+  <data name="DeepSkyObjectType_Nebula">
+    <value>Nebula</value>
+    <comment>Deep sky object type name</comment>
+  </data>
+  <data name="DeepSkyObjectType_GlobularCluster">
+    <value>Globular Cluster</value>
+    <comment>Deep sky object type name</comment>
+  </data>
+  <data name="DeepSkyObjectType_PlanetaryNebula">
+    <value>Planetary Nebula</value>
+    <comment>Deep sky object type name</comment>
+  </data>
+  <data name="DeepSkyEquipment_Galaxy_Faint">
+    <value>Telescope 200mm+ focal length, dark sky location essential</value>
+    <comment>Equipment recommendation for faint galaxies</comment>
+  </data>
+  <data name="DeepSkyEquipment_Galaxy_Bright">
+    <value>135-200mm telephoto lens sufficient, moderate light pollution acceptable</value>
+    <comment>Equipment recommendation for bright galaxies</comment>
+  </data>
+  <data name="DeepSkyEquipment_Nebula_Large">
+    <value>Wide-angle lens 14-50mm for full frame capture</value>
+    <comment>Equipment recommendation for large nebulae</comment>
+  </data>
+  <data name="DeepSkyEquipment_Nebula_Standard">
+    <value>Telephoto lens 85-200mm for detail, consider H-alpha filter</value>
+    <comment>Equipment recommendation for standard nebulae</comment>
+  </data>
+  <data name="DeepSkyEquipment_GlobularCluster">
+    <value>200mm+ telephoto lens, resolve individual stars with longer focal lengths</value>
+    <comment>Equipment recommendation for globular clusters</comment>
+  </data>
+  <data name="DeepSkyEquipment_PlanetaryNebula">
+    <value>Telescope 300mm+ focal length, OIII filter recommended</value>
+    <comment>Equipment recommendation for planetary nebulae</comment>
+  </data>
+  <data name="DeepSkyEquipment_Default">
+    <value>Medium telephoto lens 135-200mm recommended</value>
+    <comment>Default equipment recommendation for deep sky objects</comment>
+  </data>
+  <data name="DeepSkyExposure_Galaxy">
+    <value>ISO 1600-6400, f/2.8-4, 2-5 minute exposures with tracking</value>
+    <comment>Exposure guidance for galaxy photography</comment>
+  </data>
+  <data name="DeepSkyExposure_Nebula">
+    <value>ISO 800-3200, f/2.8-4, 3-8 minute exposures, consider narrowband filters</value>
+    <comment>Exposure guidance for nebula photography</comment>
+  </data>
+  <data name="DeepSkyExposure_GlobularCluster">
+    <value>ISO 400-1600, f/4-5.6, 1-3 minute exposures</value>
+    <comment>Exposure guidance for globular cluster photography</comment>
+  </data>
+  <data name="DeepSkyExposure_PlanetaryNebula">
+    <value>ISO 800-1600, f/4-5.6, 2-5 minute exposures with OIII filter</value>
+    <comment>Exposure guidance for planetary nebula photography</comment>
+  </data>
+  <data name="DeepSkyExposure_Default">
+    <value>ISO 800-3200, f/2.8-4, 2-5 minute exposures with star tracker</value>
+    <comment>Default exposure guidance for deep sky objects</comment>
+  </data>
+  <data name="ConstellationNotes_Orion">
+    <value>Winter constellation, excellent for nebula photography. M42 Orion Nebula is ideal beginner target. Use 85-200mm lens for detail.</value>
+    <comment>Photography notes for Orion constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Andromeda">
+    <value>Autumn constellation featuring M31 Andromeda Galaxy. Use 135-200mm lens. Galaxy spans 3+ degrees, plan wide compositions.</value>
+    <comment>Photography notes for Andromeda constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Sagittarius">
+    <value>Summer constellation in Milky Way core region. Rich nebula fields, excellent for wide-field astrophotography. Dark skies essential.</value>
+    <comment>Photography notes for Sagittarius constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Cygnus">
+    <value>Summer constellation along Milky Way. North America Nebula excellent widefield target. Veil Nebula complex requires H-alpha filter.</value>
+    <comment>Photography notes for Cygnus constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Cassiopeia">
+    <value>Circumpolar constellation, visible year-round from northern latitudes. Heart and Soul nebulae excellent autumn targets.</value>
+    <comment>Photography notes for Cassiopeia constellation</comment>
+  </data>
+  <data name="ConstellationNotes_UrsaMajor">
+    <value>Spring constellation featuring the Big Dipper asterism. M81 and M82 galaxy pair excellent telescopic targets.</value>
+    <comment>Photography notes for Ursa Major constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Leo">
+    <value>Spring constellation with Leo Triplet galaxy group. M65, M66, and NGC 3628 form beautiful wide-field composition.</value>
+    <comment>Photography notes for Leo constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Scorpius">
+    <value>Summer constellation with colorful star Antares. Rich Milky Way fields with numerous star clusters and nebulae.</value>
+    <comment>Photography notes for Scorpius constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Perseus">
+    <value>Autumn constellation in rich Milky Way region. Double Cluster and California Nebula excellent wide-field targets.</value>
+    <comment>Photography notes for Perseus constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Auriga">
+    <value>Winter constellation with bright star Capella. IC 405 Flaming Star Nebula and IC 410 Tadpole Nebula are highlights.</value>
+    <comment>Photography notes for Auriga constellation</comment>
+  </data>
+  <data name="ConstellationNotes_Default">
+    <value>Use wide-angle lens for constellation patterns, telephoto for deep sky objects within constellation boundaries.</value>
+    <comment>Default photography notes for constellations</comment>
+  </data>
+  <data name="OppositionConditions_Mars_Excellent">
+    <value>Excellent opposition! Mars appears largest and shows surface features clearly. Look for polar ice caps and dust storms.</value>
+    <comment>Mars opposition conditions when very close</comment>
+  </data>
+  <data name="OppositionConditions_Mars_Good">
+    <value>Good opposition with Mars showing clear surface detail. Polar regions and major dark features visible.</value>
+    <comment>Mars opposition conditions when moderately close</comment>
+  </data>
+  <data name="OppositionConditions_Mars_Standard">
+    <value>Standard Mars opposition. Surface features visible with steady seeing. Best time for Mars photography.</value>
+    <comment>Standard Mars opposition conditions</comment>
+  </data>
+  <data name="OppositionConditions_Jupiter">
+    <value>Excellent conditions for moon photography. All four Galilean moons visible. Great Red Spot rotates every ~10 hours - plan timing for best views.</value>
+    <comment>Jupiter opposition viewing conditions</comment>
+  </data>
+  <data name="OppositionConditions_Saturn">
+    <value>Ring system fully illuminated and widest apparent size. Titan and other major moons easily visible. Cassini Division in rings may be detectable.</value>
+    <comment>Saturn opposition viewing conditions</comment>
+  </data>
+  <data name="OppositionConditions_Uranus">
+    <value>Reaches magnitude ~5.7, barely visible to naked eye in dark skies. Telescope required for disc visibility. Appears blue-green due to methane atmosphere.</value>
+    <comment>Uranus opposition viewing conditions</comment>
+  </data>
+  <data name="OppositionConditions_Neptune">
+    <value>Magnitude ~7.8, telescope essential. Appears as small blue disc. Triton (largest moon) may be visible with larger instruments.</value>
+    <comment>Neptune opposition viewing conditions</comment>
+  </data>
+  <data name="OppositionConditions_Default">
+    <value>Planet reaches maximum brightness and apparent size during opposition. Best time for detailed photography and observation.</value>
+    <comment>Default opposition viewing conditions</comment>
+  </data>
+  <data name="OppositionConditions_DefaultError">
+    <value>Optimal viewing conditions during opposition - planet closest to Earth.</value>
+    <comment>Default error message for opposition conditions</comment>
+  </data>
+  <data name="OppositionEquipment_Mars_Excellent">
+    <value>Excellent opposition! 200-400mm telephoto sufficient for surface features. Consider telescope with 2000mm+ focal length for detailed imaging.</value>
+    <comment>Equipment advice for excellent Mars opposition</comment>
+  </data>
+  <data name="OppositionEquipment_Mars_Standard">
+    <value>Standard opposition. 400mm+ telephoto lens minimum. Telescope with 1500mm+ focal length recommended for surface detail photography.</value>
+    <comment>Equipment advice for standard Mars opposition</comment>
+  </data>
+  <data name="OppositionEquipment_Jupiter">
+    <value>200mm+ telephoto shows disc and moons. 600mm+ reveals Great Red Spot. Telescope with 2000mm+ focal length for detailed surface bands and storm systems.</value>
+    <comment>Equipment advice for Jupiter opposition</comment>
+  </data>
+  <data name="OppositionEquipment_Saturn">
+    <value>300mm+ telephoto shows rings. 600mm+ resolves ring gap. Telescope with 2500mm+ focal length required for ring divisions and moon details.</value>
+    <comment>Equipment advice for Saturn opposition</comment>
+  </data>
+  <data name="OppositionEquipment_Uranus">
+    <value>Telescope with 1000mm+ focal length minimum. 2000mm+ shows small disc. Very challenging target requiring excellent atmospheric conditions.</value>
+    <comment>Equipment advice for Uranus opposition</comment>
+  </data>
+  <data name="OppositionEquipment_Neptune">
+    <value>Large telescope essential - 2000mm+ focal length minimum. 3000mm+ preferred. Requires excellent seeing conditions and precise tracking.</value>
+    <comment>Equipment advice for Neptune opposition</comment>
+  </data>
+  <data name="OppositionEquipment_Default">
+    <value>Telescope or long telephoto lens recommended for planetary detail during opposition.</value>
+    <comment>Default equipment advice for planetary oppositions</comment>
+  </data>
+  <data name="OppositionEquipment_DefaultError">
+    <value>Use longest focal length available for maximum planetary detail.</value>
+    <comment>Default error message for opposition equipment advice</comment>
+  </data>
+  <data name="Visibility_Unknown">
+    <value>Unknown Visiblity</value>
+    <comment>Default error message for unknown visibility</comment>
+  </data>
   
   
   
