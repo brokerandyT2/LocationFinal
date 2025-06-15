@@ -14,8 +14,17 @@
                 <Setter Property="Margin" Value="5" />
                 <Setter Property="VerticalOptions" Value="Center" />
                 <Setter Property="HorizontalOptions" Value="Center" />
+                <!-- No default TextColor setter - let system handle it -->
+                <Style.Triggers>
+                    <!-- When DisplayAll is checked, make text medium gray -->
+                    <DataTrigger TargetType="RadioButton" 
+                             Binding="{Binding Source={x:Reference DisplayAllCheckBox}, Path=IsChecked}" 
+                             Value="True">
+                        <Setter Property="TextColor" Value="Purple" />
+                    </DataTrigger>
+                </Style.Triggers>
             </Style>
-            
+
             <Style x:Key="WarningFrameStyle" TargetType="Frame">
                 <Setter Property="Padding" Value="10" />
                 <Setter Property="Margin" Value="5" />
@@ -29,10 +38,10 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="60" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="60" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -43,7 +52,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <Label Text="Histogram Analysis" FontSize="14" FontAttributes="Bold" Grid.Row="0" Grid.ColumnSpan="4" HorizontalOptions="Center" Margin="5"/>
@@ -81,6 +90,7 @@
             <CheckBox x:Name="DisplayAllCheckBox"
                       Grid.Row="3" 
                       Grid.Column="0"
+                      Grid.ColumnSpan="4"
                       IsChecked="{Binding DisplayAll}"
                       VerticalOptions="Center"
                       HorizontalOptions="Start"

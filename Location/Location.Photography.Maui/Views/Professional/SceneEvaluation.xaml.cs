@@ -2,6 +2,7 @@ using Location.Core.Application.Services;
 using Location.Photography.Application.Services;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
+using Microsoft.Maui.Handlers;
 
 namespace Location.Photography.Maui.Views.Professional
 {
@@ -168,7 +169,7 @@ namespace Location.Photography.Maui.Views.Professional
                 GreenRadioButton.CheckedChanged += (s, e) => HandleHistogramModeChange("Green", e.Value);
                 BlueRadioButton.CheckedChanged += (s, e) => HandleHistogramModeChange("Blue", e.Value);
                 LuminanceRadioButton.CheckedChanged += (s, e) => HandleHistogramModeChange("Luminance", e.Value);
-
+                DisplayAllCheckBox.CheckedChanged += (s, e) => RadioButtonHandle(e.Value);
                 // Initial loading state for histogram
                 SetHistogramLoadingState(true);
             }
@@ -178,6 +179,14 @@ namespace Location.Photography.Maui.Views.Professional
             }
         }
 
+        private void RadioButtonHandle(bool value)
+        {
+            RedRadioButton.IsVisible = !value;
+            GreenRadioButton.IsVisible = !value;
+            BlueRadioButton.IsVisible = !value;
+            LuminanceRadioButton.IsVisible = !value;
+            
+        }
         /// <summary>
         /// PERFORMANCE OPTIMIZATION: Setup analysis controls with proper validation
         /// </summary>
