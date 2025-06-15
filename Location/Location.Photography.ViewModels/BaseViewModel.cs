@@ -13,7 +13,7 @@ namespace Location.Photography.ViewModels
         private readonly IEventBus? _eventBus;
         private readonly IErrorDisplayService? _errorDisplayService;
 
-        private bool _isBusy;
+        internal bool _isBusy;
         private bool _isError;
         private string _errorMessage = string.Empty;
         private bool _hasActiveErrors;
@@ -30,7 +30,7 @@ namespace Location.Photography.ViewModels
         // Add the ErrorOccurred event for system errors (MediatR failures)
         public event EventHandler<OperationErrorEventArgs>? ErrorOccurred;
 
-        public bool IsBusy
+        public virtual bool IsBusy
         {
             get => _isBusy;
             set => SetProperty(ref _isBusy, value);

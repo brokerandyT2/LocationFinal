@@ -38,16 +38,37 @@ namespace Location.Photography.Maui.Views.Professional
 
         }
 
-        private void LocationPicker_SelectedIndexChanged(object? sender, EventArgs e)
+        // FIXED: Add this event handler for location picker
+        private async void LocationPicker_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            _viewModel.SelectedLocation = (LocationListItemViewModel)sender;
-            //_viewModel.CalculateEnhancedSunDataCommand.Execute(_viewModel);
-            MainThread.BeginInvokeOnMainThread(() =>
+            try
             {
-                _viewModel.CalculateEnhancedSunDataAsync();
-                UpdateSunPathCanvas();
+                _viewModel.IsBusy = true;
+                if (sender is Picker picker && picker.SelectedItem is LocationListItemViewModel selectedLocation)
+                {
+                    // Prevent recursive calls
+                    if (_viewModel.SelectedLocation?.Id == selectedLocation.Id)
+                        return;
+
+                    _viewModel.SelectedLocation = selectedLocation;
+                    _viewModel.LocationPhoto = selectedLocation.Photo ?? string.Empty;
+
+                    // Cancel any ongoing operations before starting new ones
+                    _viewModel.CancelAllOperations();
+
+                    // Trigger recalculation
+                    await _viewModel.CalculateEnhancedSunDataAsync();
+                }
+                _viewModel.IsBusy = false;
             }
-            );
+            catch (Exception ex)
+            {
+                await HandleErrorAsync(ex, "Error updating location selection");
+            }
+            finally
+            {
+                _viewModel.IsBusy = false;
+            }
         }
 
         private async void LoadLocations()
@@ -125,7 +146,7 @@ namespace Location.Photography.Maui.Views.Professional
 
         private void UpdateSunPathCanvas()
         {
-            
+
         }
 
 
@@ -224,20 +245,29 @@ namespace Location.Photography.Maui.Views.Professional
             }
         }
 
+        // FIXED: Update this method to use the actual event correctly
         private async void OnLocationSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
                 if (e.CurrentSelection?.FirstOrDefault() is LocationListItemViewModel selectedLocation)
                 {
+                    // Prevent recursive calls
+                    if (_viewModel.SelectedLocation?.Id == selectedLocation.Id)
+                        return;
+                    _viewModel.IsBusy = true;
                     _viewModel.SelectedLocation = selectedLocation;
                     _viewModel.LocationPhoto = selectedLocation.Photo ?? string.Empty;
+
+                    // Cancel any ongoing operations before starting new ones
+                    _viewModel.CancelAllOperations();
 
                     if (_viewModel != null)
                     {
                         await _viewModel.CalculateEnhancedSunDataAsync();
-                        UpdateSunPathCanvas();
+                        
                     }
+                    _viewModel.IsBusy = false;
                 }
             }
             catch (Exception ex)
@@ -250,10 +280,12 @@ namespace Location.Photography.Maui.Views.Professional
         {
             try
             {
-                if (_viewModel != null)
+                if (_viewModel != null && _viewModel.SelectedDate != e.NewDate)
                 {
+                    _viewModel.SelectedDate = e.NewDate;
+
                     // Cancel any ongoing operations before starting new ones
-                    _viewModel.CancelAllOperations(); // You'll need to make this method public
+                    _viewModel.CancelAllOperations();
 
                     if (_viewModel.SelectedLocation != null)
                     {
@@ -345,7 +377,7 @@ namespace Location.Photography.Maui.Views.Professional
         }
 
         // Helper method to get current sun path drawable for external access
-        
+
 
         private void DatePicker_DateSelected(object sender, DateChangedEventArgs e)
         {

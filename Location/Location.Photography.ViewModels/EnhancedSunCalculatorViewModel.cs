@@ -22,7 +22,22 @@ namespace Location.Photography.ViewModels
     public partial class EnhancedSunCalculatorViewModel : ViewModelBase
     {
         public string HourlyPredictionsHeader => "Hourly Light Predictions";
+        [ObservableProperty]
+        private bool _isNotBusy = true;
 
+        // Update IsBusy to automatically update IsNotBusy
+        public override bool IsBusy
+        {
+            get => base.IsBusy;
+            set
+            {
+                if (SetProperty(ref _isBusy, value))
+                {
+                    IsNotBusy = !value;
+                    OnPropertyChanged(nameof(IsBusy));
+                }
+            }
+        }
         #region Fields
         private readonly IMediator _mediator;
         private readonly IErrorDisplayService _errorDisplayService;
@@ -444,7 +459,14 @@ namespace Location.Photography.ViewModels
             _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
             _weatherService = weatherService ?? throw new ArgumentNullException(nameof(weatherService));
             _exposureCalculatorService = exposureCalculatorService;
+            PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(IsBusy))
+                    {
+                        OnPropertyChanged(nameof(IsNotBusy));
 
+                    }
+                };
         }
         #endregion
 
@@ -453,39 +475,40 @@ namespace Location.Photography.ViewModels
         [RelayCommand]
         public async Task LoadLocationsAsync()
         {
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                IsOptimalEventsLoading = IsHourlyForecastsLoading = IsSunPathLoading = true;
-            });
             if (!await _operationLock.WaitAsync(100))
             {
                 return; // Skip if another operation is in progress
             }
 
-            var command = new AsyncRelayCommand(async () =>
+            try
             {
-                try
+                // Set all loading states
+                await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    _cancellationTokenSource?.Cancel();
-                    _cancellationTokenSource = new CancellationTokenSource();
+                    IsBusy = true;
+                    IsOptimalEventsLoading = IsHourlyForecastsLoading = IsSunPathLoading = true;
+                });
 
-                    ClearErrors();
-                    await LoadUserSettingsOptimizedAsync();
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource = new CancellationTokenSource();
 
-                    var query = new GetLocationsQuery
+                ClearErrors();
+                await LoadUserSettingsOptimizedAsync();
+
+                var query = new GetLocationsQuery
+                {
+                    PageNumber = 1,
+                    PageSize = 100,
+                    IncludeDeleted = false
+                };
+
+                var result = await _mediator.Send(query, _cancellationTokenSource.Token);
+
+                if (result.IsSuccess && result.Data != null)
+                {
+                    // Update locations on UI thread
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        PageNumber = 1,
-                        PageSize = 100,
-                        IncludeDeleted = false
-                    };
-
-                    var result = await _mediator.Send(query, _cancellationTokenSource.Token);
-
-                    if (result.IsSuccess && result.Data != null)
-                    {
-                        // Batch property updates
-                        BeginPropertyChangeBatch();
-
                         Locations.Clear();
                         foreach (var locationDto in result.Data.Items)
                         {
@@ -500,36 +523,90 @@ namespace Location.Photography.ViewModels
                             });
                         }
 
-                        if (Locations.Count > 0)
+                        // Auto-select first location if none selected
+                        if (Locations.Count > 0 && SelectedLocation == null)
                         {
                             SelectedLocation = Locations[0];
                         }
+                    });
 
-                        await EndPropertyChangeBatchAsync();
-                    }
-                    else
+                    // Calculate sun data for selected location
+                    if (SelectedLocation != null)
                     {
-                        OnSystemError(result.ErrorMessage ?? "Failed to load locations");
+                        await CalculateEnhancedSunDataAsync();
                     }
                 }
-                catch (OperationCanceledException)
+                else
                 {
-                    // Expected when cancellation occurs
+                    OnSystemError(result.ErrorMessage ?? "Failed to load locations");
                 }
-                catch (Exception ex)
-                {
-                    OnSystemError($"Error loading locations: {ex.Message}");
-                }
-            });
-
-            try
+            }
+            catch (OperationCanceledException)
             {
-                await ExecuteAndTrackAsync(command);
+                // Expected when cancellation occurs
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error loading locations: {ex.Message}");
             }
             finally
             {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsBusy = false;
+                    IsOptimalEventsLoading = IsHourlyForecastsLoading = IsSunPathLoading = false;
+                });
 
                 _operationLock.Release();
+            }
+        }
+
+        partial void OnSelectedDatePropChanged(DateTime value)
+        {
+            if (_selectedDate != value)
+            {
+                _selectedDate = value;
+                OnPropertyChanged(nameof(SelectedDate));
+
+                // Trigger recalculation automatically
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        if (SelectedLocation != null)
+                        {
+                            CancelAllOperations();
+                            await CalculateEnhancedSunDataAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        OnSystemError($"Error recalculating for date change: {ex.Message}");
+                    }
+                });
+            }
+        }
+        partial void OnSelectedLocationPropChanged(LocationListItemViewModel? value)
+        {
+            if (value != null && _selectedLocation?.Id != value.Id)
+            {
+                _selectedLocation = value;
+                LocationPhoto = value.Photo ?? string.Empty;
+                OnPropertyChanged(nameof(SelectedLocation));
+
+                // Trigger recalculation automatically
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        CancelAllOperations();
+                        await CalculateEnhancedSunDataAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        OnSystemError($"Error recalculating for location change: {ex.Message}");
+                    }
+                });
             }
         }
 
@@ -540,48 +617,47 @@ namespace Location.Photography.ViewModels
             {
                 return; // Skip if another operation is in progress
             }
-            await MainThread.InvokeOnMainThreadAsync(() =>
+
+            try
             {
-                IsHourlyForecastsLoading = IsOptimalEventsLoading = IsSunPathLoading = true;
-            });
-            var command = new AsyncRelayCommand(async () =>
-            {
-                try
+                if (SelectedLocation == null)
                 {
-                    if (SelectedLocation == null)
-                    {
-                        SetValidationError("Please select a location");
-                        return;
-                    }
+                    SetValidationError("Please select a location");
+                    return;
+                }
 
-                    _cancellationTokenSource?.Cancel();
-                    _cancellationTokenSource = new CancellationTokenSource();
+                // Set loading states
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsHourlyForecastsLoading = IsOptimalEventsLoading = IsSunPathLoading = true;
+                    WeatherDataStatus = "Loading enhanced weather data...";
+                });
 
-                    ClearErrors();
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource = new CancellationTokenSource();
 
-                    await MainThread.InvokeOnMainThreadAsync(() =>
-                    {
-                        WeatherDataStatus = "Loading enhanced weather data...";
-                    });
+                ClearErrors();
 
-                    // Check cache first
-                    var cacheKey = GetCacheKey();
-                    if (IsCacheValid(cacheKey))
-                    {
-                        await LoadFromCacheAsync(cacheKey);
-                        return;
-                    }
+                // Check cache first
+                var cacheKey = GetCacheKey();
+                if (IsCacheValid(cacheKey))
+                {
+                    await LoadFromCacheAsync(cacheKey);
+                    return;
+                }
 
-                    // Perform calculations in parallel on background thread
-                    await Task.Run(async () =>
+                // Perform calculations in background
+                await Task.Run(async () =>
+                {
+                    try
                     {
                         // Load timezone first
                         await LoadLocationTimezoneOptimizedAsync();
-                        InitializeTimezoneDisplays();
+
                         // Update timezone displays on UI thread
                         await MainThread.InvokeOnMainThreadAsync(() =>
                         {
-                            LocationTimeZoneDisplay = $"Location: {LocationTimeZone.DisplayName}";
+                            InitializeTimezoneDisplays();
                         });
 
                         // Calculate sun times
@@ -593,47 +669,122 @@ namespace Location.Photography.ViewModels
                         {
                             IsSunPathLoading = false;
                         });
+
                         // Synchronize weather data
                         await SynchronizeWeatherDataOptimizedAsync();
 
                         // Cache the results
                         await CacheResultsAsync(cacheKey);
 
-                    }, _cancellationTokenSource.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            WeatherDataStatus = "Update cancelled";
+                        });
+                        throw;
+                    }
+                    catch (Exception)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            WeatherDataStatus = "Weather data unavailable";
+                        });
+                        throw;
+                    }
 
-                    // Final UI updates on main thread
-                    await MainThread.InvokeOnMainThreadAsync(() =>
-                    {
-                        UpdateCurrentPredictionDisplayOptimized();
-                        WeatherDataStatus = $"Updated {WeatherLastUpdate:HH:mm}";
-                    });
-                }
-                catch (OperationCanceledException)
-                {
-                    await MainThread.InvokeOnMainThreadAsync(() =>
-                    {
-                        WeatherDataStatus = "Update cancelled";
-                    });
-                }
-                catch (Exception ex)
-                {
-                    await MainThread.InvokeOnMainThreadAsync(() =>
-                    {
-                        WeatherDataStatus = "Weather data unavailable";
-                        OnSystemError($"Error calculating enhanced sun data: {ex.Message}");
-                    });
-                }
-            });
+                }, _cancellationTokenSource.Token);
 
-            try
+                // Final UI updates
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    UpdateCurrentPredictionDisplayOptimized();
+                    WeatherDataStatus = $"Updated {WeatherLastUpdate:HH:mm}";
+                });
+            }
+            catch (OperationCanceledException)
             {
-                await ExecuteAndTrackAsync(command);
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    WeatherDataStatus = "Update cancelled";
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    WeatherDataStatus = "Weather data unavailable";
+                });
+                OnSystemError($"Error calculating enhanced sun data: {ex.Message}");
             }
             finally
             {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsHourlyForecastsLoading = IsOptimalEventsLoading = false;
+                });
+
                 _operationLock.Release();
             }
         }
+        public async Task OnLocationChangedAsync(LocationListItemViewModel newLocation)
+        {
+            try
+            {
+                if (newLocation?.Id != SelectedLocation?.Id)
+                {
+                    SelectedLocation = newLocation;
+                    await CalculateEnhancedSunDataAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error handling location change: {ex.Message}");
+            }
+        }
+
+
+
+        [ObservableProperty]
+        private bool _isInitialized = false;
+
+        public async Task InitializeAsync()
+        {
+            if (IsInitialized) return;
+
+            try
+            {
+                IsBusy = true;
+                await LoadLocationsAsync();
+                IsInitialized = true;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+        public async Task OnDateChangedAsync(DateTime newDate)
+        {
+            try
+            {
+                if (newDate != SelectedDate)
+                {
+                    SelectedDate = newDate;
+                    if (SelectedLocation != null)
+                    {
+                        await CalculateEnhancedSunDataAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OnSystemError($"Error handling date change: {ex.Message}");
+            }
+        }
+
+        // FIX 7: Add method to check if view model is ready
+        public bool IsReadyForCalculations => !IsBusy && SelectedLocation != null;
 
         [RelayCommand]
         public async Task CalibrateWithLightMeterAsync(double actualEV)

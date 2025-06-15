@@ -42,7 +42,8 @@
                             <Picker Grid.Row="1" ItemsSource="{Binding Locations, Mode=TwoWay}" 
                                    SelectedItem="{Binding SelectedLocation}"
                                    ItemDisplayBinding="{Binding Title}" x:Name="LocationPicker"
-                                   FontSize="14" Margin="0,5,0,0"/>
+                                   FontSize="14" Margin="0,5,0,0"
+                                   SelectedIndexChanged="LocationPicker_SelectedIndexChanged"/>
                         </Grid>
 
                         <!-- Date Picker -->
@@ -375,7 +376,7 @@
                             <Grid IsVisible="{Binding IsHourlyForecastsLoading}" BackgroundColor="#80000000">
                                 <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
                                     <ActivityIndicator IsRunning="{Binding IsHourlyForecastsLoading}" HeightRequest="40" WidthRequest="40" />
-                                    <Label Text="Loading hourly predictions..." FontSize="12" HorizontalTextAlignment="Center"/>
+                                    <Label Text="Loading hourly predictions..." FontSize="12" HorizontalTextAlignment="Center" TextColor="White"/>
                                 </VerticalStackLayout>
                             </Grid>
                         </Grid>
@@ -464,7 +465,24 @@
 
             </StackLayout>
         </ScrollView>
-
+        <Grid IsVisible="{Binding IsBusy}" 
+          BackgroundColor="#80000000"
+          Grid.RowSpan="11"
+          Grid.ColumnSpan="4"
+          Padding="10"
+          Margin="5">
+            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
+                <ActivityIndicator IsRunning="{Binding IsProcessing}" 
+                               HeightRequest="50" 
+                               WidthRequest="50" 
+                                />
+                <Label Text="Processing Data, please wait..." 
+                   FontSize="16"
+                   
+                   HorizontalOptions="Center"
+                   Margin="5"/>
+            </VerticalStackLayout>
+        </Grid>
         <!-- Error message display (keep global for errors) -->
         <Grid Grid.Row="0" 
               IsVisible="{Binding IsError}"
