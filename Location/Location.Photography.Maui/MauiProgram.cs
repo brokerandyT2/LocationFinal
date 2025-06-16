@@ -171,6 +171,7 @@ namespace Location.Photography.Maui
                 var mappingService = sp.GetRequiredService<Location.Photography.Application.Common.Interfaces.IAstroHourlyPredictionMappingService>();
                 var sunCalculatorService = sp.GetRequiredService<Domain.Services.ISunCalculatorService>();
                 var meteorShowerDataService = sp.GetRequiredService<IMeteorShowerDataService>();
+                var cameraDataService = sp.GetRequiredService<ICameraDataService>();
                 return new AstroPhotographyCalculatorViewModel(
                     mediator,
                     errorDisplayService,
@@ -181,7 +182,7 @@ namespace Location.Photography.Maui
                     equipmentRecommendationService,
                     predictiveLightService,
                     exposureCalculatorService,
-                    mappingService, meteorShowerDataService);
+                    mappingService, meteorShowerDataService, cameraDataService);
             });
 
             // ==================== CORE PAGES ====================
@@ -365,7 +366,9 @@ namespace Location.Photography.Maui
                 var viewModel = sp.GetRequiredService<AstroPhotographyCalculatorViewModel>();
                 var alertService = sp.GetRequiredService<IAlertService>();
                 var mediator = sp.GetRequiredService<IMediator>();
-                return new Views.Professional.AstroPhotographyCalculator(viewModel, alertService, mediator);
+                var logger = sp.GetRequiredService<ILogger<Views.Professional.AstroPhotographyCalculator>>();
+                var serviceProvider = sp.GetService<IServiceProvider>();
+                return new Views.Professional.AstroPhotographyCalculator(viewModel, logger, serviceProvider, alertService, mediator);
             });
 
             // Settings and Onboarding Pages
@@ -374,7 +377,8 @@ namespace Location.Photography.Maui
                 var mediator = sp.GetRequiredService<IMediator>();
                 var alertService = sp.GetRequiredService<IAlertService>();
                 var settingRepo = sp.GetRequiredService<ISettingRepository>();
-                return new Views.Settings(mediator, alertService, settingRepo);
+                var serviceProvider = sp.GetRequiredService<IServiceProvider>();
+                return new Views.Settings(mediator, alertService, settingRepo, serviceProvider);
             });
             builder.Services.AddTransient<CameraEvaluation>(sp =>
             {

@@ -14,14 +14,12 @@
 
         <!-- Header -->
         <Frame Grid.Row="0" 
-              BackgroundColor="#80000000" 
               Margin="20,40,20,10" 
               Padding="20"
               CornerRadius="10">
             <Label Text="Camera Lens Management" 
                   FontSize="22" 
                   FontAttributes="Bold"
-                  TextColor="White"
                   HorizontalOptions="Center" />
         </Frame>
 
@@ -37,10 +35,9 @@
                 <Label Text="CAMERA BODIES" 
                       FontSize="18" 
                       FontAttributes="Bold"
-                      TextColor="White"
                       HorizontalOptions="Center" />
 
-                <Frame BackgroundColor="#40FFFFFF" 
+                <Frame 
                       CornerRadius="5" 
                       Padding="0"
                       HeightRequest="400">
@@ -71,7 +68,6 @@
                                         <Label Grid.Row="0"
                                             Grid.Column="1"
                                             Text="{Binding Camera.Name}"
-                                            TextColor="White"
                                             FontAttributes="Bold"
                                             FontSize="16"
                                             Margin="10,0,0,0" />
@@ -79,7 +75,6 @@
                                         <Label Grid.Row="1"
                                             Grid.Column="1"
                                             Text="{Binding Camera.SensorType}"
-                                            TextColor="LightGray"
                                             FontSize="12"
                                             Margin="10,0,0,0" />
                                     </Grid>
@@ -92,7 +87,6 @@
                 <Button x:Name="AddCameraButton"
                        Text="Add New Camera"
                        FontSize="16"
-                       BackgroundColor="#28a745"
                        TextColor="White"
                        HeightRequest="50"
                        CornerRadius="25"
@@ -104,10 +98,9 @@
                 <Label Text="LENSES" 
                       FontSize="18" 
                       FontAttributes="Bold"
-                      TextColor="White"
                       HorizontalOptions="Center" />
 
-                <Frame BackgroundColor="#40FFFFFF" 
+                <Frame 
                       CornerRadius="5" 
                       Padding="0"
                       HeightRequest="400">
@@ -125,13 +118,11 @@
 
                                         <CheckBox Grid.Column="0"
                                                IsChecked="{Binding IsSelected}"
-                                               Color="White"
                                                CheckedChanged="OnLensSelectionChanged"
                                                VerticalOptions="Center" />
 
                                         <Label Grid.Column="1"
                                             Text="{Binding Lens.DisplayName}"
-                                            TextColor="White"
                                             VerticalOptions="Center"
                                             FontSize="16"
                                             Margin="10,0,0,0" />
@@ -145,14 +136,11 @@
                 <Button x:Name="AddLensButton"
                        Text="Add New Lens"
                        FontSize="16"
-                       BackgroundColor="#28a745"
-                       TextColor="White"
                        HeightRequest="50"
                        CornerRadius="25"
                        Clicked="OnAddLensClicked" />
 
                 <Label Text="Select a camera to see its lens associations. Check boxes to assign lenses."
-                      TextColor="LightGray"
                       FontSize="12"
                       HorizontalTextAlignment="Center"
                       Margin="0,10,0,0" />
@@ -161,14 +149,11 @@
 
         <!-- Action Buttons -->
         <Frame Grid.Row="2" 
-              BackgroundColor="#80000000" 
               Margin="20,10,20,40" 
               Padding="20"
               CornerRadius="10">
             <Button Text="Close"
                    FontSize="16"
-                   BackgroundColor="#666666"
-                   TextColor="White"
                    HeightRequest="50"
                    CornerRadius="25"
                    HorizontalOptions="Center"
@@ -179,7 +164,6 @@
         <!-- Processing Overlay -->
         <Grid x:Name="ProcessingOverlay"
              Grid.RowSpan="3"
-             BackgroundColor="#CC000000"
              IsVisible="False">
             <StackLayout VerticalOptions="Center" 
                       HorizontalOptions="Center"

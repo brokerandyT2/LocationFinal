@@ -15,6 +15,7 @@ namespace Location.Photography.Maui.Views
         private readonly IMediator _mediator;
         private readonly IAlertService _alertService;
         private readonly ISettingRepository _settingRepository;
+        private readonly IServiceProvider _serviceProvider;
         private SettingsViewModel _viewModel;
 
         // Store response objects from query
@@ -39,11 +40,13 @@ namespace Location.Photography.Maui.Views
         public Settings(
             IMediator mediator,
             IAlertService alertService,
-            ISettingRepository settingRepository)
+            ISettingRepository settingRepository,
+            IServiceProvider serviceProvider)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
             _settingRepository = settingRepository ?? throw new ArgumentNullException(nameof(settingRepository));
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
             InitializeComponent();
             InitializeViewModel();
@@ -254,6 +257,34 @@ namespace Location.Photography.Maui.Views
             if (retry && sender is SettingsViewModel viewModel)
             {
                 await viewModel.RetryLastCommandAsync();
+            }
+        }
+
+        private async void OnManageCameraLensClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                var cameraLensManagementPage = _serviceProvider?.GetRequiredService<Views.Premium.CameraLensManagement>();
+                if (cameraLensManagementPage != null)
+                {
+                    await Shell.Current.Navigation.PushModalAsync(cameraLensManagementPage);
+                }
+                else
+                {
+                    await DisplayAlert("Error", "Camera Lens Management page not available", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"Error opening Camera Lens Management: {ex.Message}";
+                if (_alertService != null)
+                {
+                    await _alertService.ShowErrorAlertAsync(errorMessage, "Error");
+                }
+                else
+                {
+                    await DisplayAlert("Error", errorMessage, "OK");
+                }
             }
         }
 

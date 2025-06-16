@@ -1,45 +1,138 @@
 using Location.Core.Application.Services;
 using Location.Core.ViewModels;
+using Location.Photography.Application.Notifications;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
 
 namespace Location.Photography.Maui.Views.Professional
 {
-    public partial class AstroPhotographyCalculator : ContentPage
+    public partial class AstroPhotographyCalculator : ContentPage, INotificationHandler<CameraCreatedNotification>,
+        INotificationHandler<LensCreatedNotification>
     {
         private readonly AstroPhotographyCalculatorViewModel _viewModel;
         private readonly IAlertService _alertService;
         private readonly IMediator _mediator;
         private bool _isPopupVisible = false;
+        private readonly ILogger<AstroPhotographyCalculator> _logger;
+        private readonly IServiceProvider _serviceProvider;
+        private string _currentUserId = string.Empty;
 
-        public AstroPhotographyCalculator(AstroPhotographyCalculatorViewModel viewModel, IAlertService alertService, IMediator mediator)
+        public AstroPhotographyCalculator(
+    AstroPhotographyCalculatorViewModel viewModel,
+    ILogger<AstroPhotographyCalculator> logger,
+    IServiceProvider serviceProvider, IAlertService alertService, IMediator mediator)
         {
-            InitializeComponent();
-
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
-            _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
-            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _alertService = alertService;
+            _mediator = mediator;
 
+            InitializeComponent();
             BindingContext = _viewModel;
 
-            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-            _viewModel.ErrorOccurred -= OnSystemError;
-            _viewModel.ErrorOccurred += OnSystemError;
+            _ = LoadCurrentUserIdAsync();
 
-            // REMOVED: Don't load data here anymore - let LoadInitialDataAsync handle it
-            // This was causing the double-loading issue
-
-            // Use Dispatcher to ensure this runs after the page is fully loaded
-            Dispatcher.Dispatch(async () =>
-            {
-                await LoadInitialDataAsync();
-            });
         }
+
+        #region User Management
+
+        private async Task LoadCurrentUserIdAsync()
+        {
+            try
+            {
+                _currentUserId = await SecureStorage.GetAsync("Email") ?? "default_user";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading current user ID");
+                _currentUserId = "default_user";
+            }
+        }
+
+        #endregion
+
+        #region Notification Handlers
+
+        public async Task Handle(CameraCreatedNotification notification, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (notification.UserId == _currentUserId)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        // Refresh the camera list in the view model
+                        await _viewModel.LoadEquipmentAsync();
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling camera created notification");
+            }
+        }
+
+        public async Task Handle(LensCreatedNotification notification, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (notification.UserId == _currentUserId)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        // Refresh the lens list in the view model
+                        await _viewModel.LoadEquipmentAsync();// RefreshLensesAsync();
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling lens created notification");
+            }
+        }
+
+        #endregion
+
+        #region Button Click Handlers
+
+        private async void OnAddCameraClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                var addCameraModal = _serviceProvider.GetRequiredService<Premium.AddCameraModal>();
+                await Shell.Current.Navigation.PushModalAsync(addCameraModal);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error navigating to Add Camera modal");
+                // You might want to show an alert here, depending on your alert service availability
+                await DisplayAlert("Error", "Error opening Add Camera", "OK");
+            }
+        }
+
+        private async void OnAddLensClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                var addLensModal = _serviceProvider.GetRequiredService<Premium.AddLensModal>();
+                await Shell.Current.Navigation.PushModalAsync(addLensModal);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error navigating to Add Lens modal");
+                // You might want to show an alert here, depending on your alert service availability
+                await DisplayAlert("Error", "Error opening Add Lens", "OK");
+            }
+        }
+
+        #endregion
 
         private async Task LoadInitialDataAsync()
         {

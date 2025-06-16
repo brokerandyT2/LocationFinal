@@ -120,6 +120,9 @@ namespace Location.Photography.ViewModels
         #endregion
 
         #region Constructor
+
+        private readonly ICameraDataService _cameraDataService;
+
         public AstroPhotographyCalculatorViewModel(
             IMediator mediator,
             IErrorDisplayService errorDisplayService,
@@ -131,7 +134,7 @@ namespace Location.Photography.ViewModels
             IPredictiveLightService predictiveLightService,
             IExposureCalculatorService exposureCalculatorService,
             IAstroHourlyPredictionMappingService mappingService,
-            IMeteorShowerDataService meteorShowerDataService)
+            IMeteorShowerDataService meteorShowerDataService, ICameraDataService cameraDataService)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -145,6 +148,9 @@ namespace Location.Photography.ViewModels
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
             _mappingService = mappingService ?? throw new ArgumentNullException(nameof(mappingService));
             _meteorShowerDataService = meteorShowerDataService ?? throw new ArgumentNullException(nameof(meteorShowerDataService));
+
+
+
             InitializeCommands();
             InitializeAstroTargets();
             _ = Task.Run(async () =>
@@ -152,6 +158,7 @@ namespace Location.Photography.ViewModels
                 await LoadLocationsAsync();
                 await LoadEquipmentAsync();
             });
+            _cameraDataService = cameraDataService;
         }
         #endregion
 
@@ -386,7 +393,7 @@ namespace Location.Photography.ViewModels
                 while (currentHour <= sunriseHour)
                 {
                     hourCount++;
-
+                    currentHour = TimeZoneInfo.ConvertTime(currentHour, TimeZoneInfo.Local);
                     // Update progress status
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
@@ -1449,9 +1456,13 @@ namespace Location.Photography.ViewModels
 
             try
             {
-                IsBusy = true;
-                HasError = false;
-                ErrorMessage = string.Empty;
+                // ✅ Ensure IsBusy is set on main thread
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsBusy = true;
+                    HasError = false;
+                    ErrorMessage = string.Empty;
+                });
 
                 var query = new GetLocationsQuery();
                 var result = await _mediator.Send(query, _cancellationTokenSource.Token);
@@ -1471,15 +1482,19 @@ namespace Location.Photography.ViewModels
 
                     if (locationViewModels.Any())
                     {
-                        Locations = new ObservableCollection<LocationListItemViewModel>(locationViewModels);
-
-                        if (SelectedLocation == null && Locations.Any())
+                        // ✅ Update UI on main thread
+                        await MainThread.InvokeOnMainThreadAsync(() =>
                         {
-                            SelectedLocation = Locations.First();
-                            LocationPhoto = SelectedLocation?.Photo ?? string.Empty;
-                        }
+                            Locations = new ObservableCollection<LocationListItemViewModel>(locationViewModels);
 
-                        IsInitialized = true;
+                            if (SelectedLocation == null && Locations.Any())
+                            {
+                                SelectedLocation = Locations.First();
+                                LocationPhoto = SelectedLocation?.Photo ?? string.Empty;
+                            }
+
+                            IsInitialized = true;
+                        });
                     }
                     else
                     {
@@ -1494,7 +1509,10 @@ namespace Location.Photography.ViewModels
             }
             catch (OperationCanceledException)
             {
-                CalculationStatus = "Location loading cancelled";
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    CalculationStatus = "Location loading cancelled";
+                });
             }
             catch (ArgumentNullException ex)
             {
@@ -1506,7 +1524,11 @@ namespace Location.Photography.ViewModels
             }
             finally
             {
-                IsBusy = false;
+                // ✅ Ensure IsBusy is set to false on main thread
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsBusy = false;
+                });
                 _operationLock.Release();
             }
         }
@@ -1528,75 +1550,83 @@ namespace Location.Photography.ViewModels
                 var lenses = new List<Lens>();
 
                 // Load user cameras first (marked with *)
-                var userCamerasResult = await _userCameraBodyRepository.GetByUserIdAsync(currentUserId, _cancellationTokenSource.Token);
-                if (userCamerasResult.IsSuccess && userCamerasResult.Data?.Any() == true)
+                var userResult = await _cameraDataService.GetUserCameraBodiesAsync(currentUserId, 0, int.MaxValue);
+                if (userResult.IsSuccess && userResult.Data?.CameraBodies?.Any() == true)
                 {
-                    var userCameraIds = userCamerasResult.Data.Select(uc => uc.CameraBodyId).ToList();
+                    var userCameras = userResult.Data.CameraBodies.OrderBy(c => c.DisplayName).ToList();
 
-                    // Get full camera details for user cameras
-                    var allCamerasResult = await _cameraBodyRepository.GetPagedAsync(0, int.MaxValue, _cancellationTokenSource.Token);
-                    if (allCamerasResult.IsSuccess && allCamerasResult.Data?.Any() == true)
+                    // Add user cameras with * prefix
+                    foreach (var camera in userCameras)
                     {
-                        var userCameras = allCamerasResult.Data
-                            .Where(c => userCameraIds.Contains(c.Id))
-                            .OrderBy(c => c.Name)
-                            .ToList();
-
-                        // Add user cameras with * prefix
-                        foreach (var camera in userCameras)
+                        var userCamera = new CameraBody(
+                            "* " + camera.DisplayName, // Add * prefix like FieldOfView
+                            camera.SensorType,
+                            camera.SensorWidth,
+                            camera.SensorHeight,
+                            camera.MountType,
+                            true) // Mark as user created
                         {
-                            var userCamera = new CameraBody(
-                                camera.Name,
-                                camera.SensorType,
-                                camera.SensorWidth,
-                                camera.SensorHeight,
-                                camera.MountType,
-                                camera.IsUserCreated)
-                            {
-                                Id = camera.Id,
-                                DateAdded = camera.DateAdded
-                            };
-                            // Mark as user camera by prefixing name
-                            userCamera.Name = "* " + camera.Name;
-                            cameras.Add(userCamera);
-                        }
-
-                        // Add all other cameras
-                        var otherCameras = allCamerasResult.Data
-                            .Where(c => !userCameraIds.Contains(c.Id))
-                            .OrderBy(c => c.Name)
-                            .ToList();
-                        cameras.AddRange(otherCameras);
+                            Id = camera.Id,
+                            DateAdded = camera.DateAdded
+                        };
+                        cameras.Add(userCamera);
                     }
                 }
-                else
+
+                // Load all cameras from database
+                var allCamerasResult = await _cameraDataService.GetCameraBodiesAsync(0, int.MaxValue);
+                if (allCamerasResult.IsSuccess && allCamerasResult.Data?.CameraBodies?.Any() == true)
                 {
-                    // If no user cameras, load all cameras
-                    var allCamerasResult = await _cameraBodyRepository.GetPagedAsync(0, int.MaxValue, _cancellationTokenSource.Token);
-                    if (allCamerasResult.IsSuccess && allCamerasResult.Data?.Any() == true)
+                    var allCameras = allCamerasResult.Data.CameraBodies.OrderBy(c => c.DisplayName).ToList();
+
+                    // Add all cameras (without * prefix)
+                    foreach (var camera in allCameras)
                     {
-                        cameras.AddRange(allCamerasResult.Data.OrderBy(c => c.Name));
+                        var cameraBody = new CameraBody(
+                            camera.DisplayName,
+                            camera.SensorType,
+                            camera.SensorWidth,
+                            camera.SensorHeight,
+                            camera.MountType,
+                            false) // Not user created
+                        {
+                            Id = camera.Id,
+                            DateAdded = camera.DateAdded
+                        };
+                        cameras.Add(cameraBody);
                     }
                 }
 
-                // Load lenses (existing logic)
-                var userLensesResult = await _lensRepository.GetUserLensesAsync(_cancellationTokenSource.Token);
-                if (userLensesResult.IsSuccess && userLensesResult.Data?.Any() == true)
+                // Load lenses using camera data service (similar to FieldOfView but without camera filter)
+                var lensesResult = await _cameraDataService.GetLensesAsync(0, int.MaxValue, false, null);
+                if (lensesResult.IsSuccess && lensesResult.Data?.Lenses?.Any() == true)
                 {
-                    lenses.AddRange(userLensesResult.Data);
-                }
-                else
-                {
-                    var allLensesResult = await _lensRepository.GetPagedAsync(0, 50, _cancellationTokenSource.Token);
-                    if (allLensesResult.IsSuccess && allLensesResult.Data?.Any() == true)
+                    var allLenses = lensesResult.Data.Lenses.OrderBy(l => l.DisplayName).ToList();
+
+                    // Convert DTOs to domain objects
+                    foreach (var lensDto in allLenses)
                     {
-                        lenses.AddRange(allLensesResult.Data);
+                        var lens = new Lens(
+
+                            lensDto.MinMM,
+                            lensDto.MaxMM.HasValue ? lensDto.MaxMM.Value : lensDto.MinMM,
+                            lensDto.MinFStop,
+                            lensDto.MaxFStop,
+                            lensDto.IsUserCreated, 
+                            lensDto.DisplayName) // Assuming not user created for now
+                        {
+                            Id = lensDto.Id,
+                            DateAdded = lensDto.DateAdded 
+                        };
+                        lenses.Add(lens);
                     }
                 }
 
+                // Update collections
                 AvailableCameras = new ObservableCollection<CameraBody>(cameras);
                 AvailableLenses = new ObservableCollection<Lens>(lenses);
 
+                // Auto-select optimal equipment
                 await AutoSelectOptimalEquipmentAsync();
             }
             catch (Exception ex)
