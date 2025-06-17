@@ -120,7 +120,11 @@ namespace Location.Core.Maui.Views
 
         private void ImageButton_Pressed(object sender, EventArgs e)
         {
-            var location = ((LocationViewModel)sender);
+
+            var button = sender as ImageButton;
+            var location = button.BindingContext as LocationListItemViewModel;
+
+           
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 try
@@ -133,8 +137,6 @@ namespace Location.Core.Maui.Views
                 catch (Exception ex)
                 {
                     await DisplayAlert(AppResources.Error, "No Map Application", AppResources.OK);
-                    location.OnSystemError("No Map Application");
-                    //                    HandleError(ex, "Error opening map");
                 }
             });
 
