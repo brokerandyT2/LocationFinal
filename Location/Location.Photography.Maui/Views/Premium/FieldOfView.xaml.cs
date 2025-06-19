@@ -293,12 +293,19 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-               
-                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    // Reload cameras to include the new one
+                    await LoadCamerasAsync(false);
+
+                    // Automatically select the newly created camera
+                    var newCamera = AvailableCameras.FirstOrDefault(c => c.Camera?.Id == notification.CreatedCamera.Id);
+                    if (newCamera != null)
                     {
-                        await LoadCamerasAsync(false);
-                    });
-               
+                        SelectedCamera = newCamera;
+                        CameraPicker.SelectedItem = newCamera;
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -310,10 +317,19 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    // Reload lenses to include the new one
+                    await LoadLensesAsync(false);
+
+                    // Automatically select the newly created lens
+                    var newLens = AvailableLenses.FirstOrDefault(l => l.Lens?.Id == notification.CreatedLens.Id);
+                    if (newLens != null)
                     {
-                        await LoadLensesAsync(false);
-                    });
+                        SelectedLens = newLens;
+                        LensPicker.SelectedItem = newLens;
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -323,7 +339,10 @@ namespace Location.Photography.Maui.Views.Premium
 
         private async void OnCameraSelectionChanged(object sender, EventArgs e)
         {
-            await OnCameraSelectionChanged();
+            if (sender is Picker picker && picker.SelectedItem is CameraDisplayItem selectedCamera)
+            {
+                SelectedCamera = selectedCamera; // This will trigger the property setter and async method
+            }
         }
 
         private async Task OnCameraSelectionChanged()
@@ -359,7 +378,10 @@ namespace Location.Photography.Maui.Views.Premium
 
         private async void OnLensSelectionChanged(object sender, EventArgs e)
         {
-            await OnLensSelectionChanged();
+            if (sender is Picker picker && picker.SelectedItem is LensDisplayItem selectedLens)
+            {
+                SelectedLens = selectedLens; // This will trigger the property setter and async method
+            }
         }
 
         private async Task OnLensSelectionChanged()
@@ -417,49 +439,75 @@ namespace Location.Photography.Maui.Views.Premium
                 _isLoadingCameras = true;
                 await MainThread.InvokeOnMainThreadAsync(() => ProcessingOverlay.IsVisible = true);
 
+                // Store current selection to restore after reload
+                var currentSelectedCameraId = SelectedCamera?.Camera?.Id;
+
                 if (!loadMore)
                 {
                     _currentCameraSkip = 0;
                     await MainThread.InvokeOnMainThreadAsync(() => AvailableCameras.Clear());
                 }
 
+                // Load user cameras first (these will show with "*" prefix)
                 var userResult = await _cameraDataService.GetUserCameraBodiesAsync(_currentUserId, 0, int.MaxValue);
-                userResult.Data.CameraBodies = userResult.Data.CameraBodies.OrderBy(c => c.DisplayName).ToList();
+                var userCameraIds = new HashSet<int>();
 
                 if (userResult.IsSuccess)
                 {
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        foreach (var res in userResult.Data.CameraBodies)
-                            AvailableCameras.Add(new CameraDisplayItem
-                            {
-                                Camera = res,
-                                DisplayName = "* " + res.DisplayName,
-                                IsMissingOption = false
-                            });
-                    });
-                }
-
-                // Load cameras from database (includes proper ordering: user cameras first, then alphabetically)
-                var result = await _cameraDataService.GetCameraBodiesAsync(0, int.MaxValue);
-                result.Data.CameraBodies = result.Data.CameraBodies.OrderBy(c => c.DisplayName).ToList();
-
-                if (result.IsSuccess)
-                {
-                    await MainThread.InvokeOnMainThreadAsync(() =>
-                    {
-                        foreach (var camera in result.Data.CameraBodies)
+                        foreach (var camera in userResult.Data.CameraBodies.OrderBy(c => c.DisplayName))
                         {
+                            userCameraIds.Add(camera.Id);
                             AvailableCameras.Add(new CameraDisplayItem
                             {
                                 Camera = camera,
-                                DisplayName = camera.DisplayName,
+                                DisplayName = "* " + camera.DisplayName,
                                 IsMissingOption = false
                             });
                         }
-
-                        CameraPicker.SelectedIndex = -1;
                     });
+                }
+
+                // Load all cameras (excluding user cameras to avoid duplicates)
+                var allCamerasResult = await _cameraDataService.GetCameraBodiesAsync(0, int.MaxValue);
+                if (allCamerasResult.IsSuccess)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        foreach (var camera in allCamerasResult.Data.CameraBodies.OrderBy(c => c.DisplayName))
+                        {
+                            // Skip if this camera is already in user cameras
+                            if (!userCameraIds.Contains(camera.Id))
+                            {
+                                AvailableCameras.Add(new CameraDisplayItem
+                                {
+                                    Camera = camera,
+                                    DisplayName = camera.DisplayName,
+                                    IsMissingOption = false
+                                });
+                            }
+                        }
+
+                        // Restore selection if possible
+                        if (currentSelectedCameraId.HasValue)
+                        {
+                            var cameraToSelect = AvailableCameras.FirstOrDefault(c => c.Camera?.Id == currentSelectedCameraId.Value);
+                            if (cameraToSelect != null)
+                            {
+                                SelectedCamera = cameraToSelect;
+                                CameraPicker.SelectedItem = cameraToSelect;
+                            }
+                        }
+                        else
+                        {
+                            CameraPicker.SelectedIndex = -1;
+                        }
+                    });
+                }
+                else
+                {
+                    await _alertService.ShowErrorAlertAsync("Failed to load cameras", "Error");
                 }
             }
             catch (Exception ex)
@@ -483,12 +531,16 @@ namespace Location.Photography.Maui.Views.Premium
                 _isLoadingLenses = true;
                 await MainThread.InvokeOnMainThreadAsync(() => ProcessingOverlay.IsVisible = true);
 
+                // Store current selection to restore after reload
+                var currentSelectedLensId = SelectedLens?.Lens?.Id;
+
                 if (!loadMore)
                 {
                     _currentLensSkip = 0;
                     await MainThread.InvokeOnMainThreadAsync(() => AvailableLenses.Clear());
                 }
 
+                // Load all lenses compatible with the selected camera
                 var result = await _cameraDataService.GetLensesAsync(_currentLensSkip, _pageSize, false, SelectedCamera.Camera.Id);
                 if (result.IsSuccess)
                 {
@@ -507,7 +559,22 @@ namespace Location.Photography.Maui.Views.Premium
                         _hasMoreLenses = result.Data.HasMore;
                         _currentLensSkip += _pageSize;
                         LensPicker.IsEnabled = true;
+
+                        // Restore selection if possible
+                        if (currentSelectedLensId.HasValue)
+                        {
+                            var lensToSelect = AvailableLenses.FirstOrDefault(l => l.Lens?.Id == currentSelectedLensId.Value);
+                            if (lensToSelect != null)
+                            {
+                                SelectedLens = lensToSelect;
+                                LensPicker.SelectedItem = lensToSelect;
+                            }
+                        }
                     });
+                }
+                else
+                {
+                    await _alertService.ShowErrorAlertAsync("Failed to load lenses", "Error");
                 }
             }
             catch (Exception ex)

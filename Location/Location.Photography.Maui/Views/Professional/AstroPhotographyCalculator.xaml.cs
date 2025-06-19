@@ -3,6 +3,7 @@ using Location.Core.ViewModels;
 using Location.Photography.Application.Notifications;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
+using Location.Photography.Maui.Views.Premium;
 using Location.Photography.ViewModels;
 using Location.Photography.ViewModels.Events;
 using MediatR;
@@ -12,8 +13,7 @@ using OperationErrorEventArgs = Location.Photography.ViewModels.Events.Operation
 
 namespace Location.Photography.Maui.Views.Professional
 {
-    public partial class AstroPhotographyCalculator : ContentPage, INotificationHandler<CameraCreatedNotification>,
-        INotificationHandler<LensCreatedNotification>
+    public partial class AstroPhotographyCalculator : ContentPage
     {
         private readonly AstroPhotographyCalculatorViewModel _viewModel;
         private readonly IAlertService _alertService;
@@ -106,13 +106,11 @@ namespace Location.Photography.Maui.Views.Professional
         {
             try
             {
-                var addCameraModal = _serviceProvider.GetRequiredService<Premium.AddCameraModal>();
+                var addCameraModal = _serviceProvider.GetRequiredService<AddCameraModal>();
                 await Shell.Current.Navigation.PushModalAsync(addCameraModal);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error navigating to Add Camera modal");
-                // You might want to show an alert here, depending on your alert service availability
                 await DisplayAlert("Error", "Error opening Add Camera", "OK");
             }
         }
@@ -121,13 +119,11 @@ namespace Location.Photography.Maui.Views.Professional
         {
             try
             {
-                var addLensModal = _serviceProvider.GetRequiredService<Premium.AddLensModal>();
+                var addLensModal = _serviceProvider.GetRequiredService<AddLensModal>();
                 await Shell.Current.Navigation.PushModalAsync(addLensModal);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error navigating to Add Lens modal");
-                // You might want to show an alert here, depending on your alert service availability
                 await DisplayAlert("Error", "Error opening Add Lens", "OK");
             }
         }
@@ -272,10 +268,10 @@ namespace Location.Photography.Maui.Views.Professional
             switch (e.PropertyName)
             {
                 case nameof(_viewModel.SelectedCamera):
-                    MainThread.BeginInvokeOnMainThread(() => OnCameraSelectionChanged());
+                    MainThread.BeginInvokeOnMainThread(() => OnCameraSelectionChanged(this, EventArgs.Empty));
                     break;
                 case nameof(_viewModel.SelectedLens):
-                    MainThread.BeginInvokeOnMainThread(() => OnLensSelectionChanged());
+                    MainThread.BeginInvokeOnMainThread(() => OnLensSelectionChanged(this, EventArgs.Empty));
                     break;
                 case nameof(_viewModel.SelectedTarget):
                     MainThread.BeginInvokeOnMainThread(() => OnTargetSelectionChanged());
@@ -289,35 +285,19 @@ namespace Location.Photography.Maui.Views.Professional
             }
         }
 
-        private void OnCameraSelectionChanged()
+        private async void OnCameraSelectionChanged(object sender, EventArgs e)
         {
-            try
+            if (sender is Picker picker && picker.SelectedItem is CameraBody selectedCamera)
             {
-                if (_viewModel?.SelectedCamera != null)
-                {
-                    // Update any camera-specific UI elements if needed
-                    System.Diagnostics.Debug.WriteLine($"Camera selected: {_viewModel.SelectedCamera.Name}");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error handling camera selection: {ex.Message}");
+                await _viewModel.SelectCameraAsync(selectedCamera);
             }
         }
 
-        private void OnLensSelectionChanged()
+        private async void OnLensSelectionChanged(object sender, EventArgs e)
         {
-            try
+            if (sender is Picker picker && picker.SelectedItem is Lens selectedLens)
             {
-                if (_viewModel?.SelectedLens != null)
-                {
-                    // Update any lens-specific UI elements if needed
-                    System.Diagnostics.Debug.WriteLine($"Lens selected: {_viewModel.SelectedLens.NameForLens}");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error handling lens selection: {ex.Message}");
+                await _viewModel.SelectLensAsync(selectedLens);
             }
         }
 
@@ -422,23 +402,14 @@ namespace Location.Photography.Maui.Views.Professional
         // Event handlers for XAML controls
         private async void OnDateSelectionChanged(object sender, DateChangedEventArgs e)
         {
-            try
+            if (_viewModel.SelectedDate != e.NewDate)
             {
-                if (_viewModel != null)
-                {
-                    // Cancel any ongoing operations before starting new ones
-                    _viewModel.CancelAllOperations();
+                _viewModel.SelectedDate = e.NewDate;
 
-                    // Auto-recalculate if we have valid selections
-                    if (_viewModel.CanCalculate)
-                    {
-                        await _viewModel.CalculateAstroDataAsync();
-                    }
+                if (_viewModel.CanCalculate)
+                {
+                    await _viewModel.CalculateAstroDataAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                await HandleErrorAsync(ex, "Error updating date selection");
             }
         }
 

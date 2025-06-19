@@ -91,6 +91,7 @@
                                        ItemsSource="{Binding AvailableCameras}" 
                                        SelectedItem="{Binding SelectedCamera}"
                                        ItemDisplayBinding="{Binding Name}"
+                                        SelectedIndexChanged="OnCameraSelectionChanged"
                                        FontSize="14" Margin="0,5,0,0"/>
 
                                 <Button x:Name="AddCameraButton"
@@ -126,6 +127,7 @@
                                        ItemsSource="{Binding AvailableLenses}" 
                                        SelectedItem="{Binding SelectedLens}"
                                        ItemDisplayBinding="{Binding NameForLens}"
+                                        SelectedIndexChanged="OnLensSelectionChanged" 
                                        FontSize="14" Margin="0,5,0,0"/>
 
                                 <Button x:Name="AddLensButton"

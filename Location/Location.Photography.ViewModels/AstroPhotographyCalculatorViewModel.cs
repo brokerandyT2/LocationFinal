@@ -7,12 +7,14 @@ using Location.Core.Application.Weather.Queries.GetHourlyForecast;
 using Location.Core.ViewModels;
 using Location.Photography.Application.Common.Interfaces;
 using Location.Photography.Application.DTOs;
+using Location.Photography.Application.Notifications;
 using Location.Photography.Application.Queries.SunLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Models;
 using Location.Photography.ViewModels.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using OperationErrorEventArgs = Location.Photography.ViewModels.Events.OperationErrorEventArgs;
@@ -21,7 +23,8 @@ using ShutterSpeeds = Location.Photography.ViewModels.Interfaces.ShutterSpeeds;
 
 namespace Location.Photography.ViewModels
 {
-    public partial class AstroPhotographyCalculatorViewModel : ViewModelBase
+    public partial class AstroPhotographyCalculatorViewModel : ViewModelBase, INotificationHandler<CameraCreatedNotification>,
+    INotificationHandler<LensCreatedNotification>
     {
         #region Fields
         private readonly IMediator _mediator;
@@ -35,6 +38,7 @@ namespace Location.Photography.ViewModels
         private readonly IExposureCalculatorService _exposureCalculatorService;
         private readonly IAstroHourlyPredictionMappingService _mappingService;
         private readonly IMeteorShowerDataService _meteorShowerDataService;
+        private readonly ILogger _logger;
 
         // PERFORMANCE: Threading and caching
         private readonly Dictionary<string, CachedAstroCalculation> _calculationCache = new();
@@ -121,7 +125,7 @@ namespace Location.Photography.ViewModels
         #region Constructor
 
         private readonly ICameraDataService _cameraDataService;
-
+        private readonly ILensCameraCompatibilityRepository _compatibilityRepository;
         public AstroPhotographyCalculatorViewModel(
             IMediator mediator,
             IErrorDisplayService errorDisplayService,
@@ -133,7 +137,7 @@ namespace Location.Photography.ViewModels
             IPredictiveLightService predictiveLightService,
             IExposureCalculatorService exposureCalculatorService,
             IAstroHourlyPredictionMappingService mappingService,
-            IMeteorShowerDataService meteorShowerDataService, ICameraDataService cameraDataService)
+            IMeteorShowerDataService meteorShowerDataService, ICameraDataService cameraDataService, ILogger logger, ILensCameraCompatibilityRepository compatibilityRepository)
             : base(null, errorDisplayService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -147,8 +151,9 @@ namespace Location.Photography.ViewModels
             _exposureCalculatorService = exposureCalculatorService ?? throw new ArgumentNullException(nameof(exposureCalculatorService));
             _mappingService = mappingService ?? throw new ArgumentNullException(nameof(mappingService));
             _meteorShowerDataService = meteorShowerDataService ?? throw new ArgumentNullException(nameof(meteorShowerDataService));
- _cameraDataService = cameraDataService;
-
+            _cameraDataService = cameraDataService;
+            _compatibilityRepository = compatibilityRepository;
+            _logger = logger;
 
             InitializeCommands();
             InitializeAstroTargets();
@@ -157,10 +162,118 @@ namespace Location.Photography.ViewModels
                 await LoadLocationsAsync();
                 await LoadEquipmentAsync();
             });
-           
+
         }
         #endregion
+        public async Task Handle(CameraCreatedNotification notification, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    // Reload cameras to include the new one
+                    await LoadEquipmentAsync();
 
+                    // Automatically select the newly created camera
+                    var newCamera = AvailableCameras.FirstOrDefault(c => c.Id == notification.CreatedCamera.Id);
+                    if (newCamera != null)
+                    {
+                        await SelectCameraAsync(newCamera);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling camera created notification");
+            }
+        }
+        public async Task LoadLensesAsync()
+        {
+            if (SelectedCamera == null) return;
+
+            try
+            {
+                IsLoadingEquipment = true;
+
+                // Get lenses that the user has marked as compatible with the selected camera
+                var compatibleLensesResult = await _compatibilityRepository.GetByCameraIdAsync(SelectedCamera.Id);
+
+                if (compatibleLensesResult.IsSuccess && compatibleLensesResult.Data?.Any() == true)
+                {
+                    var compatibleLensIds = compatibleLensesResult.Data.Select(c => c.LensId).ToList();
+
+                    // Get all lenses from the camera data service
+                    var allLensesResult = await _cameraDataService.GetLensesAsync(0, int.MaxValue, false, null);
+
+                    if (allLensesResult.IsSuccess && allLensesResult.Data?.Lenses?.Any() == true)
+                    {
+                        // Filter to only compatible lenses and convert to domain objects
+                        var compatibleLenses = allLensesResult.Data.Lenses
+                            .Where(lensDto => compatibleLensIds.Contains(lensDto.Id))
+                            .Select(lensDto => new Lens(
+                                lensDto.MinMM,
+                                lensDto.MaxMM.HasValue ? lensDto.MaxMM.Value : lensDto.MinMM,
+                                lensDto.MinFStop,
+                                lensDto.MaxFStop,
+                                lensDto.IsUserCreated,
+                                lensDto.DisplayName)
+                            {
+                                Id = lensDto.Id,
+                                DateAdded = lensDto.DateAdded
+                            })
+                            .OrderBy(l => l.GetDisplayName())
+                            .ToList();
+
+                        AvailableLenses = new ObservableCollection<Lens>(compatibleLenses);
+                    }
+                }
+                else
+                {
+                    // No compatible lenses found for this camera
+                    AvailableLenses = new ObservableCollection<Lens>();
+                }
+
+                // Clear selected lens if it's no longer compatible
+                if (SelectedLens != null && !AvailableLenses.Any(l => l.Id == SelectedLens.Id))
+                {
+                    SelectedLens = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading compatible lenses for camera {CameraId}", SelectedCamera.Id);
+                await HandleErrorAsync(OperationErrorSource.Database, $"Error loading compatible lenses: {ex.Message}");
+            }
+            finally
+            {
+                IsLoadingEquipment = false;
+            }
+        }
+        public async Task Handle(LensCreatedNotification notification, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    // Only reload if we have a selected camera (since lenses are camera-specific)
+                    if (SelectedCamera != null)
+                    {
+                        await LoadLensesAsync();
+
+                        // Automatically select the newly created lens if it's compatible with current camera
+                        var newLens = AvailableLenses.FirstOrDefault(l => l.Id == notification.CreatedLens.Id);
+                        if (newLens != null)
+                        {
+                            await SelectLensAsync(newLens);
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling lens created notification");
+            }
+        }
         #region Real Astronomical Calculation Methods
         private AstroTargetDisplayModel _selectedTargetModel;
 
@@ -2534,11 +2647,11 @@ namespace Location.Photography.ViewModels
                             lensDto.MaxMM.HasValue ? lensDto.MaxMM.Value : lensDto.MinMM,
                             lensDto.MinFStop,
                             lensDto.MaxFStop,
-                            lensDto.IsUserCreated, 
+                            lensDto.IsUserCreated,
                             lensDto.DisplayName) // Assuming not user created for now
                         {
                             Id = lensDto.Id,
-                            DateAdded = lensDto.DateAdded 
+                            DateAdded = lensDto.DateAdded
                         };
                         lenses.Add(lens);
                     }
@@ -2865,441 +2978,441 @@ namespace Location.Photography.ViewModels
             }
         }
         private OptimalEquipmentSpecs GetOptimalEquipmentSpecs(AstroTarget target)
-{
-    return target switch
-    {
-        // Wide-field targets
-        AstroTarget.MilkyWayCore => new OptimalEquipmentSpecs
         {
-            MinFocalLength = 14,
-            MaxFocalLength = 35,
-            OptimalFocalLength = 24,
-            MaxAperture = 2.8,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/2.8, 20-25 seconds",
-            Notes = "Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering."
-        },
-        
-        AstroTarget.MeteorShowers => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 14,
-            MaxFocalLength = 35,
-            OptimalFocalLength = 24,
-            MaxAperture = 2.8,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/2.8, 15-30 seconds",
-            Notes = "Wide field to capture meteors. Point 45-60° away from radiant for longer trails. Real shower data used."
-        },
-        
-        AstroTarget.StarTrails => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 14,
-            MaxFocalLength = 50,
-            OptimalFocalLength = 24,
-            MaxAperture = 4.0,
-            MinISO = 100,
-            MaxISO = 800,
-            RecommendedSettings = "ISO 400, f/4, 30s intervals",
-            Notes = "Wide-angle for interesting compositions. Multiple exposures combined in post-processing."
-        },
+            return target switch
+            {
+                // Wide-field targets
+                AstroTarget.MilkyWayCore => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 14,
+                    MaxFocalLength = 35,
+                    OptimalFocalLength = 24,
+                    MaxAperture = 2.8,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/2.8, 20-25 seconds",
+                    Notes = "Wide-angle lens essential for capturing galactic arch. Fast aperture critical for light gathering."
+                },
 
-        // ISS - Fast moving satellite
-        AstroTarget.ISS => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 24,
-            MaxFocalLength = 85,
-            OptimalFocalLength = 35,
-            MaxAperture = 2.8,
-            MinISO = 3200,
-            MaxISO = 12800,
-            RecommendedSettings = "ISO 6400, f/2.8, 1/2 second",
-            Notes = "Fast shutter speeds essential to prevent streaking. High ISO compensates for short exposure. Wide field helps track target."
-        },
+                AstroTarget.MeteorShowers => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 14,
+                    MaxFocalLength = 35,
+                    OptimalFocalLength = 24,
+                    MaxAperture = 2.8,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/2.8, 15-30 seconds",
+                    Notes = "Wide field to capture meteors. Point 45-60° away from radiant for longer trails. Real shower data used."
+                },
 
-        // Lunar targets
-        AstroTarget.Moon => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 200,
-            MaxFocalLength = 800,
-            OptimalFocalLength = 400,
-            MaxAperture = 8.0,
-            MinISO = 100,
-            MaxISO = 800,
-            RecommendedSettings = "ISO 200, f/8, 1/125s",
-            Notes = "Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure."
-        },
+                AstroTarget.StarTrails => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 14,
+                    MaxFocalLength = 50,
+                    OptimalFocalLength = 24,
+                    MaxAperture = 4.0,
+                    MinISO = 100,
+                    MaxISO = 800,
+                    RecommendedSettings = "ISO 400, f/4, 30s intervals",
+                    Notes = "Wide-angle for interesting compositions. Multiple exposures combined in post-processing."
+                },
 
-        // Planetary targets
-        AstroTarget.Planets => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 300,
-            MaxFocalLength = 1000,
-            OptimalFocalLength = 600,
-            MaxAperture = 6.3,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/5.6, 1/60s",
-            Notes = "Long telephoto essential. Planets are small - maximum focal length recommended."
-        },
+                // ISS - Fast moving satellite
+                AstroTarget.ISS => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 24,
+                    MaxFocalLength = 85,
+                    OptimalFocalLength = 35,
+                    MaxAperture = 2.8,
+                    MinISO = 3200,
+                    MaxISO = 12800,
+                    RecommendedSettings = "ISO 6400, f/2.8, 1/2 second",
+                    Notes = "Fast shutter speeds essential to prevent streaking. High ISO compensates for short exposure. Wide field helps track target."
+                },
 
-        // Individual planets with specific requirements
-        AstroTarget.Mercury => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 400,
-            MaxFocalLength = 1200,
-            OptimalFocalLength = 800,
-            MaxAperture = 6.3,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/5.6, 1/125s",
-            Notes = "Most challenging planet - always near sun. Requires precise timing during twilight. Very long focal length needed."
-        },
+                // Lunar targets
+                AstroTarget.Moon => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 200,
+                    MaxFocalLength = 800,
+                    OptimalFocalLength = 400,
+                    MaxAperture = 8.0,
+                    MinISO = 100,
+                    MaxISO = 800,
+                    RecommendedSettings = "ISO 200, f/8, 1/125s",
+                    Notes = "Telephoto lens for detail. Moon is bright - low ISO and fast shutter prevent overexposure."
+                },
 
-        AstroTarget.Venus => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 300,
-            MaxFocalLength = 1000,
-            OptimalFocalLength = 600,
-            MaxAperture = 5.6,
-            MinISO = 200,
-            MaxISO = 800,
-            RecommendedSettings = "ISO 400, f/5.6, 1/250s",
-            Notes = "Brightest planet - shows clear phases. Use faster shutter speeds to avoid overexposure. Best during twilight."
-        },
+                // Planetary targets
+                AstroTarget.Planets => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 300,
+                    MaxFocalLength = 1000,
+                    OptimalFocalLength = 600,
+                    MaxAperture = 6.3,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/5.6, 1/60s",
+                    Notes = "Long telephoto essential. Planets are small - maximum focal length recommended."
+                },
 
-        AstroTarget.Mars => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 400,
-            MaxFocalLength = 1200,
-            OptimalFocalLength = 800,
-            MaxAperture = 5.6,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/5.6, 1/60s",
-            Notes = "Size varies dramatically with orbital position. At opposition shows surface features. Red color distinctive."
-        },
+                // Individual planets with specific requirements
+                AstroTarget.Mercury => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 400,
+                    MaxFocalLength = 1200,
+                    OptimalFocalLength = 800,
+                    MaxAperture = 6.3,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/5.6, 1/125s",
+                    Notes = "Most challenging planet - always near sun. Requires precise timing during twilight. Very long focal length needed."
+                },
 
-        AstroTarget.Jupiter => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 300,
-            MaxFocalLength = 1000,
-            OptimalFocalLength = 600,
-            MaxAperture = 5.6,
-            MinISO = 400,
-            MaxISO = 1600,
-            RecommendedSettings = "ISO 800, f/5.6, 1/60s",
-            Notes = "Shows cloud bands and Great Red Spot. Four Galilean moons visible with telephoto lenses. Excellent target."
-        },
+                AstroTarget.Venus => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 300,
+                    MaxFocalLength = 1000,
+                    OptimalFocalLength = 600,
+                    MaxAperture = 5.6,
+                    MinISO = 200,
+                    MaxISO = 800,
+                    RecommendedSettings = "ISO 400, f/5.6, 1/250s",
+                    Notes = "Brightest planet - shows clear phases. Use faster shutter speeds to avoid overexposure. Best during twilight."
+                },
 
-        AstroTarget.Saturn => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 400,
-            MaxFocalLength = 1200,
-            OptimalFocalLength = 800,
-            MaxAperture = 5.6,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/5.6, 1/30s",
-            Notes = "Ring system visible with 600mm+. Golden color beautiful. Rings open/closed cycle over 29 years."
-        },
+                AstroTarget.Mars => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 400,
+                    MaxFocalLength = 1200,
+                    OptimalFocalLength = 800,
+                    MaxAperture = 5.6,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/5.6, 1/60s",
+                    Notes = "Size varies dramatically with orbital position. At opposition shows surface features. Red color distinctive."
+                },
 
-        AstroTarget.Uranus => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 600,
-            MaxFocalLength = 1500,
-            OptimalFocalLength = 1000,
-            MaxAperture = 6.3,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/6.3, 1/2s",
-            Notes = "Very small blue-green disk. Extremely long focal length required. Appears almost star-like in smaller telescopes."
-        },
+                AstroTarget.Jupiter => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 300,
+                    MaxFocalLength = 1000,
+                    OptimalFocalLength = 600,
+                    MaxAperture = 5.6,
+                    MinISO = 400,
+                    MaxISO = 1600,
+                    RecommendedSettings = "ISO 800, f/5.6, 1/60s",
+                    Notes = "Shows cloud bands and Great Red Spot. Four Galilean moons visible with telephoto lenses. Excellent target."
+                },
 
-        AstroTarget.Neptune => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 600,
-            MaxFocalLength = 1500,
-            OptimalFocalLength = 1000,
-            MaxAperture = 6.3,
-            MinISO = 3200,
-            MaxISO = 12800,
-            RecommendedSettings = "ISO 6400, f/6.3, 1s",
-            Notes = "Tiny blue disk, very dim. Most distant major planet. Requires excellent seeing and long focal length."
-        },
+                AstroTarget.Saturn => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 400,
+                    MaxFocalLength = 1200,
+                    OptimalFocalLength = 800,
+                    MaxAperture = 5.6,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/5.6, 1/30s",
+                    Notes = "Ring system visible with 600mm+. Golden color beautiful. Rings open/closed cycle over 29 years."
+                },
 
-        AstroTarget.Pluto => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 800,
-            MaxFocalLength = 2000,
-            OptimalFocalLength = 1200,
-            MaxAperture = 8.0,
-            MinISO = 6400,
-            MaxISO = 25600,
-            RecommendedSettings = "ISO 12800, f/8, 30s",
-            Notes = "Appears only as faint star. Extremely challenging target. Requires precise star charts and long exposures."
-        },
+                AstroTarget.Uranus => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 600,
+                    MaxFocalLength = 1500,
+                    OptimalFocalLength = 1000,
+                    MaxAperture = 6.3,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/6.3, 1/2s",
+                    Notes = "Very small blue-green disk. Extremely long focal length required. Appears almost star-like in smaller telescopes."
+                },
 
-        // Deep sky objects - general
-        AstroTarget.DeepSkyObjects => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 50,
-            MaxFocalLength = 300,
-            OptimalFocalLength = 135,
-            MaxAperture = 4.0,
-            MinISO = 1600,
-            MaxISO = 12800,
-            RecommendedSettings = "ISO 6400, f/4, 4-8 minutes",
-            Notes = "Medium telephoto for framing. Very high ISO capability needed. Tracking mount essential."
-        },
+                AstroTarget.Neptune => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 600,
+                    MaxFocalLength = 1500,
+                    OptimalFocalLength = 1000,
+                    MaxAperture = 6.3,
+                    MinISO = 3200,
+                    MaxISO = 12800,
+                    RecommendedSettings = "ISO 6400, f/6.3, 1s",
+                    Notes = "Tiny blue disk, very dim. Most distant major planet. Requires excellent seeing and long focal length."
+                },
 
-        // Specific deep sky objects
-        AstroTarget.M31_Andromeda => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 85,
-            MaxFocalLength = 200,
-            OptimalFocalLength = 135,
-            MaxAperture = 4.0,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/4, 3 minutes",
-            Notes = "Large galaxy needs wide field. Relatively bright - shorter exposures OK. Best in autumn months."
-        },
+                AstroTarget.Pluto => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 800,
+                    MaxFocalLength = 2000,
+                    OptimalFocalLength = 1200,
+                    MaxAperture = 8.0,
+                    MinISO = 6400,
+                    MaxISO = 25600,
+                    RecommendedSettings = "ISO 12800, f/8, 30s",
+                    Notes = "Appears only as faint star. Extremely challenging target. Requires precise star charts and long exposures."
+                },
 
-        AstroTarget.M42_Orion => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 135,
-            MaxFocalLength = 300,
-            OptimalFocalLength = 200,
-            MaxAperture = 4.0,
-            MinISO = 400,
-            MaxISO = 1600,
-            RecommendedSettings = "ISO 800, f/4, 2 minutes",
-            Notes = "Very bright nebula - avoid overexposure. Perfect size for medium telephoto. HDR techniques beneficial."
-        },
+                // Deep sky objects - general
+                AstroTarget.DeepSkyObjects => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 50,
+                    MaxFocalLength = 300,
+                    OptimalFocalLength = 135,
+                    MaxAperture = 4.0,
+                    MinISO = 1600,
+                    MaxISO = 12800,
+                    RecommendedSettings = "ISO 6400, f/4, 4-8 minutes",
+                    Notes = "Medium telephoto for framing. Very high ISO capability needed. Tracking mount essential."
+                },
 
-        AstroTarget.M51_Whirlpool => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 200,
-            MaxFocalLength = 600,
-            OptimalFocalLength = 300,
-            MaxAperture = 5.6,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/5.6, 8 minutes",
-            Notes = "Dimmer face-on spiral. Requires longer exposures. Dark skies essential for spiral arms."
-        },
+                // Specific deep sky objects
+                AstroTarget.M31_Andromeda => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 85,
+                    MaxFocalLength = 200,
+                    OptimalFocalLength = 135,
+                    MaxAperture = 4.0,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/4, 3 minutes",
+                    Notes = "Large galaxy needs wide field. Relatively bright - shorter exposures OK. Best in autumn months."
+                },
 
-        AstroTarget.M13_Hercules => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 135,
-            MaxFocalLength = 400,
-            OptimalFocalLength = 200,
-            MaxAperture = 4.0,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/4, 4 minutes",
-            Notes = "Great globular cluster. Medium magnification resolves individual stars. Summer target."
-        },
+                AstroTarget.M42_Orion => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 135,
+                    MaxFocalLength = 300,
+                    OptimalFocalLength = 200,
+                    MaxAperture = 4.0,
+                    MinISO = 400,
+                    MaxISO = 1600,
+                    RecommendedSettings = "ISO 800, f/4, 2 minutes",
+                    Notes = "Very bright nebula - avoid overexposure. Perfect size for medium telephoto. HDR techniques beneficial."
+                },
 
-        AstroTarget.M27_Dumbbell => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 200,
-            MaxFocalLength = 600,
-            OptimalFocalLength = 300,
-            MaxAperture = 5.6,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/5.6, 10 minutes",
-            Notes = "Bright planetary nebula. OIII filter enhances contrast. Apple-core or dumbbell shape distinctive."
-        },
+                AstroTarget.M51_Whirlpool => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 200,
+                    MaxFocalLength = 600,
+                    OptimalFocalLength = 300,
+                    MaxAperture = 5.6,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/5.6, 8 minutes",
+                    Notes = "Dimmer face-on spiral. Requires longer exposures. Dark skies essential for spiral arms."
+                },
 
-        AstroTarget.M57_Ring => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 400,
-            MaxFocalLength = 1000,
-            OptimalFocalLength = 600,
-            MaxAperture = 6.3,
-            MinISO = 3200,
-            MaxISO = 12800,
-            RecommendedSettings = "ISO 6400, f/6.3, 15 minutes",
-            Notes = "Small planetary nebula. High magnification needed. OIII filter essential. Famous ring structure."
-        },
+                AstroTarget.M13_Hercules => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 135,
+                    MaxFocalLength = 400,
+                    OptimalFocalLength = 200,
+                    MaxAperture = 4.0,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/4, 4 minutes",
+                    Notes = "Great globular cluster. Medium magnification resolves individual stars. Summer target."
+                },
 
-        AstroTarget.M81_Bodes => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 200,
-            MaxFocalLength = 600,
-            OptimalFocalLength = 300,
-            MaxAperture = 5.6,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/5.6, 6 minutes",
-            Notes = "Bright spiral galaxy in Ursa Major. Often photographed with nearby M82. Spring target."
-        },
+                AstroTarget.M27_Dumbbell => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 200,
+                    MaxFocalLength = 600,
+                    OptimalFocalLength = 300,
+                    MaxAperture = 5.6,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/5.6, 10 minutes",
+                    Notes = "Bright planetary nebula. OIII filter enhances contrast. Apple-core or dumbbell shape distinctive."
+                },
 
-        AstroTarget.M104_Sombrero => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 300,
-            MaxFocalLength = 800,
-            OptimalFocalLength = 400,
-            MaxAperture = 5.6,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/5.6, 10 minutes",
-            Notes = "Edge-on galaxy with prominent dust lane. Distinctive sombrero shape. Spring target in Virgo."
-        },
+                AstroTarget.M57_Ring => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 400,
+                    MaxFocalLength = 1000,
+                    OptimalFocalLength = 600,
+                    MaxAperture = 6.3,
+                    MinISO = 3200,
+                    MaxISO = 12800,
+                    RecommendedSettings = "ISO 6400, f/6.3, 15 minutes",
+                    Notes = "Small planetary nebula. High magnification needed. OIII filter essential. Famous ring structure."
+                },
 
-        // Constellation targets
-        AstroTarget.Constellations => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 35,
-            MaxFocalLength = 135,
-            OptimalFocalLength = 85,
-            MaxAperture = 4.0,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/4, 60s",
-            Notes = "Medium lens for constellation framing. Balance stars with constellation patterns."
-        },
+                AstroTarget.M81_Bodes => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 200,
+                    MaxFocalLength = 600,
+                    OptimalFocalLength = 300,
+                    MaxAperture = 5.6,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/5.6, 6 minutes",
+                    Notes = "Bright spiral galaxy in Ursa Major. Often photographed with nearby M82. Spring target."
+                },
 
-        // Specific constellations
-        AstroTarget.Constellation_Orion => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 50,
-            MaxFocalLength = 135,
-            OptimalFocalLength = 85,
-            MaxAperture = 2.8,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/2.8, 30s",
-            Notes = "Large bright constellation with nebulae. Wide field captures full pattern. Winter showcase."
-        },
+                AstroTarget.M104_Sombrero => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 300,
+                    MaxFocalLength = 800,
+                    OptimalFocalLength = 400,
+                    MaxAperture = 5.6,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/5.6, 10 minutes",
+                    Notes = "Edge-on galaxy with prominent dust lane. Distinctive sombrero shape. Spring target in Virgo."
+                },
 
-        AstroTarget.Constellation_Cassiopeia => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 35,
-            MaxFocalLength = 85,
-            OptimalFocalLength = 50,
-            MaxAperture = 2.8,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/2.8, 45s",
-            Notes = "Distinctive W-shape needs wide field. Circumpolar from northern latitudes. Rich star fields."
-        },
+                // Constellation targets
+                AstroTarget.Constellations => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 35,
+                    MaxFocalLength = 135,
+                    OptimalFocalLength = 85,
+                    MaxAperture = 4.0,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/4, 60s",
+                    Notes = "Medium lens for constellation framing. Balance stars with constellation patterns."
+                },
 
-        AstroTarget.Constellation_UrsaMajor => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 50,
-            MaxFocalLength = 135,
-            OptimalFocalLength = 85,
-            MaxAperture = 2.8,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/2.8, 45s",
-            Notes = "Big Dipper asterism within Ursa Major. Spring constellation. Contains several galaxies."
-        },
+                // Specific constellations
+                AstroTarget.Constellation_Orion => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 50,
+                    MaxFocalLength = 135,
+                    OptimalFocalLength = 85,
+                    MaxAperture = 2.8,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/2.8, 30s",
+                    Notes = "Large bright constellation with nebulae. Wide field captures full pattern. Winter showcase."
+                },
 
-        AstroTarget.Constellation_Cygnus => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 35,
-            MaxFocalLength = 85,
-            OptimalFocalLength = 50,
-            MaxAperture = 2.8,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/2.8, 25s",
-            Notes = "Northern Cross in rich Milky Way field. Many nebulae. Summer constellation."
-        },
+                AstroTarget.Constellation_Cassiopeia => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 35,
+                    MaxFocalLength = 85,
+                    OptimalFocalLength = 50,
+                    MaxAperture = 2.8,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/2.8, 45s",
+                    Notes = "Distinctive W-shape needs wide field. Circumpolar from northern latitudes. Rich star fields."
+                },
 
-        AstroTarget.Constellation_Leo => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 50,
-            MaxFocalLength = 135,
-            OptimalFocalLength = 85,
-            MaxAperture = 2.8,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/2.8, 60s",
-            Notes = "Spring lion constellation. Contains several bright galaxies. Distinctive backward question mark."
-        },
+                AstroTarget.Constellation_UrsaMajor => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 50,
+                    MaxFocalLength = 135,
+                    OptimalFocalLength = 85,
+                    MaxAperture = 2.8,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/2.8, 45s",
+                    Notes = "Big Dipper asterism within Ursa Major. Spring constellation. Contains several galaxies."
+                },
 
-        AstroTarget.Constellation_Scorpius => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 50,
-            MaxFocalLength = 135,
-            OptimalFocalLength = 85,
-            MaxAperture = 2.8,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/2.8, 30s",
-            Notes = "Summer scorpion with red Antares. Rich in nebulae and star clusters. Low in northern skies."
-        },
+                AstroTarget.Constellation_Cygnus => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 35,
+                    MaxFocalLength = 85,
+                    OptimalFocalLength = 50,
+                    MaxAperture = 2.8,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/2.8, 25s",
+                    Notes = "Northern Cross in rich Milky Way field. Many nebulae. Summer constellation."
+                },
 
-        AstroTarget.Constellation_Sagittarius => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 35,
-            MaxFocalLength = 85,
-            OptimalFocalLength = 50,
-            MaxAperture = 2.8,
-            MinISO = 3200,
-            MaxISO = 12800,
-            RecommendedSettings = "ISO 6400, f/2.8, 20s",
-            Notes = "Direction of galactic center. Incredibly rich in nebulae and star clouds. Summer's crown jewel."
-        },
+                AstroTarget.Constellation_Leo => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 50,
+                    MaxFocalLength = 135,
+                    OptimalFocalLength = 85,
+                    MaxAperture = 2.8,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/2.8, 60s",
+                    Notes = "Spring lion constellation. Contains several bright galaxies. Distinctive backward question mark."
+                },
 
-        // Special targets
-        AstroTarget.PolarAlignment => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 50,
-            MaxFocalLength = 200,
-            OptimalFocalLength = 100,
-            MaxAperture = 5.6,
-            MinISO = 800,
-            MaxISO = 3200,
-            RecommendedSettings = "ISO 1600, f/5.6, 30s",
-            Notes = "Medium telephoto to see Polaris clearly. Used for mount alignment verification."
-        },
+                AstroTarget.Constellation_Scorpius => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 50,
+                    MaxFocalLength = 135,
+                    OptimalFocalLength = 85,
+                    MaxAperture = 2.8,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/2.8, 30s",
+                    Notes = "Summer scorpion with red Antares. Rich in nebulae and star clusters. Low in northern skies."
+                },
 
-        AstroTarget.NorthernLights => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 14,
-            MaxFocalLength = 35,
-            OptimalFocalLength = 24,
-            MaxAperture = 2.8,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/2.8, 15s",
-            Notes = "Ultra-wide angle essential - aurora spans entire sky. Fast exposures capture rapid changes. Requires geomagnetic activity."
-        },
+                AstroTarget.Constellation_Sagittarius => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 35,
+                    MaxFocalLength = 85,
+                    OptimalFocalLength = 50,
+                    MaxAperture = 2.8,
+                    MinISO = 3200,
+                    MaxISO = 12800,
+                    RecommendedSettings = "ISO 6400, f/2.8, 20s",
+                    Notes = "Direction of galactic center. Incredibly rich in nebulae and star clouds. Summer's crown jewel."
+                },
 
-        AstroTarget.Comets => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 135,
-            MaxFocalLength = 400,
-            OptimalFocalLength = 200,
-            MaxAperture = 4.0,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/4, 3 minutes",
-            Notes = "Variable size depending on comet. Medium telephoto good starting point. Tail direction changes over time."
-        },
+                // Special targets
+                AstroTarget.PolarAlignment => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 50,
+                    MaxFocalLength = 200,
+                    OptimalFocalLength = 100,
+                    MaxAperture = 5.6,
+                    MinISO = 800,
+                    MaxISO = 3200,
+                    RecommendedSettings = "ISO 1600, f/5.6, 30s",
+                    Notes = "Medium telephoto to see Polaris clearly. Used for mount alignment verification."
+                },
 
-        // Default fallback
-        _ => new OptimalEquipmentSpecs
-        {
-            MinFocalLength = 24,
-            MaxFocalLength = 200,
-            OptimalFocalLength = 50,
-            MaxAperture = 4.0,
-            MinISO = 1600,
-            MaxISO = 6400,
-            RecommendedSettings = "ISO 3200, f/4, 30s",
-            Notes = "General astrophotography setup for unknown targets."
+                AstroTarget.NorthernLights => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 14,
+                    MaxFocalLength = 35,
+                    OptimalFocalLength = 24,
+                    MaxAperture = 2.8,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/2.8, 15s",
+                    Notes = "Ultra-wide angle essential - aurora spans entire sky. Fast exposures capture rapid changes. Requires geomagnetic activity."
+                },
+
+                AstroTarget.Comets => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 135,
+                    MaxFocalLength = 400,
+                    OptimalFocalLength = 200,
+                    MaxAperture = 4.0,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/4, 3 minutes",
+                    Notes = "Variable size depending on comet. Medium telephoto good starting point. Tail direction changes over time."
+                },
+
+                // Default fallback
+                _ => new OptimalEquipmentSpecs
+                {
+                    MinFocalLength = 24,
+                    MaxFocalLength = 200,
+                    OptimalFocalLength = 50,
+                    MaxAperture = 4.0,
+                    MinISO = 1600,
+                    MaxISO = 6400,
+                    RecommendedSettings = "ISO 3200, f/4, 30s",
+                    Notes = "General astrophotography setup for unknown targets."
+                }
+            };
         }
-    };
-}
 
         #endregion
 

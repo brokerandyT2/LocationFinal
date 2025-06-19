@@ -172,6 +172,8 @@ namespace Location.Photography.Maui
                 var sunCalculatorService = sp.GetRequiredService<Domain.Services.ISunCalculatorService>();
                 var meteorShowerDataService = sp.GetRequiredService<IMeteorShowerDataService>();
                 var cameraDataService = sp.GetRequiredService<ICameraDataService>();
+                var logger = sp.GetRequiredService<ILogger>();
+                var compat = sp.GetRequiredService<ILensCameraCompatibilityRepository>();
                 return new AstroPhotographyCalculatorViewModel(
                     mediator,
                     errorDisplayService,
@@ -182,7 +184,7 @@ namespace Location.Photography.Maui
                     equipmentRecommendationService,
                     predictiveLightService,
                     exposureCalculatorService,
-                    mappingService, meteorShowerDataService, cameraDataService);
+                    mappingService, meteorShowerDataService, cameraDataService, logger, compat);
             });
 
             // ==================== CORE PAGES ====================
