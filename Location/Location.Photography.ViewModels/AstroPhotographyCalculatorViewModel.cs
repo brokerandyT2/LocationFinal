@@ -161,10 +161,314 @@ namespace Location.Photography.ViewModels
             {
                 await LoadLocationsAsync();
                 await LoadEquipmentAsync();
+                EnhanceConstructorInitialization();
             });
 
         }
         #endregion
+        private IAsyncRelayCommand<CameraBody> CreateEnhancedSelectCameraCommand()
+        {
+            return new AsyncRelayCommand<CameraBody>(async (camera) =>
+            {
+                try
+                {
+                    if (camera == null) return;
+
+                    SelectedCamera = camera;
+                    // Enhanced setter handles the rest
+
+                    _logger?.LogDebug("Camera selected via command: {CameraName}", camera.Name);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Error in SelectCameraCommand");
+                    await HandleErrorAsync(OperationErrorSource.Validation, $"Failed to select camera: {ex.Message}");
+                }
+            });
+        }
+
+        // Enhanced SelectLensCommand to work with the new system  
+        private IAsyncRelayCommand<Lens> CreateEnhancedSelectLensCommand()
+        {
+            return new AsyncRelayCommand<Lens>(async (lens) =>
+            {
+                try
+                {
+                    if (lens == null) return;
+
+                    SelectedLens = lens;
+                    // Enhanced setter handles the rest
+
+                    _logger?.LogDebug("Lens selected via command: {LensName}", lens.NameForLens);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Error in SelectLensCommand");
+                    await HandleErrorAsync(OperationErrorSource.Validation, $"Failed to select lens: {ex.Message}");
+                }
+            });
+        }
+        // Part 1: New methods to add for camera/lens management and FOV calculations
+
+        #region Camera/Lens Selection Event Handlers
+        public async Task OnCameraChangedAsync()
+        {
+            try
+            {
+                HasError = false;
+                ErrorMessage = string.Empty;
+
+                if (SelectedCamera == null)
+                {
+                    // Clear lens selection and available lenses when no camera selected
+                    SelectedLens = null;
+                    AvailableLenses.Clear();
+                    return;
+                }
+
+                // Load compatible lenses for the selected camera
+                await LoadLensesAsync();
+
+                // Clear current lens selection since camera changed
+                if (SelectedLens != null && !AvailableLenses.Any(l => l.Id == SelectedLens.Id))
+                {
+                    SelectedLens = null;
+                }
+
+                // Calculate FOV if both camera and lens are selected
+                if (SelectedLens != null)
+                {
+                    CalculateFieldOfView();
+                }
+
+                _logger?.LogDebug("Camera changed to: {CameraName}", SelectedCamera.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error handling camera change");
+                await HandleErrorAsync(OperationErrorSource.Validation, $"Failed to load compatible lenses for selected camera: {ex.Message}");
+            }
+        }
+
+        public async Task OnLensChangedAsync()
+        {
+            try
+            {
+                HasError = false;
+                ErrorMessage = string.Empty;
+
+                // Calculate FOV when lens changes (if camera is also selected)
+                if (SelectedCamera != null && SelectedLens != null)
+                {
+                    CalculateFieldOfView();
+                }
+
+                // Trigger calculations if we have all required data
+                if (CanCalculate)
+                {
+                    await CalculateAstroDataAsync();
+                }
+
+                _logger?.LogDebug("Lens changed to: {LensName}", SelectedLens?.NameForLens ?? "None");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error handling lens change");
+                await HandleErrorAsync(OperationErrorSource.Validation, $"Failed to calculate field of view for selected equipment: {ex.Message}");
+            }
+        }
+        #endregion
+
+        // Part 2: Enhanced FOV calculations and property update methods
+
+        #region Enhanced Field of View Calculation
+        // Enhanced version of the existing CalculateFieldOfView method
+        private void CalculateFieldOfViewEnhanced()
+        {
+            try
+            {
+                if (SelectedCamera == null || SelectedLens == null)
+                {
+                    ResetFieldOfViewDisplay();
+                    return;
+                }
+
+                // Use focal length for FOV calculation
+                var focalLength = SelectedLens.IsPrime ? SelectedLens.MinMM :
+                                 (SelectedLens.MinMM + (SelectedLens.MaxMM ?? SelectedLens.MinMM)) / 2.0;
+
+                // Calculate horizontal and vertical FOV using sensor dimensions
+                var horizontalFOV = 2 * Math.Atan(SelectedCamera.SensorWidth / (2 * focalLength)) * (180 / Math.PI);
+                var verticalFOV = 2 * Math.Atan(SelectedCamera.SensorHeight / (2 * focalLength)) * (180 / Math.PI);
+
+                FieldOfViewWidth = horizontalFOV;
+                FieldOfViewHeight = verticalFOV;
+
+                // Evaluate target suitability based on selected target and calculated FOV
+                EvaluateTargetSuitabilityForFOV(horizontalFOV, verticalFOV);
+
+                // Update display properties
+                OnPropertyChanged(nameof(FieldOfViewDisplay));
+                OnPropertyChanged(nameof(TargetFitsInFrame));
+                OnPropertyChanged(nameof(EquipmentRecommendation));
+
+                _logger?.LogDebug("FOV calculated: {HorizontalFOV:F1}° × {VerticalFOV:F1}° for {Camera} + {Lens}",
+                    horizontalFOV, verticalFOV, SelectedCamera.Name, SelectedLens.NameForLens);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error calculating field of view");
+                ResetFieldOfViewDisplay();
+            }
+        }
+
+        private void EvaluateTargetSuitabilityForFOV(double horizontalFOV, double verticalFOV)
+        {
+            var targetSpecs = GetOptimalEquipmentSpecs(SelectedTarget);
+            var currentFocalLength = SelectedLens.IsPrime ? SelectedLens.MinMM :
+                                    (SelectedLens.MinMM + (SelectedLens.MaxMM ?? SelectedLens.MinMM)) / 2.0;
+
+            // Determine if target fits and generate recommendation
+            if (currentFocalLength >= targetSpecs.MinFocalLength && currentFocalLength <= targetSpecs.MaxFocalLength)
+            {
+                TargetFitsInFrame = true;
+                EquipmentRecommendation = $"Excellent match for {SelectedTargetDisplay}! FOV: {horizontalFOV:F1}° × {verticalFOV:F1}°";
+            }
+            else if (currentFocalLength < targetSpecs.MinFocalLength)
+            {
+                TargetFitsInFrame = false;
+                var recommendedMin = targetSpecs.MinFocalLength;
+                EquipmentRecommendation = $"Consider a longer lens (≥{recommendedMin:F0}mm) for better detail on {SelectedTargetDisplay}";
+            }
+            else // currentFocalLength > targetSpecs.MaxFocalLength
+            {
+                TargetFitsInFrame = false;
+                var recommendedMax = targetSpecs.MaxFocalLength;
+                EquipmentRecommendation = $"Consider a wider lens (≤{recommendedMax:F0}mm) for better coverage of {SelectedTargetDisplay}";
+            }
+
+            // Add aperture recommendation if needed
+            if (SelectedLens.MaxFStop > targetSpecs.MaxAperture)
+            {
+                EquipmentRecommendation += $" | Faster aperture (≤f/{targetSpecs.MaxAperture:F1}) recommended for better light gathering";
+            }
+        }
+
+        private void ResetFieldOfViewDisplay()
+        {
+            FieldOfViewWidth = 0;
+            FieldOfViewHeight = 0;
+            TargetFitsInFrame = false;
+            EquipmentRecommendation = "Select both camera and lens to calculate field of view";
+
+            OnPropertyChanged(nameof(FieldOfViewDisplay));
+            OnPropertyChanged(nameof(TargetFitsInFrame));
+            OnPropertyChanged(nameof(EquipmentRecommendation));
+        }
+
+        // Override the existing CalculateFieldOfView to use enhanced version
+        private new void CalculateFieldOfView()
+        {
+            CalculateFieldOfViewEnhanced();
+        }
+        #endregion
+
+
+        public async Task HandleCameraSelectionChanged(object selectedItem)
+        {
+            try
+            {
+                if (selectedItem is CameraBody camera)
+                {
+                    SelectedCamera = camera;
+                    // The enhanced SelectedCamera setter will handle the rest
+                }
+                else
+                {
+                    SelectedCamera = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error handling camera selection change from view");
+                await HandleErrorAsync(OperationErrorSource.Validation, $"Failed to change camera selection: {ex.Message}");
+            }
+        }
+
+        public async Task HandleLensSelectionChanged(object selectedItem)
+        {
+            try
+            {
+                if (selectedItem is Lens lens)
+                {
+                    SelectedLens = lens;
+                    // The enhanced SelectedLens setter will handle the rest
+                }
+                else
+                {
+                    SelectedLens = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error handling lens selection change from view");
+                await HandleErrorAsync(OperationErrorSource.Validation, $"Failed to change lens selection: {ex.Message}");
+            }
+        }
+        private void EnhanceConstructorInitialization()
+        {
+            // Add this to the existing constructor after the current initialization
+            _ = Task.Run(async () =>
+            {
+                await InitializeEquipmentSystemAsync();
+            });
+        }
+        private async Task InitializeEquipmentSystemAsync()
+        {
+            try
+            {
+                // Load all equipment first
+                await LoadEquipmentAsync();
+
+                // If no camera selected but cameras available, trigger auto-selection
+                if (SelectedCamera == null && AvailableCameras.Any())
+                {
+                    await AutoSelectOptimalEquipmentAsync();
+                }
+
+                // If we have both camera and lens, calculate FOV
+                if (SelectedCamera != null && SelectedLens != null)
+                {
+                    CalculateFieldOfViewEnhanced();
+                }
+
+                _logger?.LogDebug("Equipment system initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error initializing equipment system");
+                await HandleErrorAsync(OperationErrorSource.Database, $"Failed to initialize equipment system: {ex.Message}");
+            }
+        }
+        public async Task HandleTargetSelectionChanged(object selectedItem)
+        {
+            try
+            {
+                if (selectedItem is AstroTargetDisplayModel targetModel)
+                {
+                    SelectedTarget = targetModel.Target;
+                    SelectedTargetModel = targetModel;
+                    // The enhanced SelectedTarget setter will handle the rest
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error handling target selection change from view");
+                await HandleErrorAsync(OperationErrorSource.Validation, $"Failed to change target selection: {ex.Message}");
+            }
+        }
+
+
         public async Task Handle(CameraCreatedNotification notification, CancellationToken cancellationToken)
         {
             try
@@ -187,15 +491,19 @@ namespace Location.Photography.ViewModels
                 _logger.LogError(ex, "Error handling camera created notification");
             }
         }
-        public async Task LoadLensesAsync()
+        public new async Task LoadLensesAsync()
         {
-            if (SelectedCamera == null) return;
+            if (SelectedCamera == null)
+            {
+                AvailableLenses.Clear();
+                return;
+            }
 
             try
             {
                 IsLoadingEquipment = true;
 
-                // Get lenses that the user has marked as compatible with the selected camera
+                // Get lenses that are compatible with the selected camera
                 var compatibleLensesResult = await _compatibilityRepository.GetByCameraIdAsync(SelectedCamera.Id);
 
                 if (compatibleLensesResult.IsSuccess && compatibleLensesResult.Data?.Any() == true)
@@ -224,13 +532,24 @@ namespace Location.Photography.ViewModels
                             .OrderBy(l => l.GetDisplayName())
                             .ToList();
 
-                        AvailableLenses = new ObservableCollection<Lens>(compatibleLenses);
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            AvailableLenses = new ObservableCollection<Lens>(compatibleLenses);
+                        });
+
+                        _logger?.LogDebug("Loaded {Count} compatible lenses for camera {CameraName}",
+                            compatibleLenses.Count, SelectedCamera.Name);
                     }
                 }
                 else
                 {
                     // No compatible lenses found for this camera
-                    AvailableLenses = new ObservableCollection<Lens>();
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        AvailableLenses = new ObservableCollection<Lens>();
+                    });
+
+                    _logger?.LogWarning("No compatible lenses found for camera {CameraId}", SelectedCamera.Id);
                 }
 
                 // Clear selected lens if it's no longer compatible
@@ -241,7 +560,7 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading compatible lenses for camera {CameraId}", SelectedCamera.Id);
+                _logger?.LogError(ex, "Error loading compatible lenses for camera {CameraId}", SelectedCamera.Id);
                 await HandleErrorAsync(OperationErrorSource.Database, $"Error loading compatible lenses: {ex.Message}");
             }
             finally
@@ -708,228 +1027,7 @@ namespace Location.Photography.ViewModels
             }
         }
 
-        private string DetermineSolarPhase(DateTime hour, DateTime civilDusk, DateTime nauticalDusk, DateTime astronomicalDusk, DateTime astronomicalDawn, DateTime nauticalDawn, DateTime civilDawn)
-        {
-            if (hour <= civilDusk)
-                return "Civil Twilight";
-            else if (hour <= nauticalDusk)
-                return "Nautical Twilight";
-            else if (hour <= astronomicalDusk)
-                return "Astronomical Twilight";
-            else if (hour >= astronomicalDawn)
-                return "Astronomical Twilight";
-            else if (hour >= nauticalDawn)
-                return "Nautical Twilight";
-            else if (hour >= civilDawn)
-                return "Civil Twilight";
-            else
-                return "True Night";
-        }
-
-        private async Task<List<AstroTarget>> GetRealViableTargetsForHourAsync(DateTime hour, string solarEvent)
-        {
-            var viableTargets = new List<AstroTarget>();
-
-            try
-            {
-                // Check ISS visibility using real service
-                try
-                {
-                    var issPassData = await _astroCalculationService.GetISSPassesAsync(
-                        hour.Date, hour.Date.AddDays(1), SelectedLocation.Latitude, SelectedLocation.Longitude);
-
-                    var currentPass = issPassData?.FirstOrDefault(pass =>
-                        hour >= pass.StartTime && hour <= pass.EndTime);
-
-                    if (currentPass != null)
-                    {
-                        viableTargets.Add(AstroTarget.ISS);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error checking ISS visibility: {ex.Message}");
-                }
-
-                // Check Milky Way visibility using real service
-                try
-                {
-                    var milkyWayData = await _astroCalculationService.GetMilkyWayDataAsync(
-                        hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
-
-                    if (milkyWayData.IsVisible && milkyWayData.GalacticCenterAltitude > 10)
-                    {
-                        viableTargets.Add(AstroTarget.MilkyWayCore);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error checking Milky Way visibility: {ex.Message}");
-                }
-
-                // Check Moon visibility using real service
-                try
-                {
-                    var moonData = await _astroCalculationService.GetEnhancedMoonDataAsync(
-                        hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
-
-                    if (moonData.Altitude > 5) // Moon is above horizon
-                    {
-                        viableTargets.Add(AstroTarget.Moon);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error checking Moon visibility: {ex.Message}");
-                }
-
-                // Check individual planets using real service
-                try
-                {
-                    var planetData = await _astroCalculationService.GetVisiblePlanetsAsync(
-                        hour, SelectedLocation.Latitude, SelectedLocation.Longitude);
-
-                    foreach (var planet in planetData.Where(p => p.IsVisible && p.Altitude > 10))
-                    {
-                        var planetTarget = planet.Planet switch
-                        {
-                            PlanetType.Mercury => AstroTarget.Mercury,
-                            PlanetType.Venus => AstroTarget.Venus,
-                            PlanetType.Mars => AstroTarget.Mars,
-                            PlanetType.Jupiter => AstroTarget.Jupiter,
-                            PlanetType.Saturn => AstroTarget.Saturn,
-                            PlanetType.Uranus => AstroTarget.Uranus,
-                            PlanetType.Neptune => AstroTarget.Neptune,
-                            PlanetType.Pluto => AstroTarget.Pluto,
-                            _ => (AstroTarget?)null
-                        };
-
-                        if (planetTarget.HasValue)
-                        {
-                            viableTargets.Add(planetTarget.Value);
-                        }
-                    }
-
-                    // Add general planets target if any individual planets are visible
-                    if (viableTargets.Any(t => t >= AstroTarget.Mercury && t <= AstroTarget.Pluto))
-                    {
-                        viableTargets.Add(AstroTarget.Planets);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error checking Planet visibility: {ex.Message}");
-                }
-
-                // Check for active meteor showers using real meteor shower service
-                try
-                {
-                    var activeShowers = await _meteorShowerDataService.GetActiveShowersAsync(
-                        hour.Date, MIN_METEOR_SHOWER_ZHR, _cancellationTokenSource.Token);
-
-                    if (activeShowers.Any())
-                    {
-                        // Check if any shower radiant is above horizon and in good position
-                        foreach (var shower in activeShowers)
-                        {
-                            var radiantPosition = shower.GetRadiantPosition(hour,
-                                SelectedLocation.Latitude, SelectedLocation.Longitude);
-
-                            if (radiantPosition.IsVisible && radiantPosition.Altitude > 30)
-                            {
-                                viableTargets.Add(AstroTarget.MeteorShowers);
-                                break; // Only add once if any showers are viable
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error checking meteor shower visibility: {ex.Message}");
-                }
-
-                // Check specific deep sky objects during dark conditions
-                if (solarEvent == "True Night" || solarEvent == "Astronomical Twilight")
-                {
-                    var dsoTargets = new[]
-                    {
-                AstroTarget.M31_Andromeda, AstroTarget.M42_Orion, AstroTarget.M51_Whirlpool,
-                AstroTarget.M13_Hercules, AstroTarget.M27_Dumbbell, AstroTarget.M57_Ring,
-                AstroTarget.M81_Bodes, AstroTarget.M104_Sombrero
-            };
-
-                    foreach (var dsoTarget in dsoTargets)
-                    {
-                        try
-                        {
-                            var dsoVisibility = await GetRealTargetVisibilityAsync(dsoTarget, hour);
-                            if (dsoVisibility.IsVisible && dsoVisibility.Altitude > 20)
-                            {
-                                viableTargets.Add(dsoTarget);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"Error checking {dsoTarget} visibility: {ex.Message}");
-                        }
-                    }
-
-                    // Add general DSO target
-                    viableTargets.Add(AstroTarget.DeepSkyObjects);
-                    viableTargets.Add(AstroTarget.StarTrails);
-                }
-
-                // Check specific constellations
-                var constellationTargets = new[]
-                {
-            AstroTarget.Constellation_Orion, AstroTarget.Constellation_Cassiopeia,
-            AstroTarget.Constellation_UrsaMajor, AstroTarget.Constellation_Cygnus,
-            AstroTarget.Constellation_Leo, AstroTarget.Constellation_Scorpius,
-            AstroTarget.Constellation_Sagittarius
-        };
-
-                foreach (var constellationTarget in constellationTargets)
-                {
-                    try
-                    {
-                        var constellationVisibility = await GetRealTargetVisibilityAsync(constellationTarget, hour);
-                        if (constellationVisibility.IsVisible && constellationVisibility.Altitude > 15)
-                        {
-                            viableTargets.Add(constellationTarget);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Error checking {constellationTarget} visibility: {ex.Message}");
-                    }
-                }
-
-                // Add general constellations target
-                viableTargets.Add(AstroTarget.Constellations);
-
-                // Polar alignment is viable during any dark period
-                if (solarEvent != "Blue Hour" && solarEvent != "Civil Twilight")
-                {
-                    viableTargets.Add(AstroTarget.PolarAlignment);
-                }
-
-                // Aurora check (simplified - would need geomagnetic data)
-                if (SelectedLocation.Latitude > 50) // Northern latitudes
-                {
-                    viableTargets.Add(AstroTarget.NorthernLights);
-                }
-
-                // Comets (simplified - would need current comet data)
-                viableTargets.Add(AstroTarget.Comets);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error getting viable targets: {ex.Message}");
-            }
-
-            return viableTargets.Distinct().ToList();
-        }
-
+       
         private async Task<TargetVisibilityData> GetRealTargetVisibilityAsync(AstroTarget target, DateTime hour)
         {
             try
@@ -1596,37 +1694,105 @@ namespace Location.Photography.ViewModels
 
         #region Equipment Matching Methods
 
-        private async Task<AstroTargetEvent> CreateTargetEventAsync(DateTime hour, AstroTarget target)
+      
+
+        private Lens FindBestMatchingLens(List<Lens> userLenses, TargetRequirements requirements)
+        {
+            // Priority 1: Lens that covers optimal focal length and meets aperture requirement
+            var optimalMatch = userLenses.FirstOrDefault(l =>
+                l.MaxFStop <= requirements.MaxAperture &&
+                ((l.IsPrime && Math.Abs(l.MinMM - requirements.OptimalFocalLength) <= 10) ||
+                 (!l.IsPrime && l.MaxMM.HasValue &&
+                  requirements.OptimalFocalLength >= l.MinMM &&
+                  requirements.OptimalFocalLength <= l.MaxMM.Value)));
+
+            if (optimalMatch != null) return optimalMatch;
+
+            // Priority 2: Lens that covers focal length range and meets aperture requirement
+            var rangeMatch = userLenses.FirstOrDefault(l =>
+                l.MaxFStop <= requirements.MaxAperture &&
+                ((!l.IsPrime && l.MaxMM.HasValue &&
+                  ((requirements.MinFocalLength >= l.MinMM && requirements.MinFocalLength <= l.MaxMM.Value) ||
+                   (requirements.MaxFocalLength >= l.MinMM && requirements.MaxFocalLength <= l.MaxMM.Value))) ||
+                 (l.IsPrime && l.MinMM >= requirements.MinFocalLength && l.MinMM <= requirements.MaxFocalLength)));
+
+            if (rangeMatch != null) return rangeMatch;
+
+            // Priority 3: Any lens in focal length range (ignore aperture)
+            var anyMatch = userLenses.FirstOrDefault(l =>
+                ((!l.IsPrime && l.MaxMM.HasValue &&
+                  ((requirements.MinFocalLength >= l.MinMM && requirements.MinFocalLength <= l.MaxMM.Value) ||
+                   (requirements.MaxFocalLength >= l.MinMM && requirements.MaxFocalLength <= l.MaxMM.Value))) ||
+                 (l.IsPrime && l.MinMM >= requirements.MinFocalLength && l.MinMM <= requirements.MaxFocalLength)));
+
+            return anyMatch;
+        }
+
+        private bool IsLensCompatibleWithCamera(Lens lens, CameraBody camera)
+        {
+            // Simplified compatibility check - in reality would check mount systems
+            return true;
+        }
+
+        private async Task<NormalizedCameraSettings> CalculateNormalizedSettingsAsync(
+            AstroTarget target, TargetVisibilityData visibility, UserEquipmentMatch equipment)
         {
             try
             {
-                // Get target visibility and requirements
-                var visibility = await GetRealTargetVisibilityAsync(target, hour);
-                var requirements = GetTargetRequirements(target);
+                // Calculate base settings for target
+                var baseSettings = GetBaseSettingsForTarget(target);
 
-                // Find user's best matching equipment
-                var equipmentMatch = await FindBestUserEquipmentAsync(requirements);
+                // Get standardized lists
+                var allApertures = Interfaces.Apetures.Thirds.Select(a => Convert.ToDouble(a.Replace("f/", ""))).ToList();
+                var allShutterSpeeds = ShutterSpeeds.Thirds.Select(s => ParseShutterSpeed(s)).ToList();
 
-                // Calculate normalized settings
-                var settings = await CalculateNormalizedSettingsAsync(target, visibility, equipmentMatch);
+                // Find closest values from standard lists
+                var closestAperture = allApertures.OrderBy(x => Math.Abs(x - baseSettings.Aperture)).First();
+                var closestShutter = allShutterSpeeds.OrderBy(x => Math.Abs(x - baseSettings.ShutterSpeed)).First();
 
-                return new AstroTargetEvent
+                // Use ExposureCalculatorService to normalize the triangle
+                var exposureDto = new ExposureTriangleDto
                 {
-                    Target = target,
-                    TargetDisplay = GetRealTargetDisplayName(target, visibility),
-                    Visibility = visibility,
-                    Equipment = equipmentMatch,
-                    Settings = settings,
-                    Requirements = requirements
+                    Aperture = $"f/{baseSettings.Aperture}",
+                    Iso = baseSettings.ISO.ToString(),
+                    ShutterSpeed = FormatShutterSpeed(baseSettings.ShutterSpeed)
+                };
+
+                var normalizedResult = await _exposureCalculatorService.CalculateIsoAsync(
+                    exposureDto,
+                    FormatShutterSpeed(closestShutter),
+                    $"f/{closestAperture}",
+                    ExposureIncrements.Third);
+
+                if (normalizedResult.IsSuccess && normalizedResult.Data != null)
+                {
+                    return new NormalizedCameraSettings
+                    {
+                        Aperture = $"f/{normalizedResult.Data.Aperture}",
+                        ShutterSpeed = normalizedResult.Data.ShutterSpeed,
+                        ISO = $"ISO {normalizedResult.Data.Iso}"
+                    };
+                }
+
+                // Fallback to base settings if normalization fails
+                return new NormalizedCameraSettings
+                {
+                    Aperture = $"f/{closestAperture:F1}",
+                    ShutterSpeed = FormatShutterSpeed(closestShutter),
+                    ISO = $"ISO {baseSettings.ISO}"
                 };
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error creating target event for {target}: {ex.Message}");
-                return null;
+                Debug.WriteLine($"Error calculating normalized settings: {ex.Message}");
+                return new NormalizedCameraSettings
+                {
+                    Aperture = "f/4.0",
+                    ShutterSpeed = "30\"",
+                    ISO = "ISO 1600"
+                };
             }
         }
-
         private TargetRequirements GetTargetRequirements(AstroTarget target)
         {
             return target switch
@@ -2000,105 +2166,6 @@ namespace Location.Photography.ViewModels
                 return new UserEquipmentMatch { Found = false, RecommendationMessage = "Unable to match equipment" };
             }
         }
-
-        private Lens FindBestMatchingLens(List<Lens> userLenses, TargetRequirements requirements)
-        {
-            // Priority 1: Lens that covers optimal focal length and meets aperture requirement
-            var optimalMatch = userLenses.FirstOrDefault(l =>
-                l.MaxFStop <= requirements.MaxAperture &&
-                ((l.IsPrime && Math.Abs(l.MinMM - requirements.OptimalFocalLength) <= 10) ||
-                 (!l.IsPrime && l.MaxMM.HasValue &&
-                  requirements.OptimalFocalLength >= l.MinMM &&
-                  requirements.OptimalFocalLength <= l.MaxMM.Value)));
-
-            if (optimalMatch != null) return optimalMatch;
-
-            // Priority 2: Lens that covers focal length range and meets aperture requirement
-            var rangeMatch = userLenses.FirstOrDefault(l =>
-                l.MaxFStop <= requirements.MaxAperture &&
-                ((!l.IsPrime && l.MaxMM.HasValue &&
-                  ((requirements.MinFocalLength >= l.MinMM && requirements.MinFocalLength <= l.MaxMM.Value) ||
-                   (requirements.MaxFocalLength >= l.MinMM && requirements.MaxFocalLength <= l.MaxMM.Value))) ||
-                 (l.IsPrime && l.MinMM >= requirements.MinFocalLength && l.MinMM <= requirements.MaxFocalLength)));
-
-            if (rangeMatch != null) return rangeMatch;
-
-            // Priority 3: Any lens in focal length range (ignore aperture)
-            var anyMatch = userLenses.FirstOrDefault(l =>
-                ((!l.IsPrime && l.MaxMM.HasValue &&
-                  ((requirements.MinFocalLength >= l.MinMM && requirements.MinFocalLength <= l.MaxMM.Value) ||
-                   (requirements.MaxFocalLength >= l.MinMM && requirements.MaxFocalLength <= l.MaxMM.Value))) ||
-                 (l.IsPrime && l.MinMM >= requirements.MinFocalLength && l.MinMM <= requirements.MaxFocalLength)));
-
-            return anyMatch;
-        }
-
-        private bool IsLensCompatibleWithCamera(Lens lens, CameraBody camera)
-        {
-            // Simplified compatibility check - in reality would check mount systems
-            return true;
-        }
-
-        private async Task<NormalizedCameraSettings> CalculateNormalizedSettingsAsync(
-            AstroTarget target, TargetVisibilityData visibility, UserEquipmentMatch equipment)
-        {
-            try
-            {
-                // Calculate base settings for target
-                var baseSettings = GetBaseSettingsForTarget(target);
-
-                // Get standardized lists
-                var allApertures = Interfaces.Apetures.Thirds.Select(a => Convert.ToDouble(a.Replace("f/", ""))).ToList();
-                var allShutterSpeeds = ShutterSpeeds.Thirds.Select(s => ParseShutterSpeed(s)).ToList();
-
-                // Find closest values from standard lists
-                var closestAperture = allApertures.OrderBy(x => Math.Abs(x - baseSettings.Aperture)).First();
-                var closestShutter = allShutterSpeeds.OrderBy(x => Math.Abs(x - baseSettings.ShutterSpeed)).First();
-
-                // Use ExposureCalculatorService to normalize the triangle
-                var exposureDto = new ExposureTriangleDto
-                {
-                    Aperture = $"f/{baseSettings.Aperture}",
-                    Iso = baseSettings.ISO.ToString(),
-                    ShutterSpeed = FormatShutterSpeed(baseSettings.ShutterSpeed)
-                };
-
-                var normalizedResult = await _exposureCalculatorService.CalculateIsoAsync(
-                    exposureDto,
-                    FormatShutterSpeed(closestShutter),
-                    $"f/{closestAperture}",
-                    ExposureIncrements.Third);
-
-                if (normalizedResult.IsSuccess && normalizedResult.Data != null)
-                {
-                    return new NormalizedCameraSettings
-                    {
-                        Aperture = $"f/{normalizedResult.Data.Aperture}",
-                        ShutterSpeed = normalizedResult.Data.ShutterSpeed,
-                        ISO = $"ISO {normalizedResult.Data.Iso}"
-                    };
-                }
-
-                // Fallback to base settings if normalization fails
-                return new NormalizedCameraSettings
-                {
-                    Aperture = $"f/{closestAperture:F1}",
-                    ShutterSpeed = FormatShutterSpeed(closestShutter),
-                    ISO = $"ISO {baseSettings.ISO}"
-                };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error calculating normalized settings: {ex.Message}");
-                return new NormalizedCameraSettings
-                {
-                    Aperture = "f/4.0",
-                    ShutterSpeed = "30\"",
-                    ISO = "ISO 1600"
-                };
-            }
-        }
-
         private BaseCameraSettings GetBaseSettingsForTarget(AstroTarget target)
         {
             return target switch
@@ -2465,8 +2532,8 @@ namespace Location.Photography.ViewModels
             LoadEquipmentCommand = new AsyncRelayCommand(LoadEquipmentAsync);
             CalculateAstroDataCommand = new AsyncRelayCommand(CalculateAstroDataAsync);
             RefreshCalculationsCommand = new AsyncRelayCommand(RefreshCalculationsAsync);
-            SelectCameraCommand = new AsyncRelayCommand<CameraBody>(SelectCameraAsync);
-            SelectLensCommand = new AsyncRelayCommand<Lens>(SelectLensAsync);
+            SelectCameraCommand = CreateEnhancedSelectCameraCommand();
+            SelectLensCommand = CreateEnhancedSelectLensCommand();
             SelectTargetCommand = new AsyncRelayCommand<AstroTarget>(SelectTargetAsync);
             RetryLastCommandCommand = new AsyncRelayCommand(RetryLastCommandAsync);
             GenerateHourlyPredictionsCommand = new AsyncRelayCommand(GenerateHourlyPredictionsAsync);
@@ -2476,7 +2543,55 @@ namespace Location.Photography.ViewModels
         {
             await CalculateAstroDataAsync(); // Delegate to main calculation method
         }
+        public string GetEquipmentStateDebugInfo()
+        {
+            var info = new System.Text.StringBuilder();
+            info.AppendLine($"Selected Camera: {SelectedCamera?.Name ?? "None"}");
+            info.AppendLine($"Available Cameras: {AvailableCameras?.Count ?? 0}");
+            info.AppendLine($"Selected Lens: {SelectedLens?.NameForLens ?? "None"}");
+            info.AppendLine($"Available Lenses: {AvailableLenses?.Count ?? 0}");
+            info.AppendLine($"Selected Target: {SelectedTarget}");
+            info.AppendLine($"FOV: {FieldOfViewDisplay}");
+            info.AppendLine($"Target Fits: {TargetFitsInFrame}");
+            info.AppendLine($"Equipment Recommendation: {EquipmentRecommendation}");
+            info.AppendLine($"Can Calculate: {CanCalculate}");
+            info.AppendLine($"Has Equipment Selected: {HasEquipmentSelected}");
+            return info.ToString();
+        }
 
+        // Method to force recalculation of everything
+        public async Task ForceRecalculateAllAsync()
+        {
+            try
+            {
+                _logger?.LogDebug("Forcing recalculation of all systems");
+
+                // Recalculate FOV
+                if (SelectedCamera != null && SelectedLens != null)
+                {
+                    CalculateFieldOfViewEnhanced();
+                }
+
+                // Reload compatible lenses
+                if (SelectedCamera != null)
+                {
+                    await LoadLensesAsync();
+                }
+
+                // Recalculate astro data if possible
+                if (CanCalculate)
+                {
+                    await CalculateAstroDataAsync();
+                }
+
+                _logger?.LogDebug("Force recalculation completed");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error during force recalculation");
+                await HandleErrorAsync(OperationErrorSource.Unknown, $"Failed to recalculate: {ex.Message}");
+            }
+        }
         public async Task RefreshCalculationsAsync()
         {
             _calculationCache.Clear();
@@ -2929,54 +3044,7 @@ namespace Location.Photography.ViewModels
             SelectedTarget = AstroTarget.MilkyWayCore;
             SelectedTargetModel = targets.First(t => t.Target == AstroTarget.MilkyWayCore);
         }
-        private void CalculateFieldOfView()
-        {
-            try
-            {
-                if (SelectedCamera != null && SelectedLens != null)
-                {
-                    // Calculate horizontal FOV
-                    var horizontalFOV = 2 * Math.Atan(SelectedCamera.SensorWidth / (2 * SelectedLens.MinMM)) * (180 / Math.PI);
-                    var verticalFOV = 2 * Math.Atan(SelectedCamera.SensorHeight / (2 * SelectedLens.MinMM)) * (180 / Math.PI);
-
-                    FieldOfViewWidth = horizontalFOV;
-                    FieldOfViewHeight = verticalFOV;
-
-                    // Check if target fits in frame (simplified - could use target angular size)
-                    TargetFitsInFrame = horizontalFOV >= 10; // Basic check for Milky Way
-
-                    // Generate equipment recommendation
-                    var targetSpecs = GetOptimalEquipmentSpecs(SelectedTarget);
-                    if (SelectedLens.MinMM >= targetSpecs.MinFocalLength && SelectedLens.MinMM <= targetSpecs.MaxFocalLength)
-                    {
-                        EquipmentRecommendation = "Your equipment is well-suited for this target";
-                    }
-                    else if (SelectedLens.MinMM < targetSpecs.MinFocalLength)
-                    {
-                        EquipmentRecommendation = "Consider a longer focal length for better detail";
-                    }
-                    else
-                    {
-                        EquipmentRecommendation = "Consider a wider lens for better field coverage";
-                    }
-
-                    OnPropertyChanged(nameof(FieldOfViewDisplay));
-                    OnPropertyChanged(nameof(TargetFitsInFrame));
-                    OnPropertyChanged(nameof(EquipmentRecommendation));
-                }
-                else
-                {
-                    FieldOfViewWidth = 0;
-                    FieldOfViewHeight = 0;
-                    TargetFitsInFrame = false;
-                    EquipmentRecommendation = string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error calculating field of view: {ex.Message}");
-            }
-        }
+        
         private OptimalEquipmentSpecs GetOptimalEquipmentSpecs(AstroTarget target)
         {
             return target switch
@@ -3548,36 +3616,39 @@ namespace Location.Photography.ViewModels
             set => SetProperty(ref _availableLenses, value);
         }
 
-        public CameraBody SelectedCamera
+        public new CameraBody SelectedCamera
         {
             get => _selectedCamera;
             set
             {
                 if (SetProperty(ref _selectedCamera, value))
                 {
+                    // Trigger camera change handling
+                    _ = Task.Run(async () => await OnCameraChangedAsync());
+
+                    // Update UI properties
                     OnPropertyChanged(nameof(HasEquipmentSelected));
                     OnPropertyChanged(nameof(SelectedCameraDisplay));
                     OnPropertyChanged(nameof(HasValidSelection));
-
-                    // Trigger field of view calculation
-                    CalculateFieldOfView();
                 }
             }
         }
 
-        public Lens SelectedLens
+        // Enhanced SelectedLens property setter to trigger FOV calculation
+        public new Lens SelectedLens
         {
             get => _selectedLens;
             set
             {
                 if (SetProperty(ref _selectedLens, value))
                 {
+                    // Trigger lens change handling
+                    _ = Task.Run(async () => await OnLensChangedAsync());
+
+                    // Update UI properties
                     OnPropertyChanged(nameof(HasEquipmentSelected));
                     OnPropertyChanged(nameof(SelectedLensDisplay));
                     OnPropertyChanged(nameof(HasValidSelection));
-
-                    // Trigger field of view calculation
-                    CalculateFieldOfView();
                 }
             }
         }
@@ -3588,10 +3659,40 @@ namespace Location.Photography.ViewModels
             set => SetProperty(ref _isLoadingEquipment, value);
         }
 
-        public AstroTarget SelectedTarget
+        public new AstroTarget SelectedTarget
         {
             get => _selectedTarget;
-            set => SetProperty(ref _selectedTarget, value);
+            set
+            {
+                if (SetProperty(ref _selectedTarget, value))
+                {
+                    // Update the selected target model when target changes
+                    var targetModel = AvailableTargets?.FirstOrDefault(t => t.Target == value);
+                    if (targetModel != null && SelectedTargetModel != targetModel)
+                    {
+                        _selectedTargetModel = targetModel;
+                        OnPropertyChanged(nameof(SelectedTargetModel));
+                    }
+
+                    // Recalculate FOV and equipment recommendations for new target
+                    if (SelectedCamera != null && SelectedLens != null)
+                    {
+                        CalculateFieldOfViewEnhanced();
+                    }
+
+                    // Trigger equipment optimization and calculations
+                    _ = Task.Run(async () =>
+                    {
+                        await AutoSelectOptimalEquipmentAsync();
+                        if (CanCalculate)
+                        {
+                            await CalculateAstroDataAsync();
+                        }
+                    });
+
+                    OnPropertyChanged(nameof(SelectedTargetDisplay));
+                }
+            }
         }
 
         public ObservableCollection<AstroTargetDisplayModel> AvailableTargets

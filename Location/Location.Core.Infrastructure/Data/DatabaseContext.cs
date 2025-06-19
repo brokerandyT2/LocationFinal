@@ -64,9 +64,7 @@ namespace Location.Core.Infrastructure.Data
             _preparedStatementCache = new ConcurrentDictionary<string, object>();
 
             // Use provided path or default to app data directory
-            _databasePath = databasePath ?? System.IO.Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                DATABASE_NAME);
+            _databasePath = Path.Combine(FileSystem.AppDataDirectory, "locations.db");
 
             SQLitePCL.Batteries_V2.Init();
 

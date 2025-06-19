@@ -172,7 +172,7 @@ namespace Location.Photography.Maui
                 var sunCalculatorService = sp.GetRequiredService<Domain.Services.ISunCalculatorService>();
                 var meteorShowerDataService = sp.GetRequiredService<IMeteorShowerDataService>();
                 var cameraDataService = sp.GetRequiredService<ICameraDataService>();
-                var logger = sp.GetRequiredService<ILogger>();
+                var logger = sp.GetRequiredService<ILogger<AstroPhotographyCalculatorViewModel>>();
                 var compat = sp.GetRequiredService<ILensCameraCompatibilityRepository>();
                 return new AstroPhotographyCalculatorViewModel(
                     mediator,

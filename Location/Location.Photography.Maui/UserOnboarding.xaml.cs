@@ -99,8 +99,7 @@ namespace Location.Photography.Maui.Views
         {
             try
             {
-                var path = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "locations.db");
+                var path = Path.Combine(FileSystem.AppDataDirectory, "locations.db");
 
                 if (!File.Exists(path))
                 {

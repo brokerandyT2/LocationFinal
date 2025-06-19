@@ -6,6 +6,7 @@ using Location.Photography.Domain.Entities;
 using Location.Photography.Domain.Enums;
 using Location.Photography.Infrastructure.Resources;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Storage;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -52,7 +53,7 @@ namespace Location.Photography.Infrastructure
                 }
 
                 // Check if database file exists
-                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "locations.db");
+                var path = Path.Combine(FileSystem.AppDataDirectory, "locations.db");
                 if (!File.Exists(path))
                 {
                     _logger.LogDebug("Database file does not exist: {Path}", path);
