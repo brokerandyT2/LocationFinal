@@ -293,13 +293,12 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                if (notification.UserId == _currentUserId)
-                {
+               
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
                         await LoadCamerasAsync(false);
                     });
-                }
+               
             }
             catch (Exception ex)
             {
@@ -311,13 +310,10 @@ namespace Location.Photography.Maui.Views.Premium
         {
             try
             {
-                if (notification.UserId == _currentUserId)
-                {
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
                         await LoadLensesAsync(false);
                     });
-                }
             }
             catch (Exception ex)
             {

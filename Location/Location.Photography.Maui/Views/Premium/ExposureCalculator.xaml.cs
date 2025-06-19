@@ -621,12 +621,24 @@ namespace Location.Photography.Maui.Views.Premium
                 RadioButton radioButton = (RadioButton)sender;
 
                 if (radioButton == exposurefull)
+                {
                     _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Full;
+                    exposurehalfstop.IsChecked = false;
+                    exposurethirdstop.IsChecked = false;
+                }
                 else if (radioButton == exposurehalfstop)
+                {
                     _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Half;
-                else if (radioButton == exposurethirdstop)
-                    _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Third;
+                    exposurefull.IsChecked = false;
+                    exposurethirdstop.IsChecked=false;
+                }
 
+                else if (radioButton == exposurethirdstop)
+                {
+                    _viewModel.FullHalfThirds = Application.Services.ExposureIncrements.Third;
+                    exposurefull.IsChecked=false;
+                    exposurehalfstop.IsChecked=false;
+                }
                 SetupEVSlider();
                 PopulateViewModel();
                 SyncTargetPickers();

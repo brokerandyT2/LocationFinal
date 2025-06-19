@@ -480,7 +480,18 @@ namespace Location.Photography.Infrastructure
         {
             try
             {
-                var baseSettings = new List<(string Key, string Value, string Description)>();
+                var baseSettings = new List<(string Key, string Value, string Description)>()
+                {
+                    // Application settings (not user-specific)
+                
+                      (MagicStrings.LastBulkWeatherUpdate, DateTime.Now.AddDays(-2).ToString(), "Timestamp of last bulk weather update"),
+                      (MagicStrings.DefaultLanguage, "en-US", "Default language setting"),
+                      (MagicStrings.CameraRefresh, "500", "Camera refresh rate in milliseconds"),
+                      (MagicStrings.AppOpenCounter, "1", "Number of times the app has been opened"),
+                      (MagicStrings.WeatherURL, "https://api.openweathermap.org/data/3.0/onecall", "Weather API URL"),
+                      (MagicStrings.Weather_API_Key, "aa24f449cced50c0491032b2f955d610", "Weather API key"),
+                      (MagicStrings.FreePremiumAdSupported, "false", "Whether the app is running in ad-supported mode")
+                };
 
                 // Add build-specific settings
 #if DEBUG

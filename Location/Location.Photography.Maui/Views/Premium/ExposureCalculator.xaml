@@ -369,7 +369,8 @@
             <Grid IsVisible="{Binding ShowError}" 
                   Grid.Row="17" 
                   Grid.ColumnSpan="4" 
-                  BackgroundColor="{StaticResource TransparentErrorBrush}" 
+                 
+                  Background="{StaticResource TransparentErrorBrush}" 
                   Padding="10" 
                   Margin="5">
                 <Label x:Name="errorLabel" 

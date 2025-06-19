@@ -75,11 +75,7 @@
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
                        Rotation="{Binding SunDirection}"/>
-                <Label Text="☀️" 
-                       FontSize="20"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center"
-                       Margin="0,-40,0,0"/>
+                
             </Grid>
 
             <!-- Weather Impact Panel -->

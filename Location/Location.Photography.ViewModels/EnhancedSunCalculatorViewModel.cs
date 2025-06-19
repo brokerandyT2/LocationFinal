@@ -890,7 +890,7 @@ namespace Location.Photography.ViewModels
                         BeginPropertyChangeBatch();
 
                         WeatherImpact = cachedWeather.WeatherImpact;
-                        WeatherLastUpdate = cachedWeather.Timestamp;
+                        WeatherLastUpdate = TimeZoneInfo.ConvertTime(cachedWeather.Timestamp, DeviceTimeZone);
 
                         _ = EndPropertyChangeBatchAsync();
 
@@ -1176,6 +1176,9 @@ namespace Location.Photography.ViewModels
         /// <summary>
         /// PERFORMANCE OPTIMIZATION: Optimized weather data synchronization
         /// </summary>
+        /// <summary>
+        /// FIXED: Weather data synchronization with proper weather impact analysis and time conversion
+        /// </summary>
         private async Task SynchronizeWeatherDataOptimizedAsync()
         {
             if (SelectedLocation == null) return;
@@ -1200,7 +1203,7 @@ namespace Location.Photography.ViewModels
                 {
                     if (updateResult.IsSuccess && updateResult.Data != null)
                     {
-                        WeatherLastUpdate = updateResult.Data.LastUpdate;
+                        WeatherLastUpdate = TimeZoneInfo.ConvertTime(updateResult.Data.LastUpdate, DeviceTimeZone);
                         WeatherDataStatus = "Loading hourly forecast...";
                     }
                     else
@@ -1209,18 +1212,23 @@ namespace Location.Photography.ViewModels
                     }
                 });
 
-                // Phase 2: Load hourly weather data with fallback chain
+                // Phase 2: Load weather data with fallback chain
                 await LoadWeatherDataWithFallbackAsync();
 
-                // Phase 3: Generate predictions based on available data
-                await GenerateWeatherAwarePredictionsOptimizedAsync();
+                // Phase 3: Generate weather impact analysis for selected date
+                await GenerateWeatherImpactForSelectedDateAsync();
 
-                // Phase 4: Calculate optimal windows
+                // Phase 4: Generate predictions based on available data
+                await GeneratePredictionsFromWeatherDataAsync();
+
+                // Phase 5: Calculate optimal windows
                 await CalculateOptimalWindowsOptimizedAsync();
 
+                // FIXED: Convert WeatherLastUpdate to device time for display
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    WeatherDataStatus = "Weather synchronization complete";
+                    var deviceUpdateTime = ConvertUtcToDeviceTime(WeatherLastUpdate);
+                    WeatherDataStatus = $"Updated {deviceUpdateTime:HH:mm}";
                 });
             }
             catch (OperationCanceledException)
@@ -1239,46 +1247,113 @@ namespace Location.Photography.ViewModels
                 });
             }
         }
+
+        /// <summary>
+        /// FIXED: Load weather data with proper fallback chain using WeatherService
+        /// </summary>
         private async Task LoadWeatherDataWithFallbackAsync()
         {
             if (SelectedLocation == null) return;
 
             try
             {
-                // Primary: Try hourly weather data
+                // Primary: Update weather data (this fetches fresh data if needed)
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    WeatherDataStatus = "Loading hourly forecast...";
+                    WeatherDataStatus = "Updating weather data...";
                 });
 
-                var hourlyQuery = new GetHourlyForecastQuery
-                {
-                    LocationId = SelectedLocation.Id,
-                    StartTime = DateTime.UtcNow,
-                    EndTime = DateTime.UtcNow.AddDays(2) // Get 48 hours to be safe
-                };
+                System.Diagnostics.Debug.WriteLine($"Starting weather update for location {SelectedLocation.Id}");
 
-                var hourlyResult = await _mediator.Send(hourlyQuery, _cancellationTokenSource.Token);
+                var weatherUpdateResult = await _weatherService.UpdateWeatherForLocationAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
 
-                if (hourlyResult.IsSuccess && hourlyResult.Data?.HourlyForecasts?.Any() == true)
+                System.Diagnostics.Debug.WriteLine($"Weather update result: {weatherUpdateResult.IsSuccess}");
+                if (!weatherUpdateResult.IsSuccess)
                 {
-                    // SUCCESS: We have hourly data
+                    System.Diagnostics.Debug.WriteLine($"Weather update error: {weatherUpdateResult.ErrorMessage}");
+                }
+
+                if (weatherUpdateResult.IsSuccess && weatherUpdateResult.Data != null)
+                {
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        HourlyWeatherData = hourlyResult.Data;
-                        WeatherLastUpdate = hourlyResult.Data.LastUpdate;
-                        WeatherDataStatus = "Hourly weather data loaded";
+                        WeatherLastUpdate = ConvertUtcToDeviceTime( weatherUpdateResult.Data.LastUpdate);
+                        WeatherDataStatus = "Loading hourly forecasts...";
                     });
-                    return;
+
+                    System.Diagnostics.Debug.WriteLine($"Weather data updated, last update: {weatherUpdateResult.Data.LastUpdate}");
+
+                    // Now get the stored weather data with hourly forecasts
+                    var storedWeather = await _unitOfWork.Weather.GetByLocationIdAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
+
+                    System.Diagnostics.Debug.WriteLine($"Stored weather found: {storedWeather != null}");
+                    if (storedWeather != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Stored weather has {storedWeather.HourlyForecasts?.Count ?? 0} hourly forecasts");
+                    }
+
+                    if (storedWeather?.HourlyForecasts?.Any() == true)
+                    {
+                        var futureForecasts = storedWeather.HourlyForecasts
+                            .Where(h => h.DateTime >= DateTime.UtcNow)
+                            .Take(48)
+                            .ToList();
+
+                        System.Diagnostics.Debug.WriteLine($"Future forecasts found: {futureForecasts.Count}");
+
+                        // SUCCESS: We have hourly data from the weather update
+                        var hourlyForecastDto = new HourlyWeatherForecastDto
+                        {
+                            WeatherId = storedWeather.Id,
+                            LastUpdate = storedWeather.LastUpdate,
+                            Timezone = storedWeather.Timezone,
+                            TimezoneOffset = storedWeather.TimezoneOffset,
+                            HourlyForecasts = futureForecasts.Select(h => new HourlyForecastDto
+                            {
+                                DateTime = h.DateTime,
+                                Temperature = h.Temperature,
+                                FeelsLike = h.FeelsLike,
+                                Description = h.Description,
+                                Icon = h.Icon,
+                                WindSpeed = h.Wind.Speed,
+                                WindDirection = h.Wind.Direction,
+                                WindGust = h.Wind.Gust,
+                                Humidity = h.Humidity,
+                                Pressure = h.Pressure,
+                                Clouds = h.Clouds,
+                                UvIndex = h.UvIndex,
+                                ProbabilityOfPrecipitation = h.ProbabilityOfPrecipitation,
+                                Visibility = h.Visibility,
+                                DewPoint = h.DewPoint
+                            })
+                                .ToList()
+                        };
+
+                        System.Diagnostics.Debug.WriteLine($"Created hourly forecast DTO with {hourlyForecastDto.HourlyForecasts.Count} forecasts");
+
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            HourlyWeatherData = hourlyForecastDto;
+                            WeatherDataStatus = "Hourly weather data loaded";
+                        });
+                        return;
+                    }
                 }
 
                 // Secondary: Fall back to daily data and extrapolate
+                System.Diagnostics.Debug.WriteLine("Falling back to daily data extrapolation");
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     WeatherDataStatus = "Hourly data unavailable - generating from daily data...";
                 });
 
                 var dailyWeather = await _unitOfWork.Weather.GetByLocationIdAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
+
+                System.Diagnostics.Debug.WriteLine($"Daily weather found: {dailyWeather != null}");
+                if (dailyWeather != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Daily weather has {dailyWeather.Forecasts?.Count ?? 0} daily forecasts");
+                }
 
                 if (dailyWeather?.Forecasts?.Any() == true)
                 {
@@ -1287,10 +1362,11 @@ namespace Location.Photography.ViewModels
 
                     if (extrapolatedHourlyData != null)
                     {
+                        System.Diagnostics.Debug.WriteLine($"Generated {extrapolatedHourlyData.HourlyForecasts.Count} extrapolated hourly forecasts");
                         await MainThread.InvokeOnMainThreadAsync(() =>
                         {
                             HourlyWeatherData = extrapolatedHourlyData;
-                            WeatherLastUpdate = dailyWeather.LastUpdate;
+                            WeatherLastUpdate = ConvertUtcToDeviceTime(dailyWeather.LastUpdate);
                             WeatherDataStatus = "Generated hourly data from daily forecasts";
                         });
                         return;
@@ -1298,6 +1374,7 @@ namespace Location.Photography.ViewModels
                 }
 
                 // Tertiary: No weather data available
+                System.Diagnostics.Debug.WriteLine("No weather data available - showing unavailable message");
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     HourlyWeatherData = null;
@@ -1307,6 +1384,9 @@ namespace Location.Photography.ViewModels
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error in LoadWeatherDataWithFallbackAsync: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     HourlyWeatherData = null;
@@ -1315,9 +1395,172 @@ namespace Location.Photography.ViewModels
                 });
             }
         }
+        private async Task GenerateWeatherImpactForSelectedDateAsync()
+        {
+            if (SelectedLocation == null) return;
 
+            try
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    WeatherDataStatus = "Analyzing weather impact...";
+                });
+
+                // Get weather data for the location
+                var weather = await _unitOfWork.Weather.GetByLocationIdAsync(SelectedLocation.Id, _cancellationTokenSource.Token);
+
+                if (weather?.Forecasts?.Any() == true)
+                {
+                    // Check if selected date is within 7 days (API limit)
+                    var daysDifference = (SelectedDate.Date - DateTime.Today).TotalDays;
+                    if (daysDifference < 0 || daysDifference > 7)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            WeatherImpact = new WeatherImpactAnalysis
+                            {
+                                Summary = $"Weather data not available for {SelectedDate:MMM dd} (outside 7-day forecast range)",
+                                OverallLightReductionFactor = 0.8, // Default assumption
+                                CurrentConditions = null
+                            };
+                            WeatherDataStatus = "Weather impact: Limited data (outside forecast range)";
+                        });
+                        return;
+                    }
+
+                    // Find forecast for selected date
+                    var selectedDateForecast = weather.Forecasts
+                        .FirstOrDefault(f => f.Date.Date == SelectedDate.Date);
+
+                    if (selectedDateForecast != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Found forecast for selected date {SelectedDate:yyyy-MM-dd}");
+                        System.Diagnostics.Debug.WriteLine($"Clouds: {selectedDateForecast.Clouds}%, Precipitation: {selectedDateForecast.Precipitation}");
+
+                        // Create weather forecast DTO for the impact analysis
+                        var weatherForecastDto = new WeatherForecastDto
+                        {
+                            WeatherId = weather.Id,
+                            LastUpdate = weather.LastUpdate,
+                            Timezone = weather.Timezone,
+                            TimezoneOffset = weather.TimezoneOffset,
+                            DailyForecasts = new List<DailyForecastDto>
+                    {
+                        new DailyForecastDto
+                        {
+                            Date = selectedDateForecast.Date,
+                            Sunrise = selectedDateForecast.Sunrise,
+                            Sunset = selectedDateForecast.Sunset,
+                            Temperature = selectedDateForecast.Temperature,
+                            MinTemperature = selectedDateForecast.MinTemperature,
+                            MaxTemperature = selectedDateForecast.MaxTemperature,
+                            Description = selectedDateForecast.Description,
+                            Icon = selectedDateForecast.Icon,
+                            WindSpeed = selectedDateForecast.Wind.Speed,
+                            WindDirection = selectedDateForecast.Wind.Direction,
+                            WindGust = selectedDateForecast.Wind.Gust,
+                            Humidity = selectedDateForecast.Humidity,
+                            Pressure = selectedDateForecast.Pressure,
+                            Clouds = selectedDateForecast.Clouds,
+                            UvIndex = selectedDateForecast.UvIndex,
+                            Precipitation = selectedDateForecast.Precipitation,
+                            MoonRise = selectedDateForecast.MoonRise,
+                            MoonSet = selectedDateForecast.MoonSet,
+                            MoonPhase = selectedDateForecast.MoonPhase
+                        }
+                    }
+                        };
+
+                        // Create enhanced sun times for the analysis
+                        var enhancedSunTimes = new Location.Photography.Domain.Models.EnhancedSunTimes
+                        {
+                            Sunrise = selectedDateForecast.Sunrise,
+                            Sunset = selectedDateForecast.Sunset,
+                            SolarNoon = selectedDateForecast.Sunrise.AddHours(
+                                (selectedDateForecast.Sunset - selectedDateForecast.Sunrise).TotalHours / 2)
+                        };
+
+                        // Create moon phase data
+                        var moonData = new MoonPhaseData
+                        {
+                            Phase = selectedDateForecast.MoonPhase,
+                            MoonRise= selectedDateForecast.MoonRise,
+                            MoonSet = selectedDateForecast.MoonSet
+                        };
+
+                        // Create analysis request
+                        var analysisRequest = new WeatherImpactAnalysisRequest
+                        {
+                            WeatherForecast = weatherForecastDto,
+                            SunTimes = enhancedSunTimes,
+                            MoonData = moonData
+                        };
+
+                        // Generate weather impact analysis
+                        var weatherImpact = await _predictiveLightService.AnalyzeWeatherImpactAsync(analysisRequest, _cancellationTokenSource.Token);
+
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            WeatherImpact = weatherImpact;
+                            var dateText = SelectedDate.Date == DateTime.Today ? "today" : SelectedDate.ToString("MMM dd");
+                            WeatherDataStatus = $"Weather impact analyzed for {dateText}";
+                        });
+
+                        System.Diagnostics.Debug.WriteLine($"Weather impact generated - Reduction Factor: {weatherImpact.OverallLightReductionFactor:P0}");
+                    }
+                    else
+                    {
+                        // No forecast data for selected date
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            WeatherImpact = new WeatherImpactAnalysis
+                            {
+                                Summary = $"No weather forecast available for {SelectedDate:MMM dd}",
+                                OverallLightReductionFactor = 0.8, // Default assumption
+                                CurrentConditions = null
+                            };
+                            WeatherDataStatus = "Weather impact: No forecast data for selected date";
+                        });
+
+                        System.Diagnostics.Debug.WriteLine($"No forecast found for selected date {SelectedDate:yyyy-MM-dd}");
+                    }
+                }
+                else
+                {
+                    // No weather data at all
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        WeatherImpact = new WeatherImpactAnalysis
+                        {
+                            Summary = "No weather data available",
+                            OverallLightReductionFactor = 0.8, // Default assumption
+                            CurrentConditions = null
+                        };
+                        WeatherDataStatus = "Weather impact: No weather data available";
+                    });
+
+                    System.Diagnostics.Debug.WriteLine("No weather data found for location");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error generating weather impact: {ex.Message}");
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    WeatherImpact = new WeatherImpactAnalysis
+                    {
+                        Summary = "Error analyzing weather impact",
+                        OverallLightReductionFactor = 0.8,
+                        CurrentConditions = null
+                    };
+                    WeatherDataStatus = "Weather impact analysis failed";
+                    OnSystemError($"Error generating weather impact: {ex.Message}");
+                });
+            }
+        }
         /// <summary>
-        /// NEW: Extrapolate hourly forecasts from daily weather data
+        /// FIXED: Extrapolate hourly forecasts from daily weather data
         /// </summary>
         private async Task<HourlyWeatherForecastDto?> ExtrapolateHourlyFromDailyAsync(Location.Core.Domain.Entities.Weather dailyWeather)
         {
@@ -1381,7 +1624,6 @@ namespace Location.Photography.ViewModels
                 return new HourlyWeatherForecastDto
                 {
                     WeatherId = dailyWeather.Id,
-                    //LocationId = dailyWeather.LocationId,
                     LastUpdate = dailyWeather.LastUpdate,
                     Timezone = dailyWeather.Timezone,
                     TimezoneOffset = dailyWeather.TimezoneOffset,
@@ -1396,7 +1638,7 @@ namespace Location.Photography.ViewModels
         }
 
         /// <summary>
-        /// NEW: Get the next full hour in UTC
+        /// FIXED: Get the next full hour in UTC
         /// </summary>
         private DateTime GetNextFullHourUtc()
         {
@@ -1413,7 +1655,7 @@ namespace Location.Photography.ViewModels
         }
 
         /// <summary>
-        /// NEW: Interpolate temperature based on time of day and sun position
+        /// FIXED: Interpolate temperature based on time of day and sun position
         /// </summary>
         private double InterpolateTemperatureForHour(Location.Core.Domain.Entities.WeatherForecast dailyForecast, DateTime targetTime, SunPositionDto? sunPosition)
         {
@@ -1433,7 +1675,7 @@ namespace Location.Photography.ViewModels
         }
 
         /// <summary>
-        /// NEW: Interpolate UV index based on sun position
+        /// FIXED: Interpolate UV index based on sun position
         /// </summary>
         private double InterpolateUvIndexForHour(double dailyMaxUvIndex, DateTime targetTime, SunPositionDto? sunPosition)
         {
@@ -1445,54 +1687,6 @@ namespace Location.Photography.ViewModels
             // Scale UV index based on sun elevation
             var elevationFactor = Math.Max(0, Math.Min(1, sunPosition.Elevation / 60.0));
             return dailyMaxUvIndex * elevationFactor;
-        }
-        /// <summary>
-        /// PERFORMANCE OPTIMIZATION: Optimized hourly weather data loading
-        /// </summary>
-        private async Task LoadHourlyWeatherDataOptimizedAsync()
-        {
-            if (SelectedLocation == null) return;
-
-            try
-            {
-                var hourlyQuery = new GetHourlyForecastQuery
-                {
-                    LocationId = SelectedLocation.Id,
-                    StartTime = DateTime.UtcNow,
-                    EndTime = DateTime.UtcNow.AddDays(5)
-                };
-
-                var hourlyResult = await _mediator.Send(hourlyQuery, _cancellationTokenSource.Token);
-
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    if (hourlyResult.IsSuccess && hourlyResult.Data != null)
-                    {
-                        HourlyWeatherData = hourlyResult.Data;
-                        WeatherLastUpdate = hourlyResult.Data.LastUpdate;
-                        WeatherDataStatus = "Hourly weather data loaded";
-                    }
-                    else
-                    {
-                        WeatherDataStatus = "Hourly data unavailable - using fallback";
-                    }
-                });
-
-                if (!hourlyResult.IsSuccess)
-                {
-                    await LoadFallbackWeatherDataOptimizedAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    WeatherDataStatus = "Weather data service error";
-                    OnSystemError($"Error loading hourly weather data: {ex.Message}");
-                });
-
-                await LoadFallbackWeatherDataOptimizedAsync();
-            }
         }
 
         /// <summary>
@@ -1709,6 +1903,79 @@ namespace Location.Photography.ViewModels
         }
         private async Task GeneratePredictionsFromWeatherDataAsync()
         {
+            try
+            {
+                if (SelectedLocation == null) return;
+
+                // Check cache first
+                var cacheKey = GetCacheKey();
+                if (_predictionCache.TryGetValue(cacheKey, out var cachedPredictions))
+                {
+                    var cacheAge = DateTime.Now - WeatherLastUpdate;
+                    if (cacheAge.TotalMinutes < PREDICTION_CACHE_DURATION_MINUTES)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            HourlyPredictions.Clear();
+                            HourlyPredictionsProgressStatus = "Loading cached predictions...";
+
+                            foreach (var prediction in cachedPredictions)
+                            {
+                                HourlyPredictions.Add(prediction);
+                            }
+
+                            HourlyPredictionsProgressStatus = $"Loaded {cachedPredictions.Count} cached predictions";
+                        });
+
+                        await Task.Delay(1000);
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            HourlyPredictionsProgressStatus = string.Empty;
+                        });
+                        return;
+                    }
+                }
+
+                // Generate new predictions based on available data
+                if (HourlyWeatherData?.HourlyForecasts?.Any() == true)
+                {
+                    // We have weather data (either hourly or extrapolated from daily)
+                    await GenerateHourlyPredictionsFromWeatherAsync();
+                }
+                else
+                {
+                    // No weather data - generate basic sun-position only predictions
+                    await GenerateBasicSunPositionPredictionsAsync();
+                }
+
+                // Cache the results
+                _predictionCache[cacheKey] = new List<HourlyPredictionDisplayModel>(HourlyPredictions);
+            }
+            catch (OperationCanceledException)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HourlyPredictionsProgressStatus = "Prediction generation cancelled";
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    HourlyPredictionsProgressStatus = "Error generating predictions";
+                });
+                OnSystemError($"Error generating weather-aware predictions: {ex.Message}");
+            }
+            finally
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    IsHourlyForecastsLoading = false;
+                });
+            }
+        }
+        private async Task GenerateHourlyPredictionsFromWeatherAsync()
+        {
             if (HourlyWeatherData?.HourlyForecasts == null || SelectedLocation == null)
                 return;
 
@@ -1858,7 +2125,6 @@ namespace Location.Photography.ViewModels
             });
 
             var startTime = GetNextFullHourUtc();
-            var predictions = new List<HourlyPredictionDisplayModel>();
 
             for (int hour = 0; hour < 24; hour++)
             {
@@ -1903,6 +2169,7 @@ namespace Location.Photography.ViewModels
                 HourlyPredictionsProgressStatus = string.Empty;
             });
         }
+
         private HourlyPredictionDisplayModel CreateHourlyPredictionWithProperTimezone(HourlyForecastDto hourlyForecast, SunPositionDto sunPosition)
         {
             var weatherImpact = CalculateHourlyWeatherImpactOptimized(hourlyForecast);
@@ -1948,7 +2215,7 @@ namespace Location.Photography.ViewModels
         }
 
         /// <summary>
-        /// NEW: Create basic prediction when no weather data available
+        /// FIXED: Create basic prediction when no weather data available
         /// </summary>
         private HourlyPredictionDisplayModel CreateBasicPredictionWithProperTimezone(DateTime utcTime, SunPositionDto sunPosition)
         {
