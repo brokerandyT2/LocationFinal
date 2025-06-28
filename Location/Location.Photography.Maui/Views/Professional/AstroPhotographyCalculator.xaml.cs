@@ -287,17 +287,19 @@ namespace Location.Photography.Maui.Views.Professional
 
         private async void OnCameraSelectionChanged(object sender, EventArgs e)
         {
-            if (sender is Picker picker && picker.SelectedItem is CameraBody selectedCamera)
+            if (BindingContext is AstroPhotographyCalculatorViewModel viewModel)
             {
-                await _viewModel.SelectCameraAsync(selectedCamera);
+                var picker = sender as Picker;
+                await viewModel.HandleCameraSelectionChanged(picker?.SelectedItem);
             }
         }
 
         private async void OnLensSelectionChanged(object sender, EventArgs e)
         {
-            if (sender is Picker picker && picker.SelectedItem is Lens selectedLens)
+            if (BindingContext is AstroPhotographyCalculatorViewModel viewModel)
             {
-                await _viewModel.SelectLensAsync(selectedLens);
+                var picker = sender as Picker;
+                await viewModel.HandleLensSelectionChanged(picker?.SelectedItem);
             }
         }
 

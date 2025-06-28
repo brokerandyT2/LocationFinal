@@ -491,7 +491,7 @@ namespace Location.Photography.ViewModels
                 _logger.LogError(ex, "Error handling camera created notification");
             }
         }
-        public new async Task LoadLensesAsync()
+        public async Task LoadLensesAsync()
         {
             if (SelectedCamera == null)
             {
@@ -503,47 +503,21 @@ namespace Location.Photography.ViewModels
             {
                 IsLoadingEquipment = true;
 
-                // Get lenses that are compatible with the selected camera
-                var compatibleLensesResult = await _compatibilityRepository.GetByCameraIdAsync(SelectedCamera.Id);
+                // Use the repository method that already filters by camera compatibility
+                var compatibleLensesResult = await _lensRepository.GetCompatibleLensesAsync(SelectedCamera.Id);
 
                 if (compatibleLensesResult.IsSuccess && compatibleLensesResult.Data?.Any() == true)
                 {
-                    var compatibleLensIds = compatibleLensesResult.Data.Select(c => c.LensId).ToList();
-
-                    // Get all lenses from the camera data service
-                    var allLensesResult = await _cameraDataService.GetLensesAsync(0, int.MaxValue, false, null);
-
-                    if (allLensesResult.IsSuccess && allLensesResult.Data?.Lenses?.Any() == true)
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        // Filter to only compatible lenses and convert to domain objects
-                        var compatibleLenses = allLensesResult.Data.Lenses
-                            .Where(lensDto => compatibleLensIds.Contains(lensDto.Id))
-                            .Select(lensDto => new Lens(
-                                lensDto.MinMM,
-                                lensDto.MaxMM.HasValue ? lensDto.MaxMM.Value : lensDto.MinMM,
-                                lensDto.MinFStop,
-                                lensDto.MaxFStop,
-                                lensDto.IsUserCreated,
-                                lensDto.DisplayName)
-                            {
-                                Id = lensDto.Id,
-                                DateAdded = lensDto.DateAdded
-                            })
-                            .OrderBy(l => l.GetDisplayName())
-                            .ToList();
+                        AvailableLenses = new ObservableCollection<Lens>(compatibleLensesResult.Data);
+                    });
 
-                        await MainThread.InvokeOnMainThreadAsync(() =>
-                        {
-                            AvailableLenses = new ObservableCollection<Lens>(compatibleLenses);
-                        });
-
-                        _logger?.LogDebug("Loaded {Count} compatible lenses for camera {CameraName}",
-                            compatibleLenses.Count, SelectedCamera.Name);
-                    }
+                    _logger?.LogDebug("Loaded {Count} compatible lenses for camera {CameraName}",
+                        compatibleLensesResult.Data.Count, SelectedCamera.Name);
                 }
                 else
                 {
-                    // No compatible lenses found for this camera
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
                         AvailableLenses = new ObservableCollection<Lens>();
