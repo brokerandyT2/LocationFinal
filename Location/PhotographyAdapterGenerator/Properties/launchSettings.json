@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PhotographyAdapterGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "--platform android --output \"./test-output/\" --verbose"
+    }
+  }
+}

@@ -1,11 +1,11 @@
-﻿@model Location.Photography.Tools.AdapterGenerator.Services.ViewModelMetadata
+﻿
 /**
  * This is a truly stupid adapter that just bridges stuff.
  * It should never be smart. Ever.
- * 
+ * (Now even more stupid because Akavache handles all the caching!)
  *
  * Generated from: @Model.FullName
- * Source: @Model.Source
+ * Source: @model.Source
  * Generated: @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
  */
 
@@ -15,37 +15,40 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.Result
 
-class @Model.AdapterName @Raw("@Inject constructor")(
-    private val dotnetViewModel: @Model.FullName
+class @model.AdapterName @Raw("@Inject") constructor(
+    private val dotnetViewModel: @model.FullName
 ) : ViewModel() {
 
-@foreach (var prop in Model.Properties.Where(p => !p.IsObservableCollection))
+@foreach (var prop in model.Properties.Where(p => !p.IsObservableCollection))
 {
     @:// Direct property access - let .NET handle threading
-    @:val @prop.CamelCaseName: @GetKotlinType(prop.Type) get() = dotnetViewModel.@prop.CamelCaseName
+    @:val @prop.CamelCaseName: @model.GetKotlinType(prop.Type) get() = dotnetViewModel.@prop.Name
+    @:
 }
 
-@foreach (var collection in Model.Properties.Where(p => p.IsObservableCollection))
+@foreach (var collection in model.Properties.Where(p => p.IsObservableCollection))
 {
-    @:// ObservableCollection<@collection.ElementType.Name>
-    → StateFlow < List < @GetKotlinType(collection.ElementType) >>
-    @:private val _@collection.CamelCaseName = MutableStateFlow<List<@GetKotlinType(collection.ElementType)>>(emptyList())
-    @:val @collection.CamelCaseName: StateFlow<List<@GetKotlinType(collection.ElementType)>> = _@collection.CamelCaseName.asStateFlow()
+    @:// ObservableCollection<@(collection.ElementType?.Name ?? "Unknown")> → StateFlow<List<@model.GetKotlinType(collection.ElementType)>>
+    @:private val _@collection.CamelCaseName = MutableStateFlow<List<@model.GetKotlinType(collection.ElementType)>>(emptyList())
+    @:val @collection.CamelCaseName: StateFlow<List<@model.GetKotlinType(collection.ElementType)>> = _@collection.CamelCaseName.asStateFlow()
+    @:
 }
 
-@foreach (var command in Model.Commands)
+@foreach (var command in model.Commands)
 {
     @if (command.IsAsync)
     {
         @:// Async command: @command.Name - let .NET handle threading
-        @:suspend fun @command.MethodName(@GetParameterSignature(command)): Result<Unit> {
+        @:suspend fun @command.MethodName(@model.GetParameterSignature(command)): Result<Unit> = withContext(Dispatchers.IO) {
         @:    return try {
         @if (command.HasParameter)
         {
-            @:        dotnetViewModel.@command.Name.executeAsync(@GetParameterName(command))
+            @:        dotnetViewModel.@command.Name.executeAsync(@model.GetParameterName(command))
         }
         else
         {
@@ -56,70 +59,37 @@ class @Model.AdapterName @Raw("@Inject constructor")(
         @:        Result.failure(e)
         @:    }
         @:}
+        @:
     }
     else
     {
         @:// Sync command: @command.Name
-        @:fun @command.MethodName(@GetParameterSignature(command)) {
+        @:fun @command.MethodName(@model.GetParameterSignature(command)) {
         @if (command.HasParameter)
         {
-            @:    dotnetViewModel.@command.Name.execute(@GetParameterName(command))
+            @:    dotnetViewModel.@command.Name.execute(@model.GetParameterName(command))
         }
         else
         {
             @:    dotnetViewModel.@command.Name.execute()
         }
     @:}
+        @:
     }
 }
 
-@foreach (var collection in Model.Properties.Where(p => p.IsObservableCollection))
+    init {
+@foreach (var collection in model.Properties.Where(p => p.IsObservableCollection))
 {
-    @:init {
-    @:    // Subscribe to ObservableCollection changes
-    @:    dotnetViewModel.@collection.Name.collectionChanged += { _, _ ->
-    @:        _@collection.CamelCaseName.value = dotnetViewModel.@collection.Name.toList()
-    @:    }
+    @:// Subscribe to ObservableCollection changes for @collection.Name
+    @:dotnetViewModel.@collection.Name.collectionChanged += { _, _ ->
+    @:    _@collection.CamelCaseName.value = dotnetViewModel.@collection.Name.toList()
     @:}
 }
+    }
 
     override fun onCleared() {
         super.onCleared()
         dotnetViewModel.dispose() // Always safe - all ViewModels implement IDisposable
-    }
-}
-
-@functions {
-    string GetKotlinType(Type type)
-    {
-        return type.Name switch
-        {
-            "String" => "String",
-            "Int32" => "Int",
-            "Boolean" => "Boolean",
-            "Double" => "Double",
-            "DateTime" => "LocalDateTime",
-            _ => type.Name
-        };
-    }
-
-    string GetParameterSignature(CommandMetadata command)
-    {
-        if (!command.HasParameter) return "";
-        var paramName = ToCamelCase(command.ParameterType?.Name ?? "param");
-        var paramType = GetKotlinType(command.ParameterType ?? typeof(object));
-        return $"{paramName}: {paramType}";
-    }
-
-    string GetParameterName(CommandMetadata command)
-    {
-        if (!command.HasParameter) return "";
-        return ToCamelCase(command.ParameterType?.Name ?? "param");
-    }
-
-    string ToCamelCase(string input)
-    {
-        if (string.IsNullOrEmpty(input)) return input;
-        return char.ToLower(input[0]) + input.Substring(1);
     }
 }
