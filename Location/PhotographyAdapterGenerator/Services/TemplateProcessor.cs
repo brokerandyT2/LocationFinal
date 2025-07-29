@@ -47,7 +47,7 @@ public class TemplateProcessor
 
     private async Task GenerateAndroidAdaptersAsync(TemplateContext context, string outputPath)
     {
-        var template = LoadEmbeddedTemplate("AndroidAdapter.cshtml");
+        var template = LoadEmbeddedTemplate("AndroidAdapter.razor");
 
         foreach (var viewModel in context.ViewModels)
         {

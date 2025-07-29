@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="akavache.core" Version="10.2.41" />
     <PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="CosineKitty.AstronomyEngine" Version="2.1.19" />

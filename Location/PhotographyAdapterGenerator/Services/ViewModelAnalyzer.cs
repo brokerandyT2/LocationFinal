@@ -13,14 +13,14 @@ public class ViewModelAnalyzer
         _logger = logger;
     }
 
-    public async Task<List<ViewModelMetadata>> AnalyzeAssembliesAsync(List<Assembly> assemblies)
+    public async Task<List<ViewModelMetadata>> AnalyzeAssembliesAsync(List<string> assemblyPaths)
     {
         var allViewModels = new List<ViewModelMetadata>();
 
-        foreach (var assembly in assemblies)
+        foreach (var assemblyPath in assemblyPaths)
         {
-            var source = DetermineAssemblySource(assembly);
-            var viewModels = await AnalyzeAssemblyAsync(assembly, source);
+            var source = DetermineAssemblySource(assemblyPath);
+            var viewModels = await AnalyzeAssemblyPathAsync(assemblyPath, source);
             allViewModels.AddRange(viewModels);
         }
 
@@ -32,274 +32,151 @@ public class ViewModelAnalyzer
         return allViewModels;
     }
 
-    private async Task<List<ViewModelMetadata>> AnalyzeAssemblyAsync(Assembly assembly, string source)
+    private async Task<List<ViewModelMetadata>> AnalyzeAssemblyPathAsync(string assemblyPath, string source)
     {
         var viewModels = new List<ViewModelMetadata>();
 
-        var viewModelTypes = assembly.GetTypes()
-            .Where(t => t.Name.EndsWith("ViewModel") &&
-                       t.IsClass &&
-                       !t.IsAbstract &&
-                       IsValidViewModelType(t))
-            .ToList();
-
-        _logger.LogInformation("Found {Count} ViewModels in {Source} assembly: {ViewModels}",
-            viewModelTypes.Count, source, string.Join(", ", viewModelTypes.Select(t => t.Name)));
-
-        foreach (var type in viewModelTypes)
+        try
         {
-            try
+            _logger.LogDebug("Analyzing assembly: {AssemblyPath}", assemblyPath);
+
+            // Simple approach: just load the assembly and get public surface
+            var assembly = Assembly.LoadFrom(assemblyPath);
+
+            var viewModelTypes = assembly.GetTypes()
+                .Where(t => t.Name.EndsWith("ViewModel") &&
+                           t.IsClass &&
+                           t.IsPublic &&
+                           !t.IsAbstract)
+                .ToList();
+
+            _logger.LogInformation("Found {Count} ViewModels in {Source} assembly: {ViewModels}",
+                viewModelTypes.Count, source, string.Join(", ", viewModelTypes.Select(t => t.Name)));
+
+            foreach (var type in viewModelTypes)
             {
-                var metadata = await AnalyzeViewModelAsync(type, source);
-                viewModels.Add(metadata);
-                _logger.LogDebug("Analyzed ViewModel: {Name} - {PropertyCount} properties, {CommandCount} commands",
-                    type.Name, metadata.Properties.Count, metadata.Commands.Count);
+                try
+                {
+                    var metadata = CreateSimpleViewModelMetadata(type, source);
+                    viewModels.Add(metadata);
+                    _logger.LogDebug("Analyzed ViewModel: {Name} - {PropertyCount} properties, {CommandCount} commands, {MethodCount} methods",
+                        type.Name, metadata.Properties.Count, metadata.Commands.Count, metadata.Methods.Count);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to analyze ViewModel: {Name}", type.Name);
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to analyze ViewModel: {Name}", type.Name);
-            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to analyze assembly: {AssemblyPath}", assemblyPath);
         }
 
         return viewModels;
     }
 
-    private string DetermineAssemblySource(Assembly assembly)
+    private ViewModelMetadata CreateSimpleViewModelMetadata(Type type, string source)
     {
-        var assemblyName = assembly.GetName().Name ?? "";
-
-        if (assemblyName.Contains("Core.ViewModels"))
-            return "Core";
-        else if (assemblyName.Contains("Photography.ViewModels"))
-            return "Photography";
-        else
-            return "Unknown";
-    }
-
-    private bool IsValidViewModelType(Type type)
-    {
-        try
+        return new ViewModelMetadata
         {
-            // Must implement IDisposable (from BaseViewModel/ViewModelBase)
-            var implementsIDisposable = typeof(IDisposable).IsAssignableFrom(type);
-
-            // Must inherit from BaseViewModel or ViewModelBase
-            var inheritsFromBase = InheritsFromViewModelBase(type);
-
-            return implementsIDisposable && inheritsFromBase;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Error validating ViewModel type: {TypeName}", type.Name);
-            return false;
-        }
-    }
-
-    private bool InheritsFromViewModelBase(Type type)
-    {
-        var current = type.BaseType;
-        while (current != null && current != typeof(object))
-        {
-            if (current.Name is "BaseViewModel" or "ViewModelBase")
-            {
-                return true;
-            }
-            current = current.BaseType;
-        }
-        return false;
-    }
-
-    private async Task<ViewModelMetadata> AnalyzeViewModelAsync(Type viewModelType, string source)
-    {
-        var metadata = new ViewModelMetadata
-        {
-            Name = viewModelType.Name,
-            AdapterName = GenerateAdapterName(viewModelType.Name),
-            FullName = viewModelType.FullName ?? viewModelType.Name,
-            Namespace = viewModelType.Namespace ?? "",
+            Name = type.Name,
+            AdapterName = type.Name.Replace("ViewModel", "Adapter"),
+            FullName = type.FullName ?? type.Name,
+            Namespace = type.Namespace ?? "",
             Source = source,
-            IsDisposable = true, // All ViewModels inherit from BaseViewModel/ViewModelBase
-            BaseClass = DetermineBaseClass(viewModelType)
+            IsDisposable = true, // We know all ViewModels are disposable
+            Properties = GetPublicProperties(type),
+            Commands = GetPublicCommands(type),
+            Methods = GetPublicMethods(type),
+            Events = GetPublicEvents(type),
+            Constructor = new ConstructorMetadata() // Don't need complex DI analysis
         };
-
-        // Analyze properties
-        metadata.Properties = AnalyzeProperties(viewModelType);
-
-        // Analyze commands  
-        metadata.Commands = AnalyzeCommands(viewModelType);
-
-        // Analyze events
-        metadata.Events = AnalyzeEvents(viewModelType);
-
-        // Analyze constructor
-        metadata.Constructor = AnalyzeConstructor(viewModelType);
-
-        return metadata;
     }
 
-    private string GenerateAdapterName(string viewModelName)
+    private List<PropertyMetadata> GetPublicProperties(Type type)
     {
-        // AstroPhotographyCalculatorViewModel → AstroPhotographyCalculatorAdapter
-        return viewModelName.Replace("ViewModel", "Adapter");
-    }
-
-    private string DetermineBaseClass(Type viewModelType)
-    {
-        var baseType = viewModelType.BaseType;
-        while (baseType != null && baseType != typeof(object))
-        {
-            if (baseType.Name is "BaseViewModel" or "ViewModelBase")
-                return baseType.Name;
-            baseType = baseType.BaseType;
-        }
-        return "ViewModel"; // Default Android ViewModel
-    }
-
-    private List<PropertyMetadata> AnalyzeProperties(Type viewModelType)
-    {
-        var properties = new List<PropertyMetadata>();
-
-        var publicProperties = viewModelType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => ShouldExposeProperty(p))
-            .ToList();
-
-        foreach (var prop in publicProperties)
-        {
-            try
+        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanRead &&
+                       p.GetMethod?.IsPublic == true &&
+                       !p.PropertyType.Name.Contains("Command")) // Exclude commands
+            .Select(p => new PropertyMetadata
             {
-                var metadata = new PropertyMetadata
-                {
-                    Name = prop.Name,
-                    CamelCaseName = ToCamelCase(prop.Name),
-                    Type = prop.PropertyType,
-                    IsObservableCollection = IsObservableCollectionType(prop.PropertyType),
-                    ElementType = GetObservableCollectionElementType(prop.PropertyType),
-                    IsReadOnly = !prop.CanWrite,
-                    HasNotifyPropertyChanged = true // Both base classes implement INotifyPropertyChanged
-                };
-
-                properties.Add(metadata);
-                _logger.LogTrace("Found property: {PropertyName} ({PropertyType})", prop.Name, prop.PropertyType.Name);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to analyze property: {PropertyName}", prop.Name);
-            }
-        }
-
-        return properties;
-    }
-
-    private List<CommandMetadata> AnalyzeCommands(Type viewModelType)
-    {
-        var commands = new List<CommandMetadata>();
-
-        var commandProperties = viewModelType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => IsCommandProperty(p))
-            .ToList();
-
-        foreach (var prop in commandProperties)
-        {
-            try
-            {
-                var metadata = new CommandMetadata
-                {
-                    Name = prop.Name,
-                    MethodName = GenerateMethodName(prop.Name),
-                    IsAsync = IsAsyncCommandType(prop.PropertyType),
-                    ParameterType = ExtractCommandParameterType(prop.PropertyType),
-                    HasParameter = ExtractCommandParameterType(prop.PropertyType) != null,
-                    HasCanExecute = HasCanExecuteMethod(prop)
-                };
-
-                commands.Add(metadata);
-                _logger.LogTrace("Found command: {CommandName} (Async: {IsAsync}, HasParam: {HasParam})",
-                    prop.Name, metadata.IsAsync, metadata.HasParameter);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to analyze command: {CommandName}", prop.Name);
-            }
-        }
-
-        return commands;
-    }
-
-    private List<EventMetadata> AnalyzeEvents(Type viewModelType)
-    {
-        var events = new List<EventMetadata>();
-
-        var publicEvents = viewModelType.GetEvents(BindingFlags.Public | BindingFlags.Instance);
-
-        foreach (var evt in publicEvents)
-        {
-            try
-            {
-                var metadata = new EventMetadata
-                {
-                    Name = evt.Name,
-                    EventArgsType = GetEventArgsType(evt),
-                    IsSystemEvent = evt.Name == "ErrorOccurred"
-                };
-
-                events.Add(metadata);
-                _logger.LogTrace("Found event: {EventName} ({EventArgsType})", evt.Name, metadata.EventArgsType.Name);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to analyze event: {EventName}", evt.Name);
-            }
-        }
-
-        return events;
-    }
-
-    private ConstructorMetadata AnalyzeConstructor(Type viewModelType)
-    {
-        var constructors = viewModelType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
-
-        // Find the constructor with the most parameters (primary DI constructor)
-        var primaryConstructor = constructors
-            .Where(c => c.GetParameters().Length > 0) // Skip parameterless constructors
-            .OrderByDescending(c => c.GetParameters().Length)
-            .FirstOrDefault();
-
-        if (primaryConstructor == null)
-        {
-            return new ConstructorMetadata();
-        }
-
-        var parameters = primaryConstructor.GetParameters()
-            .Select(p => new ParameterMetadata
-            {
-                Name = p.Name ?? "",
-                Type = p.ParameterType,
-                IsInterface = p.ParameterType.IsInterface,
-                IsOptional = p.HasDefaultValue
+                Name = p.Name,
+                CamelCaseName = ToCamelCase(p.Name),
+                Type = p.PropertyType,
+                IsObservableCollection = IsObservableCollectionType(p.PropertyType),
+                ElementType = GetObservableCollectionElementType(p.PropertyType),
+                IsReadOnly = !p.CanWrite,
+                HasNotifyPropertyChanged = true // All ViewModels implement INotifyPropertyChanged
             })
             .ToList();
-
-        return new ConstructorMetadata
-        {
-            Parameters = parameters,
-            RequiresComplexDI = parameters.Count > 3 || parameters.Any(p => p.IsInterface)
-        };
     }
 
-    // Helper methods for property analysis
-    private bool ShouldExposeProperty(PropertyInfo property)
+    private List<CommandMetadata> GetPublicCommands(Type type)
     {
-        // Skip inherited properties from base classes that we don't want to expose
-        var skipProperties = new[]
+        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.PropertyType.Name.Contains("Command"))
+            .Select(p => new CommandMetadata
+            {
+                Name = p.Name,
+                MethodName = GenerateMethodName(p.Name),
+                IsAsync = p.PropertyType.Name.Contains("Async"),
+                HasParameter = p.PropertyType.IsGenericType,
+                ParameterType = p.PropertyType.IsGenericType ? p.PropertyType.GetGenericArguments().LastOrDefault() : null
+            })
+            .ToList();
+    }
+
+    private List<MethodMetadata> GetPublicMethods(Type type)
+    {
+        return type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m => !m.IsSpecialName && // Excludes property getters/setters and event add/remove
+                       !m.Name.StartsWith("get_") &&
+                       !m.Name.StartsWith("set_") &&
+                       !m.Name.StartsWith("add_") &&
+                       !m.Name.StartsWith("remove_") &&
+                       m.DeclaringType != typeof(object) && // Exclude Object methods like ToString()
+                       !IsInheritedMethod(m)) // Exclude methods from base classes we don't want
+            .Select(m => new MethodMetadata
+            {
+                Name = m.Name,
+                MethodName = ToCamelCase(m.Name),
+                IsAsync = m.ReturnType.Name.Contains("Task"),
+                ReturnType = m.ReturnType,
+                Parameters = m.GetParameters().Select(p => new ParameterMetadata
+                {
+                    Name = p.Name ?? "",
+                    Type = p.ParameterType,
+                    IsOptional = p.HasDefaultValue
+                }).ToList()
+            })
+            .ToList();
+    }
+
+    private List<EventMetadata> GetPublicEvents(Type type)
+    {
+        return type.GetEvents(BindingFlags.Public | BindingFlags.Instance)
+            .Select(e => new EventMetadata
+            {
+                Name = e.Name,
+                EventArgsType = typeof(EventArgs),
+                IsSystemEvent = e.Name == "ErrorOccurred"
+            })
+            .ToList();
+    }
+
+    private bool IsInheritedMethod(MethodInfo method)
+    {
+        // Skip common base class methods we don't want to expose
+        var skipMethods = new[]
         {
-            "IsBusy", "IsError", "ErrorMessage", "HasActiveErrors",
-            "LastCommand", "LastCommandParameter"
+            "Dispose", "GetHashCode", "GetType", "Equals", "ToString",
+            "OnPropertyChanged", "SetProperty", "TrackCommand", "ExecuteAndTrackAsync",
+            "RetryLastCommandAsync", "OnSystemError", "ClearErrors"
         };
 
-        return !skipProperties.Contains(property.Name) &&
-               !property.PropertyType.IsSubclassOf(typeof(Delegate)) &&
-               property.GetMethod != null &&
-               property.GetMethod.IsPublic;
+        return skipMethods.Contains(method.Name);
     }
 
     private bool IsObservableCollectionType(Type type)
@@ -315,57 +192,6 @@ public class ViewModelAnalyzer
         return null;
     }
 
-    // Helper methods for command analysis
-    private bool IsCommandProperty(PropertyInfo property)
-    {
-        var commandTypeNames = new[]
-        {
-            "ICommand", "IRelayCommand", "IAsyncRelayCommand",
-            "RelayCommand", "AsyncRelayCommand"
-        };
-
-        var typeName = property.PropertyType.Name;
-        var interfaceNames = property.PropertyType.GetInterfaces().Select(i => i.Name);
-
-        return commandTypeNames.Any(ct =>
-            typeName.Contains(ct) ||
-            interfaceNames.Any(i => i.Contains(ct)));
-    }
-
-    private bool IsAsyncCommandType(Type commandType)
-    {
-        return commandType.Name.Contains("Async") ||
-               commandType.GetInterfaces().Any(i => i.Name.Contains("Async"));
-    }
-
-    private Type? ExtractCommandParameterType(Type commandType)
-    {
-        if (commandType.IsGenericType)
-        {
-            var args = commandType.GetGenericArguments();
-            return args.LastOrDefault(); // Last generic argument is usually the parameter type
-        }
-        return null;
-    }
-
-    private bool HasCanExecuteMethod(PropertyInfo commandProperty)
-    {
-        var canExecuteMethodName = $"Can{commandProperty.Name.Replace("Command", "")}";
-        return commandProperty.DeclaringType?.GetMethod(canExecuteMethodName) != null;
-    }
-
-    // Helper methods for event analysis
-    private Type GetEventArgsType(EventInfo eventInfo)
-    {
-        var handlerType = eventInfo.EventHandlerType;
-        if (handlerType?.IsGenericType == true)
-        {
-            var args = handlerType.GetGenericArguments();
-            return args.Length > 1 ? args[1] : typeof(EventArgs);
-        }
-        return typeof(EventArgs);
-    }
-
     private string GenerateMethodName(string commandName)
     {
         // SaveLocationCommand → saveLocation
@@ -379,6 +205,18 @@ public class ViewModelAnalyzer
 
         return char.ToLower(input[0]) + input[1..];
     }
+
+    private string DetermineAssemblySource(string assemblyPath)
+    {
+        var fileName = Path.GetFileNameWithoutExtension(assemblyPath);
+
+        if (fileName.Contains("Core.ViewModels", StringComparison.OrdinalIgnoreCase))
+            return "Core";
+        else if (fileName.Contains("Photography.ViewModels", StringComparison.OrdinalIgnoreCase))
+            return "Photography";
+        else
+            return "Unknown";
+    }
 }
 
 // Supporting metadata classes
@@ -391,6 +229,7 @@ public class ViewModelMetadata
     public string Source { get; set; } = string.Empty; // "Core" or "Photography"
     public List<PropertyMetadata> Properties { get; set; } = new();
     public List<CommandMetadata> Commands { get; set; } = new();
+    public List<MethodMetadata> Methods { get; set; } = new();
     public List<EventMetadata> Events { get; set; } = new();
     public ConstructorMetadata Constructor { get; set; } = new();
     public bool IsDisposable { get; set; } = true;
@@ -416,6 +255,15 @@ public class CommandMetadata
     public Type? ParameterType { get; set; }
     public bool HasParameter { get; set; }
     public bool HasCanExecute { get; set; }
+}
+
+public class MethodMetadata
+{
+    public string Name { get; set; } = string.Empty;
+    public string MethodName { get; set; } = string.Empty;
+    public bool IsAsync { get; set; }
+    public Type ReturnType { get; set; } = typeof(void);
+    public List<ParameterMetadata> Parameters { get; set; } = new();
 }
 
 public class EventMetadata

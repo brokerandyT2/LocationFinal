@@ -77,6 +77,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="akavache.core" Version="10.2.41" />
     <PackageReference Include="Camera.MAUI" Version="1.5.1" />
     <PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
     <PackageReference Include="CoordinateSharp" Version="3.1.1.1" />

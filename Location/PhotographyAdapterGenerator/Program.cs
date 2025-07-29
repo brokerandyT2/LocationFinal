@@ -9,12 +9,31 @@ class Program
 {
     static async Task<int> Main(string[] args)
     {
-        // Setup dependency injection and logging
+        try
+        {
+            // Parse command line arguments first to check for verbose flag
+            var parseResult = Parser.Default.ParseArguments<GeneratorOptions>(args);
+
+            return await parseResult.MapResult(
+                async options => await RunGeneratorAsync(options),
+                _ => Task.FromResult(1) // Return 1 for parsing errors
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unhandled exception: {ex.Message}");
+            return 1;
+        }
+    }
+
+    static async Task<int> RunGeneratorAsync(GeneratorOptions options)
+    {
+        // Setup dependency injection and logging based on verbose flag
         var services = new ServiceCollection()
             .AddLogging(builder =>
             {
                 builder.AddConsole();
-                builder.SetMinimumLevel(LogLevel.Information);
+                builder.SetMinimumLevel(options.Verbose ? LogLevel.Debug : LogLevel.Information);
             })
             .AddSingleton<AssemblyLoader>()
             .AddSingleton<ViewModelAnalyzer>()
@@ -24,28 +43,6 @@ class Program
 
         var logger = services.GetRequiredService<ILogger<Program>>();
 
-        try
-        {
-            // Parse command line arguments
-            return await Parser.Default.ParseArguments<GeneratorOptions>(args)
-                .MapResult(
-                    async options => await RunGeneratorAsync(options, services, logger),
-                    _ => Task.FromResult(1) // Return 1 for parsing errors
-                );
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unhandled exception occurred");
-            return 1;
-        }
-        finally
-        {
-            services.Dispose();
-        }
-    }
-
-    static async Task<int> RunGeneratorAsync(GeneratorOptions options, ServiceProvider services, ILogger logger)
-    {
         try
         {
             logger.LogInformation("Photography ViewModel Generator v1.0.0");
@@ -69,18 +66,18 @@ class Program
             // Step 1: Load ViewModels from both Core and Photography assemblies
             logger.LogInformation("Loading ViewModels from Core and Photography assemblies...");
             var assemblyLoader = services.GetRequiredService<AssemblyLoader>();
-            var assemblies = await assemblyLoader.LoadViewModelAssembliesAsync(options);
+            var assemblyPaths = await assemblyLoader.LoadViewModelAssemblyPathsAsync(options);
 
-            if (assemblies.Count == 0)
+            if (assemblyPaths.Count == 0)
             {
                 logger.LogError("No ViewModel assemblies found. Make sure projects are built.");
                 return 1;
             }
 
             // Step 2: Analyze all ViewModels
-            logger.LogInformation("Analyzing {Count} assemblies for ViewModels...", assemblies.Count);
+            logger.LogInformation("Analyzing {Count} assemblies for ViewModels...", assemblyPaths.Count);
             var analyzer = services.GetRequiredService<ViewModelAnalyzer>();
-            var viewModels = await analyzer.AnalyzeAssembliesAsync(assemblies);
+            var viewModels = await analyzer.AnalyzeAssembliesAsync(assemblyPaths);
 
             if (viewModels.Count == 0)
             {
@@ -104,6 +101,10 @@ class Program
         {
             logger.LogError(ex, "Generation failed: {Message}", ex.Message);
             return 1;
+        }
+        finally
+        {
+            services.Dispose();
         }
     }
 

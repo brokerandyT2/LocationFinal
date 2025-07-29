@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <!-- Command line parsing -->
+    <PackageReference Include="akavache.core" Version="10.2.41" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
 
     <!-- Reflection and assembly loading -->
@@ -55,7 +56,7 @@
 
   <ItemGroup>
     <!-- Create Templates folder structure -->
-    <Folder Include="Models\NewFolder\" />
+    <Folder Include="Models\" />
     <Folder Include="Templates\Android\" />
     <Folder Include="Templates\Shared\" />
   </ItemGroup>

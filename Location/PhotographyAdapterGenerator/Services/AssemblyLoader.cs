@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace Location.Photography.Tools.AdapterGenerator.Services;
 
@@ -12,49 +11,61 @@ public class AssemblyLoader
         _logger = logger;
     }
 
-    public async Task<List<Assembly>> LoadViewModelAssembliesAsync(GeneratorOptions options)
+    public async Task<List<string>> LoadViewModelAssemblyPathsAsync(GeneratorOptions options)
     {
-        var assemblies = new List<Assembly>();
+        var assemblyPaths = new List<string>();
 
         try
         {
-            // Load Core ViewModels assembly
-            var coreAssembly = await LoadCoreAssemblyAsync(options.CoreAssemblyPath);
-            if (coreAssembly != null)
+            // Find Core ViewModels assembly path
+            var coreAssemblyPath = await FindCoreAssemblyPathAsync(options.CoreAssemblyPath);
+            if (coreAssemblyPath != null)
             {
-                assemblies.Add(coreAssembly);
+                assemblyPaths.Add(coreAssemblyPath);
+                _logger.LogInformation("Found Core assembly: {Path}", coreAssemblyPath);
             }
 
-            // Load Photography ViewModels assembly  
-            var photographyAssembly = await LoadPhotographyAssemblyAsync(options.PhotographyAssemblyPath);
-            if (photographyAssembly != null)
+            // Find Photography ViewModels assembly path
+            var photographyAssemblyPath = await FindPhotographyAssemblyPathAsync(options.PhotographyAssemblyPath);
+            if (photographyAssemblyPath != null)
             {
-                assemblies.Add(photographyAssembly);
+                assemblyPaths.Add(photographyAssemblyPath);
+                _logger.LogInformation("Found Photography assembly: {Path}", photographyAssemblyPath);
             }
 
-            if (assemblies.Count == 0)
+            if (assemblyPaths.Count == 0)
             {
                 throw new InvalidOperationException(
                     "No ViewModel assemblies found. Make sure Location.Core.ViewModels and Location.Photography.ViewModels are built.");
             }
 
-            _logger.LogInformation("Successfully loaded {Count} assemblies", assemblies.Count);
-            return assemblies;
+            _logger.LogInformation("Successfully found {Count} assembly paths", assemblyPaths.Count);
+            return assemblyPaths;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load ViewModel assemblies");
+            _logger.LogError(ex, "Failed to find ViewModel assemblies");
             throw;
         }
     }
 
-    private async Task<Assembly?> LoadCoreAssemblyAsync(string? customPath)
+    private async Task<string?> FindCoreAssemblyPathAsync(string? customPath)
     {
         const string assemblyName = "Location.Core.ViewModels.dll";
 
         if (!string.IsNullOrEmpty(customPath))
         {
-            return await LoadAssemblyFromPathAsync(customPath, "Core (custom path)");
+            var fullCustomPath = Path.GetFullPath(customPath);
+            if (File.Exists(fullCustomPath))
+            {
+                _logger.LogInformation("Using custom Core assembly path: {Path}", fullCustomPath);
+                return fullCustomPath;
+            }
+            else
+            {
+                _logger.LogWarning("Custom Core assembly path does not exist: {Path}", fullCustomPath);
+                return null;
+            }
         }
 
         // Search common locations for Core assembly
@@ -63,25 +74,34 @@ public class AssemblyLoader
             // Current directory
             Directory.GetCurrentDirectory(),
             
-            // Relative to generator (assuming typical repo structure)
-            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "Location.Core.ViewModels", "bin", "Debug", "net9.0"),
-            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "location-dotnet-core", "Location.Core.ViewModels", "bin", "Debug", "net9.0"),
+            // Relative to generator (one level up)
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "Location.Core.ViewModels", "bin", "Debug", "net9.0"),
             
             // Common build output paths
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos", "location-dotnet-core", "Location.Core.ViewModels", "bin", "Debug", "net9.0"),
             @"C:\Source\location-dotnet-core\Location.Core.ViewModels\bin\Debug\net9.0",
         };
 
-        return await FindAndLoadAssemblyAsync(assemblyName, searchPaths, "Core");
+        return await FindAssemblyPathAsync(assemblyName, searchPaths, "Core");
     }
 
-    private async Task<Assembly?> LoadPhotographyAssemblyAsync(string? customPath)
+    private async Task<string?> FindPhotographyAssemblyPathAsync(string? customPath)
     {
         const string assemblyName = "Location.Photography.ViewModels.dll";
 
         if (!string.IsNullOrEmpty(customPath))
         {
-            return await LoadAssemblyFromPathAsync(customPath, "Photography (custom path)");
+            var fullCustomPath = Path.GetFullPath(customPath);
+            if (File.Exists(fullCustomPath))
+            {
+                _logger.LogInformation("Using custom Photography assembly path: {Path}", fullCustomPath);
+                return fullCustomPath;
+            }
+            else
+            {
+                _logger.LogWarning("Custom Photography assembly path does not exist: {Path}", fullCustomPath);
+                return null;
+            }
         }
 
         // Search common locations for Photography assembly
@@ -90,36 +110,48 @@ public class AssemblyLoader
             // Current directory
             Directory.GetCurrentDirectory(),
             
-            // Relative to generator (assuming it's in the photography repo)
-            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "Location.Photography.ViewModels", "bin", "Debug", "net9.0"),
-            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "Location.Photography.ViewModels", "bin", "Debug", "net9.0"),
+            // Relative to generator (one level up)
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "Location.Photography.ViewModels", "bin", "Debug", "net9.0"),
             
             // Common build output paths
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos", "location-dotnet-photography", "Location.Photography.ViewModels", "bin", "Debug", "net9.0"),
             @"C:\Source\location-dotnet-photography\Location.Photography.ViewModels\bin\Debug\net9.0",
         };
 
-        return await FindAndLoadAssemblyAsync(assemblyName, searchPaths, "Photography");
+        return await FindAssemblyPathAsync(assemblyName, searchPaths, "Photography");
     }
 
-    private async Task<Assembly?> FindAndLoadAssemblyAsync(string assemblyName, string[] searchPaths, string assemblyType)
+    private async Task<string?> FindAssemblyPathAsync(string assemblyName, string[] searchPaths, string assemblyType)
     {
+        _logger.LogDebug("Searching for {AssemblyType} assembly: {AssemblyName}", assemblyType, assemblyName);
+
         foreach (var searchPath in searchPaths)
         {
-            if (!Directory.Exists(searchPath))
+            try
             {
-                _logger.LogDebug("Search path does not exist: {SearchPath}", searchPath);
-                continue;
-            }
+                // Resolve the full path to handle relative paths properly
+                var fullSearchPath = Path.GetFullPath(searchPath);
+                _logger.LogDebug("Checking search path: {SearchPath}", fullSearchPath);
 
-            var assemblyPath = Path.Combine(searchPath, assemblyName);
-            if (File.Exists(assemblyPath))
-            {
-                var assembly = await LoadAssemblyFromPathAsync(assemblyPath, assemblyType);
-                if (assembly != null)
+                if (!Directory.Exists(fullSearchPath))
                 {
-                    return assembly;
+                    _logger.LogDebug("Search path does not exist: {SearchPath}", fullSearchPath);
+                    continue;
                 }
+
+                var assemblyPath = Path.Combine(fullSearchPath, assemblyName);
+                _logger.LogDebug("Looking for assembly at: {AssemblyPath}", assemblyPath);
+
+                if (File.Exists(assemblyPath))
+                {
+                    var fullAssemblyPath = Path.GetFullPath(assemblyPath);
+                    _logger.LogDebug("Found {AssemblyType} assembly at: {AssemblyPath}", assemblyType, fullAssemblyPath);
+                    return fullAssemblyPath;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Error checking search path: {SearchPath}", searchPath);
             }
         }
 
@@ -127,107 +159,48 @@ public class AssemblyLoader
         return null;
     }
 
-    private async Task<Assembly?> LoadAssemblyFromPathAsync(string assemblyPath, string assemblyType)
+    /// <summary>
+    /// Validates that an assembly path points to a ViewModels assembly based on naming convention
+    /// </summary>
+    public bool IsViewModelAssemblyPath(string assemblyPath)
     {
         try
         {
-            _logger.LogDebug("Attempting to load {AssemblyType} assembly from: {AssemblyPath}", assemblyType, assemblyPath);
+            var fileName = Path.GetFileNameWithoutExtension(assemblyPath);
+            var isViewModelAssembly = fileName.EndsWith("ViewModels", StringComparison.OrdinalIgnoreCase);
 
-            // Use LoadFrom to handle dependencies properly
-            var assembly = Assembly.LoadFrom(assemblyPath);
+            _logger.LogDebug("Assembly {FileName} is {Result} ViewModel assembly based on naming",
+                fileName, isViewModelAssembly ? "a" : "not a");
 
-            // Validate that it's actually a ViewModel assembly
-            if (!IsViewModelAssembly(assembly))
-            {
-                _logger.LogWarning("Assembly {AssemblyPath} does not appear to contain ViewModels", assemblyPath);
-                return null;
-            }
-
-            _logger.LogInformation("Loaded {AssemblyType} assembly: {AssemblyName} from {AssemblyPath}",
-                assemblyType, assembly.GetName().Name, assemblyPath);
-
-            return assembly;
+            return isViewModelAssembly;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load {AssemblyType} assembly from: {AssemblyPath}", assemblyType, assemblyPath);
-            return null;
-        }
-    }
-
-    private bool IsViewModelAssembly(Assembly assembly)
-    {
-        try
-        {
-            // Check if assembly contains any types ending with "ViewModel"
-            var viewModelTypes = assembly.GetTypes()
-                .Where(t => t.Name.EndsWith("ViewModel") &&
-                           t.IsClass &&
-                           !t.IsAbstract)
-                .Take(1); // Just check if any exist
-
-            var hasViewModels = viewModelTypes.Any();
-
-            if (hasViewModels)
-            {
-                _logger.LogDebug("Assembly {AssemblyName} contains ViewModel types", assembly.GetName().Name);
-            }
-
-            return hasViewModels;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error validating assembly {AssemblyName}", assembly.GetName().Name);
-            return false; // Assume it's not a ViewModel assembly if we can't check
-        }
-    }
-
-    public List<Type> GetViewModelTypes(Assembly assembly)
-    {
-        try
-        {
-            return assembly.GetTypes()
-                .Where(t => t.Name.EndsWith("ViewModel") &&
-                           t.IsClass &&
-                           !t.IsAbstract &&
-                           IsValidViewModelType(t))
-                .ToList();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting ViewModel types from assembly {AssemblyName}", assembly.GetName().Name);
-            return new List<Type>();
-        }
-    }
-
-    private bool IsValidViewModelType(Type type)
-    {
-        // Check if it inherits from BaseViewModel or ViewModelBase and implements IDisposable
-        try
-        {
-            var implementsIDisposable = typeof(IDisposable).IsAssignableFrom(type);
-            var inheritsFromBase = InheritsFromViewModelBase(type);
-
-            return implementsIDisposable && inheritsFromBase;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Error validating ViewModel type: {TypeName}", type.Name);
+            _logger.LogWarning(ex, "Error validating assembly path: {AssemblyPath}", assemblyPath);
             return false;
         }
     }
 
-    private bool InheritsFromViewModelBase(Type type)
+    /// <summary>
+    /// Determines the source (Core/Photography) of an assembly based on its path
+    /// </summary>
+    public string DetermineAssemblySource(string assemblyPath)
     {
-        var current = type.BaseType;
-        while (current != null && current != typeof(object))
+        try
         {
-            if (current.Name is "BaseViewModel" or "ViewModelBase")
-            {
-                return true;
-            }
-            current = current.BaseType;
+            var fileName = Path.GetFileNameWithoutExtension(assemblyPath);
+
+            if (fileName.Contains("Core.ViewModels", StringComparison.OrdinalIgnoreCase))
+                return "Core";
+            else if (fileName.Contains("Photography.ViewModels", StringComparison.OrdinalIgnoreCase))
+                return "Photography";
+            else
+                return "Unknown";
         }
-        return false;
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error determining assembly source: {AssemblyPath}", assemblyPath);
+            return "Unknown";
+        }
     }
 }
