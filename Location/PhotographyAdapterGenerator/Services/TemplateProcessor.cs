@@ -49,7 +49,7 @@ public class TemplateProcessor
 
             await File.WriteAllTextAsync(filePath, content);
             _logger.LogInformation("Generated adapter: {FileName}", fileName);
-        }
+        } 
     }
 
     private string GenerateAndroidAdapter(ViewModelMetadata viewModel)
