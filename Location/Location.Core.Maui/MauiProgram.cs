@@ -2,6 +2,7 @@
 using Location.Core.Application;
 using Location.Core.Application.Services;
 using Location.Core.Infrastructure;
+using Location.Core.Infrastructure.Services;
 using Location.Core.Maui.Services;
 using Location.Core.ViewModels;
 using Location.Photography.ViewModels;
@@ -14,6 +15,8 @@ namespace Location.Core.Maui
     {
         public static MauiApp CreateMauiApp()
         {
+
+
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
             var builder = MauiApp.CreateBuilder();
@@ -40,7 +43,7 @@ namespace Location.Core.Maui
             // Register ViewModels
             builder.Services.AddTransient<LocationViewModel>();
             builder.Services.AddTransient<WeatherViewModel>();
-
+            builder.Services.AddSingleton<ICacheService, AkavacheCacheService>();
             // Register Pages
             builder.Services.AddTransient<Views.AddLocation>();
             builder.Services.AddTransient<Views.EditLocation>();

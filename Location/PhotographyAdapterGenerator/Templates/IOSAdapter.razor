@@ -1,0 +1,127 @@
+﻿@model Location.Photography.Tools.AdapterGenerator.Services.ViewModelMetadata
+/**
+ * This is a truly stupid adapter that just bridges stuff.
+ * It should never be smart. Ever.
+ * (Now even more stupid because Akavache handles all the caching!)
+ *
+ * Generated from: @Model.FullName
+ * Source: @Model.Source
+ * Generated: @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
+ */
+
+import Foundation
+import Combine
+
+class @Model.AdapterName: ObservableObject {
+    private let dotnetViewModel: @Model.FullName
+    private var cancellables = Set<AnyCancellable>()
+
+    init(dotnetViewModel: @Model.FullName) {
+        self.dotnetViewModel = dotnetViewModel
+        setupObservableCollectionBindings()
+    }
+
+@foreach(var prop in Model.Properties.Where(p => !p.IsObservableCollection))
+{
+    @:// Direct property access - let .NET handle threading
+    @:var @prop.CamelCaseName: @GetSwiftType(prop.Type) {
+    @:    get { return dotnetViewModel.@prop.CamelCaseName }
+    @:}
+}
+
+@foreach(var collection in Model.Properties.Where(p => p.IsObservableCollection))
+{
+    @:// ObservableCollection<@collection.ElementType.Name> → @Published [@GetSwiftType(collection.ElementType)]
+    @:@Published var @collection.CamelCaseName: [@GetSwiftType(collection.ElementType)] = []
+}
+
+@foreach(var command in Model.Commands)
+{
+    @if(command.IsAsync)
+    {
+    @:// Async command: @command.Name - let .NET handle threading
+    @:func @command.MethodName(@GetSwiftParameterSignature(command)) async -> Result<Void, Error> {
+    @:    do {
+    @if(command.HasParameter)
+    {
+    @:        try await dotnetViewModel.@command.Name.executeAsync(@GetSwiftParameterName(command))
+    }
+    else
+    {
+    @:        try await dotnetViewModel.@command.Name.executeAsync()
+    }
+    @:        return .success(())
+    @:    } catch {
+    @:        return .failure(error)
+    @:    }
+    @:}
+    }
+    else
+    {
+    @:// Sync command: @command.Name
+    @:func @command.MethodName(@GetSwiftParameterSignature(command)) {
+    @if(command.HasParameter)
+    {
+    @:    dotnetViewModel.@command.Name.execute(@GetSwiftParameterName(command))
+    }
+    else
+    {
+    @:    dotnetViewModel.@command.Name.execute()
+    }
+    @:}
+    }
+}
+
+    private func setupObservableCollectionBindings() {
+@foreach(var collection in Model.Properties.Where(p => p.IsObservableCollection))
+{
+    @:        // Subscribe to ObservableCollection changes for @collection.Name
+    @:        dotnetViewModel.@collection.Name.collectionChanged.subscribe { [weak self] _ in
+    @:            DispatchQueue.main.async {
+    @:                self?.@collection.CamelCaseName = Array(self?.dotnetViewModel.@collection.Name ?? [])
+    @:            }
+    @:        }.store(in: &cancellables)
+}
+    }
+
+    deinit {
+        dotnetViewModel.dispose() // Always safe - all ViewModels implement IDisposable
+        cancellables.removeAll()
+    }
+}
+
+@functions {
+    string GetSwiftType(Type type)
+    {
+        return type.Name switch
+        {
+            "String" => "String",
+            "Int32" => "Int32", 
+            "Boolean" => "Bool",
+            "Double" => "Double",
+            "Single" => "Float",
+            "DateTime" => "Date",
+            _ => type.Name
+        };
+    }
+
+    string GetSwiftParameterSignature(CommandMetadata command)
+    {
+        if (!command.HasParameter) return "";
+        var paramName = ToCamelCase(command.ParameterType?.Name ?? "param");
+        var paramType = GetSwiftType(command.ParameterType ?? typeof(object));
+        return $"{paramName}: {paramType}";
+    }
+
+    string GetSwiftParameterName(CommandMetadata command)
+    {
+        if (!command.HasParameter) return "";
+        return ToCamelCase(command.ParameterType?.Name ?? "param");
+    }
+
+    string ToCamelCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        return char.ToLower(input[0]) + input.Substring(1);
+    }
+}

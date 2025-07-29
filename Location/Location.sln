@@ -65,6 +65,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Location.Core.BDD.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Location.Photography.BDD.Tests", "Location.Photography.BDD.Tests\Location.Photography.BDD.Tests.csproj", "{DEFCEC47-C298-4EE0-AC9A-1F9B34324C85}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotographyAdapterGenerator", "PhotographyAdapterGenerator\PhotographyAdapterGenerator.csproj", "{5588240F-A75E-43A2-A487-83D7151866DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -149,6 +151,10 @@ Global
 		{DEFCEC47-C298-4EE0-AC9A-1F9B34324C85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEFCEC47-C298-4EE0-AC9A-1F9B34324C85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEFCEC47-C298-4EE0-AC9A-1F9B34324C85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5588240F-A75E-43A2-A487-83D7151866DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5588240F-A75E-43A2-A487-83D7151866DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5588240F-A75E-43A2-A487-83D7151866DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5588240F-A75E-43A2-A487-83D7151866DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -179,6 +185,7 @@ Global
 		{EA8538C3-9228-4645-8689-3AB54BDFD57A} = {A6B35665-1E59-461D-8716-724E7449CE0F}
 		{48E59809-CAED-43C8-A692-50DC0168D1EF} = {6D047CBD-BEAB-4039-A2EF-1B5A67927927}
 		{DEFCEC47-C298-4EE0-AC9A-1F9B34324C85} = {EA8538C3-9228-4645-8689-3AB54BDFD57A}
+		{5588240F-A75E-43A2-A487-83D7151866DE} = {8D38DEDB-BCFA-44F7-8C24-2496BE9FB121}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {52993987-EFE2-44B9-8349-0B30C4DDD694}

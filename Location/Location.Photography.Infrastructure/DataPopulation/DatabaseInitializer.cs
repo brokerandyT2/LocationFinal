@@ -335,8 +335,6 @@ namespace Location.Photography.Infrastructure
             _initializationTimestamp = null;
         }
 
-        // ... rest of your existing methods (CreateTipTypesAsync, CreateSampleLocationsAsync, etc.)
-        // These remain unchanged
 
         private async Task CreateTipTypesAsync(CancellationToken cancellationToken = default)
         {

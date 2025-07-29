@@ -36,6 +36,9 @@ namespace Location.Photography.Maui
     {
         public static MauiApp CreateMauiApp()
         {
+            SQLitePCL.Batteries_V2.Init();
+            SQLitePCL.raw.FreezeProvider();
+
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()

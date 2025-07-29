@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Location.Core.Application.Services;
 using Location.Core.Application.Settings.Queries.GetSettingByKey;
+using Location.Core.ViewModels;
 using Location.Photography.Application.Queries.AstroLocation;
 using Location.Photography.Application.Services;
 using Location.Photography.Domain.Services;
@@ -530,7 +531,14 @@ namespace Location.Photography.ViewModels
                 IsBusy = false;
             }
         }
-
+        /// <summary>
+        /// Asynchronously loads equipment recommendations based on the selected location and event.
+        /// </summary>
+        /// <remarks>This method retrieves recommendations for astrophotography equipment and settings,
+        /// including camera, lens, exposure settings, and stacking recommendations, based on the target's properties
+        /// (e.g., altitude, azimuth, magnitude) and the observer's location. The recommendations are populated into the
+        /// corresponding properties of the class.</remarks>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         private async Task LoadEquipmentRecommendationsAsync()
         {
             if (SelectedLocation == null || SelectedEvent == null) return;

@@ -471,7 +471,19 @@ namespace Location.Photography.ViewModels
             OnPropertyChanged(nameof(CivilDuskFormatted));
             OnPropertyChanged(nameof(GoldenHourMorning));
             OnPropertyChanged(nameof(GoldenHourEvening));
-
+            OnPropertyChanged(nameof(SunRiseFormatted));
+            OnPropertyChanged(nameof(SunSetFormatted));
+            OnPropertyChanged(nameof(SolarNoonFormatted));
+            OnPropertyChanged(nameof(GoldenHourMorningFormatted));
+            OnPropertyChanged(nameof(GoldenHourEveningFormatted));
+            OnPropertyChanged(nameof(AstronomicalDawnFormatted));
+            OnPropertyChanged(nameof(AstronomicalDuskFormatted));
+            OnPropertyChanged(nameof(NauticalDawnFormatted));
+            OnPropertyChanged(nameof(NauticalDuskFormatted));
+            OnPropertyChanged(nameof(CivilDawnFormatted));
+            OnPropertyChanged(nameof(CivilDuskFormatted));
+            OnPropertyChanged(nameof(GoldenHourMorning));
+            OnPropertyChanged(nameof(GoldenHourEvening));
             _ = EndPropertyChangeBatchAsync();
         }
 
