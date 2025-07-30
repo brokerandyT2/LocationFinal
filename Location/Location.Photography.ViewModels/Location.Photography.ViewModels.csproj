@@ -17,15 +17,18 @@
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.50" />
     <PackageReference Include="Plugin.InAppBilling" Version="8.0.5" />
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
-    <!-- Update these in all your .csproj files -->
 
+    <!-- REMOVED: All AdapterGenerator package references to eliminate cycles -->
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Location.Core.Application\Location.Core.Application.csproj" />
-    <ProjectReference Include="..\Location.Core.ViewModels\Location.Core.ViewModels.csproj" />
+
+
     <ProjectReference Include="..\Location.Photography.Application\Location.Photography.Application.csproj" />
     <ProjectReference Include="..\Location.Photography.Domain\Location.Photography.Domain.csproj" />
+
+    <!-- REMOVED: Generator project reference to eliminate cycles -->
   </ItemGroup>
 
   <ItemGroup>

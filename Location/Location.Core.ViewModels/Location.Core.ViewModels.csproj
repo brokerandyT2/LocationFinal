@@ -11,13 +11,21 @@
     <PackageReference Include="akavache.core" Version="10.2.41" />
     <PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CosineKitty.AstronomyEngine" Version="2.1.19" />
     <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.50" />
     <PackageReference Include="Plugin.InAppBilling" Version="8.0.5" />
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
+
+    
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Location.Core.Application\Location.Core.Application.csproj" />
+    <ProjectReference Include="..\Location.Photography.Domain\Location.Photography.Domain.csproj" />
+
+
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,49 @@
 <Project>
+
+  <!-- Existing coverage report generation -->
   <Target Name="GenerateCoverageReport" AfterTargets="RunTests">
     <Exec Command="reportgenerator -reports:&quot;$(MSBuildProjectDirectory)/TestResults/**/coverage.cobertura.xml&quot; -targetdir:&quot;$(MSBuildProjectDirectory)/coverage-report&quot; -reporttypes:Html" />
   </Target>
+
+  <!-- Photography Adapter Generator - SIMPLE approach without package references -->
+
+  <!-- Only enable for ViewModel projects -->
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('ViewModel')) AND '$(MSBuildProjectName)' != 'PhotographyAdapterGenerator'">
+    <RunPhotographyAdapterGenerator>true</RunPhotographyAdapterGenerator>
+  </PropertyGroup>
+
+  <!-- Disable for all other projects -->
+  <PropertyGroup Condition="!$(MSBuildProjectName.Contains('ViewModel')) OR '$(MSBuildProjectName)' == 'PhotographyAdapterGenerator'">
+    <RunPhotographyAdapterGenerator>false</RunPhotographyAdapterGenerator>
+  </PropertyGroup>
+
+  <!-- Generate adapters ONLY when ViewModel projects build and generator exists -->
+  <Target Name="GeneratePhotographyAdapters"
+          AfterTargets="Build"
+          Condition="'$(RunPhotographyAdapterGenerator)' == 'true'">
+
+    <PropertyGroup>
+      <!-- Try to find the generator executable directly -->
+      <GeneratorExePath>$(MSBuildThisFileDirectory)PhotographyAdapterGenerator\bin\$(Configuration)\net9.0\PhotographyAdapterGenerator.exe</GeneratorExePath>
+      <GeneratorArgs>--verbose</GeneratorArgs>
+    </PropertyGroup>
+
+    <!-- Only run if generator executable exists -->
+    <Message Text="[PhotographyAdapterGenerator] 🚀 Looking for generator at: $(GeneratorExePath)"
+             Importance="normal" />
+
+    <Exec Command="&quot;$(GeneratorExePath)&quot; $(GeneratorArgs)"
+          Condition="Exists('$(GeneratorExePath)')"
+          ContinueOnError="false"
+          WorkingDirectory="$(MSBuildThisFileDirectory)" />
+
+    <Message Text="[PhotographyAdapterGenerator] ✅ Adapter generation completed!"
+             Importance="high"
+             Condition="Exists('$(GeneratorExePath)')" />
+
+    <Message Text="[PhotographyAdapterGenerator] ⚠️ Generator not found. Build PhotographyAdapterGenerator first."
+             Importance="high"
+             Condition="!Exists('$(GeneratorExePath)')" />
+  </Target>
+
 </Project>

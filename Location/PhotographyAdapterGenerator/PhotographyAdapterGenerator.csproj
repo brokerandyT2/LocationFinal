@@ -78,6 +78,21 @@
     <Message Text="[MSBuild Integration] Copied .targets and .props files to build folder" Importance="normal" />
   </Target>
 
+  <!-- Pack and install tool automatically on Debug builds -->
+  <Target Name="AutoInstallToolAfterPack" AfterTargets="Pack" Condition="'$(Configuration)' == 'Debug'">
+    <Message Text="[Auto-Install] Installing Photography Adapter Generator as global tool..." Importance="high" />
+
+    <!-- Uninstall existing version (ignore errors if not installed) -->
+    <Exec Command="dotnet tool uninstall -g Location.Photography.AdapterGenerator"
+          ContinueOnError="true"
+          IgnoreExitCode="true" />
+
+    <!-- Install latest version -->
+    <Exec Command="dotnet tool install -g --add-source &quot;$(MSBuildProjectDirectory)\bin\Debug&quot; Location.Photography.AdapterGenerator"
+          ContinueOnError="false" />
+
+    <Message Text="[Auto-Install] ✅ Global tool installation completed! Developers can now build ViewModel projects." Importance="high" />
+  </Target>
   <!-- Copy output for debugging -->
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <None Include="readme.md" CopyToOutputDirectory="PreserveNewest" />
