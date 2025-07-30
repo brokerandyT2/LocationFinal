@@ -14,18 +14,17 @@
 
     <!-- Package Metadata -->
     <PackageId>Location.Photography.AdapterGenerator</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Location Photography Team</Authors>
     <Company>3xSquaredCircles</Company>
-    <Description>Generates truly stupid mobile adapters for Photography ViewModels with universal StateFlow two-way binding. Auto-runs after .NET build for seamless integration.</Description>
-    <PackageTags>kotlin;swift;photography;viewmodel;adapter;generator;android;ios;mobile;two-way-binding;msbuild</PackageTags>
+    <Description>Generates truly stupid mobile adapters for Photography ViewModels with universal StateFlow two-way binding. Auto-runs after .NET Debug builds with MSBuild integration.</Description>
+    <PackageTags>kotlin;swift;photography;viewmodel;adapter;generator;android;ios;mobile;two-way-binding;msbuild;debug-only</PackageTags>
     <PackageProjectUrl>https://github.com/your-org/location-photography</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
-    <!-- MSBuild Integration -->
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
-    <ContentTargetFolders>build</ContentTargetFolders>
+    <!-- MSBuild Integration Properties -->
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
 
   <ItemGroup>
@@ -48,38 +47,40 @@
     <!-- Create folders for organization -->
     <Folder Include="Models\" />
     <Folder Include="Services\" />
+    <Folder Include="MSBuildIntegration\" />
   </ItemGroup>
 
-  <!-- MSBuild Integration Files -->
+  <!-- Create build directory structure -->
+  <Target Name="CreateBuildDirectory" BeforeTargets="BeforeBuild">
+    <MakeDir Directories="$(MSBuildProjectDirectory)\build" Condition="!Exists('$(MSBuildProjectDirectory)\build')" />
+  </Target>
+
+  <!-- MSBuild Integration Files - Pack into NuGet -->
   <ItemGroup>
-    <None Include="build\Location.Photography.AdapterGenerator.targets" Pack="true" PackagePath="build\Location.Photography.AdapterGenerator.targets" />
-    <None Include="build\Location.Photography.AdapterGenerator.props" Pack="true" PackagePath="build\Location.Photography.AdapterGenerator.props" />
+    <None Include="MSBuildIntegration\AdapterGenerator.targets"
+          Pack="true"
+          PackagePath="build\Location.Photography.AdapterGenerator.targets"
+          Condition="Exists('MSBuildIntegration\AdapterGenerator.targets')" />
+    <None Include="MSBuildIntegration\AdapterGenerator.props"
+          Pack="true"
+          PackagePath="build\Location.Photography.AdapterGenerator.props"
+          Condition="Exists('MSBuildIntegration\AdapterGenerator.props')" />
   </ItemGroup>
+
+  <!-- Copy integration files to build folder for local testing -->
+  <Target Name="CopyMSBuildIntegrationFiles" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy SourceFiles="MSBuildIntegration\AdapterGenerator.targets"
+          DestinationFiles="build\Location.Photography.AdapterGenerator.targets"
+          Condition="Exists('MSBuildIntegration\AdapterGenerator.targets')" />
+    <Copy SourceFiles="MSBuildIntegration\AdapterGenerator.props"
+          DestinationFiles="build\Location.Photography.AdapterGenerator.props"
+          Condition="Exists('MSBuildIntegration\AdapterGenerator.props')" />
+    <Message Text="[MSBuild Integration] Copied .targets and .props files to build folder" Importance="normal" />
+  </Target>
 
   <!-- Copy output for debugging -->
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <None Include="readme.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-
-  <!-- Create MSBuild integration files on build -->
-  <Target Name="CreateMSBuildIntegrationFiles" BeforeTargets="Build">
-    <PropertyGroup>
-      <BuildFolderPath>$(MSBuildProjectDirectory)\build</BuildFolderPath>
-    </PropertyGroup>
-
-    <MakeDir Directories="$(BuildFolderPath)" Condition="!Exists('$(BuildFolderPath)')" />
-
-    <!-- Create .targets file -->
-    <WriteLinesToFile File="$(BuildFolderPath)\Location.Photography.AdapterGenerator.targets"
-                      Lines="$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\MSBuildIntegration\AdapterGenerator.targets'))"
-                      Overwrite="true"
-                      Condition="Exists('$(MSBuildProjectDirectory)\MSBuildIntegration\AdapterGenerator.targets')" />
-
-    <!-- Create .props file -->
-    <WriteLinesToFile File="$(BuildFolderPath)\Location.Photography.AdapterGenerator.props"
-                      Lines="$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\MSBuildIntegration\AdapterGenerator.props'))"
-                      Overwrite="true"
-                      Condition="Exists('$(MSBuildProjectDirectory)\MSBuildIntegration\AdapterGenerator.props')" />
-  </Target>
 
 </Project>
