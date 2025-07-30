@@ -18,7 +18,16 @@ public class AssemblyLoader
         try
         {
             // Find Core ViewModels assembly path
-            var coreAssemblyPath = await FindCoreAssemblyPathAsync(options.CoreAssemblyPath);
+            string coreAssemblyPath=string.Empty;
+
+            if (options.CoreAssemblyPath != string.Empty)
+            {
+                coreAssemblyPath = options.CoreAssemblyPath;
+            }
+            else
+            {
+                coreAssemblyPath = await FindCoreAssemblyPathAsync("..\\Location.Core.ViewModels\\bin\\Debug\\net9.0");
+            }
             if (coreAssemblyPath != null)
             {
                 assemblyPaths.Add(coreAssemblyPath);
@@ -26,7 +35,15 @@ public class AssemblyLoader
             }
 
             // Find Photography ViewModels assembly path
-            var photographyAssemblyPath = await FindPhotographyAssemblyPathAsync(options.PhotographyAssemblyPath);
+            string photographyAssemblyPath = string.Empty;
+            if(options.PhotographyAssemblyPath != string.Empty)
+            {
+                photographyAssemblyPath = options.PhotographyAssemblyPath;
+            }
+            else
+            {
+                photographyAssemblyPath = await FindPhotographyAssemblyPathAsync("..\\Location.Photography.ViewModels\\bin\\Debug\\Net9.0");
+            }
             if (photographyAssemblyPath != null)
             {
                 assemblyPaths.Add(photographyAssemblyPath);
@@ -53,29 +70,14 @@ public class AssemblyLoader
     {
         const string assemblyName = "Location.Core.ViewModels.dll";
 
-        if (!string.IsNullOrEmpty(customPath))
-        {
-            var fullCustomPath = Path.GetFullPath(customPath);
-            if (File.Exists(fullCustomPath))
-            {
-                _logger.LogInformation("Using custom Core assembly path: {Path}", fullCustomPath);
-                return fullCustomPath;
-            }
-            else
-            {
-                _logger.LogWarning("Custom Core assembly path does not exist: {Path}", fullCustomPath);
-                return null;
-            }
-        }
+        
 
         // Search common locations for Core assembly
         var searchPaths = new[]
         {
-            // Current directory
-            Directory.GetCurrentDirectory(),
             
             // Relative to generator (one level up)
-            Path.Combine(Directory.GetCurrentDirectory(), "..", "Location.Core.ViewModels", "bin", "Debug", "net9.0"),
+            Path.Combine( "Location.Core.ViewModels", "bin", "Debug", "net9.0"),
             
             // Common build output paths
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos", "location-dotnet-core", "Location.Core.ViewModels", "bin", "Debug", "net9.0"),
@@ -129,11 +131,15 @@ public class AssemblyLoader
         {
             try
             {
-                // Resolve the full path to handle relative paths properly
-                var fullSearchPath = Path.GetFullPath(searchPath);
+                var current = new DirectoryInfo(Directory.GetCurrentDirectory());
+                var parent = current.ToString();
+               
+                var replaces = parent.Replace("bin\\Debug\\net9.0", "").Replace("PhotographyAdapterGenerator\\","");
+                var fullSearchPath = Path.Combine(replaces, searchPath);
+
                 _logger.LogDebug("Checking search path: {SearchPath}", fullSearchPath);
 
-                if (!Directory.Exists(fullSearchPath))
+                if (!Directory.Exists(replaces))
                 {
                     _logger.LogDebug("Search path does not exist: {SearchPath}", fullSearchPath);
                     continue;

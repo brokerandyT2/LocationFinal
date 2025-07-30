@@ -14,8 +14,7 @@ class Program
             // Parse command line arguments first to check for verbose flag
             var parseResult = Parser.Default.ParseArguments<GeneratorOptions>(args);
 
-            return await parseResult.MapResult(
-                async options => await RunGeneratorAsync(options),
+            return await parseResult.MapResult(async options => await RunGeneratorAsync(options),
                 _ => Task.FromResult(1) // Return 1 for parsing errors
             );
         }
