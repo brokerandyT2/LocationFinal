@@ -57,24 +57,14 @@
 
   <!-- MSBuild Integration Files - Pack into NuGet -->
   <ItemGroup>
-    <None Include="MSBuildIntegration\AdapterGenerator.targets"
-          Pack="true"
-          PackagePath="build\Location.Photography.AdapterGenerator.targets"
-          Condition="Exists('MSBuildIntegration\AdapterGenerator.targets')" />
-    <None Include="MSBuildIntegration\AdapterGenerator.props"
-          Pack="true"
-          PackagePath="build\Location.Photography.AdapterGenerator.props"
-          Condition="Exists('MSBuildIntegration\AdapterGenerator.props')" />
+    <None Include="MSBuildIntegration\AdapterGenerator.targets" Pack="true" PackagePath="build\Location.Photography.AdapterGenerator.targets" Condition="Exists('MSBuildIntegration\AdapterGenerator.targets')" />
+    <None Include="MSBuildIntegration\AdapterGenerator.props" Pack="true" PackagePath="build\Location.Photography.AdapterGenerator.props" Condition="Exists('MSBuildIntegration\AdapterGenerator.props')" />
   </ItemGroup>
 
   <!-- Copy integration files to build folder for local testing -->
   <Target Name="CopyMSBuildIntegrationFiles" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
-    <Copy SourceFiles="MSBuildIntegration\AdapterGenerator.targets"
-          DestinationFiles="build\Location.Photography.AdapterGenerator.targets"
-          Condition="Exists('MSBuildIntegration\AdapterGenerator.targets')" />
-    <Copy SourceFiles="MSBuildIntegration\AdapterGenerator.props"
-          DestinationFiles="build\Location.Photography.AdapterGenerator.props"
-          Condition="Exists('MSBuildIntegration\AdapterGenerator.props')" />
+    <Copy SourceFiles="MSBuildIntegration\AdapterGenerator.targets" DestinationFiles="build\Location.Photography.AdapterGenerator.targets" Condition="Exists('MSBuildIntegration\AdapterGenerator.targets')" />
+    <Copy SourceFiles="MSBuildIntegration\AdapterGenerator.props" DestinationFiles="build\Location.Photography.AdapterGenerator.props" Condition="Exists('MSBuildIntegration\AdapterGenerator.props')" />
     <Message Text="[MSBuild Integration] Copied .targets and .props files to build folder" Importance="normal" />
   </Target>
 
@@ -83,19 +73,19 @@
     <Message Text="[Auto-Install] Installing Photography Adapter Generator as global tool..." Importance="high" />
 
     <!-- Uninstall existing version (ignore errors if not installed) -->
-    <Exec Command="dotnet tool uninstall -g Location.Photography.AdapterGenerator"
-          ContinueOnError="true"
-          IgnoreExitCode="true" />
+    <Exec Command="dotnet tool uninstall -g Location.Photography.AdapterGenerator" ContinueOnError="true" IgnoreExitCode="true" />
 
     <!-- Install latest version -->
-    <Exec Command="dotnet tool install -g --add-source &quot;$(MSBuildProjectDirectory)\bin\Debug&quot; Location.Photography.AdapterGenerator"
-          ContinueOnError="false" />
+    <Exec Command="dotnet tool install -g --add-source &quot;$(MSBuildProjectDirectory)\bin\Debug&quot; Location.Photography.AdapterGenerator" ContinueOnError="false" />
 
     <Message Text="[Auto-Install] ✅ Global tool installation completed! Developers can now build ViewModel projects." Importance="high" />
   </Target>
   <!-- Copy output for debugging -->
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <None Include="readme.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Location.Core.Helpers\Location.Core.Helpers.csproj" />
   </ItemGroup>
 
 </Project>
