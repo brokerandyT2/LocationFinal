@@ -18,33 +18,36 @@ public class AssemblyLoader
         try
         {
             // Find Core ViewModels assembly path
-            string coreAssemblyPath=string.Empty;
-
-            if (options.CoreAssemblyPath != string.Empty)
+            string? coreAssemblyPath = null;
+            if (!string.IsNullOrEmpty(options.CoreAssemblyPath))
             {
                 coreAssemblyPath = options.CoreAssemblyPath;
+                _logger.LogInformation("Using custom Core assembly path: {Path}", coreAssemblyPath);
             }
             else
             {
-                coreAssemblyPath = await FindCoreAssemblyPathAsync("..\\Location.Core.ViewModels\\bin\\Debug\\net9.0");
+                coreAssemblyPath = await FindCoreAssemblyPathAsync();
             }
-            if (coreAssemblyPath != null)
+
+            if (!string.IsNullOrEmpty(coreAssemblyPath))
             {
                 assemblyPaths.Add(coreAssemblyPath);
                 _logger.LogInformation("Found Core assembly: {Path}", coreAssemblyPath);
             }
 
             // Find Photography ViewModels assembly path
-            string photographyAssemblyPath = string.Empty;
-            if(options.PhotographyAssemblyPath != string.Empty)
+            string? photographyAssemblyPath = null;
+            if (!string.IsNullOrEmpty(options.PhotographyAssemblyPath))
             {
                 photographyAssemblyPath = options.PhotographyAssemblyPath;
+                _logger.LogInformation("Using custom Photography assembly path: {Path}", photographyAssemblyPath);
             }
             else
             {
-                photographyAssemblyPath = await FindPhotographyAssemblyPathAsync("..\\Location.Photography.ViewModels\\bin\\Debug\\Net9.0");
+                photographyAssemblyPath = await FindPhotographyAssemblyPathAsync();
             }
-            if (photographyAssemblyPath != null)
+
+            if (!string.IsNullOrEmpty(photographyAssemblyPath))
             {
                 assemblyPaths.Add(photographyAssemblyPath);
                 _logger.LogInformation("Found Photography assembly: {Path}", photographyAssemblyPath);
@@ -66,99 +69,55 @@ public class AssemblyLoader
         }
     }
 
-    private async Task<string?> FindCoreAssemblyPathAsync(string? customPath)
+    private async Task<string?> FindCoreAssemblyPathAsync()
     {
         const string assemblyName = "Location.Core.ViewModels.dll";
+        const string searchPath = "Location.Core.ViewModels\\bin\\Debug\\net9.0";
 
-        
-
-        // Search common locations for Core assembly
-        var searchPaths = new[]
-        {
-            
-            // Relative to generator (one level up)
-            Path.Combine( "Location.Core.ViewModels", "bin", "Debug", "net9.0"),
-            
-            // Common build output paths
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos", "location-dotnet-core", "Location.Core.ViewModels", "bin", "Debug", "net9.0"),
-            @"C:\Source\location-dotnet-core\Location.Core.ViewModels\bin\Debug\net9.0",
-        };
-
-        return await FindAssemblyPathAsync(assemblyName, searchPaths, "Core");
+        return await FindAssemblyPathAsync(assemblyName, searchPath, "Core");
     }
 
-    private async Task<string?> FindPhotographyAssemblyPathAsync(string? customPath)
+    private async Task<string?> FindPhotographyAssemblyPathAsync()
     {
         const string assemblyName = "Location.Photography.ViewModels.dll";
+        const string searchPath = "Location.Photography.ViewModels\\bin\\Debug\\net9.0";
 
-        if (!string.IsNullOrEmpty(customPath))
-        {
-            var fullCustomPath = Path.GetFullPath(customPath);
-            if (File.Exists(fullCustomPath))
-            {
-                _logger.LogInformation("Using custom Photography assembly path: {Path}", fullCustomPath);
-                return fullCustomPath;
-            }
-            else
-            {
-                _logger.LogWarning("Custom Photography assembly path does not exist: {Path}", fullCustomPath);
-                return null;
-            }
-        }
-
-        // Search common locations for Photography assembly
-        var searchPaths = new[]
-        {
-            // Current directory
-            Directory.GetCurrentDirectory(),
-            
-            // Relative to generator (one level up)
-            Path.Combine(Directory.GetCurrentDirectory(), "..", "Location.Photography.ViewModels", "bin", "Debug", "net9.0"),
-            
-            // Common build output paths
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos", "location-dotnet-photography", "Location.Photography.ViewModels", "bin", "Debug", "net9.0"),
-            @"C:\Source\location-dotnet-photography\Location.Photography.ViewModels\bin\Debug\net9.0",
-        };
-
-        return await FindAssemblyPathAsync(assemblyName, searchPaths, "Photography");
+        return await FindAssemblyPathAsync(assemblyName, searchPath, "Photography");
     }
 
-    private async Task<string?> FindAssemblyPathAsync(string assemblyName, string[] searchPaths, string assemblyType)
+    private async Task<string?> FindAssemblyPathAsync(string assemblyName, string searchPath, string assemblyType)
     {
         _logger.LogDebug("Searching for {AssemblyType} assembly: {AssemblyName}", assemblyType, assemblyName);
 
-        foreach (var searchPath in searchPaths)
+        try
         {
-            try
+            // Navigate to solution root using the hardcoded pattern
+            var current = new DirectoryInfo(Directory.GetCurrentDirectory());
+            var parent = current.ToString();
+            var replaces = parent.Replace("bin\\Debug\\net9.0", "").Replace("PhotographyAdapterGenerator\\", "");
+            var fullSearchPath = Path.Combine(replaces, searchPath);
+
+            _logger.LogDebug("Checking search path: {SearchPath}", fullSearchPath);
+
+            if (!Directory.Exists(fullSearchPath))
             {
-                var current = new DirectoryInfo(Directory.GetCurrentDirectory());
-                var parent = current.ToString();
-               
-                var replaces = parent.Replace("bin\\Debug\\net9.0", "").Replace("PhotographyAdapterGenerator\\","");
-                var fullSearchPath = Path.Combine(replaces, searchPath);
-
-                _logger.LogDebug("Checking search path: {SearchPath}", fullSearchPath);
-
-                if (!Directory.Exists(replaces))
-                {
-                    _logger.LogDebug("Search path does not exist: {SearchPath}", fullSearchPath);
-                    continue;
-                }
-
-                var assemblyPath = Path.Combine(fullSearchPath, assemblyName);
-                _logger.LogDebug("Looking for assembly at: {AssemblyPath}", assemblyPath);
-
-                if (File.Exists(assemblyPath))
-                {
-                    var fullAssemblyPath = Path.GetFullPath(assemblyPath);
-                    _logger.LogDebug("Found {AssemblyType} assembly at: {AssemblyPath}", assemblyType, fullAssemblyPath);
-                    return fullAssemblyPath;
-                }
+                _logger.LogDebug("Search path does not exist: {SearchPath}", fullSearchPath);
+                return null;
             }
-            catch (Exception ex)
+
+            var assemblyPath = Path.Combine(fullSearchPath, assemblyName);
+            _logger.LogDebug("Looking for assembly at: {AssemblyPath}", assemblyPath);
+
+            if (File.Exists(assemblyPath))
             {
-                _logger.LogDebug(ex, "Error checking search path: {SearchPath}", searchPath);
+                var fullAssemblyPath = Path.GetFullPath(assemblyPath);
+                _logger.LogDebug("Found {AssemblyType} assembly at: {AssemblyPath}", assemblyType, fullAssemblyPath);
+                return fullAssemblyPath;
             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Error checking search path: {SearchPath}", searchPath);
         }
 
         _logger.LogWarning("Could not find {AssemblyType} assembly: {AssemblyName}", assemblyType, assemblyName);

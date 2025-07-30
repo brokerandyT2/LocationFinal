@@ -17,22 +17,23 @@
     <Version>1.1.0</Version>
     <Authors>Location Photography Team</Authors>
     <Company>3xSquaredCircles</Company>
-    <Description>Generates truly stupid mobile adapters for Photography ViewModels. These adapters just bridge .NET ViewModels to Android/iOS platforms without any business logic.</Description>
-    <PackageTags>IOS;ios;photography;viewmodel;adapter;generator;android;mobile</PackageTags>
+    <Description>Generates truly stupid mobile adapters for Photography ViewModels with universal StateFlow two-way binding. Auto-runs after .NET build for seamless integration.</Description>
+    <PackageTags>kotlin;swift;photography;viewmodel;adapter;generator;android;ios;mobile;two-way-binding;msbuild</PackageTags>
     <PackageProjectUrl>https://github.com/your-org/location-photography</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- MSBuild Integration -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
+    <ContentTargetFolders>build</ContentTargetFolders>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Command line parsing -->
-    <PackageReference Include="akavache.core" Version="10.2.41" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
 
     <!-- Reflection and assembly loading -->
     <PackageReference Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
-
-    <!-- Template engine (Razor for code generation) -->
-    <PackageReference Include="RazorEngine.NetCore" Version="3.1.0" />
 
     <!-- Logging -->
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
@@ -44,26 +45,41 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Embed Razor templates as resources -->
-    <EmbeddedResource Include="Templates/**/*.cshtml" />
-    <EmbeddedResource Include="Templates/**/*.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Remove="Templates\Android\AndroidAdapter.razor" />
-    <EmbeddedResource Remove="Templates\IOSAdapter.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Create Templates folder structure -->
+    <!-- Create folders for organization -->
     <Folder Include="Models\" />
-    <Folder Include="Templates\Android\" />
-    <Folder Include="Templates\Shared\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
-  <!-- Copy templates to output for debugging -->
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <None Include="Templates/**/*" CopyToOutputDirectory="PreserveNewest" />
+  <!-- MSBuild Integration Files -->
+  <ItemGroup>
+    <None Include="build\Location.Photography.AdapterGenerator.targets" Pack="true" PackagePath="build\Location.Photography.AdapterGenerator.targets" />
+    <None Include="build\Location.Photography.AdapterGenerator.props" Pack="true" PackagePath="build\Location.Photography.AdapterGenerator.props" />
   </ItemGroup>
+
+  <!-- Copy output for debugging -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <None Include="readme.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Create MSBuild integration files on build -->
+  <Target Name="CreateMSBuildIntegrationFiles" BeforeTargets="Build">
+    <PropertyGroup>
+      <BuildFolderPath>$(MSBuildProjectDirectory)\build</BuildFolderPath>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(BuildFolderPath)" Condition="!Exists('$(BuildFolderPath)')" />
+
+    <!-- Create .targets file -->
+    <WriteLinesToFile File="$(BuildFolderPath)\Location.Photography.AdapterGenerator.targets"
+                      Lines="$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\MSBuildIntegration\AdapterGenerator.targets'))"
+                      Overwrite="true"
+                      Condition="Exists('$(MSBuildProjectDirectory)\MSBuildIntegration\AdapterGenerator.targets')" />
+
+    <!-- Create .props file -->
+    <WriteLinesToFile File="$(BuildFolderPath)\Location.Photography.AdapterGenerator.props"
+                      Lines="$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\MSBuildIntegration\AdapterGenerator.props'))"
+                      Overwrite="true"
+                      Condition="Exists('$(MSBuildProjectDirectory)\MSBuildIntegration\AdapterGenerator.props')" />
+  </Target>
 
 </Project>
