@@ -98,7 +98,7 @@ public class AssemblyLoader
             // Navigate to solution root using the same hardcoded pattern as adapter generator
             var current = new DirectoryInfo(Directory.GetCurrentDirectory());
             var parent = current.ToString();
-            var replaces = parent.Replace("bin\\Debug\\net9.0", "").Replace("SqlSchemaGenerator\\", "");
+            var replaces = parent.Replace("bin\\Debug\\net9.0", "").Replace("SQLServerSyncGenerator\\", "");
             var fullSearchPath = Path.Combine(replaces, searchPath);
 
             _logger.LogDebug("Checking search path: {SearchPath}", fullSearchPath);
