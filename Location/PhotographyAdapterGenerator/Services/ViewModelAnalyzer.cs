@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using Location.Core.Helpers.AdapterGeneration;
 
 namespace Location.Photography.Tools.AdapterGenerator.Services;
 
@@ -47,7 +48,8 @@ public class ViewModelAnalyzer
                 .Where(t => t.Name.EndsWith("ViewModel") &&
                            t.IsClass &&
                            t.IsPublic &&
-                           !t.IsAbstract)
+                           !t.IsAbstract &&
+                           !ShouldExcludeViewModel(t)) // NEW: Check for [Exclude] attribute
                 .ToList();
 
             _logger.LogInformation("Found {Count} ViewModels in {Source} assembly: {ViewModels}",
@@ -90,7 +92,11 @@ public class ViewModelAnalyzer
             Commands = GetPublicCommands(type),
             Methods = GetPublicMethods(type),
             Events = GetPublicEvents(type),
-            Constructor = new ConstructorMetadata() // Don't need complex DI analysis
+            Constructor = new ConstructorMetadata(), // Don't need complex DI analysis
+            // NEW: Extract class-level attributes
+            AvailableAttribute = type.GetCustomAttribute<AvailableAttribute>(),
+            ExcludeAttribute = type.GetCustomAttribute<ExcludeAttribute>(),
+            GenerateAsAttribute = type.GetCustomAttribute<GenerateAsAttribute>()
         };
     }
 
@@ -99,7 +105,8 @@ public class ViewModelAnalyzer
         return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p.CanRead &&
                        p.GetMethod?.IsPublic == true &&
-                       !p.PropertyType.Name.Contains("Command")) // Exclude commands
+                       !p.PropertyType.Name.Contains("Command") && // Exclude commands
+                       !ShouldExcludeProperty(p)) // NEW: Check for exclusion attributes
             .Select(p => new PropertyMetadata
             {
                 Name = p.Name,
@@ -108,7 +115,18 @@ public class ViewModelAnalyzer
                 IsObservableCollection = IsObservableCollectionType(p.PropertyType),
                 ElementType = GetObservableCollectionElementType(p.PropertyType),
                 IsReadOnly = !p.CanWrite,
-                HasNotifyPropertyChanged = true // All ViewModels implement INotifyPropertyChanged
+                HasNotifyPropertyChanged = true, // All ViewModels implement INotifyPropertyChanged
+                // NEW: Extract property-level attributes
+                MapToAttribute = p.GetCustomAttribute<MapToAttribute>(),
+                DateTypeAttribute = p.GetCustomAttribute<DateTypeAttribute>(),
+                AvailableAttribute = p.GetCustomAttribute<AvailableAttribute>(),
+                ExcludeAttribute = p.GetCustomAttribute<ExcludeAttribute>(),
+                GenerateAsAttribute = p.GetCustomAttribute<GenerateAsAttribute>(),
+                WarnCustomImplementationNeededAttribute = p.GetCustomAttribute<WarnCustomImplementationNeededAttribute>(),
+                CommandBehaviorAttribute = p.GetCustomAttribute<CommandBehaviorAttribute>(),
+                CollectionBehaviorAttribute = p.GetCustomAttribute<CollectionBehaviorAttribute>(),
+                ValidationBehaviorAttribute = p.GetCustomAttribute<ValidationBehaviorAttribute>(),
+                ThreadingBehaviorAttribute = p.GetCustomAttribute<ThreadingBehaviorAttribute>()
             })
             .ToList();
     }
@@ -116,14 +134,22 @@ public class ViewModelAnalyzer
     private List<CommandMetadata> GetPublicCommands(Type type)
     {
         return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.PropertyType.Name.Contains("Command"))
+            .Where(p => p.PropertyType.Name.Contains("Command") &&
+                       !ShouldExcludeProperty(p)) // NEW: Check for exclusion attributes
             .Select(p => new CommandMetadata
             {
                 Name = p.Name,
                 MethodName = GenerateMethodName(p.Name),
                 IsAsync = p.PropertyType.Name.Contains("Async"),
                 HasParameter = p.PropertyType.IsGenericType,
-                ParameterType = p.PropertyType.IsGenericType ? p.PropertyType.GetGenericArguments().LastOrDefault() : null
+                ParameterType = p.PropertyType.IsGenericType ? p.PropertyType.GetGenericArguments().LastOrDefault() : null,
+                // NEW: Extract command-level attributes
+                AvailableAttribute = p.GetCustomAttribute<AvailableAttribute>(),
+                ExcludeAttribute = p.GetCustomAttribute<ExcludeAttribute>(),
+                GenerateAsAttribute = p.GetCustomAttribute<GenerateAsAttribute>(),
+                WarnCustomImplementationNeededAttribute = p.GetCustomAttribute<WarnCustomImplementationNeededAttribute>(),
+                CommandBehaviorAttribute = p.GetCustomAttribute<CommandBehaviorAttribute>(),
+                ThreadingBehaviorAttribute = p.GetCustomAttribute<ThreadingBehaviorAttribute>()
             })
             .ToList();
     }
@@ -137,7 +163,8 @@ public class ViewModelAnalyzer
                        !m.Name.StartsWith("add_") &&
                        !m.Name.StartsWith("remove_") &&
                        m.DeclaringType != typeof(object) && // Exclude Object methods like ToString()
-                       !IsInheritedMethod(m)) // Exclude methods from base classes we don't want
+                       !IsInheritedMethod(m) && // Exclude methods from base classes we don't want
+                       !ShouldExcludeMethod(m)) // NEW: Check for exclusion attributes
             .Select(m => new MethodMetadata
             {
                 Name = m.Name,
@@ -149,7 +176,13 @@ public class ViewModelAnalyzer
                     Name = p.Name ?? "",
                     Type = p.ParameterType,
                     IsOptional = p.HasDefaultValue
-                }).ToList()
+                }).ToList(),
+                // NEW: Extract method-level attributes
+                AvailableAttribute = m.GetCustomAttribute<AvailableAttribute>(),
+                ExcludeAttribute = m.GetCustomAttribute<ExcludeAttribute>(),
+                GenerateAsAttribute = m.GetCustomAttribute<GenerateAsAttribute>(),
+                WarnCustomImplementationNeededAttribute = m.GetCustomAttribute<WarnCustomImplementationNeededAttribute>(),
+                ThreadingBehaviorAttribute = m.GetCustomAttribute<ThreadingBehaviorAttribute>()
             })
             .ToList();
     }
@@ -164,6 +197,61 @@ public class ViewModelAnalyzer
                 IsSystemEvent = e.Name == "ErrorOccurred"
             })
             .ToList();
+    }
+
+    // NEW: Attribute-based exclusion methods
+    private bool ShouldExcludeViewModel(Type type)
+    {
+        var excludeAttr = type.GetCustomAttribute<ExcludeAttribute>();
+        if (excludeAttr != null)
+        {
+            _logger.LogInformation("Excluding ViewModel {Name}: {Reason}",
+                type.Name, excludeAttr.Reason ?? "Marked with [Exclude]");
+            return true;
+        }
+        return false;
+    }
+
+    private bool ShouldExcludeProperty(PropertyInfo property)
+    {
+        var excludeAttr = property.GetCustomAttribute<ExcludeAttribute>();
+        if (excludeAttr != null)
+        {
+            _logger.LogDebug("Excluding property {Property}: {Reason}",
+                $"{property.DeclaringType?.Name}.{property.Name}",
+                excludeAttr.Reason ?? "Marked with [Exclude]");
+            return true;
+        }
+        return false;
+    }
+
+    private bool ShouldExcludeMethod(MethodInfo method)
+    {
+        var excludeAttr = method.GetCustomAttribute<ExcludeAttribute>();
+        if (excludeAttr != null)
+        {
+            _logger.LogDebug("Excluding method {Method}: {Reason}",
+                $"{method.DeclaringType?.Name}.{method.Name}",
+                excludeAttr.Reason ?? "Marked with [Exclude]");
+            return true;
+        }
+        return false;
+    }
+
+    // NEW: Platform-specific exclusion check
+    public bool ShouldExcludeForPlatform(MemberInfo member, string platform)
+    {
+        var availableAttr = member.GetCustomAttribute<AvailableAttribute>();
+        if (availableAttr != null)
+        {
+            return platform.ToLower() switch
+            {
+                "android" => !availableAttr.Android,
+                "ios" => !availableAttr.iOS,
+                _ => false
+            };
+        }
+        return false;
     }
 
     private bool IsInheritedMethod(MethodInfo method)
@@ -219,7 +307,7 @@ public class ViewModelAnalyzer
     }
 }
 
-// Supporting metadata classes
+// Enhanced metadata classes with attribute support
 public class ViewModelMetadata
 {
     public string Name { get; set; } = string.Empty;
@@ -234,6 +322,11 @@ public class ViewModelMetadata
     public ConstructorMetadata Constructor { get; set; } = new();
     public bool IsDisposable { get; set; } = true;
     public string BaseClass { get; set; } = string.Empty;
+
+    // NEW: Class-level attributes
+    public AvailableAttribute? AvailableAttribute { get; set; }
+    public ExcludeAttribute? ExcludeAttribute { get; set; }
+    public GenerateAsAttribute? GenerateAsAttribute { get; set; }
 }
 
 public class PropertyMetadata
@@ -245,6 +338,18 @@ public class PropertyMetadata
     public Type? ElementType { get; set; }
     public bool IsReadOnly { get; set; }
     public bool HasNotifyPropertyChanged { get; set; }
+
+    // NEW: Property-level attributes
+    public MapToAttribute? MapToAttribute { get; set; }
+    public DateTypeAttribute? DateTypeAttribute { get; set; }
+    public AvailableAttribute? AvailableAttribute { get; set; }
+    public ExcludeAttribute? ExcludeAttribute { get; set; }
+    public GenerateAsAttribute? GenerateAsAttribute { get; set; }
+    public WarnCustomImplementationNeededAttribute? WarnCustomImplementationNeededAttribute { get; set; }
+    public CommandBehaviorAttribute? CommandBehaviorAttribute { get; set; }
+    public CollectionBehaviorAttribute? CollectionBehaviorAttribute { get; set; }
+    public ValidationBehaviorAttribute? ValidationBehaviorAttribute { get; set; }
+    public ThreadingBehaviorAttribute? ThreadingBehaviorAttribute { get; set; }
 }
 
 public class CommandMetadata
@@ -255,6 +360,14 @@ public class CommandMetadata
     public Type? ParameterType { get; set; }
     public bool HasParameter { get; set; }
     public bool HasCanExecute { get; set; }
+
+    // NEW: Command-level attributes
+    public AvailableAttribute? AvailableAttribute { get; set; }
+    public ExcludeAttribute? ExcludeAttribute { get; set; }
+    public GenerateAsAttribute? GenerateAsAttribute { get; set; }
+    public WarnCustomImplementationNeededAttribute? WarnCustomImplementationNeededAttribute { get; set; }
+    public CommandBehaviorAttribute? CommandBehaviorAttribute { get; set; }
+    public ThreadingBehaviorAttribute? ThreadingBehaviorAttribute { get; set; }
 }
 
 public class MethodMetadata
@@ -264,6 +377,13 @@ public class MethodMetadata
     public bool IsAsync { get; set; }
     public Type ReturnType { get; set; } = typeof(void);
     public List<ParameterMetadata> Parameters { get; set; } = new();
+
+    // NEW: Method-level attributes
+    public AvailableAttribute? AvailableAttribute { get; set; }
+    public ExcludeAttribute? ExcludeAttribute { get; set; }
+    public GenerateAsAttribute? GenerateAsAttribute { get; set; }
+    public WarnCustomImplementationNeededAttribute? WarnCustomImplementationNeededAttribute { get; set; }
+    public ThreadingBehaviorAttribute? ThreadingBehaviorAttribute { get; set; }
 }
 
 public class EventMetadata

@@ -39,7 +39,7 @@ class Program
             .AddSingleton<TypeTranslator>()
             .AddSingleton<AndroidAdapterGenerator>()
             .AddSingleton<IOSAdapterGenerator>()
-            .AddSingleton<TemplateProcessor>()
+            .AddSingleton<TemplateProcessor>() // Updated constructor signature
             .BuildServiceProvider();
 
         var logger = services.GetRequiredService<ILogger<Program>>();
@@ -56,7 +56,8 @@ class Program
                 actualOutputPath = Path.Combine(solutionRoot, "Kotlin-Adapters");
             }
 
-            logger.LogInformation("Photography ViewModel Generator v1.1.0");
+            // NEW: Enhanced version logging with attribute support
+            logger.LogInformation("Photography ViewModel Generator v1.2.0 (with attribute support)");
             logger.LogInformation("Platform: {Platform}", options.Platform);
             logger.LogInformation("Base Output: {OutputPath}", actualOutputPath);
 
@@ -93,6 +94,9 @@ class Program
                 viewModels.Count(vm => vm.Source == "Core"),
                 viewModels.Count(vm => vm.Source == "Photography"));
 
+            // NEW: Log attribute usage statistics
+            LogAttributeUsageStatistics(logger, viewModels);
+
             // Step 3: Generate adapters for specified platform(s)
             var templateProcessor = services.GetRequiredService<TemplateProcessor>();
             var platformsToGenerate = GetPlatformsToGenerate(options.Platform);
@@ -117,6 +121,69 @@ class Program
         {
             services.Dispose();
         }
+    }
+
+    // NEW: Log statistics about attribute usage
+    static void LogAttributeUsageStatistics(ILogger logger, List<ViewModelMetadata> viewModels)
+    {
+        var totalViewModels = viewModels.Count;
+        var viewModelsWithAttributes = viewModels.Count(vm =>
+            vm.AvailableAttribute != null || vm.ExcludeAttribute != null || vm.GenerateAsAttribute != null ||
+            vm.Properties.Any(p => HasAnyAttribute(p)) ||
+            vm.Commands.Any(c => HasAnyCommandAttribute(c)));
+
+        var propertiesWithMapTo = viewModels.SelectMany(vm => vm.Properties).Count(p => p.MapToAttribute != null);
+        var propertiesWithDateType = viewModels.SelectMany(vm => vm.Properties).Count(p => p.DateTypeAttribute != null);
+        var propertiesWithAvailable = viewModels.SelectMany(vm => vm.Properties).Count(p => p.AvailableAttribute != null);
+        var propertiesWithExclude = viewModels.SelectMany(vm => vm.Properties).Count(p => p.ExcludeAttribute != null);
+
+        if (viewModelsWithAttributes > 0)
+        {
+            logger.LogInformation("Attribute Usage Statistics:");
+            logger.LogInformation("  ViewModels using attributes: {Count}/{Total} ({Percentage:F1}%)",
+                viewModelsWithAttributes, totalViewModels, (viewModelsWithAttributes * 100.0 / totalViewModels));
+
+            if (propertiesWithMapTo > 0)
+                logger.LogInformation("  Properties with [MapTo]: {Count}", propertiesWithMapTo);
+
+            if (propertiesWithDateType > 0)
+                logger.LogInformation("  Properties with [DateType]: {Count}", propertiesWithDateType);
+
+            if (propertiesWithAvailable > 0)
+                logger.LogInformation("  Properties with [Available]: {Count}", propertiesWithAvailable);
+
+            if (propertiesWithExclude > 0)
+                logger.LogInformation("  Properties with [Exclude]: {Count}", propertiesWithExclude);
+        }
+        else
+        {
+            logger.LogInformation("No custom attributes detected - using default generation for all ViewModels");
+        }
+    }
+
+    // NEW: Helper method to check if property has any attributes
+    static bool HasAnyAttribute(PropertyMetadata property)
+    {
+        return property.MapToAttribute != null ||
+               property.DateTypeAttribute != null ||
+               property.AvailableAttribute != null ||
+               property.ExcludeAttribute != null ||
+               property.GenerateAsAttribute != null ||
+               property.WarnCustomImplementationNeededAttribute != null ||
+               property.CommandBehaviorAttribute != null ||
+               property.CollectionBehaviorAttribute != null ||
+               property.ValidationBehaviorAttribute != null ||
+               property.ThreadingBehaviorAttribute != null;
+    }
+
+    // NEW: Helper method to check if command has any attributes
+    static bool HasAnyCommandAttribute(CommandMetadata command)
+    {
+        return command.AvailableAttribute != null ||
+               command.ExcludeAttribute != null ||
+               command.GenerateAsAttribute != null ||
+               command.CommandBehaviorAttribute != null ||
+               command.ThreadingBehaviorAttribute != null;
     }
 
     static List<string> GetPlatformsToGenerate(string platform)

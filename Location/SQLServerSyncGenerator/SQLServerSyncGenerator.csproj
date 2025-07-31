@@ -1,0 +1,76 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>SQLServerSyncGenerator</AssemblyName>
+    <RootNamespace>SQLServerSyncGenerator</RootNamespace>
+
+    <!-- .NET Tool Configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>sql-schema-generator</ToolCommandName>
+
+    <!-- Package Metadata -->
+    <PackageId>SQLServerSyncGenerator</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Location Team</Authors>
+    <Company>3xSquaredCircles</Company>
+    <Description>Automated SQL Server schema generation from .NET Domain entities with Azure Key Vault integration. Generates tables, indexes, and foreign keys from entity metadata.</Description>
+    <PackageTags>sql-server;schema;ddl;azure;keyvault;database;entity;domain;automation;pipeline</PackageTags>
+    <PackageProjectUrl>https://github.com/your-org/sqlserver-sync-generator</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- Build Properties -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <NoWarn>CS8618</NoWarn>
+    <!-- Nullable reference type warnings -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\**" />
+    <EmbeddedResource Remove="Models\**" />
+    <None Remove="Models\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Command line parsing -->
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+
+    <!-- Azure Key Vault integration -->
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
+    <PackageReference Include="Azure.Identity" Version="1.10.4" />
+
+    <!-- SQL Server connectivity -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+
+    <!-- Logging -->
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+
+    <!-- SQLite attributes for backward compatibility -->
+    <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
+  </ItemGroup>
+
+  <!-- Auto-install tool on Debug builds (development convenience) -->
+  <Target Name="AutoInstallToolAfterPack" AfterTargets="Pack" Condition="'$(Configuration)' == 'Debug'">
+    <Message Text="[Auto-Install] Installing SQL Schema Generator as global tool..." Importance="high" />
+
+    <!-- Uninstall existing version (ignore errors if not installed) -->
+    <Exec Command="dotnet tool uninstall -g SQLServerSyncGenerator" ContinueOnError="true" IgnoreExitCode="true" />
+
+    <!-- Install latest version -->
+    <Exec Command="dotnet tool install -g --add-source &quot;$(MSBuildProjectDirectory)\bin\Debug&quot; SQLServerSyncGenerator" ContinueOnError="false" />
+
+    <Message Text="[Auto-Install] ✅ Global tool installation completed! Command available: sql-schema-generator" Importance="high" />
+  </Target>
+
+  <!-- Copy documentation for debugging -->
+  <ItemGroup>
+    <ProjectReference Include="..\Location.Core.Helpers\Location.Core.Helpers.csproj" />
+  </ItemGroup>
+
+</Project>

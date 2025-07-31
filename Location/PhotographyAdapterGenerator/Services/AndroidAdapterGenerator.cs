@@ -36,7 +36,7 @@ public class AndroidAdapterGenerator
     {
         var sb = new StringBuilder();
 
-        // Header comment
+        // Header comment - enhanced with attribute info
         sb.AppendLine("/**");
         sb.AppendLine(" * This is a truly stupid adapter that just bridges stuff.");
         sb.AppendLine(" * It should never be smart. Ever.");
@@ -45,6 +45,13 @@ public class AndroidAdapterGenerator
         sb.AppendLine($" * Generated from: {viewModel.FullName}");
         sb.AppendLine($" * Source: {viewModel.Source}");
         sb.AppendLine($" * Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss UTC}");
+
+        // NEW: Add attribute information to header
+        if (viewModel.Properties.Any(p => p.MapToAttribute != null || p.DateTypeAttribute != null))
+        {
+            sb.AppendLine(" * Uses custom type mappings and DateTime semantics");
+        }
+
         sb.AppendLine(" */");
         sb.AppendLine();
 
@@ -62,6 +69,10 @@ public class AndroidAdapterGenerator
         sb.AppendLine("import kotlinx.coroutines.withContext");
         sb.AppendLine("import javax.inject.Inject");
         sb.AppendLine("import kotlin.Result");
+
+        // NEW: Add conditional imports based on attributes
+        AddConditionalAndroidImports(sb, viewModel);
+
         sb.AppendLine();
 
         // Class declaration
@@ -71,75 +82,71 @@ public class AndroidAdapterGenerator
         sb.AppendLine();
 
         // Generate StateFlow properties for ALL properties (universal pattern)
-        var simpleProperties = viewModel.Properties.Where(p => !p.IsObservableCollection).ToList();
+        // NEW: Filter properties based on platform availability
+        var simpleProperties = viewModel.Properties
+            .Where(p => !p.IsObservableCollection &&
+                       !_typeTranslator.ShouldExcludePropertyForPlatform(p, "android"))
+            .ToList();
+
         if (simpleProperties.Any())
         {
             sb.AppendLine("    // Universal StateFlow pattern - ALL properties get reactive StateFlow");
             foreach (var prop in simpleProperties)
             {
-                var kotlinType = _typeTranslator.GetKotlinType(prop.Type);
-                sb.AppendLine($"    private val _{prop.CamelCaseName} = MutableStateFlow(dotnetViewModel.{prop.Name})");
-                sb.AppendLine($"    val {prop.CamelCaseName}: StateFlow<{kotlinType}> = _{prop.CamelCaseName}.asStateFlow()");
+                // NEW: Use attribute-aware type mapping
+                var kotlinType = _typeTranslator.GetKotlinType(prop);
+                var propertyName = _typeTranslator.GetKotlinPropertyName(prop);
+
+                // NEW: Add warning comment for custom implementation needed
+                if (prop.WarnCustomImplementationNeededAttribute != null)
+                {
+                    sb.AppendLine($"    // WARNING: {prop.WarnCustomImplementationNeededAttribute.Message ?? "Custom implementation needed"}");
+                }
+
+                sb.AppendLine($"    private val _{propertyName} = MutableStateFlow(dotnetViewModel.{prop.Name})");
+                sb.AppendLine($"    val {propertyName}: StateFlow<{kotlinType}> = _{propertyName}.asStateFlow()");
             }
             sb.AppendLine();
         }
 
         // Generate observable collections with StateFlow pattern
-        var collections = viewModel.Properties.Where(p => p.IsObservableCollection).ToList();
+        var collections = viewModel.Properties
+            .Where(p => p.IsObservableCollection &&
+                       !_typeTranslator.ShouldExcludePropertyForPlatform(p, "android"))
+            .ToList();
+
         if (collections.Any())
         {
             sb.AppendLine("    // ObservableCollection → StateFlow<List<T>> with CollectionChanged + PropertyChanged");
             foreach (var collection in collections)
             {
                 var elementType = _typeTranslator.GetKotlinType(collection.ElementType);
-                sb.AppendLine($"    private val _{collection.CamelCaseName} = MutableStateFlow<List<{elementType}>>(dotnetViewModel.{collection.Name}.toList())");
-                sb.AppendLine($"    val {collection.CamelCaseName}: StateFlow<List<{elementType}>> = _{collection.CamelCaseName}.asStateFlow()");
+                var collectionName = _typeTranslator.GetKotlinPropertyName(collection);
+
+                // NEW: Handle collection behavior attributes
+                if (collection.CollectionBehaviorAttribute?.SupportsBatching == true)
+                {
+                    sb.AppendLine($"    // Collection supports batching (batch size: {collection.CollectionBehaviorAttribute.BatchSize})");
+                }
+
+                sb.AppendLine($"    private val _{collectionName} = MutableStateFlow<List<{elementType}>>(dotnetViewModel.{collection.Name}.toList())");
+                sb.AppendLine($"    val {collectionName}: StateFlow<List<{elementType}>> = _{collectionName}.asStateFlow()");
             }
             sb.AppendLine();
         }
 
         // Generate commands
-        if (viewModel.Commands.Any())
+        // NEW: Filter commands based on platform availability
+        var availableCommands = viewModel.Commands
+            .Where(c => !_typeTranslator.ShouldExcludeCommandForPlatform(c, "android"))
+            .ToList();
+
+        if (availableCommands.Any())
         {
             sb.AppendLine("    // Commands - let .NET handle all the business logic");
-            foreach (var command in viewModel.Commands)
+            foreach (var command in availableCommands)
             {
-                if (command.IsAsync)
-                {
-                    sb.AppendLine($"    suspend fun {command.MethodName}({GetParameterSignature(command)}): Result<Unit> = withContext(Dispatchers.IO) {{");
-                    sb.AppendLine($"        return try {{");
-
-                    if (command.HasParameter)
-                    {
-                        sb.AppendLine($"            dotnetViewModel.{command.Name}.executeAsync({GetParameterName(command)})");
-                    }
-                    else
-                    {
-                        sb.AppendLine($"            dotnetViewModel.{command.Name}.executeAsync()");
-                    }
-
-                    sb.AppendLine($"            Result.success(Unit)");
-                    sb.AppendLine($"        }} catch (e: Exception) {{");
-                    sb.AppendLine($"            Result.failure(e)");
-                    sb.AppendLine($"        }}");
-                    sb.AppendLine($"    }}");
-                }
-                else
-                {
-                    sb.AppendLine($"    fun {command.MethodName}({GetParameterSignature(command)}) {{");
-
-                    if (command.HasParameter)
-                    {
-                        sb.AppendLine($"        dotnetViewModel.{command.Name}.execute({GetParameterName(command)})");
-                    }
-                    else
-                    {
-                        sb.AppendLine($"        dotnetViewModel.{command.Name}.execute()");
-                    }
-
-                    sb.AppendLine($"    }}");
-                }
-                sb.AppendLine();
+                GenerateAndroidCommand(sb, command);
             }
         }
 
@@ -152,13 +159,17 @@ public class AndroidAdapterGenerator
         // Add PropertyChanged cases for simple properties
         foreach (var prop in simpleProperties)
         {
-            sb.AppendLine($"                \"{prop.Name}\" -> _{prop.CamelCaseName}.value = dotnetViewModel.{prop.Name}");
+            var propertyName = _typeTranslator.GetKotlinPropertyName(prop);
+            // NEW: Use attribute-aware conversion
+            var conversion = _typeTranslator.GetKotlinDateTimeConversion(prop, $"dotnetViewModel.{prop.Name}");
+            sb.AppendLine($"                \"{prop.Name}\" -> _{propertyName}.value = {conversion}");
         }
 
         // Add PropertyChanged cases for collections (whole collection replacement)
         foreach (var collection in collections)
         {
-            sb.AppendLine($"                \"{collection.Name}\" -> _{collection.CamelCaseName}.value = dotnetViewModel.{collection.Name}.toList()");
+            var collectionName = _typeTranslator.GetKotlinPropertyName(collection);
+            sb.AppendLine($"                \"{collection.Name}\" -> _{collectionName}.value = dotnetViewModel.{collection.Name}.toList()");
         }
 
         sb.AppendLine("            }");
@@ -171,8 +182,9 @@ public class AndroidAdapterGenerator
             sb.AppendLine("        // CollectionChanged listeners for progressive loading and granular updates");
             foreach (var collection in collections)
             {
+                var collectionName = _typeTranslator.GetKotlinPropertyName(collection);
                 sb.AppendLine($"        dotnetViewModel.{collection.Name}.CollectionChanged += {{ sender, args ->");
-                sb.AppendLine($"            _{collection.CamelCaseName}.value = dotnetViewModel.{collection.Name}.toList()");
+                sb.AppendLine($"            _{collectionName}.value = dotnetViewModel.{collection.Name}.toList()");
                 sb.AppendLine($"        }}");
             }
             sb.AppendLine();
@@ -185,7 +197,15 @@ public class AndroidAdapterGenerator
             sb.AppendLine("        // Two-way binding - sync Kotlin changes back to .NET (read-write properties only)");
             foreach (var prop in readWriteProperties)
             {
-                sb.AppendLine($"        {prop.CamelCaseName}.onEach {{ newValue ->");
+                var propertyName = _typeTranslator.GetKotlinPropertyName(prop);
+
+                // NEW: Handle validation behavior
+                if (prop.ValidationBehaviorAttribute?.ValidateOnSet == true)
+                {
+                    sb.AppendLine($"        // Property has validation: {prop.ValidationBehaviorAttribute.ValidatorMethod ?? "default validation"}");
+                }
+
+                sb.AppendLine($"        {propertyName}.onEach {{ newValue ->");
                 sb.AppendLine($"            dotnetViewModel.{prop.Name} = newValue");
                 sb.AppendLine($"        }}.launchIn(viewModelScope)");
             }
@@ -202,6 +222,123 @@ public class AndroidAdapterGenerator
         sb.AppendLine("}");
 
         return sb.ToString();
+    }
+
+    // NEW: Generate command with attribute support
+    private void GenerateAndroidCommand(StringBuilder sb, CommandMetadata command)
+    {
+        var commandName = _typeTranslator.GetKotlinCommandName(command);
+
+        // NEW: Add warning comment for custom implementation needed
+        if (command.WarnCustomImplementationNeededAttribute != null)
+        {
+            sb.AppendLine($"    // WARNING: {command.WarnCustomImplementationNeededAttribute.Message ?? "Custom implementation needed"}");
+        }
+
+        // NEW: Handle threading behavior
+        var requiresMainThread = command.ThreadingBehaviorAttribute?.RequiresMainThread == true ||
+                                command.CommandBehaviorAttribute?.RequiresMainThread == true;
+        var requiresBackgroundThread = command.ThreadingBehaviorAttribute?.RequiresBackgroundThread == true;
+
+        if (command.IsAsync)
+        {
+            var dispatcher = requiresMainThread ? "Dispatchers.Main" :
+                           requiresBackgroundThread ? "Dispatchers.IO" :
+                           "Dispatchers.IO"; // Default for async
+
+            sb.AppendLine($"    suspend fun {commandName}({GetParameterSignature(command)}): Result<Unit> = withContext({dispatcher}) {{");
+            sb.AppendLine($"        return try {{");
+
+            if (command.HasParameter)
+            {
+                sb.AppendLine($"            dotnetViewModel.{command.Name}.executeAsync({GetParameterName(command)})");
+            }
+            else
+            {
+                sb.AppendLine($"            dotnetViewModel.{command.Name}.executeAsync()");
+            }
+
+            sb.AppendLine($"            Result.success(Unit)");
+            sb.AppendLine($"        }} catch (e: Exception) {{");
+            sb.AppendLine($"            Result.failure(e)");
+            sb.AppendLine($"        }}");
+            sb.AppendLine($"    }}");
+        }
+        else
+        {
+            if (requiresMainThread)
+            {
+                sb.AppendLine($"    fun {commandName}({GetParameterSignature(command)}) {{");
+                sb.AppendLine($"        // Ensure main thread execution");
+                sb.AppendLine($"        viewModelScope.launch(Dispatchers.Main) {{");
+
+                if (command.HasParameter)
+                {
+                    sb.AppendLine($"            dotnetViewModel.{command.Name}.execute({GetParameterName(command)})");
+                }
+                else
+                {
+                    sb.AppendLine($"            dotnetViewModel.{command.Name}.execute()");
+                }
+
+                sb.AppendLine($"        }}");
+                sb.AppendLine($"    }}");
+            }
+            else
+            {
+                sb.AppendLine($"    fun {commandName}({GetParameterSignature(command)}) {{");
+
+                if (command.HasParameter)
+                {
+                    sb.AppendLine($"        dotnetViewModel.{command.Name}.execute({GetParameterName(command)})");
+                }
+                else
+                {
+                    sb.AppendLine($"        dotnetViewModel.{command.Name}.execute()");
+                }
+
+                sb.AppendLine($"    }}");
+            }
+        }
+
+        // NEW: Expose CanExecute if requested
+        if (command.CommandBehaviorAttribute?.ExposeCanExecute == true)
+        {
+            sb.AppendLine($"    val can{commandName.Substring(0, 1).ToUpper()}{commandName.Substring(1)}: Boolean get() = dotnetViewModel.{command.Name}.canExecute");
+        }
+
+        sb.AppendLine();
+    }
+
+    // NEW: Add conditional imports based on used attributes
+    private void AddConditionalAndroidImports(StringBuilder sb, ViewModelMetadata viewModel)
+    {
+        var needsDateTime = viewModel.Properties.Any(p => p.DateTypeAttribute != null);
+        var needsLatLng = viewModel.Properties.Any(p => p.MapToAttribute?.Android.ToString().Contains("LatLng") == true);
+        var needsUUID = viewModel.Properties.Any(p => p.MapToAttribute?.Android.ToString().Contains("UUID") == true);
+        var hasThreadingRequirements = viewModel.Commands.Any(c =>
+            c.ThreadingBehaviorAttribute?.RequiresMainThread == true ||
+            c.CommandBehaviorAttribute?.RequiresMainThread == true);
+
+        if (needsDateTime)
+        {
+            sb.AppendLine("import java.time.*");
+        }
+
+        if (needsLatLng)
+        {
+            sb.AppendLine("import com.google.android.gms.maps.model.LatLng");
+        }
+
+        if (needsUUID)
+        {
+            sb.AppendLine("import java.util.UUID");
+        }
+
+        if (hasThreadingRequirements)
+        {
+            sb.AppendLine("import kotlinx.coroutines.launch");
+        }
     }
 
     private string GetParameterSignature(CommandMetadata command)
