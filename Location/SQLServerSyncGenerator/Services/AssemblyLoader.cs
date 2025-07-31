@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-
+using CommandLine;
 namespace SQLServerSyncGenerator.Services;
 
 public class AssemblyLoader

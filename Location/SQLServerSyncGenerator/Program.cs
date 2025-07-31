@@ -3,10 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using SQLServerSyncGenerator.Services;
-using System.Data.Common;
-using System.Runtime.InteropServices;
 
-namespace SQLServerSyncGenerator;
+namespace SqlSchemaGenerator;
 
 class Program
 {
@@ -57,6 +55,7 @@ class Program
             logger.LogInformation("Server: {Server}", options.Server);
             logger.LogInformation("Database: {Database}", options.Database);
             logger.LogInformation("Production Mode: {IsProduction}", options.IsProduction);
+            logger.LogInformation("No-Op Mode: {IsNoOp}", options.NoOp);
             logger.LogInformation("Verbose Logging: {IsVerbose}", isVerbose);
 
             // Step 1: Build connection string from Key Vault
@@ -102,32 +101,51 @@ class Program
             logger.LogInformation("Entity creation order determined: {Order}",
                 string.Join(" → ", sortedEntities.Select(e => $"{e.Schema}.{e.TableName}")));
 
-            // Step 5: Production backup if needed
+            // Step 5: Production backup if needed (skip if NoOp)
             var sqlExecutor = services.GetRequiredService<SqlExecutor>();
             string? backupName = null;
 
-            if (options.IsProduction)
+            if (options.IsProduction && !options.NoOp)
             {
                 logger.LogInformation("Production mode - creating database backup...");
                 backupName = $"{options.Database}_PreDeploy_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
                 await sqlExecutor.CreateDatabaseBackupAsync(connectionString, options.Database, backupName);
                 logger.LogInformation("Database backup created: {BackupName}", backupName);
             }
+            else if (options.IsProduction && options.NoOp)
+            {
+                logger.LogInformation("No-Op mode: Would create database backup in production: {Database}_PreDeploy_{Timestamp}",
+                    options.Database, DateTime.UtcNow.ToString("yyyyMMdd_HHmmss"));
+            }
 
-            // Step 6: Generate and apply schema changes
+            // Step 6: Generate delta DDL and apply/log changes
             logger.LogInformation("Generating schema DDL...");
             var schemaGenerator = services.GetRequiredService<SchemaGenerator>();
-            var ddlStatements = schemaGenerator.GenerateCreateTableStatements(sortedEntities);
 
-            logger.LogInformation("Applying {Count} DDL statements...", ddlStatements.Count);
-            await sqlExecutor.ExecuteDDLBatchAsync(connectionString, ddlStatements);
+            if (options.NoOp)
+            {
+                logger.LogInformation("No-Op mode: Analyzing database and generating delta DDL...");
+                var deltaStatements = await schemaGenerator.GenerateDeltaDDLAsync(sortedEntities, connectionString);
+                logger.LogInformation("Generated {Count} delta DDL statements", deltaStatements.Count);
+                LogDDLStatements(deltaStatements, logger);
+            }
+            else
+            {
+                var ddlStatements = schemaGenerator.GenerateCreateTableStatements(sortedEntities);
+                logger.LogInformation("Applying {Count} DDL statements...", ddlStatements.Count);
+                await sqlExecutor.ExecuteDDLBatchAsync(connectionString, ddlStatements);
+            }
 
-            // Step 7: Cleanup backup if successful
-            if (options.IsProduction && !string.IsNullOrEmpty(backupName))
+            // Step 7: Cleanup backup if successful (skip if NoOp)
+            if (options.IsProduction && !options.NoOp && !string.IsNullOrEmpty(backupName))
             {
                 logger.LogInformation("Schema changes successful - cleaning up backup...");
                 await sqlExecutor.DeleteDatabaseBackupAsync(connectionString, backupName);
                 logger.LogInformation("Backup cleanup completed");
+            }
+            else if (options.IsProduction && options.NoOp)
+            {
+                logger.LogInformation("No-Op mode: Would clean up backup after successful deployment");
             }
 
             logger.LogInformation("Schema generation completed successfully!");
@@ -137,7 +155,7 @@ class Program
         {
             logger.LogError(ex, "Schema generation failed: {Message}", ex.Message);
 
-            if (options.IsProduction)
+            if (options.IsProduction && !options.NoOp)
             {
                 logger.LogError("Production deployment failed - backup database available for manual restore");
             }
@@ -148,6 +166,28 @@ class Program
         {
             services.Dispose();
         }
+    }
+
+    private static void LogDDLStatements(List<string> ddlStatements, ILogger logger)
+    {
+        if (ddlStatements.Count == 0)
+        {
+            logger.LogInformation("=== No DDL Changes Required ===");
+            logger.LogInformation("Database schema is already up to date with entity definitions.");
+            return;
+        }
+
+        logger.LogInformation("=== Delta DDL Statements (No-Op Mode) ===");
+        logger.LogInformation("The following {Count} DDL statements would be executed:", ddlStatements.Count);
+
+        for (int i = 0; i < ddlStatements.Count; i++)
+        {
+            logger.LogInformation("DDL Statement {StatementNumber}:", i + 1);
+            logger.LogInformation("{DDLStatement}", ddlStatements[i]);
+            logger.LogInformation("--- End Statement {StatementNumber} ---", i + 1);
+        }
+
+        logger.LogInformation("=== End Delta DDL Statements ({Count} total) ===", ddlStatements.Count);
     }
 }
 
@@ -173,6 +213,9 @@ public class GeneratorOptions
 
     [Option("verbose", Required = false, HelpText = "Enable verbose logging (default: true for dev, false for prod)")]
     public bool? Verbose { get; set; }
+
+    [Option("noop", Required = false, Default = false, HelpText = "No-operation mode - generate and log DDL without executing against database")]
+    public bool NoOp { get; set; }
 
     [Option("core-assembly", Required = false, HelpText = "Path to Location.Core.Domain.dll")]
     public string? CoreAssemblyPath { get; set; }

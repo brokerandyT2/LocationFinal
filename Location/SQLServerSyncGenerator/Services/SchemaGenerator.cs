@@ -1,7 +1,8 @@
 ﻿using Location.Core.Helpers.CodeGenerationAttributes;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-
-using System.Data.SqlTypes;
+using SQLServerSyncGenerator.Attributes;
+using SQLServerSyncGenerator.Models;
 using System.Reflection;
 using System.Text;
 
@@ -56,6 +57,260 @@ public class SchemaGenerator
 
         _logger.LogInformation("Generated {Count} DDL statements", statements.Count);
         return statements;
+    }
+
+    public async Task<List<string>> GenerateDeltaDDLAsync(List<EntityMetadata> entities, string connectionString)
+    {
+        var deltaStatements = new List<string>();
+
+        _logger.LogDebug("Analyzing existing database schema for delta generation");
+
+        using var connection = new SqlConnection(connectionString);
+        await connection.OpenAsync();
+
+        // Get existing schemas, tables, columns, indexes, and foreign keys
+        var existingSchemas = await GetExistingSchemasAsync(connection);
+        var existingTables = await GetExistingTablesAsync(connection);
+        var existingColumns = await GetExistingColumnsAsync(connection);
+        var existingIndexes = await GetExistingIndexesAsync(connection);
+        var existingForeignKeys = await GetExistingForeignKeysAsync(connection);
+
+        _logger.LogDebug("Found {SchemaCount} schemas, {TableCount} tables, {ColumnCount} columns, {IndexCount} indexes, {FKCount} foreign keys",
+            existingSchemas.Count, existingTables.Count, existingColumns.Count, existingIndexes.Count, existingForeignKeys.Count);
+
+        // Generate schema creation statements for missing schemas
+        var requiredSchemas = entities.Select(e => e.Schema).Distinct().ToList();
+        foreach (var schema in requiredSchemas)
+        {
+            if (!existingSchemas.Contains(schema))
+            {
+                deltaStatements.Add(GenerateCreateSchemaStatement(schema));
+                _logger.LogDebug("Schema {Schema} needs to be created", schema);
+            }
+        }
+
+        // Generate table and related DDL for each entity
+        foreach (var entity in entities)
+        {
+            if (entity.IsIgnored)
+            {
+                _logger.LogDebug("Skipping ignored entity: {EntityName}", entity.Name);
+                continue;
+            }
+
+            var tableKey = $"{entity.Schema}.{entity.TableName}";
+
+            // Check if table exists
+            if (!existingTables.ContainsKey(tableKey))
+            {
+                // Table doesn't exist - generate full CREATE TABLE statement
+                var createTableStatement = GenerateCreateTableStatement(entity);
+                deltaStatements.Add(createTableStatement);
+                _logger.LogDebug("Table {Table} needs to be created", tableKey);
+
+                // Add all indexes and foreign keys since table is new
+                var indexStatements = GenerateSingleColumnIndexStatements(entity);
+                deltaStatements.AddRange(indexStatements);
+
+                var compositeIndexStatements = GenerateCompositeIndexStatements(entity);
+                deltaStatements.AddRange(compositeIndexStatements);
+
+                var foreignKeyStatements = GenerateForeignKeyStatements(entity);
+                deltaStatements.AddRange(foreignKeyStatements);
+            }
+            else
+            {
+                // Table exists - check for missing columns
+                var tableColumns = existingColumns.ContainsKey(tableKey) ? existingColumns[tableKey] : new List<string>();
+
+                foreach (var property in entity.Properties.Where(p => !p.IsIgnored))
+                {
+                    if (!tableColumns.Contains(property.ColumnName))
+                    {
+                        var addColumnStatement = GenerateAddColumnStatement(entity, property);
+                        deltaStatements.Add(addColumnStatement);
+                        _logger.LogDebug("Column {Table}.{Column} needs to be added", tableKey, property.ColumnName);
+                    }
+                }
+
+                // Check for missing indexes
+                var tableIndexes = existingIndexes.ContainsKey(tableKey) ? existingIndexes[tableKey] : new List<string>();
+
+                // Single column indexes
+                var indexedProperties = entity.Properties
+                    .Where(p => p.IndexType.HasValue && p.IndexType != SqlIndexType.None && string.IsNullOrEmpty(p.IndexGroup))
+                    .ToList();
+
+                foreach (var property in indexedProperties)
+                {
+                    var indexName = property.IndexName ?? $"IX_{entity.TableName}_{property.ColumnName}";
+                    if (!tableIndexes.Contains(indexName))
+                    {
+                        var indexStatements = GenerateSingleColumnIndexStatements(entity);
+                        deltaStatements.AddRange(indexStatements.Where(stmt => stmt.Contains(indexName)));
+                        _logger.LogDebug("Index {Index} needs to be created", indexName);
+                    }
+                }
+
+                // Composite indexes
+                foreach (var index in entity.CompositeIndexes)
+                {
+                    if (!tableIndexes.Contains(index.Name))
+                    {
+                        var compositeIndexStatements = GenerateCompositeIndexStatements(entity);
+                        deltaStatements.AddRange(compositeIndexStatements.Where(stmt => stmt.Contains(index.Name)));
+                        _logger.LogDebug("Composite index {Index} needs to be created", index.Name);
+                    }
+                }
+
+                // Check for missing foreign keys
+                var tableForeignKeys = existingForeignKeys.ContainsKey(tableKey) ? existingForeignKeys[tableKey] : new List<string>();
+
+                var foreignKeyProperties = entity.Properties.Where(p => p.ForeignKey != null).ToList();
+                foreach (var property in foreignKeyProperties)
+                {
+                    var constraintName = property.ForeignKey!.Name ?? $"FK_{entity.TableName}_{property.ColumnName}";
+                    if (!tableForeignKeys.Contains(constraintName))
+                    {
+                        var foreignKeyStatements = GenerateForeignKeyStatements(entity);
+                        deltaStatements.AddRange(foreignKeyStatements.Where(stmt => stmt.Contains(constraintName)));
+                        _logger.LogDebug("Foreign key {FK} needs to be created", constraintName);
+                    }
+                }
+            }
+        }
+
+        _logger.LogInformation("Generated {Count} delta DDL statements", deltaStatements.Count);
+        return deltaStatements;
+    }
+
+    private string GenerateAddColumnStatement(EntityMetadata entity, PropertyMetadata property)
+    {
+        var columnDef = GenerateColumnDefinition(property);
+        return $"ALTER TABLE [{entity.Schema}].[{entity.TableName}] ADD {columnDef}";
+    }
+
+    private async Task<List<string>> GetExistingSchemasAsync(SqlConnection connection)
+    {
+        var schemas = new List<string>();
+        var query = "SELECT name FROM sys.schemas WHERE name NOT IN ('dbo', 'guest', 'INFORMATION_SCHEMA', 'sys', 'db_owner', 'db_accessadmin', 'db_securityadmin', 'db_ddladmin', 'db_backupoperator', 'db_datareader', 'db_datawriter', 'db_denydatareader', 'db_denydatawriter')";
+
+        using var command = new SqlCommand(query, connection);
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            schemas.Add(reader.GetString(0));
+        }
+
+        return schemas;
+    }
+
+    private async Task<Dictionary<string, bool>> GetExistingTablesAsync(SqlConnection connection)
+    {
+        var tables = new Dictionary<string, bool>();
+        var query = @"
+            SELECT s.name AS SchemaName, t.name AS TableName
+            FROM sys.tables t 
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id";
+
+        using var command = new SqlCommand(query, connection);
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            var schemaName = reader.GetString("SchemaName");
+            var tableName = reader.GetString("TableName");
+            var tableKey = $"{schemaName}.{tableName}";
+            tables[tableKey] = true;
+        }
+
+        return tables;
+    }
+
+    private async Task<Dictionary<string, List<string>>> GetExistingColumnsAsync(SqlConnection connection)
+    {
+        var columns = new Dictionary<string, List<string>>();
+        var query = @"
+            SELECT s.name AS SchemaName, t.name AS TableName, c.name AS ColumnName
+            FROM sys.columns c
+            INNER JOIN sys.tables t ON c.object_id = t.object_id
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id";
+
+        using var command = new SqlCommand(query, connection);
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            var schemaName = reader.GetString("SchemaName");
+            var tableName = reader.GetString("TableName");
+            var columnName = reader.GetString("ColumnName");
+            var tableKey = $"{schemaName}.{tableName}";
+
+            if (!columns.ContainsKey(tableKey))
+                columns[tableKey] = new List<string>();
+
+            columns[tableKey].Add(columnName);
+        }
+
+        return columns;
+    }
+
+    private async Task<Dictionary<string, List<string>>> GetExistingIndexesAsync(SqlConnection connection)
+    {
+        var indexes = new Dictionary<string, List<string>>();
+        var query = @"
+            SELECT s.name AS SchemaName, t.name AS TableName, i.name AS IndexName
+            FROM sys.indexes i
+            INNER JOIN sys.tables t ON i.object_id = t.object_id
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+            WHERE i.name IS NOT NULL AND i.type > 0";
+
+        using var command = new SqlCommand(query, connection);
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            var schemaName = reader.GetString("SchemaName");
+            var tableName = reader.GetString("TableName");
+            var indexName = reader.GetString("IndexName");
+            var tableKey = $"{schemaName}.{tableName}";
+
+            if (!indexes.ContainsKey(tableKey))
+                indexes[tableKey] = new List<string>();
+
+            indexes[tableKey].Add(indexName);
+        }
+
+        return indexes;
+    }
+
+    private async Task<Dictionary<string, List<string>>> GetExistingForeignKeysAsync(SqlConnection connection)
+    {
+        var foreignKeys = new Dictionary<string, List<string>>();
+        var query = @"
+            SELECT s.name AS SchemaName, t.name AS TableName, fk.name AS ForeignKeyName
+            FROM sys.foreign_keys fk
+            INNER JOIN sys.tables t ON fk.parent_object_id = t.object_id
+            INNER JOIN sys.schemas s ON t.schema_id = s.schema_id";
+
+        using var command = new SqlCommand(query, connection);
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            var schemaName = reader.GetString("SchemaName");
+            var tableName = reader.GetString("TableName");
+            var foreignKeyName = reader.GetString("ForeignKeyName");
+            var tableKey = $"{schemaName}.{tableName}";
+
+            if (!foreignKeys.ContainsKey(tableKey))
+                foreignKeys[tableKey] = new List<string>();
+
+            foreignKeys[tableKey].Add(foreignKeyName);
+        }
+
+        return foreignKeys;
     }
 
     private string GenerateCreateSchemaStatement(string schemaName)
