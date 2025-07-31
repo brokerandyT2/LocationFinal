@@ -12,8 +12,9 @@ dotnet tool install -g --add-source ./bin/Debug SQLServerSyncGenerator
 
 ## Usage
 
+### Production/Azure Usage
 ```bash
-# Basic usage
+# Basic usage with Azure Key Vault
 sql-schema-generator \
   --server "myserver.database.windows.net" \
   --database "LocationAnalytics" \
@@ -29,25 +30,54 @@ sql-schema-generator \
   --username-secret "sql-username" \
   --password-secret "sql-password" \
   --prod
+```
 
-# Development with verbose logging (default)
+### Local Development Usage
+```bash
+# Local SQL Server Express with Windows Authentication
 sql-schema-generator \
-  --server "dev-server.database.windows.net" \
-  --database "LocationAnalytics_Dev" \
-  --keyvault-url "https://devvault.vault.azure.net/" \
-  --username-secret "sql-username" \
-  --password-secret "sql-password" \
+  --server "localhost\SQLEXPRESS" \
+  --database "Locations_BI" \
+  --local
+
+# Local development with verbose logging
+sql-schema-generator \
+  --server "localhost\SQLEXPRESS" \
+  --database "Locations_BI" \
+  --local \
   --verbose
 
-# Custom assembly paths
+# See what changes would be made without executing them
+sql-schema-generator \
+  --server "localhost\SQLEXPRESS" \
+  --database "Locations_BI" \
+  --local \
+  --noop
+
+# Local development with custom SQL Server instance
+sql-schema-generator \
+  --server "localhost" \
+  --database "MyDatabase" \
+  --local
+```
+
+### No-Operation Mode (Preview Changes)
+```bash
+# Azure - see what DDL would be executed without running it
 sql-schema-generator \
   --server "myserver.database.windows.net" \
   --database "LocationAnalytics" \
   --keyvault-url "https://myvault.vault.azure.net/" \
   --username-secret "sql-username" \
   --password-secret "sql-password" \
-  --core-assembly "path/to/Location.Core.Domain.dll" \
-  --photography-assembly "path/to/Location.Photography.Domain.dll"
+  --noop
+
+# Local - see what DDL would be executed without running it
+sql-schema-generator \
+  --server "localhost\SQLEXPRESS" \
+  --database "Locations_BI" \
+  --local \
+  --noop
 ```
 
 ## What It Does
@@ -162,14 +192,21 @@ public int LocationRef { get; set; }  // References different column
 ## Command Line Options
 
 ### Required Parameters
-- `--server` - SQL Server name (e.g., `myserver.database.windows.net`)
+- `--server` - SQL Server name (e.g., `myserver.database.windows.net` or `localhost\SQLEXPRESS`)
 - `--database` - Target database name
+
+### Authentication (choose one)
+**Azure Key Vault Authentication:**
 - `--keyvault-url` - Azure Key Vault URL (e.g., `https://myvault.vault.azure.net/`)
 - `--username-secret` - Key Vault secret name for SQL username
 - `--password-secret` - Key Vault secret name for SQL password
 
+**Local Development Authentication:**
+- `--local` - Use Windows Authentication (bypasses Key Vault requirements)
+
 ### Optional Parameters
 - `--prod` - Production mode (creates database backup before changes)
+- `--noop` - No-operation mode (analyze database and show what DDL would be executed without running it)
 - `--verbose` - Enable verbose logging (default: true for dev, false for prod)
 - `--core-assembly` - Custom path to Location.Core.Domain.dll
 - `--photography-assembly` - Custom path to Location.Photography.Domain.dll
@@ -180,6 +217,18 @@ public int LocationRef { get; set; }  // References different column
 - **Verbose logging enabled** by default
 - **No database backup** - apply changes directly
 - **Fast iteration** for development workflow
+
+### Local Development Mode (`--local` flag)
+- **Windows Authentication** - no Key Vault credentials needed
+- **Perfect for SQL Server Express** on developer machines
+- **Verbose logging enabled** by default
+- **Works with any local SQL Server instance**
+
+### No-Operation Mode (`--noop` flag)
+- **Connects to database** and analyzes existing schema
+- **Generates only delta DDL** - shows exactly what would be executed
+- **No changes applied** - perfect for validation and review
+- **Works with both Azure and local authentication**
 
 ### Production Mode (`--prod` flag)
 1. **Create database copy** before applying changes
@@ -194,7 +243,7 @@ public int LocationRef { get; set; }  // References different column
 
 ## Security & Authentication
 
-### Azure Key Vault Integration
+### Azure Key Vault Integration (Production)
 - **DefaultAzureCredential** supports multiple authentication methods:
   - Managed Identity (recommended for production)
   - Service Principal
@@ -202,9 +251,15 @@ public int LocationRef { get; set; }  // References different column
 - **Secure credential storage** - no passwords in code or config files
 - **Environment-specific vaults** supported
 
+### Local Development Authentication
+- **Windows Authentication** with current user credentials
+- **No Key Vault required** for local development
+- **Works with SQL Server Express** out of the box
+- **Integrated Security** for seamless developer experience
+
 ### SQL Connection Security
-- **Encrypted connections** by default
-- **Certificate validation** enabled
+- **Encrypted connections** by default (Azure)
+- **Trusted certificates** for local development
 - **Appropriate timeouts** for DDL operations (5 minutes)
 - **Admin operations** use separate connection (10 minutes timeout)
 
@@ -288,7 +343,15 @@ No Domain assemblies found. Make sure Domain projects are built.
 - Ensure `Location.Core.Domain` and `Location.Photography.Domain` projects are built
 - Check assembly paths with `--core-assembly` and `--photography-assembly` options
 
-**Key Vault Access Denied**
+**Local SQL Server Connection Failed**
+```
+SQL Server connection test failed: A network-related or instance-specific error occurred
+```
+- Verify SQL Server Express is running: `services.msc` → look for "SQL Server (SQLEXPRESS)"
+- Check server name: usually `localhost\SQLEXPRESS` or just `localhost`
+- Ensure Windows Authentication is enabled in SQL Server configuration
+
+**Key Vault Access Denied (Azure)**
 ```
 Access denied to Azure Key Vault. Check Key Vault access policies and permissions.
 ```
@@ -296,20 +359,19 @@ Access denied to Azure Key Vault. Check Key Vault access policies and permission
 - For Managed Identity: Grant "Key Vault Secrets User" role
 - For Service Principal: Configure access policies in Key Vault
 
+**Database Does Not Exist**
+```
+Cannot open database "Locations_BI" requested by the login.
+```
+- Create the database first: `CREATE DATABASE Locations_BI;`
+- Or let the tool create it by ensuring your user has `dbcreator` role
+
 **Circular Dependency**
 ```
 Circular dependency detected: Photography.UserCameraBodies -> Core.Users -> Photography.UserCameraBodies
 ```
 - Review foreign key relationships between entities
 - Remove circular references or restructure entity relationships
-
-**SQL Connection Failed**
-```
-SQL Server connection test failed: Login failed for user 'username'
-```
-- Verify SQL credentials in Key Vault are correct
-- Check SQL Server firewall rules
-- Ensure database exists and user has appropriate permissions
 
 ### Debug Mode
 
@@ -338,7 +400,14 @@ dotnet tool install -g --add-source ./bin/Debug SQLServerSyncGenerator
 
 ### Testing
 ```bash
-# Test against development database
+# Test against local SQL Server Express
+sql-schema-generator \
+  --server "localhost\SQLEXPRESS" \
+  --database "TestDatabase" \
+  --local \
+  --verbose
+
+# Test against Azure SQL Database
 sql-schema-generator \
   --server "dev-server.database.windows.net" \
   --database "TestDatabase" \
@@ -346,4 +415,11 @@ sql-schema-generator \
   --username-secret "sql-username" \
   --password-secret "sql-password" \
   --verbose
+
+# Preview changes without executing
+sql-schema-generator \
+  --server "localhost\SQLEXPRESS" \
+  --database "TestDatabase" \
+  --local \
+  --noop
 ```

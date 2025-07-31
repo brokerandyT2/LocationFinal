@@ -1,8 +1,7 @@
 ﻿using Location.Core.Helpers.CodeGenerationAttributes;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using SQLServerSyncGenerator.Attributes;
-using SQLServerSyncGenerator.Models;
+
 using System.Reflection;
 using System.Text;
 
@@ -219,8 +218,8 @@ public class SchemaGenerator
 
         while (await reader.ReadAsync())
         {
-            var schemaName = reader.GetString("SchemaName");
-            var tableName = reader.GetString("TableName");
+            var schemaName = reader.GetString(0);
+            var tableName = reader.GetString(1);
             var tableKey = $"{schemaName}.{tableName}";
             tables[tableKey] = true;
         }
@@ -242,9 +241,9 @@ public class SchemaGenerator
 
         while (await reader.ReadAsync())
         {
-            var schemaName = reader.GetString("SchemaName");
-            var tableName = reader.GetString("TableName");
-            var columnName = reader.GetString("ColumnName");
+            var schemaName = reader.GetString(0);
+            var tableName = reader.GetString(1);
+            var columnName = reader.GetString(2);
             var tableKey = $"{schemaName}.{tableName}";
 
             if (!columns.ContainsKey(tableKey))
@@ -271,9 +270,9 @@ public class SchemaGenerator
 
         while (await reader.ReadAsync())
         {
-            var schemaName = reader.GetString("SchemaName");
-            var tableName = reader.GetString("TableName");
-            var indexName = reader.GetString("IndexName");
+            var schemaName = reader.GetString(0);
+            var tableName = reader.GetString(1);
+            var indexName = reader.GetString(2);
             var tableKey = $"{schemaName}.{tableName}";
 
             if (!indexes.ContainsKey(tableKey))
@@ -299,9 +298,9 @@ public class SchemaGenerator
 
         while (await reader.ReadAsync())
         {
-            var schemaName = reader.GetString("SchemaName");
-            var tableName = reader.GetString("TableName");
-            var foreignKeyName = reader.GetString("ForeignKeyName");
+            var schemaName = reader.GetString(0);
+            var tableName = reader.GetString(1);
+            var foreignKeyName = reader.GetString(2);
             var tableKey = $"{schemaName}.{tableName}";
 
             if (!foreignKeys.ContainsKey(tableKey))
