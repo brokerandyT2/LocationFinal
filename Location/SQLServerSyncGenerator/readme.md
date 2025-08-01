@@ -224,6 +224,7 @@ sql-schema-generator \
 namespace Location.Photography.Domain.Entities
 {
     [SqlTable("CameraBodies")]  // Override table name
+    [ExportToSQL]               // Tells the generator that this class maps to a SQL Server table.  Each app my have "support tables" (Weather, tips, etc) that do not need to be persisited
     public class CameraBody     // Default: CameraBody table
     {
         public int Id { get; set; }           // → Photography.CameraBodies.Id
