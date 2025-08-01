@@ -1,7 +1,7 @@
 ﻿using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SqlSchemaGenerator.Services;
+
 using SQLServerSyncGenerator;
 using SQLServerSyncGenerator.Models;
 using SQLServerSyncGenerator.Services;

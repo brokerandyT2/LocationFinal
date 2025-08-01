@@ -51,6 +51,7 @@ public class EntityAnalyzer
                            t.IsPublic &&
                            !t.IsAbstract &&
                            !t.HasCustomAttribute<SqlIgnoreAttribute>() &&
+                           t.HasCustomAttribute<ExportToSQLAttribute>() &&
                            IsEntityType(t))
                 .ToList();
 
