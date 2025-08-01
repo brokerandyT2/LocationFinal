@@ -1,9 +1,11 @@
 ﻿// Location.Core.Infrastructure/Data/Entities/PhoneCameraProfileEntity.cs
+using Location.Core.Helpers.CodeGenerationAttributes;
 using SQLite;
 
 namespace Location.Core.Infrastructure.Data.Entities
 {
     [Table("PhoneCameraProfiles")]
+    [ExportToSQL]
     public class PhoneCameraProfileEntity
     {
         [PrimaryKey, AutoIncrement]

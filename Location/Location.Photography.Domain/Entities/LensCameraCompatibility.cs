@@ -1,8 +1,10 @@
-﻿using SQLite;
+﻿using Location.Core.Helpers.CodeGenerationAttributes;
+using SQLite;
 
 namespace Location.Photography.Domain.Entities
 {
     [Table("LensCameraCompatibility")]
+    [ExportToSQL]
     public class LensCameraCompatibility
     {
         [PrimaryKey, AutoIncrement]

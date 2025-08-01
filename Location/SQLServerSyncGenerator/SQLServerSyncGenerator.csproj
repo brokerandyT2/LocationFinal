@@ -17,10 +17,14 @@
     <Version>1.0.0</Version>
     <Authors>Location Team</Authors>
     <Company>3xSquaredCircles</Company>
-    <Description>Automated SQL Server schema generation from .NET Domain entities with Azure Key Vault integration. Generates tables, indexes, and foreign keys from entity metadata.</Description>
-    <PackageTags>sql-server;schema;ddl;azure;keyvault;database;entity;domain;automation;pipeline</PackageTags>
+    <Description>Automated SQL Server schema generation from .NET Domain entities with Azure Key Vault integration. Generates tables, indexes, and foreign keys from entity metadata. Auto-runs after Domain builds with MSBuild integration.</Description>
+    <PackageTags>sql-server;schema;ddl;azure;keyvault;database;entity;domain;automation;pipeline;msbuild;debug-only</PackageTags>
     <PackageProjectUrl>https://github.com/your-org/sqlserver-sync-generator</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- MSBuild Integration Properties -->
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
 
     <!-- Build Properties -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -28,12 +32,6 @@
     <NoWarn>CS8618</NoWarn>
     <!-- Nullable reference type warnings -->
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Models\**" />
-    <EmbeddedResource Remove="Models\**" />
-    <None Remove="Models\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <!-- Command line parsing -->
@@ -55,7 +53,30 @@
     <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
   </ItemGroup>
 
-  <!-- Auto-install tool on Debug builds (development convenience) -->
+  <ItemGroup>
+    <!-- Create folders for organization -->
+    <Folder Include="MSBuildIntegration\" />
+  </ItemGroup>
+
+  <!-- Create build directory structure -->
+  <Target Name="CreateBuildDirectory" BeforeTargets="BeforeBuild">
+    <MakeDir Directories="$(MSBuildProjectDirectory)\build" Condition="!Exists('$(MSBuildProjectDirectory)\build')" />
+  </Target>
+
+  <!-- MSBuild Integration Files - Pack into NuGet -->
+  <ItemGroup>
+    <None Include="MSBuildIntegration\SqlSchemaGenerator.targets" Pack="true" PackagePath="build\SQLServerSyncGenerator.targets" Condition="Exists('MSBuildIntegration\SqlSchemaGenerator.targets')" />
+    <None Include="MSBuildIntegration\SqlSchemaGenerator.props" Pack="true" PackagePath="build\SQLServerSyncGenerator.props" Condition="Exists('MSBuildIntegration\SqlSchemaGenerator.props')" />
+  </ItemGroup>
+
+  <!-- Copy integration files to build folder for local testing -->
+  <Target Name="CopyMSBuildIntegrationFiles" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy SourceFiles="MSBuildIntegration\SqlSchemaGenerator.targets" DestinationFiles="build\SQLServerSyncGenerator.targets" Condition="Exists('MSBuildIntegration\SqlSchemaGenerator.targets')" />
+    <Copy SourceFiles="MSBuildIntegration\SqlSchemaGenerator.props" DestinationFiles="build\SQLServerSyncGenerator.props" Condition="Exists('MSBuildIntegration\SqlSchemaGenerator.props')" />
+    <Message Text="[MSBuild Integration] Copied .targets and .props files to build folder" Importance="normal" />
+  </Target>
+
+  <!-- Pack and install tool automatically on Debug builds -->
   <Target Name="AutoInstallToolAfterPack" AfterTargets="Pack" Condition="'$(Configuration)' == 'Debug'">
     <Message Text="[Auto-Install] Installing SQL Schema Generator as global tool..." Importance="high" />
 
@@ -65,7 +86,8 @@
     <!-- Install latest version -->
     <Exec Command="dotnet tool install -g --add-source &quot;$(MSBuildProjectDirectory)\bin\Debug&quot; SQLServerSyncGenerator" ContinueOnError="false" />
 
-    <Message Text="[Auto-Install] ✅ Global tool installation completed! Command available: sql-schema-generator" Importance="high" />
+    <Message Text="[Auto-Install] ✅ Global tool installation completed! Now auto-runs after Domain project builds." Importance="high" />
+    <Message Text="[Auto-Install] 🛡️  Defaults to --noop mode for database safety during development." Importance="high" />
   </Target>
 
   <!-- Copy documentation for debugging -->

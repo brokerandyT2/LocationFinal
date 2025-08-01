@@ -250,4 +250,20 @@ namespace Location.Core.Helpers.CodeGenerationAttributes
             Reason = reason;
         }
     }
+    /// <summary>
+    /// Marks an entity for export to SQL Server via automated API generator
+    /// Entities without this attribute are excluded from backup/sync operations
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class ExportToSQLAttribute : Attribute
+    {
+        public string? Reason { get; set; }
+
+        public ExportToSQLAttribute() { }
+
+        public ExportToSQLAttribute(string reason)
+        {
+            Reason = reason;
+        }
+    }
 }

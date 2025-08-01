@@ -2,6 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SqlSchemaGenerator.Services;
+using SQLServerSyncGenerator;
+using SQLServerSyncGenerator.Models;
 using SQLServerSyncGenerator.Services;
 
 namespace SqlSchemaGenerator;
@@ -45,6 +47,7 @@ class Program
             .AddSingleton<SchemaGenerator>()
             .AddSingleton<SqlExecutor>()
             .AddSingleton<ConnectionStringBuilder>()
+            .AddSingleton<ProductionValidator>() // NEW: Add validation service
             .BuildServiceProvider();
 
         var logger = services.GetRequiredService<ILogger<Program>>();
@@ -56,6 +59,7 @@ class Program
             logger.LogInformation("Database: {Database}", options.Database);
             logger.LogInformation("Production Mode: {IsProduction}", options.IsProduction);
             logger.LogInformation("No-Op Mode: {IsNoOp}", options.NoOp);
+            logger.LogInformation("Validate Only: {ValidateOnly}", options.ValidateOnly); // NEW
             logger.LogInformation("Verbose Logging: {IsVerbose}", isVerbose);
 
             // Step 1: Build connection string from Key Vault
@@ -101,8 +105,33 @@ class Program
             logger.LogInformation("Entity creation order determined: {Order}",
                 string.Join(" → ", sortedEntities.Select(e => $"{e.Schema}.{e.TableName}")));
 
-            // Step 5: Production backup if needed (skip if NoOp)
+            // Step 5: Generate DDL for validation/execution
+            logger.LogInformation("Generating schema DDL...");
+            var schemaGenerator = services.GetRequiredService<SchemaGenerator>();
             var sqlExecutor = services.GetRequiredService<SqlExecutor>();
+
+            // NEW: Handle validation-only mode
+            if (options.ValidateOnly)
+            {
+                return await HandleValidationOnlyAsync(schemaGenerator, sortedEntities, connectionString, logger, services);
+            }
+
+            // NEW: Pre-flight validation for production deployments
+            if (options.IsProduction && !options.NoOp)
+            {
+                logger.LogInformation("Production mode - running pre-flight validation...");
+                var validationResult = await RunPreflightValidationAsync(schemaGenerator, sortedEntities, connectionString, logger, services);
+
+                if (validationResult != ValidationResult.Safe)
+                {
+                    // Validation failed or has warnings - this should trigger manual approval in pipeline
+                    return (int)validationResult;
+                }
+
+                logger.LogInformation("Pre-flight validation passed - proceeding with deployment");
+            }
+
+            // Step 6: Production backup if needed (skip if NoOp)
             string? backupName = null;
 
             if (options.IsProduction && !options.NoOp)
@@ -118,10 +147,7 @@ class Program
                     options.Database, DateTime.UtcNow.ToString("yyyyMMdd_HHmmss"));
             }
 
-            // Step 6: Generate delta DDL and apply/log changes
-            logger.LogInformation("Generating schema DDL...");
-            var schemaGenerator = services.GetRequiredService<SchemaGenerator>();
-
+            // Step 7: Generate delta DDL and apply/log changes
             if (options.NoOp)
             {
                 logger.LogInformation("No-Op mode: Analyzing database and generating delta DDL...");
@@ -136,7 +162,7 @@ class Program
                 await sqlExecutor.ExecuteDDLBatchAsync(connectionString, ddlStatements);
             }
 
-            // Step 7: Cleanup backup if successful (skip if NoOp)
+            // Step 8: Cleanup backup if successful (skip if NoOp)
             if (options.IsProduction && !options.NoOp && !string.IsNullOrEmpty(backupName))
             {
                 logger.LogInformation("Schema changes successful - cleaning up backup...");
@@ -155,9 +181,10 @@ class Program
         {
             logger.LogError(ex, "Schema generation failed: {Message}", ex.Message);
 
+            // NEW: Automatic rollback on production failure
             if (options.IsProduction && !options.NoOp)
             {
-                logger.LogError("Production deployment failed - backup database available for manual restore");
+                await HandleProductionFailureAsync(ex, options, logger, services);
             }
 
             return 1;
@@ -165,6 +192,107 @@ class Program
         finally
         {
             services.Dispose();
+        }
+    }
+
+    // NEW: Handle validation-only mode
+    private static async Task<int> HandleValidationOnlyAsync(
+        SchemaGenerator schemaGenerator,
+        List<EntityMetadata> sortedEntities,
+        string connectionString,
+        ILogger logger,
+        ServiceProvider services)
+    {
+        logger.LogInformation("=== VALIDATION-ONLY MODE ===");
+
+        var deltaStatements = await schemaGenerator.GenerateDeltaDDLAsync(sortedEntities, connectionString);
+        logger.LogInformation("Generated {Count} DDL statements for validation", deltaStatements.Count);
+
+        if (deltaStatements.Count == 0)
+        {
+            logger.LogInformation("✅ No schema changes required - database is up to date");
+            return (int)ValidationResult.Safe;
+        }
+
+        var validator = services.GetRequiredService<ProductionValidator>();
+        var validationReport = await validator.ValidateProductionChangesAsync(deltaStatements, connectionString);
+
+        // Output formatted report
+        var formattedReport = validator.FormatValidationReport(validationReport);
+        logger.LogInformation("{ValidationReport}", formattedReport);
+
+        return (int)validationReport.OverallResult;
+    }
+
+    // NEW: Run pre-flight validation
+    private static async Task<ValidationResult> RunPreflightValidationAsync(
+        SchemaGenerator schemaGenerator,
+        List<EntityMetadata> sortedEntities,
+        string connectionString,
+        ILogger logger,
+        ServiceProvider services)
+    {
+        var deltaStatements = await schemaGenerator.GenerateDeltaDDLAsync(sortedEntities, connectionString);
+
+        if (deltaStatements.Count == 0)
+        {
+            logger.LogInformation("✅ No schema changes required - skipping validation");
+            return ValidationResult.Safe;
+        }
+
+        var validator = services.GetRequiredService<ProductionValidator>();
+        var validationReport = await validator.ValidateProductionChangesAsync(deltaStatements, connectionString);
+
+        logger.LogInformation("Pre-flight validation result: {Result}", validationReport.OverallResult);
+
+        if (validationReport.OverallResult != ValidationResult.Safe)
+        {
+            var formattedReport = validator.FormatValidationReport(validationReport);
+            logger.LogWarning("Pre-flight validation issues detected:\n{ValidationReport}", formattedReport);
+        }
+
+        return validationReport.OverallResult;
+    }
+
+    // NEW: Handle production deployment failures with automatic rollback
+    private static async Task HandleProductionFailureAsync(
+        Exception originalException,
+        GeneratorOptions options,
+        ILogger logger,
+        ServiceProvider services)
+    {
+        logger.LogError("Production deployment failed - attempting automatic rollback...");
+
+        try
+        {
+            var connectionBuilder = services.GetRequiredService<ConnectionStringBuilder>();
+            var connectionString = await connectionBuilder.BuildConnectionStringAsync(options);
+            var sqlExecutor = services.GetRequiredService<SqlExecutor>();
+
+            // Look for backup created during this deployment
+            var backupName = $"{options.Database}_PreDeploy_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
+
+            // Check if backup exists and restore
+            if (await sqlExecutor.DatabaseExistsAsync(connectionString, backupName))
+            {
+                logger.LogInformation("Found backup database: {BackupName} - restoring...", backupName);
+                await sqlExecutor.RestoreDatabaseFromBackupAsync(connectionString, options.Database, backupName);
+                logger.LogInformation("✅ Database successfully restored from backup: {BackupName}", backupName);
+
+                // Clean up the backup after successful restore
+                await sqlExecutor.DeleteDatabaseBackupAsync(connectionString, backupName);
+                logger.LogInformation("Backup cleanup completed after restore");
+            }
+            else
+            {
+                logger.LogWarning("No backup database found for automatic rollback - manual intervention may be required");
+            }
+        }
+        catch (Exception rollbackException)
+        {
+            logger.LogError(rollbackException, "❌ Automatic rollback failed - manual intervention required");
+            logger.LogError("Original deployment error: {OriginalError}", originalException.Message);
+            logger.LogError("Rollback error: {RollbackError}", rollbackException.Message);
         }
     }
 
@@ -217,9 +345,12 @@ public class GeneratorOptions
     [Option("noop", Required = false, Default = false, HelpText = "No-operation mode - generate and log DDL without executing against database")]
     public bool NoOp { get; set; }
 
+    [Option("validate-only", Required = false, Default = false, HelpText = "Validation-only mode - analyze changes and return exit code based on safety (0=safe, 1=warnings, 2=blocked)")]
+    public bool ValidateOnly { get; set; } // NEW
+
     [Option("core-assembly", Required = false, HelpText = "Path to Location.Core.Domain.dll")]
     public string? CoreAssemblyPath { get; set; }
 
-    [Option("photography-assembly", Required = false, HelpText = "Path to Location.Photography.Domain.dll")]
+    [Option("vertical-assembly", Required = false, HelpText = "Path to Location.Photography.Domain.dll")]
     public string? PhotographyAssemblyPath { get; set; }
 }

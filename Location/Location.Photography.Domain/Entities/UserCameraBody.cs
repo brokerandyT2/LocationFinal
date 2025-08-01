@@ -1,9 +1,11 @@
 ﻿// Location.Photography.Domain/Entities/UserCameraBody.cs
+using Location.Core.Helpers.CodeGenerationAttributes;
 using SQLite;
 
 namespace Location.Photography.Domain.Entities
 {
     [Table("UserCameraBodies")]
+    [ExportToSQL]
     public class UserCameraBody
     {
         [PrimaryKey, AutoIncrement]

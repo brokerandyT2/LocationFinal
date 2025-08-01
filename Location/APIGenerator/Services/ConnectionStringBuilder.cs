@@ -2,8 +2,8 @@
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using SQLServerSyncGenerator;
-namespace SQLServerSyncGenerator.Services;
+
+namespace Location.Tools.APIGenerator.Services;
 
 public class ConnectionStringBuilder
 {
@@ -21,7 +21,6 @@ public class ConnectionStringBuilder
             _logger.LogDebug("Retrieving SQL credentials from Azure Key Vault: {KeyVaultUrl}", options.KeyVaultUrl);
 
             // Create Key Vault client using DefaultAzureCredential
-            // This supports managed identity, service principal, developer credentials, etc.
             var keyVaultClient = new SecretClient(new Uri(options.KeyVaultUrl), new DefaultAzureCredential());
 
             // Retrieve username and password secrets
@@ -40,10 +39,10 @@ public class ConnectionStringBuilder
                 InitialCatalog = options.Database,
                 UserID = usernameResponse.Value.Value,
                 Password = passwordResponse.Value.Value,
-                Encrypt = true,                    // Always encrypt for Azure SQL
-                TrustServerCertificate = false,    // Validate certificate
-                ConnectTimeout = 30,               // 30 second connection timeout
-                CommandTimeout = 300               // 5 minute command timeout for DDL operations
+                Encrypt = true,
+                TrustServerCertificate = false,
+                ConnectTimeout = 30,
+                CommandTimeout = 300
             };
 
             _logger.LogInformation("Connection string built successfully for {Server}/{Database}",
@@ -79,9 +78,6 @@ public class ConnectionStringBuilder
         }
     }
 
-    /// <summary>
-    /// Validates that the connection string works by attempting a simple connection test
-    /// </summary>
     public async Task<bool> ValidateConnectionAsync(string connectionString)
     {
         try
@@ -91,7 +87,6 @@ public class ConnectionStringBuilder
             using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync();
 
-            // Simple validation query
             using var command = new SqlCommand("SELECT @@VERSION", connection);
             var version = await command.ExecuteScalarAsync();
 
@@ -109,35 +104,6 @@ public class ConnectionStringBuilder
         {
             _logger.LogError(ex, "Connection validation failed: {Message}", ex.Message);
             return false;
-        }
-    }
-
-    /// <summary>
-    /// Creates an admin connection string for database-level operations (backup, restore, etc.)
-    /// Uses the master database instead of the target database
-    /// </summary>
-    public async Task<string> BuildAdminConnectionStringAsync(GeneratorOptions options)
-    {
-        try
-        {
-            _logger.LogDebug("Building admin connection string for database operations");
-
-            // Get the regular connection string first
-            var regularConnectionString = await BuildConnectionStringAsync(options);
-            var builder = new SqlConnectionStringBuilder(regularConnectionString);
-
-            // Change to master database for admin operations
-            builder.InitialCatalog = "master";
-            builder.CommandTimeout = 600; // 10 minutes for backup/restore operations
-
-            _logger.LogDebug("Admin connection string built for master database");
-
-            return builder.ConnectionString;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to build admin connection string");
-            throw;
         }
     }
 }

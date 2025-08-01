@@ -1,8 +1,10 @@
-﻿using SQLite;
+﻿using Location.Core.Helpers.CodeGenerationAttributes;
+using SQLite;
 
 namespace Location.Core.Infrastructure.Data.Entities
 {
     [Table("LocationEntity")]
+    [ExportToSQL]
     public class LocationEntity
     {
         [PrimaryKey, AutoIncrement]

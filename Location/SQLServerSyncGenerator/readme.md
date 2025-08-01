@@ -1,16 +1,75 @@
 ﻿# SQL Server Sync Generator
 
-Automated SQL Server schema generation from .NET Domain entities with Azure Key Vault integration. Generates tables, indexes, and foreign keys from entity metadata for pipeline-driven database deployments.
+Automated SQL Server schema generation from .NET Domain entities with Azure Key Vault integration. Generates tables, indexes, and foreign keys from entity metadata for pipeline-driven database deployments. **Auto-runs after Domain project builds with MSBuild integration.**
 
-## Installation
+## Installation & Auto-Setup
 
+### No-Operation Mode (Preview Changes)
 ```bash
-# Build and install as global tool
+# Build and install as global tool with MSBuild integration
 dotnet pack
 dotnet tool install -g --add-source ./bin/Debug SQLServerSyncGenerator
 ```
 
-## Usage
+**🎉 That's it!** The tool now auto-runs after Domain project builds in **safe `--noop` mode** by default.
+
+## Developer Experience (Auto-Run)
+
+### Automatic Schema Analysis
+When you build any `*Domain` project, the tool automatically:
+
+1. ✅ **Analyzes your database schema** against Domain entities
+2. ✅ **Shows DDL changes** that would be applied (in `--noop` mode)
+3. ✅ **Never modifies your database** unless explicitly configured
+4. ✅ **Provides immediate feedback** on schema drift
+
+### Example Build Output
+```
+[SqlSchemaGenerator] Analyzing database schema after Domain build...
+[SqlSchemaGenerator] Project: Location.Photography.Domain
+[SqlSchemaGenerator] Mode: noop (safe default for developers)
+
+=== Delta DDL Statements (No-Op Mode) ===
+The following 3 DDL statements would be executed:
+
+DDL Statement 1:
+ALTER TABLE [Photography].[CameraBodies] ADD [SensorSize] NVARCHAR(50) NULL
+
+DDL Statement 2:
+CREATE NONCLUSTERED INDEX [IX_CameraBodies_SensorSize] ON [Photography].[CameraBodies] ([SensorSize])
+
+=== End Delta DDL Statements (3 total) ===
+
+[SqlSchemaGenerator] Schema analysis completed!
+```
+
+### Developer Configuration Options
+
+**Disable Auto-Run** (add to `Directory.Build.props` or project file):
+```xml
+<PropertyGroup>
+  <RunSqlSchemaGenerator>false</RunSqlSchemaGenerator>
+</PropertyGroup>
+```
+
+**Actually Apply Changes** (remove safety):
+```xml
+<PropertyGroup>
+  <SqlSchemaGeneratorMode>execute</SqlSchemaGeneratorMode>
+  <SqlSchemaGeneratorDatabase>MyDevDatabase</SqlSchemaGeneratorDatabase>
+</PropertyGroup>
+```
+
+**Custom Database Connection**:
+```xml
+<PropertyGroup>
+  <SqlSchemaGeneratorServer>localhost</SqlSchemaGeneratorServer>
+  <SqlSchemaGeneratorDatabase>MyCustomDB</SqlSchemaGeneratorDatabase>
+  <SqlSchemaGeneratorUseLocal>true</SqlSchemaGeneratorUseLocal>
+</PropertyGroup>
+```
+
+## Command Line Usage (Manual/Pipeline)
 
 ### Production/Azure Usage
 ```bash
@@ -53,15 +112,76 @@ sql-schema-generator \
   --database "Locations_BI" \
   --local \
   --noop
-
-# Local development with custom SQL Server instance
-sql-schema-generator \
-  --server "localhost" \
-  --database "MyDatabase" \
-  --local
 ```
 
-### No-Operation Mode (Preview Changes)
+## Validation & Automatic Rollback
+
+### Pre-flight Validation
+The tool includes comprehensive validation to catch dangerous changes before they're applied:
+
+```bash
+# Validation-only mode (perfect for pipeline conditional logic)
+sql-schema-generator \
+  --validate-only \
+  --prod \
+  --server "myserver.database.windows.net" \
+  --database "LocationAnalytics" \
+  --keyvault-url "https://myvault.vault.azure.net/" \
+  --username-secret "sql-username" \
+  --password-secret "sql-password"
+
+# Exit codes:
+# 0 = Safe (auto-deploy)
+# 1 = Warnings (manual approval recommended) 
+# 2 = Blocked (unsafe changes detected)
+```
+
+### Validation Categories
+
+**🚫 Blocking Issues (Exit Code 2)**
+- `DROP TABLE` - Permanent data loss
+- `DROP COLUMN` - Permanent data loss  
+- `TRUNCATE TABLE` - Permanent data loss
+- `DROP DATABASE` - Not allowed in automated deployments
+
+**⚠️ Warning Issues (Exit Code 1)**
+- `ALTER COLUMN` - May truncate or convert data
+- `ADD COLUMN NOT NULL` without default - Will fail on existing data
+- `CREATE INDEX` on large tables - Performance impact
+- `ADD CONSTRAINT` - May fail on existing data
+
+**✅ Safe Operations (Exit Code 0)**
+- `CREATE TABLE` - New tables are safe
+- `ADD COLUMN NULL` - Nullable columns are safe
+- `ADD COLUMN` with default - Generally safe
+- `CREATE SCHEMA` - New schemas are safe
+
+### Automatic Rollback Protection
+
+In production mode (`--prod`), the tool provides enterprise-grade safety:
+
+1. **🛡️ Pre-flight Validation** - Catches issues before starting
+2. **💾 Automatic Backup** - Creates database copy before changes  
+3. **🔄 Automatic Rollback** - Restores backup on any failure
+4. **🧹 Cleanup** - Removes backup on successful deployment
+
+```bash
+# Production deployment with full protection
+sql-schema-generator \
+  --prod \
+  --server "prod-server.database.windows.net" \
+  --database "LocationAnalytics" \
+  --keyvault-url "https://prodvault.vault.azure.net/" \
+  --username-secret "sql-username" \
+  --password-secret "sql-password"
+
+# What happens:
+# 1. ✅ Pre-flight validation runs first
+# 2. 💾 Creates backup: LocationAnalytics_PreDeploy_20250131_143022  
+# 3. 🚀 Applies schema changes
+# 4. ✅ Success: Backup automatically deleted
+# 5. ❌ Failure: Database automatically restored from backup
+```
 ```bash
 # Azure - see what DDL would be executed without running it
 sql-schema-generator \
@@ -82,12 +202,13 @@ sql-schema-generator \
 
 ## What It Does
 
-1. **Discovers Domain Entities** - Finds all classes in `*.Domain.dll` assemblies
+1. **Discovers Domain Entities** - Automatically finds all `*.Domain.dll` assemblies in your solution
 2. **Extracts Schema Names** - Uses DLL naming: `Location.Photography.Domain.dll` → `Photography` schema
 3. **Analyzes Entity Structure** - Properties, constraints, indexes, foreign keys via attributes
 4. **Builds Dependency Graph** - Topological sorting for correct table creation order
 5. **Generates DDL** - Creates schemas, tables, indexes, foreign key constraints
 6. **Production Safety** - Automatic database backups in production mode
+7. **MSBuild Integration** - Auto-runs after Domain builds for immediate developer feedback
 
 ## Schema Organization
 
@@ -95,6 +216,7 @@ sql-schema-generator \
 - **Schema Names**: `Location.{SCHEMA}.Domain.dll` → `{SCHEMA}` schema
 - **Table Names**: Entity class names (with `[SqlTable]` override support)
 - **Column Names**: Property names (Microsoft PascalCase standard)
+- **Assembly Discovery**: Automatically finds any `*Domain` projects in your solution
 
 ### Examples
 ```csharp
@@ -118,6 +240,52 @@ namespace Location.Core.Domain.Entities
         public string Email { get; set; }
     }
 }
+
+// Location.Fishing.Domain.dll → Fishing schema (auto-discovered!)
+namespace Location.Fishing.Domain.Entities
+{
+    public class FishSpecies    // → Fishing.FishSpecies table
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+}
+```
+
+## MSBuild Integration Details
+
+### How It Works
+1. **Auto-enables** for any project with "Domain" in the name
+2. **Runs after successful builds** in Debug configuration only
+3. **Defaults to `--noop` mode** for database safety
+4. **Uses local database** (`localhost\SQLEXPRESS`) by default
+5. **Provides immediate feedback** on schema changes
+
+### Configuration Properties
+All MSBuild properties can be set in `Directory.Build.props`, project files, or via MSBuild command line:
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `RunSqlSchemaGenerator` | `true` (for Domain projects) | Enable/disable auto-run |
+| `SqlSchemaGeneratorMode` | `noop` | Mode: `noop`, `execute`, or `prod` |
+| `SqlSchemaGeneratorServer` | `localhost\SQLEXPRESS` | SQL Server name |
+| `SqlSchemaGeneratorDatabase` | `LocationDev` | Database name |
+| `SqlSchemaGeneratorUseLocal` | `true` | Use Windows Authentication |
+| `SqlSchemaGeneratorVerbose` | `true` | Enable verbose logging |
+
+### Advanced Configuration
+```xml
+<!-- In Directory.Build.props for team-wide settings -->
+<PropertyGroup>
+  <!-- Enable for all Domain projects -->
+  <SqlSchemaGeneratorDatabase>LocationDev_$(USERNAME)</SqlSchemaGeneratorDatabase>
+  
+  <!-- Or use Azure for shared dev environment -->
+  <SqlSchemaGeneratorUseLocal>false</SqlSchemaGeneratorUseLocal>
+  <SqlSchemaGeneratorKeyVaultUrl>https://devvault.vault.azure.net/</SqlSchemaGeneratorKeyVaultUrl>
+  <SqlSchemaGeneratorUsernameSecret>dev-sql-username</SqlSchemaGeneratorUsernameSecret>
+  <SqlSchemaGeneratorPasswordSecret>dev-sql-password</SqlSchemaGeneratorPasswordSecret>
+</PropertyGroup>
 ```
 
 ## Strongly-Typed Attributes
@@ -209,14 +377,15 @@ public int LocationRef { get; set; }  // References different column
 - `--noop` - No-operation mode (analyze database and show what DDL would be executed without running it)
 - `--verbose` - Enable verbose logging (default: true for dev, false for prod)
 - `--core-assembly` - Custom path to Location.Core.Domain.dll
-- `--photography-assembly` - Custom path to Location.Photography.Domain.dll
+- `--vertical-assembly` - Custom path to Location.Photography.Domain.dll or other vertical assembly
 
 ## Production Safety
 
-### Development Mode (Default)
+### Development Mode (Default for Auto-Run)
+- **No-operation mode** enabled by default
 - **Verbose logging enabled** by default
-- **No database backup** - apply changes directly
-- **Fast iteration** for development workflow
+- **Shows DDL changes** without executing them
+- **Safe for continuous development** workflow
 
 ### Local Development Mode (`--local` flag)
 - **Windows Authentication** - no Key Vault credentials needed
@@ -229,6 +398,7 @@ public int LocationRef { get; set; }  // References different column
 - **Generates only delta DDL** - shows exactly what would be executed
 - **No changes applied** - perfect for validation and review
 - **Works with both Azure and local authentication**
+- **Default mode for MSBuild integration**
 
 ### Production Mode (`--prod` flag)
 1. **Create database copy** before applying changes
@@ -265,22 +435,179 @@ public int LocationRef { get; set; }  // References different column
 
 ## Pipeline Integration
 
-### Azure DevOps Example
+### Pipeline Integration with Conditional Approval
+
 ```yaml
-- task: AzureCLI@2
-  displayName: 'Generate Database Schema'
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      sql-schema-generator \
-        --server "$(SqlServer)" \
-        --database "$(DatabaseName)" \
-        --keyvault-url "$(KeyVaultUrl)" \
-        --username-secret "$(SqlUsernameSecret)" \
-        --password-secret "$(SqlPasswordSecret)" \
-        --prod
+# Complete ADO Pipeline with Conditional Manual Approval
+stages:
+- stage: SchemaValidation
+  displayName: 'Schema Validation & Conditional Approval'
+  jobs:
+  - job: ValidateSchema
+    displayName: 'Pre-flight Schema Validation'
+    steps:
+    
+    # Step 1: Run validation and capture results
+    - task: PowerShell@2
+      displayName: 'Pre-flight Schema Validation'
+      inputs:
+        script: |
+          Write-Host "Running pre-flight schema validation..."
+          
+          # Run validation-only mode and capture exit code
+          $output = & sql-schema-generator `
+            --validate-only `
+            --prod `
+            --server "$(SqlServer)" `
+            --database "$(Database)" `
+            --keyvault-url "$(KeyVaultUrl)" `
+            --username-secret "$(SqlUsernameSecret)" `
+            --password-secret "$(SqlPasswordSecret)" `
+            2>&1
+          
+          $exitCode = $LASTEXITCODE
+          Write-Host "Validation exit code: $exitCode"
+          Write-Host "Validation output:"
+          Write-Host $output
+          
+          # Set pipeline variables
+          Write-Host "##vso[task.setvariable variable=ValidationResult]$exitCode"
+          Write-Host "##vso[task.setvariable variable=ValidationOutput]$output"
+          
+          # Determine next steps
+          switch ($exitCode) {
+            0 { Write-Host "✅ Validation passed - safe for automatic deployment" }
+            1 { Write-Host "⚠️ Validation found warnings - manual approval required" }
+            2 { Write-Host "❌ Validation failed - deployment blocked"; exit 1 }
+            default { Write-Host "❓ Unknown validation result"; exit 1 }
+          }
+    
+    # Step 2: Manual approval ONLY if validation found warnings
+    - task: ManualValidation@0
+      displayName: 'DBA Approval Required - Schema Warnings Detected'
+      condition: eq(variables['ValidationResult'], '1')
+      inputs:
+        notifyUsers: |
+          dba@company.com
+          database-team@company.com
+          tech-lead@company.com
+        instructions: |
+          ⚠️ PRE-FLIGHT SCHEMA VALIDATION DETECTED WARNINGS ⚠️
+          
+          The following schema validation warnings were found:
+          
+          $(ValidationOutput)
+          
+          Please review these warnings carefully:
+          • Are any data loss risks acceptable for this deployment?
+          • Are performance impacts manageable during business hours?
+          • Are there any blocking constraints or dependency issues?
+          • Should this deployment proceed or be rescheduled?
+          
+          📋 APPROVAL OPTIONS:
+          • Click RESUME to proceed with deployment (includes automatic rollback protection)
+          • Click REJECT to cancel deployment and review changes
+          
+          🛡️ SAFETY FEATURES:
+          • Automatic database backup created before changes
+          • Automatic rollback on deployment failure
+          • All changes can be manually reverted if needed
+        onTimeout: 'reject'
+        timeoutInMinutes: 240  # 4 hours for approval
+
+- stage: ProductionDeploy
+  displayName: 'Production Schema Deployment'
+  dependsOn: SchemaValidation
+  condition: or(eq(variables['ValidationResult'], '0'), eq(variables['ValidationResult'], '1'))
+  jobs:
+  - deployment: ApplySchemaChanges
+    displayName: 'Apply Schema Changes with Rollback Protection'
+    environment: 'Production-Database'  # Configure environment approvals if needed
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          
+          # Deploy with full production safety
+          - task: PowerShell@2
+            displayName: 'Apply Schema Changes'
+            inputs:
+              script: |
+                Write-Host "🚀 Starting production schema deployment..."
+                
+                if ($env:ValidationResult -eq "0") {
+                    Write-Host "✅ Auto-deploying - validation passed with no warnings"
+                } else {
+                    Write-Host "✅ Deploying after manual DBA approval"
+                }
+                
+                Write-Host "🛡️ Production safety features enabled:"
+                Write-Host "   • Automatic database backup before changes"
+                Write-Host "   • Automatic rollback on failure"
+                Write-Host "   • Full audit logging"
+                
+                # Execute with production mode (includes backup + rollback)
+                sql-schema-generator `
+                  --prod `
+                  --server "$(SqlServer)" `
+                  --database "$(Database)" `
+                  --keyvault-url "$(KeyVaultUrl)" `
+                  --username-secret "$(SqlUsernameSecret)" `
+                  --password-secret "$(SqlPasswordSecret)" `
+                  --verbose
+                
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "✅ Schema deployment completed successfully!"
+                } else {
+                    Write-Host "❌ Schema deployment failed - check logs for rollback details"
+                    exit $LASTEXITCODE
+                }
+              env:
+                ValidationResult: $(ValidationResult)
+
+          # Post-deployment verification
+          - task: PowerShell@2
+            displayName: 'Post-Deployment Verification'
+            inputs:
+              script: |
+                Write-Host "🔍 Running post-deployment verification..."
+                
+                # Verify schema is as expected
+                sql-schema-generator `
+                  --noop `
+                  --server "$(SqlServer)" `
+                  --database "$(Database)" `
+                  --keyvault-url "$(KeyVaultUrl)" `
+                  --username-secret "$(SqlUsernameSecret)" `
+                  --password-secret "$(SqlPasswordSecret)"
+                
+                Write-Host "✅ Post-deployment verification completed"
+```
+
+### Alternative: Simpler Pipeline (Manual Approval for All Production Changes)
+
+```yaml
+# Simpler approach: Always require manual approval for production
+- stage: ProductionDeploy
+  jobs:
+  - deployment: SchemaChanges
+    environment: 'Production-Database'  # Requires manual approval in environment settings
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: PowerShell@2
+            displayName: 'Preview Schema Changes'
+            inputs:
+              script: |
+                Write-Host "📋 Schema changes that will be applied:"
+                sql-schema-generator --noop --prod [connection-params]
+          
+          - task: PowerShell@2
+            displayName: 'Apply Schema Changes'
+            inputs:
+              script: |
+                sql-schema-generator --prod [connection-params]
 ```
 
 ### GitHub Actions Example
@@ -308,6 +635,8 @@ public int LocationRef { get; set; }  // References different column
 - ✅ **Type-safe attribute** customization
 - ✅ **Production backup** automation
 - ✅ **Dependency ordering** via topological sort
+- ✅ **Developer feedback** via MSBuild integration
+- ✅ **Automatic assembly discovery** for any Domain projects
 
 ### What This Tool Does NOT Handle
 - ❌ **Triggers, functions, views** → Use [Grate](https://erikbra.github.io/grate/) for complex SQL
@@ -328,9 +657,9 @@ public int LocationRef { get; set; }  // References different column
 ## Requirements
 
 - .NET 9 SDK
-- Azure Key Vault access (Managed Identity, Service Principal, or developer credentials)
+- Azure Key Vault access (Managed Identity, Service Principal, or developer credentials) **OR** Windows Authentication for local development
 - SQL Server or Azure SQL Database
-- Built Domain assemblies (`Location.Core.Domain.dll`, `Location.Photography.Domain.dll`)
+- Built Domain assemblies (auto-discovered in solution)
 
 ## Troubleshooting
 
@@ -338,10 +667,20 @@ public int LocationRef { get; set; }  // References different column
 
 **Assembly Not Found**
 ```
-No Domain assemblies found. Make sure Domain projects are built.
+No Domain assemblies found. Make sure projects are built and contain 'Domain' in their name.
 ```
-- Ensure `Location.Core.Domain` and `Location.Photography.Domain` projects are built
-- Check assembly paths with `--core-assembly` and `--photography-assembly` options
+- Ensure Domain projects are built (`dotnet build`)
+- Check that project names follow `*.Domain` convention
+- Verify projects are in solution root directory structure
+
+**Auto-Run Not Working**
+```
+MSBuild integration not running after Domain build
+```
+- Ensure you're building in Debug configuration
+- Check that `RunSqlSchemaGenerator` is not explicitly set to `false`
+- Verify the tool is installed as global tool: `dotnet tool list -g`
+- Check project name contains "Domain"
 
 **Local SQL Server Connection Failed**
 ```
@@ -350,6 +689,7 @@ SQL Server connection test failed: A network-related or instance-specific error 
 - Verify SQL Server Express is running: `services.msc` → look for "SQL Server (SQLEXPRESS)"
 - Check server name: usually `localhost\SQLEXPRESS` or just `localhost`
 - Ensure Windows Authentication is enabled in SQL Server configuration
+- Try connecting via SQL Server Management Studio first
 
 **Key Vault Access Denied (Azure)**
 ```
@@ -358,13 +698,15 @@ Access denied to Azure Key Vault. Check Key Vault access policies and permission
 - Verify the application has appropriate Key Vault access policies
 - For Managed Identity: Grant "Key Vault Secrets User" role
 - For Service Principal: Configure access policies in Key Vault
+- For local development: Ensure you're logged into Azure CLI: `az login`
 
 **Database Does Not Exist**
 ```
-Cannot open database "Locations_BI" requested by the login.
+Cannot open database "LocationDev" requested by the login.
 ```
-- Create the database first: `CREATE DATABASE Locations_BI;`
+- Create the database first: `CREATE DATABASE LocationDev;`
 - Or let the tool create it by ensuring your user has `dbcreator` role
+- Check database name in configuration matches actual database
 
 **Circular Dependency**
 ```
@@ -372,6 +714,14 @@ Circular dependency detected: Photography.UserCameraBodies -> Core.Users -> Phot
 ```
 - Review foreign key relationships between entities
 - Remove circular references or restructure entity relationships
+- Check `[SqlForeignKey<T>]` attributes for unintended cycles
+
+**MSBuild Configuration Errors**
+```
+SqlSchemaGeneratorServer is required when RunSqlSchemaGenerator is enabled
+```
+- Set required MSBuild properties in `Directory.Build.props` or project file
+- Or disable auto-run: `<RunSqlSchemaGenerator>false</RunSqlSchemaGenerator>`
 
 ### Debug Mode
 
@@ -387,6 +737,16 @@ This provides detailed information about:
 - DDL generation process
 - SQL execution progress
 
+### MSBuild Integration Debug
+
+To see MSBuild integration details:
+```bash
+# Build with diagnostic verbosity
+dotnet build --verbosity diagnostic
+
+# Look for SqlSchemaGenerator messages in output
+```
+
 ## Development
 
 ### Building from Source
@@ -398,7 +758,19 @@ dotnet pack
 dotnet tool install -g --add-source ./bin/Debug SQLServerSyncGenerator
 ```
 
-### Testing
+### Testing MSBuild Integration
+```bash
+# Build the tool (installs automatically)
+dotnet build
+
+# Build a Domain project (should auto-run schema analysis)
+cd ../Location.Photography.Domain
+dotnet build
+
+# Check for schema analysis output in build log
+```
+
+### Testing Command Line
 ```bash
 # Test against local SQL Server Express
 sql-schema-generator \
@@ -423,3 +795,15 @@ sql-schema-generator \
   --local \
   --noop
 ```
+
+## Future Extensibility
+
+The tool automatically discovers new vertical Domain assemblies without code changes:
+
+- ✅ `Location.Core.Domain.dll` → Core schema
+- ✅ `Location.Photography.Domain.dll` → Photography schema  
+- ✅ `Location.Fishing.Domain.dll` → Fishing schema (auto-discovered)
+- ✅ `Location.Hunting.Domain.dll` → Hunting schema (auto-discovered)
+- ✅ `Location.{AnyNew}.Domain.dll` → {AnyNew} schema (auto-discovered)
+
+No configuration or code changes needed for new verticals!

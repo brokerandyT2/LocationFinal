@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using CommandLine;
+
+
 namespace SQLServerSyncGenerator.Services;
 
 public class AssemblyLoader
@@ -17,54 +18,48 @@ public class AssemblyLoader
 
         try
         {
-            // Find Core Domain assembly path
-            string? coreAssemblyPath = null;
+            // Find solution root first
+            var solutionRoot = FindSolutionRoot();
+            _logger.LogInformation("Found solution root: {SolutionRoot}", solutionRoot);
+
+            // Use custom paths if provided
             if (!string.IsNullOrEmpty(options.CoreAssemblyPath))
             {
-                coreAssemblyPath = options.CoreAssemblyPath;
-                _logger.LogInformation("Using custom Core assembly path: {Path}", coreAssemblyPath);
-            }
-            else
-            {
-                coreAssemblyPath = await FindCoreAssemblyPathAsync();
+                assemblyPaths.Add(options.CoreAssemblyPath);
+                _logger.LogInformation("Using custom Core assembly path: {Path}", options.CoreAssemblyPath);
             }
 
-            if (!string.IsNullOrEmpty(coreAssemblyPath))
-            {
-                assemblyPaths.Add(coreAssemblyPath);
-                _logger.LogInformation("Found Core Domain assembly: {Path}", coreAssemblyPath);
-            }
-
-            // Find Photography Domain assembly path
-            string? photographyAssemblyPath = null;
             if (!string.IsNullOrEmpty(options.PhotographyAssemblyPath))
             {
-                photographyAssemblyPath = options.PhotographyAssemblyPath;
-                _logger.LogInformation("Using custom Photography assembly path: {Path}", photographyAssemblyPath);
-            }
-            else
-            {
-                photographyAssemblyPath = await FindPhotographyAssemblyPathAsync();
+                assemblyPaths.Add(options.PhotographyAssemblyPath);
+                _logger.LogInformation("Using custom Photography assembly path: {Path}", options.PhotographyAssemblyPath);
             }
 
-            if (!string.IsNullOrEmpty(photographyAssemblyPath))
-            {
-                assemblyPaths.Add(photographyAssemblyPath);
-                _logger.LogInformation("Found Photography Domain assembly: {Path}", photographyAssemblyPath);
-            }
-
-            // TODO: Add other vertical assemblies as they're created
-            // var fishingAssemblyPath = await FindFishingAssemblyPathAsync();
-            // var huntingAssemblyPath = await FindHuntingAssemblyPathAsync();
-
+            // If no custom paths, auto-discover
             if (assemblyPaths.Count == 0)
             {
-                throw new InvalidOperationException(
-                    "No Domain assemblies found. Make sure Location.Core.Domain and Location.Photography.Domain are built.");
+                var discoveredAssemblies = await DiscoverDomainAssembliesAsync(solutionRoot);
+                assemblyPaths.AddRange(discoveredAssemblies);
             }
 
-            _logger.LogInformation("Successfully found {Count} Domain assembly paths", assemblyPaths.Count);
-            return assemblyPaths;
+            // Validate all found assemblies
+            var validAssemblies = assemblyPaths.Where(File.Exists).ToList();
+
+            if (validAssemblies.Count != assemblyPaths.Count)
+            {
+                var missing = assemblyPaths.Except(validAssemblies);
+                _logger.LogWarning("Some assemblies were not found: {MissingAssemblies}",
+                    string.Join(", ", missing));
+            }
+
+            if (validAssemblies.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "No Domain assemblies found. Make sure projects are built and contain 'Domain' in their name.");
+            }
+
+            _logger.LogInformation("Successfully found {Count} Domain assemblies", validAssemblies.Count);
+            return validAssemblies;
         }
         catch (Exception ex)
         {
@@ -73,59 +68,86 @@ public class AssemblyLoader
         }
     }
 
-    private async Task<string?> FindCoreAssemblyPathAsync()
+    private async Task<List<string>> DiscoverDomainAssembliesAsync(string solutionRoot)
     {
-        const string assemblyName = "Location.Core.Domain.dll";
-        const string searchPath = "Location.Core.Domain\\bin\\Debug\\net9.0";
+        _logger.LogInformation("Auto-discovering Domain assemblies in solution...");
 
-        return await FindAssemblyPathAsync(assemblyName, searchPath, "Core Domain");
-    }
+        var foundAssemblies = new List<string>();
 
-    private async Task<string?> FindPhotographyAssemblyPathAsync()
-    {
-        const string assemblyName = "Location.Photography.Domain.dll";
-        const string searchPath = "Location.Photography.Domain\\bin\\Debug\\net9.0";
+        // Find all directories at solution level that end with "Domain"
+        var domainDirectories = Directory.GetDirectories(solutionRoot, "*Domain", SearchOption.TopDirectoryOnly)
+            .Where(dir => !Path.GetFileName(dir).Contains("Test")) // Exclude test projects
+            .ToList();
 
-        return await FindAssemblyPathAsync(assemblyName, searchPath, "Photography Domain");
-    }
+        _logger.LogInformation("Found {Count} Domain project directories: {Directories}",
+            domainDirectories.Count,
+            string.Join(", ", domainDirectories.Select(Path.GetFileName)));
 
-    private async Task<string?> FindAssemblyPathAsync(string assemblyName, string searchPath, string assemblyType)
-    {
-        _logger.LogDebug("Searching for {AssemblyType} assembly: {AssemblyName}", assemblyType, assemblyName);
-
-        try
+        foreach (var projectDir in domainDirectories)
         {
-            // Navigate to solution root using the same hardcoded pattern as adapter generator
-            var current = new DirectoryInfo(Directory.GetCurrentDirectory());
-            var parent = current.ToString();
-            var replaces = parent.Replace("bin\\Debug\\net9.0", "").Replace("SQLServerSyncGenerator\\", "");
-            var fullSearchPath = Path.Combine(replaces, searchPath);
+            var projectName = Path.GetFileName(projectDir);
+            var expectedAssemblyName = $"{projectName}.dll";
 
-            _logger.LogDebug("Checking search path: {SearchPath}", fullSearchPath);
-
-            if (!Directory.Exists(fullSearchPath))
+            // Look in bin folder for the assembly (prefer Debug, fallback to Release)
+            var binPath = Path.Combine(projectDir, "bin");
+            if (Directory.Exists(binPath))
             {
-                _logger.LogDebug("Search path does not exist: {SearchPath}", fullSearchPath);
-                return null;
+                var assemblyPath = FindAssemblyInBinFolder(binPath, expectedAssemblyName);
+                if (assemblyPath != null)
+                {
+                    foundAssemblies.Add(assemblyPath);
+                    var schema = DetermineSchemaFromAssembly(assemblyPath);
+                    _logger.LogInformation("Discovered {Schema} Domain assembly: {Path}", schema, assemblyPath);
+                }
+                else
+                {
+                    _logger.LogWarning("No built assembly found for project {ProjectName} in {BinPath}",
+                        projectName, binPath);
+                }
             }
-
-            var assemblyPath = Path.Combine(fullSearchPath, assemblyName);
-            _logger.LogDebug("Looking for assembly at: {AssemblyPath}", assemblyPath);
-
-            if (File.Exists(assemblyPath))
+            else
             {
-                var fullAssemblyPath = Path.GetFullPath(assemblyPath);
-                _logger.LogDebug("Found {AssemblyType} assembly at: {AssemblyPath}", assemblyType, fullAssemblyPath);
-                return fullAssemblyPath;
+                _logger.LogWarning("No bin folder found for project {ProjectName}", projectName);
             }
         }
-        catch (Exception ex)
+
+        _logger.LogInformation("Found {Count} Domain assemblies", foundAssemblies.Count);
+        return foundAssemblies;
+    }
+
+    private string? FindAssemblyInBinFolder(string binPath, string assemblyName)
+    {
+        // Search pattern: bin/Debug/net*/AssemblyName.dll or bin/Release/net*/AssemblyName.dll
+        var configurations = new[] { "Debug", "Release" };
+
+        foreach (var config in configurations)
         {
-            _logger.LogDebug(ex, "Error checking search path: {SearchPath}", searchPath);
+            var configPath = Path.Combine(binPath, config);
+            if (!Directory.Exists(configPath)) continue;
+
+            // Look for net* folders (net9.0, net8.0, etc.)
+            var targetFrameworkDirs = Directory.GetDirectories(configPath, "net*");
+
+            foreach (var tfmDir in targetFrameworkDirs)
+            {
+                var assemblyPath = Path.Combine(tfmDir, assemblyName);
+                if (File.Exists(assemblyPath))
+                {
+                    _logger.LogDebug("Found assembly {AssemblyName} at {Path}", assemblyName, assemblyPath);
+                    return assemblyPath;
+                }
+            }
         }
 
-        _logger.LogWarning("Could not find {AssemblyType} assembly: {AssemblyName}", assemblyType, assemblyName);
         return null;
+    }
+
+    private string FindSolutionRoot(string? startPath = null)
+    {
+        var currentPath = startPath ?? Directory.GetCurrentDirectory();
+        if (Directory.GetFiles(currentPath, "*.sln").Any()) return currentPath;
+        var parent = Directory.GetParent(currentPath)?.FullName;
+        return parent != null ? FindSolutionRoot(parent) : throw new InvalidOperationException("Solution root not found");
     }
 
     /// <summary>
@@ -160,6 +182,14 @@ public class AssemblyLoader
         {
             var fileName = Path.GetFileNameWithoutExtension(assemblyPath);
 
+            // Try to extract schema from pattern: Location.{SCHEMA}.Domain
+            var parts = fileName.Split('.');
+            if (parts.Length >= 3 && parts[0] == "Location" && parts[^1] == "Domain")
+            {
+                return parts[1]; // Return the middle part (Photography, Core, Fishing, etc.)
+            }
+
+            // Fallback to specific pattern matching for backward compatibility
             if (fileName.Contains("Core.Domain", StringComparison.OrdinalIgnoreCase))
                 return "Core";
             else if (fileName.Contains("Photography.Domain", StringComparison.OrdinalIgnoreCase))
@@ -170,13 +200,6 @@ public class AssemblyLoader
                 return "Hunting";
             else
             {
-                // Try to extract schema from pattern: Location.{SCHEMA}.Domain
-                var parts = fileName.Split('.');
-                if (parts.Length >= 3 && parts[0] == "Location" && parts[^1] == "Domain")
-                {
-                    return parts[1]; // Return the middle part
-                }
-
                 _logger.LogWarning("Could not determine schema from assembly: {AssemblyPath}", assemblyPath);
                 return "Unknown";
             }

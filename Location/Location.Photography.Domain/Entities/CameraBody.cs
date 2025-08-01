@@ -1,9 +1,11 @@
-﻿using Location.Photography.Domain.Enums;
+﻿using Location.Core.Helpers.CodeGenerationAttributes;
+using Location.Photography.Domain.Enums;
 using SQLite;
 
 namespace Location.Photography.Domain.Entities
 {
     [Table("CameraBodies")]
+    [ExportToSQL]
     public class CameraBody
     {
         [PrimaryKey, AutoIncrement]

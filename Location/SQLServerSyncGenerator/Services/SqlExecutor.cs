@@ -76,43 +76,6 @@ public class SqlExecutor
         }
     }
 
-    public async Task CreateDatabaseBackupAsync(string connectionString, string databaseName, string backupName)
-    {
-        _logger.LogInformation("Creating database backup: {DatabaseName} -> {BackupName}", databaseName, backupName);
-
-        try
-        {
-            // Use admin connection string (connects to master database)
-            var adminConnectionString = await GetAdminConnectionStringAsync(connectionString);
-
-            using var connection = new SqlConnection(adminConnectionString);
-            await connection.OpenAsync();
-
-            // Create database copy using CREATE DATABASE ... AS COPY OF
-            var createCopyCommand = $@"
-                IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '{backupName}')
-                BEGIN
-                    CREATE DATABASE [{backupName}] AS COPY OF [{databaseName}]
-                END";
-
-            using var command = new SqlCommand(createCopyCommand, connection);
-            command.CommandTimeout = 1800; // 30 minutes for database copy operations
-
-            await command.ExecuteNonQueryAsync();
-
-            _logger.LogInformation("Database backup created successfully: {BackupName}", backupName);
-        }
-        catch (SqlException ex)
-        {
-            _logger.LogError(ex, "Failed to create database backup: {DatabaseName} -> {BackupName}", databaseName, backupName);
-            throw new InvalidOperationException($"Failed to create database backup: {ex.Message}", ex);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error creating database backup: {DatabaseName} -> {BackupName}", databaseName, backupName);
-            throw;
-        }
-    }
 
     public async Task DeleteDatabaseBackupAsync(string connectionString, string backupName)
     {
@@ -210,7 +173,242 @@ public class SqlExecutor
 
         return tables;
     }
+    // Add these methods to your existing SqlExecutor.cs class
 
+    /// <summary>
+    /// Restores a database from a backup copy (Azure SQL Database approach)
+    /// </summary>
+    public async Task RestoreDatabaseFromBackupAsync(string connectionString, string originalDatabase, string backupDatabase)
+    {
+        _logger.LogInformation("Restoring database {OriginalDatabase} from backup {BackupDatabase}", originalDatabase, backupDatabase);
+
+        try
+        {
+            var adminConnectionString = await GetAdminConnectionStringAsync(connectionString);
+
+            using var connection = new SqlConnection(adminConnectionString);
+            await connection.OpenAsync();
+
+            // Step 1: Set backup database to single user mode and rename original to temp
+            var tempDatabaseName = $"{originalDatabase}_FailedDeploy_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
+
+            _logger.LogInformation("Step 1: Renaming failed database to {TempName}", tempDatabaseName);
+
+            var renameFailedCommand = $@"
+                IF EXISTS (SELECT name FROM sys.databases WHERE name = '{originalDatabase}')
+                BEGIN
+                    ALTER DATABASE [{originalDatabase}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                    ALTER DATABASE [{originalDatabase}] MODIFY NAME = [{tempDatabaseName}];
+                END";
+
+            using var command1 = new SqlCommand(renameFailedCommand, connection);
+            command1.CommandTimeout = 600;
+            await command1.ExecuteNonQueryAsync();
+
+            // Step 2: Rename backup to original name
+            _logger.LogInformation("Step 2: Restoring backup database to original name");
+
+            var restoreCommand = $@"
+                IF EXISTS (SELECT name FROM sys.databases WHERE name = '{backupDatabase}')
+                BEGIN
+                    ALTER DATABASE [{backupDatabase}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                    ALTER DATABASE [{backupDatabase}] MODIFY NAME = [{originalDatabase}];
+                    ALTER DATABASE [{originalDatabase}] SET MULTI_USER;
+                END";
+
+            using var command2 = new SqlCommand(restoreCommand, connection);
+            command2.CommandTimeout = 600;
+            await command2.ExecuteNonQueryAsync();
+
+            // Step 3: Clean up the failed database
+            _logger.LogInformation("Step 3: Cleaning up failed deployment database");
+
+            var cleanupCommand = $@"
+                IF EXISTS (SELECT name FROM sys.databases WHERE name = '{tempDatabaseName}')
+                BEGIN
+                    ALTER DATABASE [{tempDatabaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                    DROP DATABASE [{tempDatabaseName}];
+                END";
+
+            using var command3 = new SqlCommand(cleanupCommand, connection);
+            command3.CommandTimeout = 600;
+            await command3.ExecuteNonQueryAsync();
+
+            _logger.LogInformation("Database rollback completed successfully: {OriginalDatabase} restored from {BackupDatabase}",
+                originalDatabase, backupDatabase);
+        }
+        catch (SqlException ex)
+        {
+            _logger.LogError(ex, "Failed to restore database from backup: {OriginalDatabase} <- {BackupDatabase}",
+                originalDatabase, backupDatabase);
+            throw new InvalidOperationException($"Database rollback failed: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during database restore: {OriginalDatabase} <- {BackupDatabase}",
+                originalDatabase, backupDatabase);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Checks if a backup database exists
+    /// </summary>
+    public async Task<bool> BackupDatabaseExistsAsync(string connectionString, string backupDatabaseName)
+    {
+        try
+        {
+            var adminConnectionString = await GetAdminConnectionStringAsync(connectionString);
+
+            using var connection = new SqlConnection(adminConnectionString);
+            await connection.OpenAsync();
+
+            var checkCommand = "SELECT COUNT(*) FROM sys.databases WHERE name = @backupName";
+            using var command = new SqlCommand(checkCommand, connection);
+            command.Parameters.AddWithValue("@backupName", backupDatabaseName);
+
+            var count = (int)await command.ExecuteScalarAsync();
+            var exists = count > 0;
+
+            _logger.LogDebug("Backup database {BackupName} exists: {Exists}", backupDatabaseName, exists);
+            return exists;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to check if backup database exists: {BackupName}", backupDatabaseName);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Creates a database backup using Azure SQL Database COPY operation
+    /// Enhanced with better error handling and validation
+    /// </summary>
+    public async Task CreateDatabaseBackupAsync(string connectionString, string databaseName, string backupName)
+    {
+        _logger.LogInformation("Creating database backup: {DatabaseName} -> {BackupName}", databaseName, backupName);
+
+        try
+        {
+            // Use admin connection string (connects to master database)
+            var adminConnectionString = await GetAdminConnectionStringAsync(connectionString);
+
+            using var connection = new SqlConnection(adminConnectionString);
+            await connection.OpenAsync();
+
+            // Validate source database exists
+            if (!await DatabaseExistsAsync(connectionString, databaseName))
+            {
+                throw new InvalidOperationException($"Source database '{databaseName}' does not exist");
+            }
+
+            // Check if backup name already exists
+            if (await DatabaseExistsAsync(connectionString, backupName))
+            {
+                _logger.LogWarning("Backup database {BackupName} already exists - deleting before creating new backup", backupName);
+                await DeleteDatabaseBackupAsync(connectionString, backupName);
+            }
+
+            // Create database copy using CREATE DATABASE ... AS COPY OF
+            var createCopyCommand = $@"
+                CREATE DATABASE [{backupName}] AS COPY OF [{databaseName}]
+                (SERVICE_OBJECTIVE = ELASTIC_POOL(name = [default]))"; // Adjust service objective as needed
+
+            using var command = new SqlCommand(createCopyCommand, connection);
+            command.CommandTimeout = 3600; // 60 minutes for large database copies
+
+            await command.ExecuteNonQueryAsync();
+
+            // Wait for copy operation to complete
+            await WaitForDatabaseCopyCompletionAsync(connection, backupName);
+
+            _logger.LogInformation("Database backup created successfully: {BackupName}", backupName);
+        }
+        catch (SqlException ex) when (ex.Number == 40852) // Database copy limit exceeded
+        {
+            _logger.LogError("Database copy limit exceeded. Cannot create backup: {BackupName}", backupName);
+            throw new InvalidOperationException("Cannot create database backup: copy limit exceeded. Try again later.", ex);
+        }
+        catch (SqlException ex) when (ex.Number == 40847) // Database copy still in progress
+        {
+            _logger.LogError("Previous database copy still in progress. Cannot create backup: {BackupName}", backupName);
+            throw new InvalidOperationException("Cannot create database backup: previous copy operation still in progress.", ex);
+        }
+        catch (SqlException ex)
+        {
+            _logger.LogError(ex, "Failed to create database backup: {DatabaseName} -> {BackupName}", databaseName, backupName);
+            throw new InvalidOperationException($"Failed to create database backup: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error creating database backup: {DatabaseName} -> {BackupName}", databaseName, backupName);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Waits for database copy operation to complete
+    /// </summary>
+    private async Task WaitForDatabaseCopyCompletionAsync(SqlConnection connection, string databaseName)
+    {
+        _logger.LogInformation("Waiting for database copy operation to complete: {DatabaseName}", databaseName);
+
+        var timeout = TimeSpan.FromMinutes(60); // 60 minute timeout
+        var startTime = DateTime.UtcNow;
+        var checkInterval = TimeSpan.FromSeconds(30);
+
+        while (DateTime.UtcNow - startTime < timeout)
+        {
+            var query = @"
+                SELECT state_desc, percent_complete 
+                FROM sys.dm_database_copies 
+                WHERE database_id = DB_ID(@databaseName)";
+
+            using var command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@databaseName", databaseName);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+            {
+                // No copy operation found - copy might be complete
+                reader.Close();
+
+                // Verify database exists and is online
+                if (await DatabaseExistsAsync(connection.ConnectionString, databaseName))
+                {
+                    _logger.LogInformation("Database copy completed: {DatabaseName}", databaseName);
+                    return;
+                }
+            }
+            else
+            {
+                var state = reader.GetString(0);
+                var percentComplete = reader.IsDBNull(1) ? 0 : reader.GetDecimal(1);
+
+                _logger.LogInformation("Database copy progress: {DatabaseName} - {State} ({Percent:F1}%)",
+                    databaseName, state, percentComplete);
+
+                if (state.Equals("COMPLETED", StringComparison.OrdinalIgnoreCase))
+                {
+                    reader.Close();
+                    _logger.LogInformation("Database copy completed: {DatabaseName}", databaseName);
+                    return;
+                }
+
+                if (state.Equals("FAILED", StringComparison.OrdinalIgnoreCase))
+                {
+                    reader.Close();
+                    throw new InvalidOperationException($"Database copy failed for: {databaseName}");
+                }
+            }
+
+            reader.Close();
+            await Task.Delay(checkInterval);
+        }
+
+        throw new TimeoutException($"Database copy operation timed out after {timeout.TotalMinutes} minutes: {databaseName}");
+    }
     public async Task<bool> TableExistsAsync(string connectionString, string schemaName, string tableName)
     {
         try
