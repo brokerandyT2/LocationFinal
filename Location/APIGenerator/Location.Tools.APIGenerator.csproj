@@ -26,10 +26,10 @@
     <!-- Command line parsing -->
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
 
-    <!-- Azure deployment -->
-    <PackageReference Include="Azure.Identity" Version="1.10.4" />
-    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
-    <PackageReference Include="Azure.ResourceManager" Version="1.9.0" />
+    <!-- Azure deployment - Updated to resolve version conflict -->
+    <PackageReference Include="Azure.Identity" Version="1.12.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.6.0" />
+    <PackageReference Include="Azure.ResourceManager" Version="1.12.0" />
     <PackageReference Include="Azure.ResourceManager.Resources" Version="1.6.0" />
 
     <!-- SQL connectivity -->
@@ -55,6 +55,12 @@
     <!-- File operations -->
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="8.0.0" />
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+
+    <!-- Azure Web Apps deployment -->
+    <PackageReference Include="Azure.ResourceManager.AppService" Version="1.1.0" />
+
+    <!-- HTTP client for direct deployment -->
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
   <ItemGroup>

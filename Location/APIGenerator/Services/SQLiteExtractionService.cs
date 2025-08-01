@@ -1,7 +1,6 @@
 ﻿using Location.Tools.APIGenerator.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-
 using System.IO.Compression;
 using System.Text;
 
@@ -102,7 +101,7 @@ public class SQLiteExtractionService
             TableData = new Dictionary<string, List<Dictionary<string, object>>>()
         };
 
-        var connectionString = $"Data Source={sqliteDbPath};Version=3;Read Only=True;";
+        var connectionString = $"Data Source={sqliteDbPath};Version=3;";
 
         using var connection = new SqliteConnection(connectionString);
         await connection.OpenAsync();
@@ -129,14 +128,14 @@ public class SQLiteExtractionService
         return extractedData;
     }
 
-    private async Task<List<Dictionary<string, object>>> ExtractTableDataAsync(SQLiteConnection connection, ExtractableEntity entity)
+    private async Task<List<Dictionary<string, object>>> ExtractTableDataAsync(SqliteConnection connection, ExtractableEntity entity)
     {
         var tableData = new List<Dictionary<string, object>>();
 
         // Build SELECT query - hoover approach (get all data)
         var query = $"SELECT * FROM [{entity.TableName}]";
 
-        using var command = new SQLiteCommand(query, connection);
+        using var command = new SqliteCommand(query, connection);
         using var reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())

@@ -45,6 +45,13 @@ public class GeneratorOptions
     [Option("resource-group", Required = true, HelpText = "Resource group for deployment")]
     public string ResourceGroup { get; set; } = string.Empty;
 
+    // Function App deployment
+    [Option("function-code-path", Required = false, HelpText = "Path to pre-built Function App code (zip file or directory)")]
+    public string? FunctionCodePath { get; set; }
+
+    [Option("publish-profile", Required = false, HelpText = "Path to Azure Function App publish profile (.PublishSettings file)")]
+    public string? PublishProfile { get; set; }
+
     // Control options
     [Option("prod", Required = false, Default = false, HelpText = "Production deployment mode")]
     public bool IsProduction { get; set; }
