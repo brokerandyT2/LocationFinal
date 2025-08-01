@@ -1,6 +1,7 @@
 ﻿using Location.Tools.APIGenerator.Models;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-using System.Data.SQLite;
+
 using System.IO.Compression;
 using System.Text;
 
@@ -103,7 +104,7 @@ public class SQLiteExtractionService
 
         var connectionString = $"Data Source={sqliteDbPath};Version=3;Read Only=True;";
 
-        using var connection = new SQLiteConnection(connectionString);
+        using var connection = new SqliteConnection(connectionString);
         await connection.OpenAsync();
 
         foreach (var entity in entities)

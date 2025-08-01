@@ -33,19 +33,24 @@
     <PackageReference Include="Azure.ResourceManager.Resources" Version="1.6.0" />
 
     <!-- SQL connectivity -->
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.6" />
 
-    <!-- SQLite for data extraction -->
+    <!-- Entity Framework Core - Multi-provider support -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" />
+
+    <!-- SQLite attributes (still needed for entity reflection) -->
     <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
 
     <!-- Assembly loading and reflection -->
     <PackageReference Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
 
     <!-- Logging and DI -->
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
 
     <!-- File operations -->
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="8.0.0" />

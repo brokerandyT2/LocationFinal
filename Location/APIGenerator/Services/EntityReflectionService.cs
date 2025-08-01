@@ -1,8 +1,10 @@
 ﻿using Location.Core.Helpers.CodeGenerationAttributes;
 using Location.Tools.APIGenerator.Models;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 using SQLite;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection;
+using TableAttribute = SQLite.TableAttribute;
 
 namespace Location.Tools.APIGenerator.Services;
 
