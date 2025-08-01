@@ -28,7 +28,6 @@ class Program
 
     static async Task<int> RunGeneratorAsync(GeneratorOptions options)
     {
-        // Setup DI and logging
         var services = new ServiceCollection()
             .AddLogging(builder =>
             {
@@ -39,7 +38,9 @@ class Program
             .AddSingleton<EntityReflectionService>()
             .AddSingleton<EFCoreExtractionService>()
             .AddSingleton<FunctionGeneratorService>()
+            .AddSingleton<BuildService>()
             .AddSingleton<AzureDeploymentService>()
+            .AddSingleton<AzureArtifactsService>()
             .AddSingleton<ConnectionStringBuilder>()
             .BuildServiceProvider();
 
@@ -47,7 +48,7 @@ class Program
 
         try
         {
-            logger.LogInformation("Location API Generator v1.0.0");
+            logger.LogInformation("Location API Generator v1.0.0 - Complete Pipeline");
             logger.LogInformation("Mode: {Mode}", options.AutoDiscover ? "Auto-Discover" : "Manual Override");
 
             if (!options.AutoDiscover && !string.IsNullOrEmpty(options.ManualExtractors))
@@ -55,15 +56,12 @@ class Program
                 LogManualOverrideWarnings(logger, options);
             }
 
-            // Step 1: Discover Infrastructure DLL and extract vertical/version
-            logger.LogInformation("Discovering Infrastructure assembly...");
+            logger.LogInformation("Step 1: Discovering Infrastructure assembly...");
             var discoveryService = services.GetRequiredService<AssemblyDiscoveryService>();
             var assemblyInfo = await discoveryService.DiscoverInfrastructureAssemblyAsync(options);
-
             logger.LogInformation("Discovered: {Vertical} v{Version}", assemblyInfo.Vertical, assemblyInfo.MajorVersion);
 
-            // Step 2: Reflect entities and build extraction metadata
-            logger.LogInformation("Analyzing entities with [ExportToSQL] attribute...");
+            logger.LogInformation("Step 2: Analyzing entities with [ExportToSQL] attribute...");
             var reflectionService = services.GetRequiredService<EntityReflectionService>();
             var extractableEntities = await reflectionService.DiscoverExtractableEntitiesAsync(assemblyInfo, options);
 
@@ -77,35 +75,72 @@ class Program
                 extractableEntities.Count,
                 string.Join(", ", extractableEntities.Select(e => e.TableName)));
 
-            // Step 3: Build connection string and test SQL Server connectivity
-            logger.LogInformation("Building SQL Server connection...");
+            logger.LogInformation("Step 3: Building SQL Server connection...");
             var connectionBuilder = services.GetRequiredService<ConnectionStringBuilder>();
             var connectionString = await connectionBuilder.BuildConnectionStringAsync(options);
 
-            // Step 4: Generate Azure Functions controllers and Bicep templates
-            logger.LogInformation("Generating Azure Functions and infrastructure...");
+            logger.LogInformation("Step 4: Generating Function App source code...");
             var functionGenerator = services.GetRequiredService<FunctionGeneratorService>();
             var generatedAssets = await functionGenerator.GenerateAPIAssetsAsync(assemblyInfo, extractableEntities, options);
 
-            // Step 5: Deploy to Azure (if not --noop mode)
+            logger.LogInformation("Step 5: Building Function App binary...");
+            var buildService = services.GetRequiredService<BuildService>();
+            var compiledBinaryPath = await buildService.BuildFunctionAppAsync(assemblyInfo, generatedAssets, options);
+
             if (!options.NoOp)
             {
-                logger.LogInformation("Deploying to Azure...");
+                logger.LogInformation("Step 6: Deploying to Azure...");
                 var deploymentService = services.GetRequiredService<AzureDeploymentService>();
-                await deploymentService.DeployFunctionAppAsync(assemblyInfo, generatedAssets, options);
+
+                var tempZipPath = Path.Combine(Path.GetTempPath(), $"{generatedAssets.FunctionAppName}.zip");
+                System.IO.Compression.ZipFile.CreateFromDirectory(compiledBinaryPath, tempZipPath);
+
+                try
+                {
+                    options.FunctionCodePath = tempZipPath;
+                    var updatedOptions = options;
+
+                    await deploymentService.DeployFunctionAppAsync(assemblyInfo, generatedAssets, updatedOptions);
+                }
+                finally
+                {
+                    if (File.Exists(tempZipPath))
+                    {
+                        File.Delete(tempZipPath);
+                    }
+                }
+
+                if (!options.SkipArtifacts)
+                {
+                    logger.LogInformation("Step 7: Publishing to Azure Artifacts...");
+                    var artifactsService = services.GetRequiredService<AzureArtifactsService>();
+                    var artifactSuccess = await artifactsService.TryPublishArtifactAsync(assemblyInfo, compiledBinaryPath, options);
+
+                    if (!artifactSuccess)
+                    {
+                        logger.LogWarning("Artifact publishing failed, but deployment succeeded");
+                    }
+                }
+                else
+                {
+                    logger.LogInformation("Step 7: Skipping Azure Artifacts (--skip-artifacts)");
+                }
             }
             else
             {
-                logger.LogInformation("No-Op Mode: Generated assets ready for review");
-                LogGeneratedAssets(logger, generatedAssets);
+                logger.LogInformation("No-Op Mode: Generated and compiled assets ready for review");
+                LogGeneratedAssets(logger, generatedAssets, compiledBinaryPath);
             }
 
-            logger.LogInformation("API generation completed successfully!");
+            logger.LogInformation("API generation pipeline completed successfully!");
+            logger.LogInformation("Function App: {FunctionAppName}", generatedAssets.FunctionAppName);
+            logger.LogInformation("Endpoints: {EndpointCount}", generatedAssets.GeneratedEndpoints.Count);
+
             return 0;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "API generation failed: {Message}", ex.Message);
+            logger.LogError(ex, "API generation pipeline failed: {Message}", ex.Message);
             return 1;
         }
         finally
@@ -130,12 +165,13 @@ class Program
         }
     }
 
-    static void LogGeneratedAssets(ILogger logger, GeneratedAssets assets)
+    static void LogGeneratedAssets(ILogger logger, GeneratedAssets assets, string compiledBinaryPath)
     {
         logger.LogInformation("=== Generated Assets (No-Op Mode) ===");
         logger.LogInformation("Function App: {Name}", assets.FunctionAppName);
         logger.LogInformation("Controllers: {Count}", assets.Controllers.Count);
-        logger.LogInformation("Bicep Template: {Size} chars", assets.BicepTemplate.Length);
         logger.LogInformation("Endpoints: {Endpoints}", string.Join(", ", assets.GeneratedEndpoints));
+        logger.LogInformation("Compiled Binary: {BinaryPath}", compiledBinaryPath);
+        logger.LogInformation("Bicep Template: {Size} chars", assets.BicepTemplate.Length);
     }
 }

@@ -45,12 +45,12 @@ public class GeneratorOptions
     [Option("resource-group", Required = true, HelpText = "Resource group for deployment")]
     public string ResourceGroup { get; set; } = string.Empty;
 
-    // Function App deployment
-    [Option("function-code-path", Required = false, HelpText = "Path to pre-built Function App code (zip file or directory)")]
-    public string? FunctionCodePath { get; set; }
+    // Azure Artifacts configuration
+    [Option("artifacts-feed", Required = false, Default = "LocationAPIs", HelpText = "Azure DevOps Artifacts feed name")]
+    public string ArtifactsFeed { get; set; } = "LocationAPIs";
 
-    [Option("publish-profile", Required = false, HelpText = "Path to Azure Function App publish profile (.PublishSettings file)")]
-    public string? PublishProfile { get; set; }
+    [Option("artifacts-organization", Required = false, HelpText = "Azure DevOps organization for artifacts (defaults to subscription ID)")]
+    public string? ArtifactsOrganization { get; set; }
 
     // Control options
     [Option("prod", Required = false, Default = false, HelpText = "Production deployment mode")]
@@ -62,7 +62,18 @@ public class GeneratorOptions
     [Option("verbose", Required = false, Default = false, HelpText = "Enable verbose logging")]
     public bool Verbose { get; set; }
 
+    [Option("skip-artifacts", Required = false, Default = false, HelpText = "Skip Azure Artifacts upload")]
+    public bool SkipArtifacts { get; set; }
+
+    [Option("function-code-path", Required = false, HelpText = "Path to pre-built Function App code (zip file or directory)")]
+    public string? FunctionCodePath { get; set; }
+
+    [Option("publish-profile", Required = false, HelpText = "Path to Azure Function App publish profile (.PublishSettings file)")]
+    public string? PublishProfile { get; set; }
     // Assembly overrides
     [Option("infrastructure-assembly", Required = false, HelpText = "Custom path to Infrastructure.dll")]
     public string? InfrastructureAssemblyPath { get; set; }
+
+    // Computed properties
+    public string EffectiveArtifactsOrganization => ArtifactsOrganization ?? AzureSubscription;
 }
