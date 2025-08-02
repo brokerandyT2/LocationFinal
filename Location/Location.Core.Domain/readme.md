@@ -1,192 +1,324 @@
-﻿# Location Automated API Generator
+﻿# Location.Core.Domain
 
-Complete pipeline tool that generates, compiles, deploys, and archives REST APIs with Domain Driven Versioning. Creates schema-perfect Azure Functions endpoints from SQLite DLL metadata with unlimited backward compatibility.
+A comprehensive Domain-Driven Design (DDD) implementation for location-based applications with weather integration and photography tips functionality. Built with .NET 9, this domain layer provides a robust foundation for location tracking, weather forecasting, and photography guidance systems.
 
-## Installation
+## 🏗️ Architecture Overview
 
-```bash
-# Build and install as global tool
-dotnet pack
-dotnet tool install -g --add-source ./bin/Debug Location.AutomatedAPIGenerator
+This project follows Domain-Driven Design principles with a clean architecture approach:
+
+- **Entities**: Core business objects with identity and lifecycle
+- **Value Objects**: Immutable objects representing domain concepts
+- **Aggregate Roots**: Entity clusters with transaction boundaries
+- **Domain Events**: Capture significant business occurrences
+- **Business Rules**: Encapsulated domain validation logic
+- **Exceptions**: Domain-specific error handling
+
+## 📦 Project Structure
+
+```
+Location.Core.Domain/
+├── Common/                     # Base classes and shared components
+│   ├── AggregateRoot.cs       # Base aggregate root with domain events
+│   ├── DomainEvent.cs         # Base domain event implementation
+│   └── Entity.cs              # Base entity with identity and equality
+├── Entities/                   # Domain entities
+│   ├── Location.cs            # Location aggregate root
+│   ├── Weather.cs             # Weather aggregate root
+│   ├── WeatherForecast.cs     # Daily weather forecast
+│   ├── HourlyForecast.cs      # Hourly weather forecast
+│   ├── Setting.cs             # User configuration settings
+│   ├── Tip.cs                 # Photography tips
+│   └── TipType.cs             # Photography tip categories
+├── ValueObjects/               # Immutable value objects
+│   ├── Coordinate.cs          # Geographic coordinates (performance optimized)
+│   ├── Address.cs             # Physical address representation
+│   ├── Temperature.cs         # Temperature with unit conversions
+│   ├── WindInfo.cs            # Wind speed, direction, and gusts
+│   └── ValueObject.cs         # Base value object implementation
+├── Events/                     # Domain events
+│   ├── LocationSavedEvent.cs
+│   ├── LocationDeletedEvent.cs
+│   ├── PhotoAttachedEvent.cs
+│   └── WeatherUpdatedEvent.cs
+├── Exceptions/                 # Domain-specific exceptions
+│   ├── LocationDomainException.cs
+│   ├── InvalidCoordinateException.cs
+│   ├── WeatherDomainException.cs
+│   ├── SettingDomainException.cs
+│   ├── TipDomainException.cs
+│   └── TipTypeDomainException.cs
+├── Rules/                      # Business validation rules
+│   ├── CoordinateValidationRules.cs
+│   ├── LocationValidationRules.cs
+│   └── WeatherValidationRules.cs
+└── Interfaces/                 # Domain contracts
+    ├── IAggregateRoot.cs
+    ├── IDomainEvent.cs
+    └── IEntity.cs
 ```
 
-## Usage
+## 🎯 Core Features
 
-### Complete Pipeline (Recommended)
-```bash
-location-api-generator \
-  --auto-discover \
-  --server "myserver.database.windows.net" \
-  --database "LocationAnalytics" \
-  --keyvault-url "https://myvault.vault.azure.net/" \
-  --username-secret "sql-username" \
-  --password-secret "sql-password" \
-  --azure-subscription "sub-id" \
-  --resource-group "rg-locationapis"
-```
+### Location Management
+- **Location Entity**: Stores location information with title, description, coordinates, and address
+- **Photo Attachment**: Associate photos with locations
+- **Soft Delete**: Mark locations as deleted without permanent removal
+- **Domain Events**: Automatic event publishing for location changes
 
-### With Azure Artifacts
-```bash
-location-api-generator \
-  --auto-discover \
-  --artifacts-feed "LocationAPIs" \
-  --artifacts-organization "myorg" \
-  [other args...]
-```
+### Weather Integration
+- **Current Weather**: Real-time weather data for locations
+- **7-Day Forecasts**: Daily weather predictions with detailed information
+- **48-Hour Forecasts**: Hourly weather data for short-term planning
+- **Moon Phases**: Lunar cycle information for photography planning
+- **Performance Caching**: Optimized weather data retrieval
 
-### Development Mode
-```bash
-location-api-generator \
-  --auto-discover \
-  --noop \
-  --verbose \
-  [other args...]
-```
+### Photography Tips System
+- **Categorized Tips**: Organize photography advice by type
+- **Camera Settings**: Store F-stop, shutter speed, and ISO recommendations
+- **Localization**: Multi-language support for international users
+- **Content Management**: Update and maintain tip collections
 
-## Complete Pipeline Flow
+### Geographic Calculations
+- **Distance Calculations**: Haversine formula for accurate distance measurement
+- **Proximity Search**: Find locations within specified radius
+- **Bearing Calculation**: Determine direction between coordinates
+- **Spatial Optimization**: Performance-tuned geographic operations
 
-The tool performs end-to-end automation:
+## 🚀 Key Components
 
-1. **Discovers Infrastructure.dll** - Auto-finds Location.*.Infrastructure.dll and extracts vertical/version
-2. **Reflects Entities** - Finds classes with `[ExportToSQL]` attribute 
-3. **Generates Source Code** - Creates complete Azure Functions project with controllers
-4. **Compiles Binary** - Builds deployment-ready Function App binary
-5. **Deploys to Azure** - Creates Function App with Bicep infrastructure template
-6. **Stores Artifacts** - Uploads compiled binary to Azure Artifacts (Major.0.0 versioning)
-7. **Schema-Perfect Extraction** - Uses DLL metadata for exact SQLite → SQL Server mapping
+### Entities
 
-## Generated API Endpoints
-
-For each vertical (e.g., photography v4):
-
-### Authentication & Account Management
-- `POST /photography/v4/register` - Register account with email + appId
-- `POST /photography/v4/refresh` - Refresh JWT token
-- `GET /photography/v4/status/{email}` - Account status & last backup time
-
-### Core Functionality  
-- `POST /photography/v4/backup/{email}` - **Upload backup zip (stores + processes)**
-- `GET /photography/v4/restore/{email}` - **Download most recent backup zip**
-
-### GDPR Compliance
-- `POST /photography/v4/forgetme/{email}` - **Complete data deletion**
-
-## Authentication Model
-
-Simple account-based authentication:
-- **1 Email + 1 AppId = 1 Account**
-- **Device replacement supported** (enter same AppId GUID)
-- **JWT tokens** with 1-year expiration
-- **Cost control**: 1 account = 1 backup stream
-
-## Entity Requirements
-
-Mark entities for export with the `[ExportToSQL]` attribute:
-
+#### Location (Aggregate Root)
 ```csharp
-[Table("LocationEntity")]
-[ExportToSQL("User location data for analytics")]
-public class LocationEntity
+public class Location : AggregateRoot
 {
-    [PrimaryKey, AutoIncrement]
-    public int Id { get; set; }
-    
-    [SqlType(SqlDataType.NVarChar, 100)]
-    public string Title { get; set; } = string.Empty;
-    
-    // ... other properties
+    public string Title { get; private set; }
+    public string Description { get; private set; }
+    public Coordinate Coordinate { get; private set; }
+    public Address Address { get; private set; }
+    public string? PhotoPath { get; private set; }
+    public bool IsDeleted { get; private set; }
+    public DateTime Timestamp { get; private set; }
 }
 ```
 
-## Command Line Options
+**Key Features:**
+- Immutable properties with validation
+- Domain event publishing on changes
+- Photo attachment management
+- Soft delete functionality
 
-### Required Parameters
-- `--server` - SQL Server name
-- `--database` - Database name  
-- `--keyvault-url` - Azure Key Vault URL
-- `--username-secret` - Key Vault secret for SQL username
-- `--password-secret` - Key Vault secret for SQL password
-- `--azure-subscription` - Azure subscription ID
-- `--resource-group` - Resource group for deployment
-
-### Optional Parameters
-- `--auto-discover` - Auto-discover entities (default: true)
-- `--artifacts-feed` - Azure DevOps Artifacts feed (default: "LocationAPIs")
-- `--artifacts-organization` - Azure DevOps organization
-- `--skip-artifacts` - Skip artifact upload
-- `--noop` - Generate and compile without deploying
-- `--verbose` - Enable verbose logging
-- `--prod` - Production deployment mode
-
-### Development Options
-- `--extractors` - Manual table list (bypasses [ExportToSQL])
-- `--ignore-export-attribute` - Ignore validation (DEVELOPMENT ONLY)
-- `--infrastructure-assembly` - Custom path to Infrastructure.dll
-
-## Architecture
-
-### Domain Driven Versioning
-- **Major version changes** → New Function App (`v4` → `v5`)
-- **Minor version changes** → Same Function App (idempotent deployment)
-- **Schema changes** always bump major version
-
-### Deployment Strategy
-- **Consumption-based hosting** - Scales to zero, pay per use
-- **Idempotent deployments** - Safe to run multiple times
-- **Unlimited backward compatibility** - All versions maintained indefinitely
-
-### Storage & Backup
-- **Blob Storage**: `{email}_{appId}` containers, keep 2 most recent backups
-- **SQL Server**: Analytics data with user context (email + appId)
-- **Azure Artifacts**: Compiled binaries with Major.0.0 versioning
-
-## Pipeline Integration
-
-### Azure DevOps Pipeline
-```yaml
-- task: DotNetCoreCLI@2
-  displayName: 'Generate Location API'
-  inputs:
-    command: 'custom'
-    custom: 'tool'
-    arguments: 'run location-api-generator -- --auto-discover --server $(SQL_SERVER) --database $(DATABASE) --keyvault-url $(KEY_VAULT_URL) --username-secret $(SQL_USERNAME_SECRET) --password-secret $(SQL_PASSWORD_SECRET) --azure-subscription $(AZURE_SUBSCRIPTION) --resource-group $(RESOURCE_GROUP)'
+#### Weather (Aggregate Root)
+```csharp
+public class Weather : AggregateRoot
+{
+    public int LocationId { get; private set; }
+    public Coordinate Coordinate { get; private set; }
+    public DateTime LastUpdate { get; private set; }
+    public IReadOnlyCollection<WeatherForecast> Forecasts { get; }
+    public IReadOnlyCollection<HourlyForecast> HourlyForecasts { get; }
+}
 ```
 
-### Environment Variables
-- `AZURE_DEVOPS_PAT` - Personal Access Token for artifacts
-- `TOKEN_SECRET` - JWT signing key (auto-generated if not provided)
+**Key Features:**
+- 7-day daily forecasts (limited collection)
+- 48-hour hourly forecasts (limited collection)
+- Timezone information
+- Automatic update timestamp management
 
-## Exit Codes
+### Value Objects
 
-- `0` - Success (deployment completed, artifacts uploaded)
-- `1` - Error (build failure, deployment failure, etc.)
-
-## Silent Failures
-
-The tool **fails silently** on:
-- **Duplicate artifacts** - Same major version already exists in Azure Artifacts
-- **Idempotent deployments** - Function App already exists with same configuration
-
-This enables safe pipeline re-runs and handles version overlap gracefully.
-
-## Requirements
-
-- **.NET 9 SDK** - For building and running the tool
-- **Azure subscription** - Function Apps and Storage enabled
-- **Azure Key Vault access** - Managed Identity or Service Principal
-- **Azure DevOps Artifacts** - For binary storage (optional)
-- **Built Infrastructure.dll** - With entities marked `[ExportToSQL]`
-
-## Generated Function App Structure
-
+#### Coordinate (Performance Optimized)
+```csharp
+public class Coordinate : ValueObject
+{
+    public double Latitude { get; }
+    public double Longitude { get; }
+    
+    // Performance features
+    public double DistanceTo(Coordinate other)
+    public bool IsWithinDistance(Coordinate other, double maxDistanceKm)
+    public Coordinate FindNearest(IReadOnlyList<Coordinate> candidates)
+}
 ```
-location-photography-api-v4/
-├── LocationAPIController.cs    # Generated endpoints
-├── Program.cs                  # Function App startup
-├── FunctionApp.csproj         # Complete project file
-├── host.json                  # Function configuration
-├── infrastructure.bicep       # Azure resources
-└── bin/Release/net9.0/        # Compiled binary (stored in artifacts)
-    ├── FunctionApp.dll
-    └── dependencies...
+
+**Performance Optimizations:**
+- ✅ **Distance Caching**: Frequently calculated distances cached in memory
+- ✅ **String Caching**: ToString() results cached to avoid repeated formatting
+- ✅ **Validation Caching**: Coordinate validation results cached
+- ✅ **Batch Operations**: Optimized bulk distance calculations
+- ✅ **Spatial Filtering**: Bounding box pre-filtering for large datasets
+- ✅ **Early Exit**: Performance shortcuts for very close matches
+
+#### Temperature
+```csharp
+public class Temperature : ValueObject
+{
+    public double Celsius { get; }
+    public double Fahrenheit { get; }
+    public double Kelvin { get; }
+    
+    public static Temperature FromCelsius(double celsius)
+    public static Temperature FromFahrenheit(double fahrenheit)
+    public static Temperature FromKelvin(double kelvin)
+}
 ```
+
+### Domain Events
+
+All domain events inherit from `DomainEvent` and are automatically timestamped:
+
+- **LocationSavedEvent**: Triggered when location is created or updated
+- **LocationDeletedEvent**: Triggered when location is soft deleted
+- **PhotoAttachedEvent**: Triggered when photo is attached to location
+- **WeatherUpdatedEvent**: Triggered when weather data is refreshed
+
+### Business Rules
+
+#### Coordinate Validation
+```csharp
+public static class CoordinateValidationRules
+{
+    public static bool IsValid(double latitude, double longitude, out List<string> errors)
+    public static bool IsValidDistance(Coordinate from, Coordinate to, double maxDistanceKm)
+}
+```
+
+#### Weather Validation
+```csharp
+public static class WeatherValidationRules
+{
+    public static bool IsValid(Weather weather, out List<string> errors)
+    public static bool IsStale(Weather weather, TimeSpan maxAge)
+}
+```
+
+## 🔧 Dependencies
+
+```xml
+<PackageReference Include="MediatR" Version="12.5.0" />
+<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+<PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
+<PackageReference Include="akavache.core" Version="10.2.41" />
+<PackageReference Include="Plugin.InAppBilling" Version="8.0.5" />
+<PackageReference Include="SkiaSharp" Version="3.119.0" />
+```
+
+## 💡 Usage Examples
+
+### Creating a Location
+```csharp
+var coordinate = new Coordinate(40.7128, -74.0060); // New York City
+var address = new Address("New York", "NY");
+var location = new Location("Central Park", "Beautiful urban park", coordinate, address);
+
+// Domain event automatically added: LocationSavedEvent
+```
+
+### Distance Calculations
+```csharp
+var coord1 = new Coordinate(40.7128, -74.0060); // NYC
+var coord2 = new Coordinate(34.0522, -118.2437); // LA
+
+var distance = coord1.DistanceTo(coord2); // ~3944 km
+var isNearby = coord1.IsWithinDistance(coord2, 100); // false
+```
+
+### Weather Management
+```csharp
+var weather = new Weather(locationId: 1, coordinate, "America/New_York", -5);
+
+var forecasts = GetForecastsFromAPI();
+weather.UpdateForecasts(forecasts); // Automatically limits to 7 days
+
+var currentForecast = weather.GetCurrentForecast();
+var tomorrowForecasts = weather.GetHourlyForecastsForDate(DateTime.Today.AddDays(1));
+```
+
+### Photography Tips
+```csharp
+var landscapeType = new TipType("Landscape Photography");
+var tip = new Tip(landscapeType.Id, "Golden Hour Shots", "Shoot during the golden hour for warm lighting");
+tip.UpdatePhotographySettings("f/8", "1/125", "ISO 100");
+
+landscapeType.AddTip(tip);
+```
+
+## 🧪 Testing Considerations
+
+### Unit Testing Focus Areas
+1. **Entity Invariants**: Ensure entities maintain valid state
+2. **Value Object Immutability**: Verify value objects cannot be modified
+3. **Business Rules**: Test validation logic thoroughly
+4. **Domain Events**: Verify events are raised correctly
+5. **Performance**: Test coordinate calculations with large datasets
+
+### Test Data Builders
+```csharp
+public class LocationBuilder
+{
+    public LocationBuilder WithTitle(string title) { /* ... */ }
+    public LocationBuilder WithCoordinate(double lat, double lon) { /* ... */ }
+    public Location Build() { /* ... */ }
+}
+```
+
+## 🔒 Security Considerations
+
+- **Input Validation**: All public methods validate inputs
+- **Encapsulation**: Private setters prevent unauthorized modifications
+- **Exception Handling**: Domain-specific exceptions with error codes
+- **Coordinate Bounds**: Strict latitude/longitude validation
+
+## ⚡ Performance Features
+
+### Coordinate Optimizations
+- **Memory Caching**: Three-tier caching system for distances, strings, and validation
+- **Spatial Indexing**: Bounding box pre-filtering for proximity searches
+- **Batch Processing**: Optimized bulk operations for multiple coordinates
+- **Cache Management**: Automatic cache size limits and cleanup methods
+
+### Memory Management
+```csharp
+// Cache statistics and cleanup
+var (distanceCache, stringCache, validationCache) = Coordinate.GetCacheStats();
+Coordinate.ClearCaches(); // Manual cleanup when needed
+```
+
+## 🚀 Getting Started
+
+1. **Clone the repository**
+2. **Restore dependencies**: `dotnet restore`
+3. **Build the project**: `dotnet build`
+4. **Run tests**: `dotnet test`
+
+## 📝 API Compatibility
+
+This domain layer is designed to integrate with:
+- **Web APIs**: RESTful services for location and weather data
+- **Mobile Apps**: Cross-platform applications using .NET MAUI
+- **Desktop Applications**: WPF/WinUI applications
+- **Background Services**: Weather data synchronization services
+
+## 🎯 Future Enhancements
+
+- **Geocoding Integration**: Address to coordinate conversion
+- **Weather Alerts**: Severe weather notification system
+- **Photo Metadata**: EXIF data extraction and analysis
+- **Route Planning**: Multi-location journey optimization
+- **Offline Support**: Local caching for disconnected scenarios
+
+## 📄 License
+
+[License information would go here]
+
+## 🤝 Contributing
+
+[Contributing guidelines would go here]
+
+---
+
+**Target Framework**: .NET 9.0  
+**Architecture**: Domain-Driven Design  
+**Performance**: Production-optimized with extensive caching  
+**Testability**: Designed for comprehensive unit testing
