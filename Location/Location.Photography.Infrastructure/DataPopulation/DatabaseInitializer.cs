@@ -261,7 +261,8 @@ namespace Location.Photography.Infrastructure
                     (MagicStrings.DateFormat, dateFormat, "Date format (US/International)"),
                     (MagicStrings.TemperatureType, tempFormat, "Temperature format (F/C)"),
                     (MagicStrings.Email, email, "User's email address"),
-                    (MagicStrings.UniqueID, guid, "Unique identifier for the installation")
+                    (MagicStrings.UniqueID, guid, "Unique identifier for the installation"),
+                    (MagicStrings.AppName,"photograpy", "Name of the app.  Needed for backend analytics")
                 };
 
                 // Process user settings
