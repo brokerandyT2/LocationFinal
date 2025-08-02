@@ -55,7 +55,29 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Repositories\SqlScripts\" />
+    <Folder Include="Repositories\SqlScripts\04-reference-data\" />
+    <Folder Include="Repositories\SqlScripts\11-user-defined-types\" />
+    <Folder Include="Repositories\SqlScripts\02-create-tables\" />
+    <Folder Include="Repositories\SqlScripts\05-reference-data\" />
+    <Folder Include="Repositories\SqlScripts\12-user-defined-types\" />
+    <Folder Include="Repositories\SqlScripts\13-scalar-functions\" />
+    <Folder Include="Repositories\SqlScripts\14-table-functions\" />
+    <Folder Include="Repositories\SqlScripts\15-views\" />
+    <Folder Include="Repositories\SqlScripts\16-stored-procedures\" />
+    <Folder Include="Repositories\SqlScripts\17-triggers\" />
+    <Folder Include="Repositories\SqlScripts\18-roles\" />
+    <Folder Include="Repositories\SqlScripts\19-users\" />
+    <Folder Include="Repositories\SqlScripts\20-object-permissions\" />
+    <Folder Include="Repositories\SqlScripts\21-schema-permissions\" />
+    <Folder Include="Repositories\SqlScripts\22-synonyms\" />
+    <Folder Include="Repositories\SqlScripts\23-fulltext\" />
+    <Folder Include="Repositories\SqlScripts\24-partition-functions\" />
+    <Folder Include="Repositories\SqlScripts\25-table-partitioning\" />
+    <Folder Include="Repositories\SqlScripts\26-database-options\" />
+    <Folder Include="Repositories\SqlScripts\27-update-statistics\" />
+    <Folder Include="Repositories\SqlScripts\28-data-validation\" />
+    <Folder Include="Repositories\SqlScripts\29-documentation\" />
+    <Folder Include="Repositories\SqlScripts\30-maintenance\" />
   </ItemGroup>
 
 </Project>
