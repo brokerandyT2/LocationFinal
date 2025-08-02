@@ -78,6 +78,7 @@
     <Folder Include="Repositories\SqlScripts\28-data-validation\" />
     <Folder Include="Repositories\SqlScripts\29-documentation\" />
     <Folder Include="Repositories\SqlScripts\30-maintenance\" />
+    <Folder Include="Repositories\SqlScripts\CompiledSQL\" />
   </ItemGroup>
 
 </Project>

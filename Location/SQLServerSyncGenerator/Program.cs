@@ -6,7 +6,7 @@ using SQLServerSyncGenerator;
 using SQLServerSyncGenerator.Models;
 using SQLServerSyncGenerator.Services;
 
-namespace SqlSchemaGenerator;
+namespace SQLServerSyncGenerator;
 
 class Program
 {
@@ -47,23 +47,32 @@ class Program
             .AddSingleton<SchemaGenerator>()
             .AddSingleton<SqlExecutor>()
             .AddSingleton<ConnectionStringBuilder>()
-            .AddSingleton<ProductionValidator>() // NEW: Add validation service
+            .AddSingleton<ProductionValidator>()
+            .AddSingleton<DdlStatementGenerator>()
+            .AddSingleton<DatabaseSchemaAnalyzer>()
+            .AddSingleton<RepositoryDetector>()
+            .AddSingleton<SqlScriptDiscovery>()
+            .AddSingleton<SqlScriptEnhancer>()
+            .AddSingleton<DeploymentOrchestrator>()
+            .AddSingleton<CompiledDeploymentGenerator>()
+            .AddSingleton<GitIntegrationService>()
             .BuildServiceProvider();
 
         var logger = services.GetRequiredService<ILogger<Program>>();
 
         try
         {
-            logger.LogInformation("SQL Schema Generator v1.0.0");
+            logger.LogInformation("SQL Schema Generator v2.0.0 - 29-Phase Deployment Pipeline");
             logger.LogInformation("Server: {Server}", options.Server);
             logger.LogInformation("Database: {Database}", options.Database);
             logger.LogInformation("Production Mode: {IsProduction}", options.IsProduction);
             logger.LogInformation("No-Op Mode: {IsNoOp}", options.NoOp);
-            logger.LogInformation("Validate Only: {ValidateOnly}", options.ValidateOnly); // NEW
+            logger.LogInformation("Validate Only: {ValidateOnly}", options.ValidateOnly);
+            logger.LogInformation("Execute Mode: {Execute}", options.Execute);
             logger.LogInformation("Verbose Logging: {IsVerbose}", isVerbose);
 
-            // Step 1: Build connection string from Key Vault
-            logger.LogInformation("Building connection string from Azure Key Vault...");
+            // Step 1: Build connection string
+            logger.LogInformation("Building connection string...");
             var connectionBuilder = services.GetRequiredService<ConnectionStringBuilder>();
             var connectionString = await connectionBuilder.BuildConnectionStringAsync(options);
             logger.LogDebug("Connection string built successfully");
@@ -105,84 +114,37 @@ class Program
             logger.LogInformation("Entity creation order determined: {Order}",
                 string.Join(" → ", sortedEntities.Select(e => $"{e.Schema}.{e.TableName}")));
 
-            // Step 5: Generate DDL for validation/execution
-            logger.LogInformation("Generating schema DDL...");
+            // Step 5: Execute based on mode
             var schemaGenerator = services.GetRequiredService<SchemaGenerator>();
-            var sqlExecutor = services.GetRequiredService<SqlExecutor>();
 
-            // NEW: Handle validation-only mode
             if (options.ValidateOnly)
             {
-                return await HandleValidationOnlyAsync(schemaGenerator, sortedEntities, connectionString, logger, services);
+                return await HandleValidationOnlyAsync(schemaGenerator, sortedEntities, connectionString, assemblyPaths, logger, services);
             }
 
-            // NEW: Pre-flight validation for production deployments
-            if (options.IsProduction && !options.NoOp)
-            {
-                logger.LogInformation("Production mode - running pre-flight validation...");
-                var validationResult = await RunPreflightValidationAsync(schemaGenerator, sortedEntities, connectionString, logger, services);
-
-                if (validationResult != ValidationResult.Safe)
-                {
-                    // Validation failed or has warnings - this should trigger manual approval in pipeline
-                    return (int)validationResult;
-                }
-
-                logger.LogInformation("Pre-flight validation passed - proceeding with deployment");
-            }
-
-            // Step 6: Production backup if needed (skip if NoOp)
-            string? backupName = null;
-
-            if (options.IsProduction && !options.NoOp)
-            {
-                logger.LogInformation("Production mode - creating database backup...");
-                backupName = $"{options.Database}_PreDeploy_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
-                await sqlExecutor.CreateDatabaseBackupAsync(connectionString, options.Database, backupName);
-                logger.LogInformation("Database backup created: {BackupName}", backupName);
-            }
-            else if (options.IsProduction && options.NoOp)
-            {
-                logger.LogInformation("No-Op mode: Would create database backup in production: {Database}_PreDeploy_{Timestamp}",
-                    options.Database, DateTime.UtcNow.ToString("yyyyMMdd_HHmmss"));
-            }
-
-            // Step 7: Generate delta DDL and apply/log changes
             if (options.NoOp)
             {
-                logger.LogInformation("No-Op mode: Analyzing database and generating delta DDL...");
-                var deltaStatements = await schemaGenerator.GenerateDeltaDDLAsync(sortedEntities, connectionString);
-                logger.LogInformation("Generated {Count} delta DDL statements", deltaStatements.Count);
-                LogDDLStatements(deltaStatements, logger);
-            }
-            else
-            {
-                var ddlStatements = schemaGenerator.GenerateCreateTableStatements(sortedEntities);
-                logger.LogInformation("Applying {Count} DDL statements...", ddlStatements.Count);
-                await sqlExecutor.ExecuteDDLBatchAsync(connectionString, ddlStatements);
+                return await HandleNoOpModeAsync(schemaGenerator, sortedEntities, connectionString, assemblyPaths, logger);
             }
 
-            // Step 8: Cleanup backup if successful (skip if NoOp)
-            if (options.IsProduction && !options.NoOp && !string.IsNullOrEmpty(backupName))
+            if (options.Execute)
             {
-                logger.LogInformation("Schema changes successful - cleaning up backup...");
-                await sqlExecutor.DeleteDatabaseBackupAsync(connectionString, backupName);
-                logger.LogInformation("Backup cleanup completed");
-            }
-            else if (options.IsProduction && options.NoOp)
-            {
-                logger.LogInformation("No-Op mode: Would clean up backup after successful deployment");
+                return await HandleExecuteModeAsync(schemaGenerator, sortedEntities, connectionString, assemblyPaths, options, logger, services);
             }
 
-            logger.LogInformation("Schema generation completed successfully!");
+            // Default: Show deployment plan
+            logger.LogInformation("Generating deployment plan (use --execute to apply changes)...");
+            await schemaGenerator.GenerateNoOpAnalysisAsync(sortedEntities, connectionString, assemblyPaths);
+
+            logger.LogInformation("✅ Analysis completed. Use --execute to apply changes or --validate-only for production validation.");
             return 0;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Schema generation failed: {Message}", ex.Message);
 
-            // NEW: Automatic rollback on production failure
-            if (options.IsProduction && !options.NoOp)
+            // Automatic rollback on production failure
+            if (options.IsProduction && options.Execute)
             {
                 await HandleProductionFailureAsync(ex, options, logger, services);
             }
@@ -195,17 +157,19 @@ class Program
         }
     }
 
-    // NEW: Handle validation-only mode
     private static async Task<int> HandleValidationOnlyAsync(
         SchemaGenerator schemaGenerator,
         List<EntityMetadata> sortedEntities,
         string connectionString,
+        List<string> assemblyPaths,
         ILogger logger,
         ServiceProvider services)
     {
         logger.LogInformation("=== VALIDATION-ONLY MODE ===");
 
+        var validator = services.GetRequiredService<ProductionValidator>();
         var deltaStatements = await schemaGenerator.GenerateDeltaDDLAsync(sortedEntities, connectionString);
+
         logger.LogInformation("Generated {Count} DDL statements for validation", deltaStatements.Count);
 
         if (deltaStatements.Count == 0)
@@ -214,24 +178,109 @@ class Program
             return (int)ValidationResult.Safe;
         }
 
-        var validator = services.GetRequiredService<ProductionValidator>();
         var validationReport = await validator.ValidateProductionChangesAsync(deltaStatements, connectionString);
-
-        // Output formatted report
         var formattedReport = validator.FormatValidationReport(validationReport);
         logger.LogInformation("{ValidationReport}", formattedReport);
 
         return (int)validationReport.OverallResult;
     }
 
-    // NEW: Run pre-flight validation
+    private static async Task<int> HandleNoOpModeAsync(
+        SchemaGenerator schemaGenerator,
+        List<EntityMetadata> sortedEntities,
+        string connectionString,
+        List<string> assemblyPaths,
+        ILogger logger)
+    {
+        logger.LogInformation("=== NO-OP MODE: 29-Phase Deployment Analysis ===");
+
+        await schemaGenerator.GenerateNoOpAnalysisAsync(sortedEntities, connectionString, assemblyPaths);
+
+        logger.LogInformation("✅ No-op analysis completed. Use --execute to apply changes.");
+        return 0;
+    }
+
+    private static async Task<int> HandleExecuteModeAsync(
+        SchemaGenerator schemaGenerator,
+        List<EntityMetadata> sortedEntities,
+        string connectionString,
+        List<string> assemblyPaths,
+        GeneratorOptions options,
+        ILogger logger,
+        ServiceProvider services)
+    {
+        logger.LogInformation("=== EXECUTE MODE: Applying Database Changes ===");
+
+        // Pre-flight validation for production deployments
+        if (options.IsProduction)
+        {
+            logger.LogInformation("Production mode - running pre-flight validation...");
+            var validationResult = await RunPreflightValidationAsync(schemaGenerator, sortedEntities, connectionString, assemblyPaths, logger, services);
+
+            if (validationResult != ValidationResult.Safe)
+            {
+                logger.LogError("Pre-flight validation failed - deployment blocked");
+                return (int)validationResult;
+            }
+
+            logger.LogInformation("✅ Pre-flight validation passed - proceeding with deployment");
+        }
+
+        // Production backup if needed
+        string? backupName = null;
+        if (options.IsProduction)
+        {
+            logger.LogInformation("Production mode - creating database backup...");
+            var sqlExecutor = services.GetRequiredService<SqlExecutor>();
+            backupName = $"{options.Database}_PreDeploy_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
+            await sqlExecutor.CreateDatabaseBackupAsync(connectionString, options.Database, backupName);
+            logger.LogInformation("✅ Database backup created: {BackupName}", backupName);
+        }
+
+        try
+        {
+            // Generate and execute full deployment
+            var compiledDeploymentPath = await schemaGenerator.GenerateFullDeploymentAsync(
+                sortedEntities,
+                connectionString,
+                assemblyPaths,
+                options.IsProduction);
+
+            // Execute the compiled deployment
+            var sqlExecutor = services.GetRequiredService<SqlExecutor>();
+            var compiledSql = await File.ReadAllTextAsync(compiledDeploymentPath);
+
+            logger.LogInformation("Executing compiled deployment...");
+            await sqlExecutor.ExecuteSingleStatementAsync(connectionString, compiledSql);
+
+            // Cleanup backup if successful
+            if (options.IsProduction && !string.IsNullOrEmpty(backupName))
+            {
+                logger.LogInformation("Deployment successful - cleaning up backup...");
+                await sqlExecutor.DeleteDatabaseBackupAsync(connectionString, backupName);
+            }
+
+            logger.LogInformation("✅ Deployment completed successfully!");
+            logger.LogInformation("📄 Compiled deployment: {CompiledDeploymentPath}", compiledDeploymentPath);
+
+            return 0;
+        }
+        catch (Exception)
+        {
+            // Automatic rollback handled in main catch block
+            throw;
+        }
+    }
+
     private static async Task<ValidationResult> RunPreflightValidationAsync(
         SchemaGenerator schemaGenerator,
         List<EntityMetadata> sortedEntities,
         string connectionString,
+        List<string> assemblyPaths,
         ILogger logger,
         ServiceProvider services)
     {
+        var validator = services.GetRequiredService<ProductionValidator>();
         var deltaStatements = await schemaGenerator.GenerateDeltaDDLAsync(sortedEntities, connectionString);
 
         if (deltaStatements.Count == 0)
@@ -240,9 +289,7 @@ class Program
             return ValidationResult.Safe;
         }
 
-        var validator = services.GetRequiredService<ProductionValidator>();
         var validationReport = await validator.ValidateProductionChangesAsync(deltaStatements, connectionString);
-
         logger.LogInformation("Pre-flight validation result: {Result}", validationReport.OverallResult);
 
         if (validationReport.OverallResult != ValidationResult.Safe)
@@ -254,7 +301,6 @@ class Program
         return validationReport.OverallResult;
     }
 
-    // NEW: Handle production deployment failures with automatic rollback
     private static async Task HandleProductionFailureAsync(
         Exception originalException,
         GeneratorOptions options,
@@ -295,46 +341,27 @@ class Program
             logger.LogError("Rollback error: {RollbackError}", rollbackException.Message);
         }
     }
-
-    private static void LogDDLStatements(List<string> ddlStatements, ILogger logger)
-    {
-        if (ddlStatements.Count == 0)
-        {
-            logger.LogInformation("=== No DDL Changes Required ===");
-            logger.LogInformation("Database schema is already up to date with entity definitions.");
-            return;
-        }
-
-        logger.LogInformation("=== Delta DDL Statements (No-Op Mode) ===");
-        logger.LogInformation("The following {Count} DDL statements would be executed:", ddlStatements.Count);
-
-        for (int i = 0; i < ddlStatements.Count; i++)
-        {
-            logger.LogInformation("DDL Statement {StatementNumber}:", i + 1);
-            logger.LogInformation("{DDLStatement}", ddlStatements[i]);
-            logger.LogInformation("--- End Statement {StatementNumber} ---", i + 1);
-        }
-
-        logger.LogInformation("=== End Delta DDL Statements ({Count} total) ===", ddlStatements.Count);
-    }
 }
 
 public class GeneratorOptions
 {
-    [Option("server", Required = true, HelpText = "SQL Server name (e.g., myserver.database.windows.net)")]
+    [Option("server", Required = false, HelpText = "SQL Server name (e.g., myserver.database.windows.net)")]
     public string Server { get; set; } = string.Empty;
 
-    [Option("database", Required = true, HelpText = "Database name")]
+    [Option("database", Required = false, HelpText = "Database name")]
     public string Database { get; set; } = string.Empty;
 
-    [Option("keyvault-url", Required = true, HelpText = "Azure Key Vault URL (e.g., https://myvault.vault.azure.net/)")]
+    [Option("keyvault-url", Required = false, HelpText = "Azure Key Vault URL (e.g., https://myvault.vault.azure.net/)")]
     public string KeyVaultUrl { get; set; } = string.Empty;
 
-    [Option("username-secret", Required = true, HelpText = "Key Vault secret name for SQL username")]
+    [Option("username-secret", Required = false, HelpText = "Key Vault secret name for SQL username")]
     public string UsernameSecret { get; set; } = string.Empty;
 
-    [Option("password-secret", Required = true, HelpText = "Key Vault secret name for SQL password")]
+    [Option("password-secret", Required = false, HelpText = "Key Vault secret name for SQL password")]
     public string PasswordSecret { get; set; } = string.Empty;
+
+    [Option("local", Required = false, Default = false, HelpText = "Use local SQL Server with Windows Authentication")]
+    public bool UseLocal { get; set; }
 
     [Option("prod", Required = false, Default = false, HelpText = "Production mode - creates database backup before changes")]
     public bool IsProduction { get; set; }
@@ -342,15 +369,27 @@ public class GeneratorOptions
     [Option("verbose", Required = false, HelpText = "Enable verbose logging (default: true for dev, false for prod)")]
     public bool? Verbose { get; set; }
 
-    [Option("noop", Required = false, Default = false, HelpText = "No-operation mode - generate and log DDL without executing against database")]
+    [Option("noop", Required = false, Default = false, HelpText = "No-operation mode - generate and log deployment plan without executing")]
     public bool NoOp { get; set; }
 
-    [Option("validate-only", Required = false, Default = false, HelpText = "Validation-only mode - analyze changes and return exit code based on safety (0=safe, 1=warnings, 2=blocked)")]
-    public bool ValidateOnly { get; set; } // NEW
+    [Option("validate-only", Required = false, Default = false, HelpText = "Validation-only mode - analyze changes and return exit code based on safety")]
+    public bool ValidateOnly { get; set; }
+
+    [Option("execute", Required = false, Default = false, HelpText = "Execute mode - apply all database changes")]
+    public bool Execute { get; set; }
 
     [Option("core-assembly", Required = false, HelpText = "Path to Location.Core.Domain.dll")]
     public string? CoreAssemblyPath { get; set; }
 
-    [Option("vertical-assembly", Required = false, HelpText = "Path to Location.Photography.Domain.dll")]
+    [Option("photography-assembly", Required = false, HelpText = "Path to Location.Photography.Domain.dll")]
     public string? PhotographyAssemblyPath { get; set; }
+
+    [Option("rollback-to-previous", Required = false, Default = false, HelpText = "Rollback to previous deployment version")]
+    public bool RollbackToPrevious { get; set; }
+
+    [Option("restore-from", Required = false, HelpText = "Restore from specific version (e.g., v1.2.3)")]
+    public string? RestoreFromVersion { get; set; }
+
+    [Option("deployment-history", Required = false, Default = false, HelpText = "Show deployment history")]
+    public bool ShowDeploymentHistory { get; set; }
 }
