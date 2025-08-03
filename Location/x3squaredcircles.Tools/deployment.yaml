@@ -9,7 +9,7 @@ metadata:
     environment: development
     version: "2022-cu8"
   annotations:
-    description: "SQL Server 2022 Developer Edition for Location development"
+    description: "SQL Server 2022 Developer Edition for Location development with extended ASCII support"
     created-by: "setup-dev.sh"
     deployment.kubernetes.io/revision: "1"
 spec:
@@ -41,6 +41,11 @@ spec:
             secretKeyRef:
               name: mssql-secret
               key: SA_PASSWORD
+        # Extended ASCII support configuration
+        - name: MSSQL_COLLATION
+          value: "SQL_Latin1_General_CP1252_CI_AS"
+        - name: MSSQL_LCID
+          value: "1033"
         - name: MSSQL_DATA_DIR
           value: "/var/opt/mssql/data"
         - name: MSSQL_LOG_DIR
@@ -75,30 +80,4 @@ spec:
             - "SELECT 1"
           initialDelaySeconds: 60
           periodSeconds: 30
-          timeoutSeconds: 10
-          failureThreshold: 3
-        readinessProbe:
-          exec:
-            command:
-            - /opt/mssql-tools/bin/sqlcmd
-            - -S
-            - localhost
-            - -U
-            - sa
-            - -P
-            - $(SA_PASSWORD)
-            - -Q
-            - "SELECT 1"
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-      volumes:
-      - name: mssql-data
-        persistentVolumeClaim:
-          claimName: mssql-data-pvc
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-
-# SECURITY NOTE: This file should be READ-ONLY in Git except for ADO administrators
-# Azure DevOps permissions: Only ADO admins should have write access to k8s/ directory
+          timeo

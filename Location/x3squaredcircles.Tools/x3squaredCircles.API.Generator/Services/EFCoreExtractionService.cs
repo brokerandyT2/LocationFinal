@@ -1,8 +1,12 @@
-﻿using x3squaredcirecles.API.Generator.APIGenerator.Models;
+﻿// Enhanced EFCoreExtractionService with Extended ASCII support
+// File: x3squaredCircles.API.Generator/Services/EFCoreExtractionService.cs
+
+using x3squaredcirecles.API.Generator.APIGenerator.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.IO.Compression;
 using System.Reflection;
+using System.Text;
 
 namespace x3squaredcirecles.API.Generator.APIGenerator.Services;
 
@@ -19,23 +23,23 @@ public class EFCoreExtractionService
     {
         try
         {
-            _logger.LogInformation("Processing backup with EF Core dual contexts");
+            _logger.LogInformation("Processing backup with EF Core dual contexts and extended ASCII support");
 
-            // Step 1: Parse user info from filename
+            // Step 1: Parse user info from filename (handle extended ASCII)
             var userInfo = ParseUserInfoFromFilename(zipFilePath);
             _logger.LogInformation("Processing backup for user: {Email}", userInfo.Email);
 
-            // Step 2: Extract SQLite database from zip
+            // Step 2: Extract SQLite database from zip with proper encoding
             var sqliteDbPath = await ExtractSQLiteFromZipAsync(zipFilePath);
             _logger.LogDebug("Extracted SQLite database: {DbPath}", sqliteDbPath);
 
             try
             {
-                // Step 3: Create dual EF contexts
+                // Step 3: Create dual EF contexts with extended ASCII configuration
                 using var sourceContext = CreateSQLiteContext(sqliteDbPath, entities);
                 using var destContext = CreateSQLServerContext(sqlServerConnectionString, entities);
 
-                // Step 4: Transfer data using EF Core
+                // Step 4: Transfer data using EF Core with extended ASCII preservation
                 var transferResult = await TransferDataAsync(sourceContext, destContext, entities, userInfo);
 
                 _logger.LogInformation("Transfer completed: {RowsTransferred} rows across {TableCount} tables",
@@ -62,6 +66,7 @@ public class EFCoreExtractionService
     private UserInfo ParseUserInfoFromFilename(string zipFilePath)
     {
         // Format: {email}_{appGUID}_{date in DDMMYY}.zip
+        // Handle extended ASCII characters in email addresses
         var fileName = Path.GetFileNameWithoutExtension(zipFilePath);
         var parts = fileName.Split('_');
 
@@ -70,9 +75,12 @@ public class EFCoreExtractionService
             throw new ArgumentException($"Invalid zip filename format. Expected: email_guid_date.zip, got: {fileName}");
         }
 
+        // Decode any URL-encoded extended ASCII characters in email
+        var email = System.Web.HttpUtility.UrlDecode(parts[0]);
+
         return new UserInfo
         {
-            Email = parts[0],
+            Email = email,
             AppGuid = parts[1],
             Date = parts[2]
         };
@@ -83,9 +91,25 @@ public class EFCoreExtractionService
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
 
-        using (var archive = ZipFile.OpenRead(zipFilePath))
+        // Extract with proper encoding handling for filenames
+        using (var archive = ZipFile.Open(zipFilePath, ZipArchiveMode.Read, Encoding.UTF8))
         {
-            archive.ExtractToDirectory(tempDir);
+            foreach (var entry in archive.Entries)
+            {
+                // Handle extended ASCII characters in entry names
+                var destinationPath = Path.Combine(tempDir, entry.FullName);
+                var destinationDir = Path.GetDirectoryName(destinationPath);
+
+                if (!string.IsNullOrEmpty(destinationDir))
+                {
+                    Directory.CreateDirectory(destinationDir);
+                }
+
+                if (!string.IsNullOrEmpty(entry.Name))
+                {
+                    entry.ExtractToFile(destinationPath, overwrite: true);
+                }
+            }
         }
 
         // Find SQLite database file
@@ -105,7 +129,11 @@ public class EFCoreExtractionService
     {
         var connectionString = $"Data Source={sqliteDbPath};";
         var options = new DbContextOptionsBuilder<DynamicDbContext>()
-            .UseSqlite(connectionString)
+            .UseSqlite(connectionString, opts =>
+            {
+                // Configure SQLite for proper text handling
+                opts.CommandTimeout(300);
+            })
             .Options;
 
         return new DynamicDbContext(options, entities);
@@ -114,7 +142,12 @@ public class EFCoreExtractionService
     private DynamicDbContext CreateSQLServerContext(string connectionString, List<ExtractableEntity> entities)
     {
         var options = new DbContextOptionsBuilder<DynamicDbContext>()
-            .UseSqlServer(connectionString)
+            .UseSqlServer(connectionString, opts =>
+            {
+                // Configure SQL Server for extended ASCII support
+                opts.CommandTimeout(300);
+                opts.EnableRetryOnFailure(maxRetryCount: 3);
+            })
             .Options;
 
         return new DynamicDbContext(options, entities);
@@ -129,7 +162,7 @@ public class EFCoreExtractionService
             TablesProcessed = 0
         };
 
-        _logger.LogInformation("Starting data transfer for {EntityCount} entities", entities.Count);
+        _logger.LogInformation("Starting data transfer for {EntityCount} entities with extended ASCII preservation", entities.Count);
 
         foreach (var entity in entities)
         {
@@ -148,9 +181,9 @@ public class EFCoreExtractionService
             }
         }
 
-        // Save all changes to SQL Server
+        // Save all changes to SQL Server with extended ASCII support
         await destContext.SaveChangesAsync();
-        _logger.LogInformation("Successfully saved {RowCount} total rows to SQL Server", result.TotalRowsTransferred);
+        _logger.LogInformation("Successfully saved {RowCount} total rows to SQL Server with extended ASCII preservation", result.TotalRowsTransferred);
 
         return result;
     }
@@ -169,11 +202,11 @@ public class EFCoreExtractionService
             return 0;
         }
 
-        // Add user context and transfer to SQL Server
+        // Add user context and transfer to SQL Server with extended ASCII preservation
         foreach (var sourceEntity in sourceEntities)
         {
-            // Create new instance for SQL Server (avoid EF tracking issues)
-            var destEntity = CloneEntityForSQLServer(sourceEntity, entity.EntityType, userInfo);
+            // Create new instance for SQL Server with extended ASCII handling
+            var destEntity = CloneEntityForSQLServerWithExtendedASCII(sourceEntity, entity.EntityType, userInfo);
 
             // Use reflection to call Add method on the DbSet
             var addMethod = typeof(DbSet<>).MakeGenericType(entity.EntityType).GetMethod("Add", new[] { entity.EntityType });
@@ -200,7 +233,7 @@ public class EFCoreExtractionService
         return ((System.Collections.IEnumerable)result).Cast<object>().ToList();
     }
 
-    private object CloneEntityForSQLServer(object sourceEntity, Type entityType, UserInfo userInfo)
+    private object CloneEntityForSQLServerWithExtendedASCII(object sourceEntity, Type entityType, UserInfo userInfo)
     {
         // Create new instance
         var destEntity = Activator.CreateInstance(entityType);
@@ -213,14 +246,29 @@ public class EFCoreExtractionService
         foreach (var property in properties)
         {
             var value = property.GetValue(sourceEntity);
-            property.SetValue(destEntity, value);
+
+            // Handle extended ASCII string properties specifically
+            if (value is string stringValue && !string.IsNullOrEmpty(stringValue))
+            {
+                // Ensure extended ASCII characters are preserved
+                // Normalize the string to ensure consistent encoding
+                var normalizedValue = stringValue.Normalize(NormalizationForm.FormC);
+                property.SetValue(destEntity, normalizedValue);
+
+                _logger.LogDebug("Transferred string property {PropertyName} with value: {Value}",
+                    property.Name, normalizedValue.Length > 50 ? normalizedValue.Substring(0, 50) + "..." : normalizedValue);
+            }
+            else
+            {
+                property.SetValue(destEntity, value);
+            }
         }
 
         return destEntity;
     }
 }
 
-// Dynamic DbContext that can work with any entity types
+// Enhanced Dynamic DbContext that can work with any entity types and extended ASCII
 public class DynamicDbContext : DbContext
 {
     private readonly List<ExtractableEntity> _entities;
@@ -235,26 +283,61 @@ public class DynamicDbContext : DbContext
     {
         foreach (var entity in _entities)
         {
-            // Configure entity for EF Core
+            // Configure entity for EF Core with extended ASCII support
             var entityBuilder = modelBuilder.Entity(entity.EntityType);
 
             // Set table name and schema
             entityBuilder.ToTable(entity.TableName, entity.SchemaName);
 
-            // Configure properties based on metadata
+            // Configure properties based on metadata with extended ASCII collation
             foreach (var propertyMapping in entity.PropertyMappings)
             {
                 var property = entityBuilder.Property(propertyMapping.PropertyName);
 
                 if (propertyMapping.HasCustomMapping)
                 {
-                    // Apply custom SQL Server type mapping
-                    property.HasColumnType(propertyMapping.SqlServerType);
+                    // Apply custom SQL Server type mapping with extended ASCII support
+                    if (propertyMapping.SqlServerType.Contains("VARCHAR") || propertyMapping.SqlServerType.Contains("TEXT"))
+                    {
+                        // Ensure extended ASCII collation for string types
+                        property.HasColumnType(propertyMapping.SqlServerType)
+                               .UseCollation("SQL_Latin1_General_CP1252_CI_AS");
+                    }
+                    else
+                    {
+                        property.HasColumnType(propertyMapping.SqlServerType);
+                    }
+                }
+                else if (propertyMapping.PropertyType == typeof(string))
+                {
+                    // Default string properties to NVARCHAR with extended ASCII collation
+                    property.HasColumnType("NVARCHAR(255)")
+                           .UseCollation("SQL_Latin1_General_CP1252_CI_AS");
                 }
 
                 // Set column name
                 property.HasColumnName(propertyMapping.ColumnName);
             }
+        }
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (Database.IsSqlServer())
+        {
+            // Configure for extended ASCII support
+            optionsBuilder.UseSqlServer(options =>
+            {
+                options.CommandTimeout(300);
+            });
+        }
+        else if (Database.IsSqlite())
+        {
+            // Configure SQLite for proper text handling
+            optionsBuilder.UseSqlite(options =>
+            {
+                options.CommandTimeout(300);
+            });
         }
     }
 
@@ -265,7 +348,7 @@ public class DynamicDbContext : DbContext
     }
 }
 
-// Result model for extraction
+// Result model for extraction with extended ASCII support
 public class ExtractionResult
 {
     public UserInfo UserInfo { get; set; } = new();

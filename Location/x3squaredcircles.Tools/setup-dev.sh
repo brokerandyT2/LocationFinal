@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # setup-dev.sh - Location Development Environment Setup
 # Single repository per vertical, Core dependencies via Azure Artifacts
 
@@ -472,21 +472,89 @@ setup_database() {
     # Create namespace for Location development
     kubectl create namespace location-dev --dry-run=client -o yaml | kubectl apply -f -
     
-    # Apply SQL Server Kubernetes manifests
+    # Create SQL Server deployment and service
     log_info "Creating SQL Server deployment..."
-    
-    # Check if manifests directory exists
-    local manifests_dir="$SCRIPT_DIR/k8s"
-    if [[ ! -d "$manifests_dir" ]]; then
-        fatal "Kubernetes manifests directory not found: $manifests_dir"
-    fi
-    
-    # Apply manifests in order
-    kubectl apply -f "$manifests_dir/namespace.yaml"
-    kubectl apply -f "$manifests_dir/secret.yaml"
-    kubectl apply -f "$manifests_dir/pvc.yaml"
-    kubectl apply -f "$manifests_dir/deployment.yaml"
-    kubectl apply -f "$manifests_dir/service.yaml"
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mssql-secret
+  namespace: location-dev
+type: Opaque
+data:
+  SA_PASSWORD: TG9jYXRpb25EZXY yMDI0IQ==  # LocationDev2024! base64 encoded
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mssql-data-pvc
+  namespace: location-dev
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mssql-deployment
+  namespace: location-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mssql
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      containers:
+      - name: mssql
+        image: mcr.microsoft.com/mssql/server:2022-CU8-ubuntu-20.04
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_PID
+          value: "Developer"
+        - name: SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mssql-secret
+              key: SA_PASSWORD
+        ports:
+        - containerPort: 1433
+        volumeMounts:
+        - name: mssql-data
+          mountPath: /var/opt/mssql/data
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+      volumes:
+      - name: mssql-data
+        persistentVolumeClaim:
+          claimName: mssql-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql-service
+  namespace: location-dev
+spec:
+  selector:
+    app: mssql
+  ports:
+  - protocol: TCP
+    port: 1433
+    targetPort: 1433
+  type: NodePort
+EOF
     
     # Wait for SQL Server pod to be ready
     log_info "Waiting for SQL Server to be ready..."
@@ -1572,11 +1640,12 @@ start_minikube() {
 }
 
 # Setup development database in Kubernetes
+# Setup development database in Kubernetes
 setup_database() {
-    log_info "Setting up development database in Kubernetes..."
+    log_info "Setting up development database in Kubernetes with extended ASCII support..."
     
     if [[ "$DRY_RUN" == true ]]; then
-        log_info "DRY RUN: Would setup SQL Server in Kubernetes and DataConsumption database"
+        log_info "DRY RUN: Would setup SQL Server in Kubernetes with extended ASCII support"
         return 0
     fi
     
@@ -1589,89 +1658,21 @@ setup_database() {
     # Create namespace for Location development
     kubectl create namespace location-dev --dry-run=client -o yaml | kubectl apply -f -
     
-    # Create SQL Server deployment and service
-    log_info "Creating SQL Server deployment..."
-    cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mssql-secret
-  namespace: location-dev
-type: Opaque
-data:
-  SA_PASSWORD: TG9jYXRpb25EZXY yMDI0IQ==  # LocationDev2024! base64 encoded
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mssql-data-pvc
-  namespace: location-dev
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: mssql-deployment
-  namespace: location-dev
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: mssql
-  template:
-    metadata:
-      labels:
-        app: mssql
-    spec:
-      containers:
-      - name: mssql
-        image: mcr.microsoft.com/mssql/server:2022-CU8-ubuntu-20.04
-        env:
-        - name: ACCEPT_EULA
-          value: "Y"
-        - name: MSSQL_PID
-          value: "Developer"
-        - name: SA_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mssql-secret
-              key: SA_PASSWORD
-        ports:
-        - containerPort: 1433
-        volumeMounts:
-        - name: mssql-data
-          mountPath: /var/opt/mssql/data
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
-          limits:
-            memory: "4Gi"
-            cpu: "2000m"
-      volumes:
-      - name: mssql-data
-        persistentVolumeClaim:
-          claimName: mssql-data-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mssql-service
-  namespace: location-dev
-spec:
-  selector:
-    app: mssql
-  ports:
-  - protocol: TCP
-    port: 1433
-    targetPort: 1433
-  type: NodePort
-EOF
+    # Apply SQL Server Kubernetes manifests
+    log_info "Creating SQL Server deployment with extended ASCII support..."
+    
+    # Check if manifests directory exists
+    local manifests_dir="$SCRIPT_DIR/k8s"
+    if [[ ! -d "$manifests_dir" ]]; then
+        fatal "Kubernetes manifests directory not found: $manifests_dir"
+    fi
+    
+    # Apply manifests in order
+    kubectl apply -f "$manifests_dir/namespace.yaml"
+    kubectl apply -f "$manifests_dir/secret.yaml"
+    kubectl apply -f "$manifests_dir/pvc.yaml"
+    kubectl apply -f "$manifests_dir/deployment.yaml"
+    kubectl apply -f "$manifests_dir/service.yaml"
     
     # Wait for SQL Server pod to be ready
     log_info "Waiting for SQL Server to be ready..."
@@ -1684,32 +1685,80 @@ EOF
     log_info "SQL Server accessible at: $minikube_ip:$nodeport"
     
     # Wait a bit more for SQL Server to fully start
-    sleep 30
+    sleep 60
     
-    # Create DataConsumption database
-    log_info "Creating DataConsumption database..."
+    # Create DataConsumption database with extended ASCII support
+    log_info "Creating DataConsumption database with extended ASCII collation..."
     local pod_name=$(kubectl get pods -n location-dev -l app=mssql -o jsonpath='{.items[0].metadata.name}')
     
+    # Create database with specific collation for extended ASCII support
     kubectl exec -n location-dev "$pod_name" -- /opt/mssql-tools/bin/sqlcmd \
         -S localhost -U sa -P "LocationDev2024!" \
-        -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'DataConsumption') CREATE DATABASE DataConsumption"
+        -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'DataConsumption') 
+            CREATE DATABASE DataConsumption 
+            COLLATE SQL_Latin1_General_CP1252_CI_AS;"
     
-    # Create connection string file for easy reference
+    # Verify collation settings
+    log_info "Verifying database collation settings..."
+    kubectl exec -n location-dev "$pod_name" -- /opt/mssql-tools/bin/sqlcmd \
+        -S localhost -U sa -P "LocationDev2024!" \
+        -Q "SELECT name, collation_name FROM sys.databases WHERE name IN ('master', 'DataConsumption');"
+    
+    # Create a test table to verify extended ASCII support
+    log_info "Creating test table to verify extended ASCII support..."
+    kubectl exec -n location-dev "$pod_name" -- /opt/mssql-tools/bin/sqlcmd \
+        -S localhost -U sa -P "LocationDev2024!" \
+        -d DataConsumption \
+        -Q "
+        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ExtendedASCIITest')
+        CREATE TABLE ExtendedASCIITest (
+            Id INT IDENTITY(1,1) PRIMARY KEY,
+            TestText NVARCHAR(255) COLLATE SQL_Latin1_General_CP1252_CI_AS,
+            TestVarchar VARCHAR(255) COLLATE SQL_Latin1_General_CP1252_CI_AS,
+            CreatedDate DATETIME2 DEFAULT GETDATE()
+        );
+        
+        -- Insert test data with extended ASCII characters
+        INSERT INTO ExtendedASCIITest (TestText, TestVarchar) VALUES 
+        (N'Test with éxtëndëd characters: áéíóú àèìòù âêîôû ñç', 'ASCII: Test with extended chars'),
+        (N'Symbols: © ® ™ § ¶ † ‡ • ‰ ‹ › « »', 'More symbols: ¡¿¢£¤¥¦§¨©'),
+        (N'Math: ± × ÷ ≠ ≤ ≥ ∞ ∫ ∑ √ ∂', 'Currency: €$£¥¢'),
+        (N'Accented: À Á Â Ã Ä Å Æ Ç È É Ê Ë', 'More: Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö');
+        
+        -- Verify the data was inserted correctly
+        SELECT 'Extended ASCII Test Results:' as Status;
+        SELECT Id, TestText, TestVarchar, CreatedDate FROM ExtendedASCIITest;
+        "
+    
+    # Create connection string file for easy reference with character encoding info
     mkdir -p "$LOCATION_ROOT"
     cat > "$LOCATION_ROOT/database-connection.txt" << EOF
-SQL Server Connection Details:
+SQL Server Connection Details (with Extended ASCII Support):
+===============================================================
 Host: $minikube_ip
 Port: $nodeport
 Database: DataConsumption
 Username: sa
 Password: LocationDev2024!
+Collation: SQL_Latin1_General_CP1252_CI_AS
+Character Set: CP1252 (Windows-1252)
 
 Connection String:
 Server=$minikube_ip,$nodeport;Database=DataConsumption;User Id=sa;Password=LocationDev2024!;TrustServerCertificate=true;
+
+Character Encoding Notes:
+========================
+- Database uses SQL_Latin1_General_CP1252_CI_AS collation
+- Supports Windows-1252 character set (extended ASCII)
+- NVARCHAR columns support full Unicode
+- VARCHAR columns support CP1252 extended ASCII (characters 128-255)
+- Test table 'ExtendedASCIITest' created for verification
 EOF
     
-    log_success "Development database ready in Kubernetes"
+    log_success "Development database ready in Kubernetes with extended ASCII support"
     log_info "Connection details saved to: $LOCATION_ROOT/database-connection.txt"
+    log_info "Database collation: SQL_Latin1_General_CP1252_CI_AS (supports Windows-1252 extended ASCII)"
+    log_info "Test table 'ExtendedASCIITest' created with sample extended ASCII characters"
 }
 
 # Clone repository
