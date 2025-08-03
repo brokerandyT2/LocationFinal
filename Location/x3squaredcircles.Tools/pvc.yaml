@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mssql-data-pvc
+  namespace: location-dev
+  labels:
+    app: mssql
+    component: database
+    environment: development
+    storage-type: database
+  annotations:
+    description: "Persistent storage for SQL Server database files"
+    created-by: "setup-dev.sh"
+    volume.beta.kubernetes.io/storage-class: "standard"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+# SECURITY NOTE: This file should be READ-ONLY in Git except for ADO administrators
+# Azure DevOps permissions: Only ADO admins should have write access to k8s/ directory

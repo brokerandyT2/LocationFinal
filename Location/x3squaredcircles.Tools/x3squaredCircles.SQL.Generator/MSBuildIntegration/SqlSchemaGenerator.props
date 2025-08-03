@@ -1,0 +1,65 @@
+﻿<Project>
+
+  <!-- Global properties for SQL Schema Generator -->
+  <PropertyGroup>
+
+    <!-- Enable/Disable schema generation globally -->
+    <!-- <RunSqlSchemaGenerator>true</RunSqlSchemaGenerator> -->
+
+    <!-- Default configuration (can be overridden per project) -->
+    <!-- <SqlSchemaGeneratorMode>noop</SqlSchemaGeneratorMode> -->
+    <!-- <SqlSchemaGeneratorServer>localhost\SQLEXPRESS</SqlSchemaGeneratorServer> -->
+    <!-- <SqlSchemaGeneratorDatabase>LocationDev</SqlSchemaGeneratorDatabase> -->
+    <!-- <SqlSchemaGeneratorUseLocal>true</SqlSchemaGeneratorUseLocal> -->
+
+    <!-- Azure Key Vault authentication (alternative to local) -->
+    <!-- <SqlSchemaGeneratorKeyVaultUrl>https://myvault.vault.azure.net/</SqlSchemaGeneratorKeyVaultUrl> -->
+    <!-- <SqlSchemaGeneratorUsernameSecret>sql-username</SqlSchemaGeneratorUsernameSecret> -->
+    <!-- <SqlSchemaGeneratorPasswordSecret>sql-password</SqlSchemaGeneratorPasswordSecret> -->
+
+    <!-- Custom assembly paths (if needed) -->
+    <!-- <SqlSchemaGeneratorCoreAssembly>path/to/Location.Core.Domain.dll</SqlSchemaGeneratorCoreAssembly> -->
+    <!-- <SqlSchemaGeneratorPhotographyAssembly>path/to/Location.Photography.Domain.dll</SqlSchemaGeneratorPhotographyAssembly> -->
+
+    <!-- Additional options -->
+    <!-- <SqlSchemaGeneratorVerbose>true</SqlSchemaGeneratorVerbose> -->
+
+  </PropertyGroup>
+
+  <!-- Project-specific enablement based on naming conventions -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+
+    <!-- Auto-enable for Domain projects -->
+    <RunSqlSchemaGenerator Condition="$(MSBuildProjectName.Contains('Domain')) AND '$(RunSqlSchemaGenerator)' == ''">true</RunSqlSchemaGenerator>
+
+    <!-- Or enable for specific projects -->
+    <!-- <RunSqlSchemaGenerator Condition="'$(MSBuildProjectName)' == 'Location.Core.Domain' AND '$(RunSqlSchemaGenerator)' == ''">true</RunSqlSchemaGenerator> -->
+    <!-- <RunSqlSchemaGenerator Condition="'$(MSBuildProjectName)' == 'Location.Photography.Domain' AND '$(RunSqlSchemaGenerator)' == ''">true</RunSqlSchemaGenerator> -->
+
+  </PropertyGroup>
+
+  <!-- Always disable for the generator project itself -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SQLServerSyncGenerator'">
+    <RunSqlSchemaGenerator>false</RunSqlSchemaGenerator>
+  </PropertyGroup>
+
+  <!-- Disable for test projects -->
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('Test')) OR $(MSBuildProjectName.Contains('Tests'))">
+    <RunSqlSchemaGenerator>false</RunSqlSchemaGenerator>
+  </PropertyGroup>
+
+  <!-- Safe defaults for developer builds -->
+  <PropertyGroup Condition="'$(RunSqlSchemaGenerator)' == 'true'">
+    <!-- Default to no-op mode for safety -->
+    <SqlSchemaGeneratorMode Condition="'$(SqlSchemaGeneratorMode)' == ''">noop</SqlSchemaGeneratorMode>
+
+    <!-- Default to local development database -->
+    <SqlSchemaGeneratorServer Condition="'$(SqlSchemaGeneratorServer)' == ''">localhost\SQLEXPRESS</SqlSchemaGeneratorServer>
+    <SqlSchemaGeneratorDatabase Condition="'$(SqlSchemaGeneratorDatabase)' == ''">LocationDev</SqlSchemaGeneratorDatabase>
+    <SqlSchemaGeneratorUseLocal Condition="'$(SqlSchemaGeneratorUseLocal)' == ''">true</SqlSchemaGeneratorUseLocal>
+
+    <!-- Default to verbose logging in Debug -->
+    <SqlSchemaGeneratorVerbose Condition="'$(SqlSchemaGeneratorVerbose)' == ''">true</SqlSchemaGeneratorVerbose>
+  </PropertyGroup>
+
+</Project>

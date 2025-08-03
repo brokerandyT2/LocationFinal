@@ -1,0 +1,73 @@
+﻿<Project>
+
+  <!-- Only run in Debug builds -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <RunSqlSchemaGenerator Condition="'$(RunSqlSchemaGenerator)' == ''">true</RunSqlSchemaGenerator>
+  </PropertyGroup>
+
+  <!-- Define the SQL Schema Generator task -->
+  <Target Name="GenerateSqlSchema"
+          AfterTargets="Build"
+          Condition="'$(RunSqlSchemaGenerator)' == 'true'">
+
+    <PropertyGroup>
+      <!-- Default to global tool, fallback options available -->
+      <SqlSchemaGeneratorCommand Condition="'$(SqlSchemaGeneratorCommand)' == ''">sql-schema-generator</SqlSchemaGeneratorCommand>
+
+      <!-- Build base arguments -->
+      <SqlSchemaGeneratorArgs>--server "$(SqlSchemaGeneratorServer)" --database "$(SqlSchemaGeneratorDatabase)"</SqlSchemaGeneratorArgs>
+
+      <!-- Add authentication method -->
+      <SqlSchemaGeneratorArgs Condition="'$(SqlSchemaGeneratorUseLocal)' == 'true'">$(SqlSchemaGeneratorArgs) --local</SqlSchemaGeneratorArgs>
+      <SqlSchemaGeneratorArgs Condition="'$(SqlSchemaGeneratorUseLocal)' != 'true' AND '$(SqlSchemaGeneratorKeyVaultUrl)' != ''">$(SqlSchemaGeneratorArgs) --keyvault-url "$(SqlSchemaGeneratorKeyVaultUrl)" --username-secret "$(SqlSchemaGeneratorUsernameSecret)" --password-secret "$(SqlSchemaGeneratorPasswordSecret)"</SqlSchemaGeneratorArgs>
+
+      <!-- Add mode (defaults to noop for safety) -->
+      <SqlSchemaGeneratorArgs Condition="'$(SqlSchemaGeneratorMode)' == 'noop'">$(SqlSchemaGeneratorArgs) --noop</SqlSchemaGeneratorArgs>
+      <SqlSchemaGeneratorArgs Condition="'$(SqlSchemaGeneratorMode)' == 'prod'">$(SqlSchemaGeneratorArgs) --prod</SqlSchemaGeneratorArgs>
+
+      <!-- Add verbose flag -->
+      <SqlSchemaGeneratorArgs Condition="'$(SqlSchemaGeneratorVerbose)' == 'true'">$(SqlSchemaGeneratorArgs) --verbose</SqlSchemaGeneratorArgs>
+
+      <!-- Add custom assembly paths if specified -->
+      <SqlSchemaGeneratorArgs Condition="'$(SqlSchemaGeneratorCoreAssembly)' != ''">$(SqlSchemaGeneratorArgs) --core-assembly "$(SqlSchemaGeneratorCoreAssembly)"</SqlSchemaGeneratorArgs>
+      <SqlSchemaGeneratorArgs Condition="'$(SqlSchemaGeneratorPhotographyAssembly)' != ''">$(SqlSchemaGeneratorArgs) --photography-assembly "$(SqlSchemaGeneratorPhotographyAssembly)"</SqlSchemaGeneratorArgs>
+    </PropertyGroup>
+
+    <!-- Skip if this IS the schema generator project -->
+    <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SQLServerSyncGenerator'">
+      <RunSqlSchemaGenerator>false</RunSqlSchemaGenerator>
+    </PropertyGroup>
+
+    <!-- Validate required configuration -->
+    <Error Condition="'$(RunSqlSchemaGenerator)' == 'true' AND '$(SqlSchemaGeneratorServer)' == ''"
+           Text="[SqlSchemaGenerator] SqlSchemaGeneratorServer is required when RunSqlSchemaGenerator is enabled" />
+    <Error Condition="'$(RunSqlSchemaGenerator)' == 'true' AND '$(SqlSchemaGeneratorDatabase)' == ''"
+           Text="[SqlSchemaGenerator] SqlSchemaGeneratorDatabase is required when RunSqlSchemaGenerator is enabled" />
+    <Error Condition="'$(RunSqlSchemaGenerator)' == 'true' AND '$(SqlSchemaGeneratorUseLocal)' != 'true' AND '$(SqlSchemaGeneratorKeyVaultUrl)' == ''"
+           Text="[SqlSchemaGenerator] Either SqlSchemaGeneratorUseLocal=true OR KeyVault settings must be configured" />
+
+    <Message Text="[SqlSchemaGenerator] Analyzing database schema after Domain build..."
+             Importance="high"
+             Condition="'$(RunSqlSchemaGenerator)' == 'true'" />
+    <Message Text="[SqlSchemaGenerator] Project: $(MSBuildProjectName)"
+             Importance="normal"
+             Condition="'$(RunSqlSchemaGenerator)' == 'true'" />
+    <Message Text="[SqlSchemaGenerator] Mode: $(SqlSchemaGeneratorMode) (safe default for developers)"
+             Importance="normal"
+             Condition="'$(RunSqlSchemaGenerator)' == 'true' AND '$(SqlSchemaGeneratorMode)' == 'noop'" />
+    <Message Text="[SqlSchemaGenerator] Command: $(SqlSchemaGeneratorCommand) $(SqlSchemaGeneratorArgs)"
+             Importance="normal"
+             Condition="'$(RunSqlSchemaGenerator)' == 'true'" />
+
+    <!-- Execute the generator -->
+    <Exec Command="$(SqlSchemaGeneratorCommand) $(SqlSchemaGeneratorArgs)"
+          ContinueOnError="true"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          Condition="'$(RunSqlSchemaGenerator)' == 'true'" />
+
+    <Message Text="[SqlSchemaGenerator] Schema analysis completed!"
+             Importance="high"
+             Condition="'$(RunSqlSchemaGenerator)' == 'true'" />
+  </Target>
+
+</Project>

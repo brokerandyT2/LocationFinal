@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: location-dev
+  labels:
+    name: location-dev
+    purpose: development
+    team: location
+  annotations:
+    description: "Location development environment namespace"
+    created-by: "setup-dev.sh"
+    environment: "development"
+spec: {}

@@ -1,0 +1,42 @@
+﻿<Project>
+  
+  <!-- Global properties for Photography Adapter Generator -->
+  <PropertyGroup>
+    
+    <!-- Enable/Disable adapter generation globally -->
+    <!-- <RunPhotographyAdapterGenerator>true</RunPhotographyAdapterGenerator> -->
+    
+    <!-- Default configuration (can be overridden per project) -->
+    <!-- <AdapterGeneratorPlatform>both</AdapterGeneratorPlatform> -->
+    <!-- <AdapterGeneratorOutput>Kotlin-Adapters</AdapterGeneratorOutput> -->
+    <!-- <AdapterGeneratorArgs>{replace with a double hyphen}verbose</AdapterGeneratorArgs> -->
+    
+    <!-- Custom assembly paths (if needed) -->
+    <!-- <AdapterGeneratorCoreAssembly>path/to/Location.Core.ViewModels.dll</AdapterGeneratorCoreAssembly> -->
+    <!-- <AdapterGeneratorPhotographyAssembly>path/to/Location.Photography.ViewModels.dll</AdapterGeneratorPhotographyAssembly> -->
+    
+  </PropertyGroup>
+
+  <!-- Project-specific enablement based on naming conventions -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    
+    <!-- Auto-enable for ViewModel projects -->
+    <RunPhotographyAdapterGenerator Condition="$(MSBuildProjectName.Contains('ViewModel')) AND '$(RunPhotographyAdapterGenerator)' == ''">true</RunPhotographyAdapterGenerator>
+    
+    <!-- Or enable for specific projects -->
+    <!-- <RunPhotographyAdapterGenerator Condition="'$(MSBuildProjectName)' == 'Location.Photography.ViewModels' AND '$(RunPhotographyAdapterGenerator)' == ''">true</RunPhotographyAdapterGenerator> -->
+    <!-- <RunPhotographyAdapterGenerator Condition="'$(MSBuildProjectName)' == 'Location.Core.ViewModels' AND '$(RunPhotographyAdapterGenerator)' == ''">true</RunPhotographyAdapterGenerator> -->
+    
+  </PropertyGroup>
+
+  <!-- Always disable for the generator project itself -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'PhotographyAdapterGenerator'">
+    <RunPhotographyAdapterGenerator>false</RunPhotographyAdapterGenerator>
+  </PropertyGroup>
+
+  <!-- Disable for test projects -->
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('Test')) OR $(MSBuildProjectName.Contains('Tests'))">
+    <RunPhotographyAdapterGenerator>false</RunPhotographyAdapterGenerator>
+  </PropertyGroup>
+
+</Project>

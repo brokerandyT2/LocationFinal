@@ -1,0 +1,67 @@
+# .NET Build Artifacts
+**/bin/
+**/obj/
+*.dll
+*.pdb
+*.exe
+!*.exe.config
+
+# NuGet
+**/packages/
+**/.nuget/
+*.nupkg
+*.snupkg
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Setup Script Runtime Files
+setup-dev.log
+installation-state.json
+.location-state.json
+debug.log
+
+# Local Kubernetes Customizations (developers can modify locally)
+scripts/k8s/
+
+# Temporary Download Files
+*.deb
+*.rpm
+packages-microsoft-prod.*
+
+# Azure CLI Cache
+.azure/
+
+# Docker
+.dockerignore
+
+# Local Environment Overrides
+.env.local
+.env.override
+
+# Backup Files
+*.bak
+*.backup
+
+# Runtime Logs
+*.log

@@ -1,0 +1,98 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>x3squaredcirecles.SQLSync.Generator</AssemblyName>
+    <RootNamespace>x3squaredcirecles.SQLSync.Generator</RootNamespace>
+
+    <!-- .NET Tool Configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>sql-schema-generator</ToolCommandName>
+
+    <!-- Package Metadata -->
+    <PackageId>x3squaredcirecles.SQLSync.Generator</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Location Team</Authors>
+    <Company>3xSquaredCircles</Company>
+    <Description>Automated SQL Server schema generation from .NET Domain entities with Azure Key Vault integration. Generates tables, indexes, and foreign keys from entity metadata. Auto-runs after Domain builds with MSBuild integration.</Description>
+    <PackageTags>sql-server;schema;ddl;azure;keyvault;database;entity;domain;automation;pipeline;msbuild;debug-only</PackageTags>
+    <PackageProjectUrl>https://github.com/your-org/sqlserver-sync-generator</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- MSBuild Integration Properties -->
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+
+    <!-- Build Properties -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <NoWarn>CS8618</NoWarn>
+    <!-- Nullable reference type warnings -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Command line parsing -->
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+
+    <!-- Azure Key Vault integration -->
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
+    <PackageReference Include="Azure.Identity" Version="1.10.4" />
+
+    <!-- SQL Server connectivity -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+
+    <!-- Logging -->
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+
+    <!-- SQLite attributes for backward compatibility -->
+    <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Create folders for organization -->
+    <Folder Include="MSBuildIntegration\" />
+  </ItemGroup>
+
+  <!-- Create build directory structure -->
+  <Target Name="CreateBuildDirectory" BeforeTargets="BeforeBuild">
+    <MakeDir Directories="$(MSBuildProjectDirectory)\build" Condition="!Exists('$(MSBuildProjectDirectory)\build')" />
+  </Target>
+
+  <!-- MSBuild Integration Files - Pack into NuGet -->
+  <ItemGroup>
+    <None Include="MSBuildIntegration\SqlSchemaGenerator.targets" Pack="true" PackagePath="build\x3squaredcirecles.SQLSync.Generator.targets" Condition="Exists('MSBuildIntegration\SqlSchemaGenerator.targets')" />
+    <None Include="MSBuildIntegration\SqlSchemaGenerator.props" Pack="true" PackagePath="build\x3squaredcirecles.SQLSync.Generator.props" Condition="Exists('MSBuildIntegration\SqlSchemaGenerator.props')" />
+  </ItemGroup>
+
+  <!-- Copy integration files to build folder for local testing -->
+  <Target Name="CopyMSBuildIntegrationFiles" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy SourceFiles="MSBuildIntegration\SqlSchemaGenerator.targets" DestinationFiles="build\x3squaredcirecles.SQLSync.Generator.targets" Condition="Exists('MSBuildIntegration\SqlSchemaGenerator.targets')" />
+    <Copy SourceFiles="MSBuildIntegration\SqlSchemaGenerator.props" DestinationFiles="build\x3squaredcirecles.SQLSync.Generator.props" Condition="Exists('MSBuildIntegration\SqlSchemaGenerator.props')" />
+    <Message Text="[MSBuild Integration] Copied .targets and .props files to build folder" Importance="normal" />
+  </Target>
+
+  <!-- Pack and install tool automatically on Debug builds -->
+  <Target Name="AutoInstallToolAfterPack" AfterTargets="Pack" Condition="'$(Configuration)' == 'Debug'">
+    <Message Text="[Auto-Install] Installing SQL Schema Generator as global tool..." Importance="high" />
+
+    <!-- Uninstall existing version (ignore errors if not installed) -->
+    <Exec Command="dotnet tool uninstall -g SQLServerSyncGenerator" ContinueOnError="true" IgnoreExitCode="true" />
+
+    <!-- Install latest version -->
+    <Exec Command="dotnet tool install -g --add-source &quot;$(MSBuildProjectDirectory)\bin\Debug&quot; SQLServerSyncGenerator" ContinueOnError="false" />
+
+    <Message Text="[Auto-Install] ✅ Global tool installation completed! Now auto-runs after Domain project builds." Importance="high" />
+    <Message Text="[Auto-Install] 🛡️  Defaults to --noop mode for database safety during development." Importance="high" />
+  </Target>
+
+  <!-- Copy documentation for debugging -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Location.Core.Helpers\Location.Core.Helpers.csproj" />
+  </ItemGroup>
+
+</Project>
