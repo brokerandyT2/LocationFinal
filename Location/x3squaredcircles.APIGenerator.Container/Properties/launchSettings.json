@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "x3squaredcircles.APIGenerator.Container": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

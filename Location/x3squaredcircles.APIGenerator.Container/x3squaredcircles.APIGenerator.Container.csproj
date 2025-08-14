@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>x3squaredcircles.APIGenerator.Container</RootNamespace>
+    <AssemblyName>api-generator</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <WarningsNotAsErrors>CS8618;CS8600;CS8601;CS8602;CS8603;CS8604;CS8625;CS1998</WarningsNotAsErrors>
+    <Version>1.0.0</Version>
+    <AssemblyTitle>API Generator Container</AssemblyTitle>
+    <AssemblyDescription>Containerized tool that automatically generates and deploys cloud APIs from code entities</AssemblyDescription>
+    <AssemblyCompany>x3squaredcircles</AssemblyCompany>
+    <AssemblyProduct>API Generator</AssemblyProduct>
+    <Copyright>Copyright © x3squaredcircles 2025</Copyright>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include="Dockerfile" />
+    <None Include=".dockerignore" />
+  </ItemGroup>
+
+</Project>
